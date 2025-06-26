@@ -1,4 +1,5 @@
 import type { Row } from "@tanstack/react-table";
+import { DeleteConfirmation } from "@/components/delete-confirmation";
 import { useTRPC } from "@/trpc/react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { EllipsisVerticalIcon, Trash2Icon } from "lucide-react";
@@ -32,6 +33,9 @@ export function ApiKeyActions({ row }: { row: Row<ApiKeyDef> }) {
 
         toast.success("API key deleted");
       },
+      onError: (error) => {
+        toast.error(error.message);
+      },
     }),
   );
 
@@ -48,10 +52,20 @@ export function ApiKeyActions({ row }: { row: Row<ApiKeyDef> }) {
       </DropdownMenuTrigger>
 
       <DropdownMenuContent>
-        <DropdownMenuItem onClick={handleDelete} disabled={isPending}>
-          <Trash2Icon className="size-4" />
-          Delete
-        </DropdownMenuItem>
+        <DeleteConfirmation
+          trigger={
+            <DropdownMenuItem
+              onSelect={(e) => e.preventDefault()}
+              disabled={isPending}
+            >
+              <Trash2Icon className="size-4" />
+              Delete
+            </DropdownMenuItem>
+          }
+          title="Delete API Key"
+          description={`Are you sure you want to delete the API key "${row.original.label}"? This action cannot be undone and will immediately revoke access for any applications using this key.`}
+          onConfirm={handleDelete}
+        />
       </DropdownMenuContent>
     </DropdownMenu>
   );
