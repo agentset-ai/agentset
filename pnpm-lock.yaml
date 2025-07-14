@@ -163,8 +163,8 @@ importers:
         specifier: ^1.34.9
         version: 1.34.9
       '@upstash/workflow':
-        specifier: ^0.2.13
-        version: 0.2.13(react@19.1.0)
+        specifier: ^0.2.15
+        version: 0.2.15(react@19.1.0)
       '@vercel/functions':
         specifier: ^2.0.0
         version: 2.0.0(@aws-sdk/credential-provider-web-identity@3.772.0)
@@ -3564,8 +3564,8 @@ packages:
   '@upstash/redis@1.34.9':
     resolution: {integrity: sha512-7qzzF2FQP5VxR2YUNjemWs+hl/8VzJJ6fOkT7O7kt9Ct8olEVzb1g6/ik6B8Pb8W7ZmYv81SdlVV9F6O8bh/gw==}
 
-  '@upstash/workflow@0.2.13':
-    resolution: {integrity: sha512-TX2fOPnAWgW6ky7MoC9OCgVIu7rB1BRqfP+c8ILziR/I5vdpky5mrHvpSJq28Vqsq+rso0pyLW4Dmle1Hk56Rw==}
+  '@upstash/workflow@0.2.15':
+    resolution: {integrity: sha512-klvurY7NnqSB8PMeP626vKX8rcyvcLZ6lNkgwxYHM6UkxcRpXpN1Ja25ULdHRn7OwzGV2f0c+Mjc6ijnMZDzzw==}
 
   '@vercel/functions@2.0.0':
     resolution: {integrity: sha512-BSwIihLHoV18gerKZJyGuqd3rtaYM6rJvET1kOwKktshucyaHXTJel7Cxegs+sdX0NZqsX4LO2MFnMU2jG01Cw==}
@@ -10759,7 +10759,7 @@ snapshots:
     dependencies:
       crypto-js: 4.2.0
 
-  '@upstash/workflow@0.2.13(react@19.1.0)':
+  '@upstash/workflow@0.2.15(react@19.1.0)':
     dependencies:
       '@ai-sdk/openai': 1.2.6(zod@3.24.2)
       '@upstash/qstash': 2.8.1

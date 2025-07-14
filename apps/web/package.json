@@ -50,7 +50,7 @@
     "@upstash/qstash": "^2.8.1",
     "@upstash/ratelimit": "^2.0.5",
     "@upstash/redis": "^1.34.9",
-    "@upstash/workflow": "^0.2.13",
+    "@upstash/workflow": "^0.2.15",
     "@vercel/functions": "^2.0.0",
     "ai": "^4.1.54",
     "better-auth": "^1.2.8",

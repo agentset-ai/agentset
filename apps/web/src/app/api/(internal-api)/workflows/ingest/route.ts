@@ -181,17 +181,16 @@ export const { POST } = serve<TriggerIngestionJobBody>(
     const documentIdToWorkflowRunId = await context.run(
       "enqueue-documents",
       async () => {
-        const documentIdToWorkflowRunId = await Promise.all(
-          documents.map(async (document) => {
-            const { workflowRunId } = await triggerDocumentJob({
-              documentId: document.id,
-            });
-
-            return { documentId: document.id, workflowRunId };
-          }),
+        const documentIdToWorkflowRunIds = await triggerDocumentJob(
+          documents.map((document) => ({
+            documentId: document.id,
+          })),
         );
 
-        return documentIdToWorkflowRunId;
+        return documentIdToWorkflowRunIds.map((data, idx) => ({
+          documentId: documents[idx]!.id,
+          workflowRunId: data.workflowRunId,
+        }));
       },
     );
 

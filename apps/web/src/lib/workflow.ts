@@ -33,11 +33,32 @@ export type TriggerDocumentJobBody = {
   documentId: string;
   cleanup?: boolean;
 };
-export const triggerDocumentJob = async (body: TriggerDocumentJobBody) => {
+
+type TriggerDocumentReturnType<
+  T extends TriggerDocumentJobBody | TriggerDocumentJobBody[],
+> = Promise<
+  T extends Array<any> ? { workflowRunId: string }[] : { workflowRunId: string }
+>;
+
+export const triggerDocumentJob = async <
+  T extends TriggerDocumentJobBody | TriggerDocumentJobBody[],
+>(
+  body: T,
+): TriggerDocumentReturnType<T> => {
+  const url = `${getBaseUrl()}/api/workflows/process-document`;
+  if (Array.isArray(body)) {
+    return workflowClient.trigger(
+      body.map((item) => ({
+        url,
+        body: item,
+      })),
+    ) as TriggerDocumentReturnType<T>;
+  }
+
   return workflowClient.trigger({
-    url: `${getBaseUrl()}/api/workflows/process-document`,
+    url,
     body,
-  });
+  }) as TriggerDocumentReturnType<T>;
 };
 
 export type DeleteDocumentBody = {
