@@ -21,3 +21,29 @@ export const meterIngestedPages = async ({
     },
   });
 };
+
+export const meterDocumentsPages = async ({
+  documents,
+  stripeCustomerId,
+}: {
+  documents: {
+    id: string;
+    totalPages: number;
+  }[];
+  stripeCustomerId: string;
+}) => {
+  // Track each document to Stripe metered billing
+  const billingRestartTimestamp = new Date().toISOString();
+
+  await stripe.v2.billing.meterEventStream.create({
+    events: documents.map((document) => ({
+      identifier: prefixId(document.id, "doc_"), // idempotency key
+      event_name: PRO_PLAN_METERED.meterName,
+      timestamp: billingRestartTimestamp.toString(),
+      payload: {
+        stripe_customer_id: stripeCustomerId,
+        value: document.totalPages.toFixed(2),
+      },
+    })),
+  });
+};

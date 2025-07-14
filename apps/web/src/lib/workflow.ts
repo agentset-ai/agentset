@@ -34,9 +34,7 @@ export type TriggerDocumentJobBody = {
   cleanup?: boolean;
 };
 
-type TriggerDocumentReturnType<
-  T extends TriggerDocumentJobBody | TriggerDocumentJobBody[],
-> = Promise<
+type TriggerReturnType<T extends object | object[]> = Promise<
   T extends Array<any> ? { workflowRunId: string }[] : { workflowRunId: string }
 >;
 
@@ -44,7 +42,7 @@ export const triggerDocumentJob = async <
   T extends TriggerDocumentJobBody | TriggerDocumentJobBody[],
 >(
   body: T,
-): TriggerDocumentReturnType<T> => {
+) => {
   const url = `${getBaseUrl()}/api/workflows/process-document`;
   if (Array.isArray(body)) {
     return workflowClient.trigger(
@@ -52,13 +50,13 @@ export const triggerDocumentJob = async <
         url,
         body: item,
       })),
-    ) as TriggerDocumentReturnType<T>;
+    ) as TriggerReturnType<T>;
   }
 
   return workflowClient.trigger({
     url,
     body,
-  }) as TriggerDocumentReturnType<T>;
+  }) as TriggerReturnType<T>;
 };
 
 export type DeleteDocumentBody = {
@@ -95,6 +93,30 @@ export const triggerDeleteNamespace = async (body: DeleteNamespaceBody) => {
     url: `${getBaseUrl()}/api/workflows/delete-namespace`,
     body,
   });
+};
+
+export type MeterOrgDocumentsBody = {
+  organizationId: string;
+};
+export const triggerMeterOrgDocuments = async <
+  T extends MeterOrgDocumentsBody | MeterOrgDocumentsBody[],
+>(
+  body: T,
+) => {
+  const url = `${getBaseUrl()}/api/workflows/meter-org-documents`;
+  if (Array.isArray(body)) {
+    return workflowClient.trigger(
+      body.map((item) => ({
+        url,
+        body: item,
+      })),
+    ) as TriggerReturnType<T>;
+  }
+
+  return workflowClient.trigger({
+    url,
+    body,
+  }) as TriggerReturnType<T>;
 };
 
 export type ReIngestJobBody = {

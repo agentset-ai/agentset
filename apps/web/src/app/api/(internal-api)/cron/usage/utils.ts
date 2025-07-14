@@ -1,8 +1,9 @@
 import { APP_DOMAIN } from "@/lib/constants";
 import { getAdjustedBillingCycleStart } from "@/lib/datetime";
 import { log } from "@/lib/log";
+import { isProPlan } from "@/lib/plans";
 import { capitalize } from "@/lib/string-utils";
-import { qstashClient } from "@/lib/workflow";
+import { qstashClient, triggerMeterOrgDocuments } from "@/lib/workflow";
 
 import { db } from "@agentset/db";
 
@@ -62,6 +63,7 @@ export const updateUsage = async () => {
   // TODO: send 30-day summary email
   // TODO: only reset usage if it's not over usageLimit by 2x
   if (billingReset.length > 0) {
+    // Reset search usage for billing cycle restart
     await db.organization.updateMany({
       where: {
         id: {
@@ -73,6 +75,18 @@ export const updateUsage = async () => {
         usageLastChecked: new Date(),
       },
     });
+
+    // track their usage for the billing cycle restart
+    const orgsToMeter = billingReset.filter(
+      (organization) => isProPlan(organization.plan) && organization.stripeId,
+    );
+    if (orgsToMeter.length > 0) {
+      await triggerMeterOrgDocuments(
+        orgsToMeter.map(({ id }) => ({
+          organizationId: id,
+        })),
+      );
+    }
   }
 
   // Update usageLastChecked for organizations
