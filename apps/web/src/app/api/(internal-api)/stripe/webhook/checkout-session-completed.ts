@@ -9,6 +9,7 @@ import {
 } from "@/lib/plans";
 import { sendEmail } from "@/lib/resend";
 import { stripe } from "@/lib/stripe";
+import { triggerMeterOrgDocuments } from "@/lib/workflow";
 
 import { db } from "@agentset/db";
 import { UpgradeEmail } from "@agentset/emails";
@@ -85,8 +86,8 @@ export async function checkoutSessionCompleted(event: Stripe.Event) {
     },
   });
 
-  await Promise.allSettled(
-    organization.members.map(({ user }) =>
+  await Promise.allSettled([
+    ...organization.members.map(({ user }) =>
       limiter.schedule(() =>
         sendEmail({
           email: user.email,
@@ -102,5 +103,8 @@ export async function checkoutSessionCompleted(event: Stripe.Event) {
         }),
       ),
     ),
-  );
+    triggerMeterOrgDocuments({
+      organizationId,
+    }),
+  ]);
 }
