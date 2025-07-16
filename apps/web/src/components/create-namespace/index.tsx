@@ -69,10 +69,13 @@ export default function CreateNamespaceDialog({
         setStep("details");
 
         if (organization) {
+          const queryKey = trpc.namespace.getOrgNamespaces.queryKey({
+            orgId: organization.id,
+          });
+          queryClient.setQueryData(queryKey, (old) => [...(old ?? []), data]);
+          void queryClient.invalidateQueries({ queryKey });
           router.push(`/${organization.slug}/${data.slug}/quick-start`);
         }
-
-        void queryClient.invalidateQueries(trpc.organization.all.queryFilter());
       },
       onError: (error) => {
         toast.error(error.message);

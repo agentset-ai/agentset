@@ -1,5 +1,6 @@
 import type { ProtectedProcedureContext } from "@/server/api/trpc";
 import { createTRPCRouter, protectedProcedure } from "@/server/api/trpc";
+import { deleteNamespace } from "@/services/namespaces/delete";
 import {
   validateEmbeddingModel,
   validateVectorStoreConfig,
@@ -7,6 +8,7 @@ import {
 import { TRPCError } from "@trpc/server";
 import { z } from "zod";
 
+import { NamespaceStatus } from "@agentset/db";
 import { EmbeddingConfigSchema, VectorStoreSchema } from "@agentset/validation";
 
 const validateIsMember = async (
@@ -47,6 +49,7 @@ export const namespaceRouter = createTRPCRouter({
       const namespaces = await ctx.db.namespace.findMany({
         where: {
           organizationId: input.orgId,
+          status: NamespaceStatus.ACTIVE,
         },
       });
 
@@ -62,6 +65,7 @@ export const namespaceRouter = createTRPCRouter({
             slug: input.orgSlug,
             members: { some: { userId: ctx.session.user.id } },
           },
+          status: NamespaceStatus.ACTIVE,
         },
       });
 
@@ -77,6 +81,7 @@ export const namespaceRouter = createTRPCRouter({
             slug: input.orgSlug,
             members: { some: { userId: ctx.session.user.id } },
           },
+          status: NamespaceStatus.ACTIVE,
         },
         select: {
           totalIngestJobs: true,
@@ -174,5 +179,45 @@ export const namespaceRouter = createTRPCRouter({
       ]);
 
       return namespace;
+    }),
+  deleteNamespace: protectedProcedure
+    .input(
+      z.object({
+        namespaceId: z.string(),
+      }),
+    )
+    .mutation(async ({ ctx, input }) => {
+      const namespace = await ctx.db.namespace.findFirst({
+        where: {
+          id: input.namespaceId,
+          organization: {
+            members: {
+              some: {
+                userId: ctx.session.user.id,
+                role: {
+                  in: ["admin", "owner"],
+                },
+              },
+            },
+          },
+          status: NamespaceStatus.ACTIVE,
+        },
+        select: {
+          id: true,
+          organizationId: true,
+        },
+      });
+
+      if (!namespace) {
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message:
+            "Namespace not found or you don't have permission to delete it",
+        });
+      }
+
+      await deleteNamespace({ namespaceId: namespace.id });
+
+      return { success: true };
     }),
 });

@@ -69,7 +69,6 @@ export const PUT = PATCH;
 export const DELETE = withNamespaceApiHandler(
   async ({ namespace, headers }) => {
     // TODO: check apiScope
-    // TODO: check if namespace is deleting
     await deleteNamespace({ namespaceId: namespace.id });
 
     return makeApiSuccessResponse({

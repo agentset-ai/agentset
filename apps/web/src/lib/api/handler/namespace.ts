@@ -1,5 +1,5 @@
 import type { Namespace } from "@agentset/db";
-import { db } from "@agentset/db";
+import { db, NamespaceStatus } from "@agentset/db";
 
 import type { HandlerParams } from "./base";
 import { AgentsetApiError } from "../errors";
@@ -27,6 +27,7 @@ export const withNamespaceApiHandler = (handler: NamespaceHandler) => {
     const namespace = await db.namespace.findUnique({
       where: {
         id: namespaceId,
+        status: NamespaceStatus.ACTIVE,
       },
     });
 

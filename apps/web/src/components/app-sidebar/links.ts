@@ -96,6 +96,17 @@ export const namespaceItems: SidebarItemType[] = [
     url: createNamespaceUrl("/hosting"),
     icon: GlobeIcon,
   },
+  {
+    title: "Settings",
+    icon: SettingsIcon,
+    items: [
+      {
+        title: "Danger",
+        url: createNamespaceUrl("/settings/danger"),
+        adminOnly: true,
+      },
+    ],
+  },
 ];
 
 export const supportItems: SidebarItemType[] = [

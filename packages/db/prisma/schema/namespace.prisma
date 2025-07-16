@@ -1,3 +1,8 @@
+enum NamespaceStatus {
+  ACTIVE
+  DELETING
+}
+
 model Namespace {
   id   String @id @default(cuid())
   name String
@@ -26,6 +31,8 @@ model Namespace {
   keywordEnabled Boolean @default(false) // whether keyword + hybrid search is enabled
 
   hosting Hosting?
+
+  status NamespaceStatus @default(ACTIVE)
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt

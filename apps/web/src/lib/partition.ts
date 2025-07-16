@@ -78,7 +78,7 @@ export const getPartitionDocumentBody = async (
 
     if (ingestJob.config.chunkSize) {
       unstructuredArgs.max_characters = ingestJob.config.chunkSize;
-      unstructuredArgs.new_after_n_chars = ingestJob.config.chunkSize;
+      // unstructuredArgs.new_after_n_chars = ingestJob.config.chunkSize;
     }
 
     if (ingestJob.config.chunkingStrategy) {
