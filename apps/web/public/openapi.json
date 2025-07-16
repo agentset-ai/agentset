@@ -771,6 +771,47 @@
                           "type": {
                             "type": "string",
                             "enum": [
+                              "MANAGED_FILES"
+                            ]
+                          },
+                          "files": {
+                            "type": "array",
+                            "items": {
+                              "type": "object",
+                              "properties": {
+                                "key": {
+                                  "type": "string",
+                                  "description": "The key of the managed file to ingest."
+                                },
+                                "name": {
+                                  "type": "string",
+                                  "nullable": true,
+                                  "description": "The name of the file."
+                                }
+                              },
+                              "required": [
+                                "key"
+                              ]
+                            }
+                          },
+                          "name": {
+                            "type": "string",
+                            "nullable": true,
+                            "description": "The name of the ingest job."
+                          }
+                        },
+                        "required": [
+                          "type",
+                          "files"
+                        ],
+                        "title": "Managed Files Payload"
+                      },
+                      {
+                        "type": "object",
+                        "properties": {
+                          "type": {
+                            "type": "string",
+                            "enum": [
                               "URLS"
                             ]
                           },
@@ -781,6 +822,11 @@
                               "format": "uri"
                             },
                             "description": "The URLs to ingest."
+                          },
+                          "name": {
+                            "type": "string",
+                            "nullable": true,
+                            "description": "The name of the ingest job."
                           }
                         },
                         "required": [
@@ -797,7 +843,11 @@
                     "properties": {
                       "chunkSize": {
                         "type": "number",
-                        "description": "Custom chunk size."
+                        "description": "Soft chunk size."
+                      },
+                      "maxChunkSize": {
+                        "type": "number",
+                        "description": "Hard chunk size."
                       },
                       "chunkOverlap": {
                         "type": "number",
@@ -2042,6 +2092,47 @@
                   "type": {
                     "type": "string",
                     "enum": [
+                      "MANAGED_FILES"
+                    ]
+                  },
+                  "files": {
+                    "type": "array",
+                    "items": {
+                      "type": "object",
+                      "properties": {
+                        "key": {
+                          "type": "string",
+                          "description": "The key of the managed file to ingest."
+                        },
+                        "name": {
+                          "type": "string",
+                          "nullable": true,
+                          "description": "The name of the file."
+                        }
+                      },
+                      "required": [
+                        "key"
+                      ]
+                    }
+                  },
+                  "name": {
+                    "type": "string",
+                    "nullable": true,
+                    "description": "The name of the ingest job."
+                  }
+                },
+                "required": [
+                  "type",
+                  "files"
+                ],
+                "title": "Managed Files Payload"
+              },
+              {
+                "type": "object",
+                "properties": {
+                  "type": {
+                    "type": "string",
+                    "enum": [
                       "URLS"
                     ]
                   },
@@ -2052,6 +2143,11 @@
                       "format": "uri"
                     },
                     "description": "The URLs to ingest."
+                  },
+                  "name": {
+                    "type": "string",
+                    "nullable": true,
+                    "description": "The name of the ingest job."
                   }
                 },
                 "required": [
@@ -2069,7 +2165,11 @@
             "properties": {
               "chunkSize": {
                 "type": "number",
-                "description": "Custom chunk size."
+                "description": "Soft chunk size."
+              },
+              "maxChunkSize": {
+                "type": "number",
+                "description": "Hard chunk size."
               },
               "chunkOverlap": {
                 "type": "number",

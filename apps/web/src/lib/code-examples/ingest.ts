@@ -11,6 +11,7 @@ curl --request POST \\
   },
   "config": {
     "chunkSize": 512,
+    "maxChunkSize": 1024,
     "chunkOverlap": 10,
     "metadata": {},
     "chunkingStrategy": "basic",
@@ -36,6 +37,7 @@ const result = await ns.ingestion.create({
   },
   config: {
     chunkSize: 512,
+    maxChunkSize: 1024,
     chunkOverlap: 10,
     metadata: {},
     chunkingStrategy: "basic",

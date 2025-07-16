@@ -99,7 +99,8 @@ export type IngestJobPayload = z.infer<typeof ingestJobPayloadSchema>;
 
 export const configSchema = z
   .object({
-    chunkSize: z.coerce.number().optional().describe("Custom chunk size."),
+    chunkSize: z.coerce.number().optional().describe("Soft chunk size."),
+    maxChunkSize: z.coerce.number().optional().describe("Hard chunk size."),
     chunkOverlap: z.coerce
       .number()
       .optional()

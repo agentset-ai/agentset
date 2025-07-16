@@ -57,9 +57,13 @@ export default function UrlsForm({ onSuccess }: { onSuccess: () => void }) {
         name: data.name,
       },
       config:
-        data.chunkSize || data.chunkOverlap || data.metadata
+        data.chunkSize ||
+        data.maxChunkSize ||
+        data.chunkOverlap ||
+        data.metadata
           ? {
               chunkSize: data.chunkSize,
+              maxChunkSize: data.maxChunkSize,
               chunkOverlap: data.chunkOverlap,
               metadata: data.metadata,
             }

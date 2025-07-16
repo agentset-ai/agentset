@@ -53,6 +53,21 @@ export default function IngestConfig({
 
             <FormField
               control={form.control}
+              name="maxChunkSize"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Max chunk size (optional)</FormLabel>
+                  <FormControl>
+                    <Input placeholder="1024" {...field} />
+                  </FormControl>
+
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
               name="chunkOverlap"
               render={({ field }) => (
                 <FormItem>
