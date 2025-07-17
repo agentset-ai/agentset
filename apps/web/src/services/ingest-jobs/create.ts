@@ -74,7 +74,7 @@ export const createIngestJob = async ({
 
     finalPayload = {
       type: "BATCH",
-      items: files,
+      items: finalItems,
     };
   }
 
