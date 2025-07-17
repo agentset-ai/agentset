@@ -97,6 +97,7 @@ export const batchPayloadSchema = z
           managedFilePayloadSchema.extend({ config: configSchema.optional() }),
         ]),
       )
+      .min(1)
       .describe("The items to ingest."),
   })
   .openapi({
