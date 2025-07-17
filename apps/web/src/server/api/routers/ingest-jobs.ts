@@ -51,9 +51,9 @@ export const ingestJobRouter = createTRPCRouter({
         namespaceId: z.string(),
       }),
     )
-    .mutation(async ({ ctx, input }) => {
+    .mutation(async ({ ctx, input: { namespaceId, ...input } }) => {
       const namespace = await getNamespaceByUser(ctx, {
-        id: input.namespaceId,
+        id: namespaceId,
       });
 
       if (!namespace) {
@@ -81,10 +81,8 @@ export const ingestJobRouter = createTRPCRouter({
       }
 
       return await createIngestJob({
-        payload: input.payload,
-        namespaceId: input.namespaceId,
-        organizationId: namespace.organizationId,
-        config: input.config,
+        data: input,
+        namespaceId: namespace.id,
       });
     }),
   delete: protectedProcedure

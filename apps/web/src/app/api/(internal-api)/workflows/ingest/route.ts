@@ -59,7 +59,7 @@ export const { POST } = serve<TriggerIngestionJobBody>(
           const document = await db.document.create({
             data: {
               ...commonData,
-              name: ingestionJob.payload.name,
+              name: ingestionJob.payload.fileName,
               source: {
                 type: "TEXT",
                 text,
@@ -77,7 +77,7 @@ export const { POST } = serve<TriggerIngestionJobBody>(
           const document = await db.document.create({
             data: {
               ...commonData,
-              name: ingestionJob.payload.name,
+              name: ingestionJob.payload.fileName,
               source: {
                 type: "FILE",
                 fileUrl: fileUrl,
@@ -94,7 +94,7 @@ export const { POST } = serve<TriggerIngestionJobBody>(
           const document = await db.document.create({
             data: {
               ...commonData,
-              name: ingestionJob.payload.name,
+              name: ingestionJob.payload.fileName,
               source: {
                 type: "MANAGED_FILE",
                 key: key,
@@ -108,9 +108,9 @@ export const { POST } = serve<TriggerIngestionJobBody>(
 
         return [];
       });
-    } else if (ingestionJob.payload.type === "MANAGED_FILES") {
+    } else if (ingestionJob.payload.type === "BATCH") {
       // we need to batch create the documents
-      const batches = chunkArray(ingestionJob.payload.files, 20);
+      const batches = chunkArray(ingestionJob.payload.items, 20);
 
       for (let i = 0; i < batches.length; i++) {
         const fileBatch = batches[i]!;
@@ -119,38 +119,11 @@ export const { POST } = serve<TriggerIngestionJobBody>(
           async () => {
             const newDocuments = await db.document.createManyAndReturn({
               select: { id: true },
-              data: fileBatch.map((file) => ({
+              data: fileBatch.map(({ config, fileName, ...file }) => ({
                 ...commonData,
-                ingestJobId: ingestionJob.id,
-                ...(file.name && { name: file.name }),
-                source: {
-                  type: "MANAGED_FILE",
-                  key: file.key,
-                },
-              })),
-            });
-
-            return newDocuments.flat();
-          },
-        );
-
-        documents = documents.concat(batchResult);
-      }
-    } else if (ingestionJob.payload.type === "URLS") {
-      // we need to batch create the documents
-      const batches = chunkArray(ingestionJob.payload.urls, 20);
-
-      for (let i = 0; i < batches.length; i++) {
-        const urlBatch = batches[i]!;
-        const batchResult = await context.run(
-          `create-documents-${i}`,
-          async () => {
-            const newDocuments = await db.document.createManyAndReturn({
-              select: { id: true },
-              data: urlBatch.map((url) => ({
-                ...commonData,
-                ingestJobId: ingestionJob.id,
-                source: { type: "FILE", fileUrl: url },
+                name: fileName,
+                source: file,
+                config,
               })),
             });
 

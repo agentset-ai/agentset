@@ -24,7 +24,7 @@ export function useDocuments(jobId?: string, enabled = true) {
       {
         namespaceId: activeNamespace.id,
         ingestJobId: jobId,
-        statuses,
+        statuses: statuses.length > 0 ? statuses.join(",") : undefined,
         cursor,
         cursorDirection,
       },

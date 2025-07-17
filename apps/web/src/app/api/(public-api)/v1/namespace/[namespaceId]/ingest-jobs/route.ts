@@ -78,11 +78,9 @@ export const POST = withNamespaceApiHandler(
 
     try {
       const job = await createIngestJob({
-        payload: body.payload,
+        data: body,
         namespaceId: namespace.id,
-        organizationId: namespace.organizationId,
         tenantId,
-        config: body.config,
       });
 
       return makeApiSuccessResponse({

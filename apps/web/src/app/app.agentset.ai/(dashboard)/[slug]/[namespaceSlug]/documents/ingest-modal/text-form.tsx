@@ -45,9 +45,10 @@ export default function TextForm({ onSuccess }: { onSuccess: () => void }) {
   const handleTextSubmit = async (data: z.infer<typeof schema>) => {
     await mutateAsync({
       namespaceId: activeNamespace.id,
+      name: data.name,
       payload: {
         type: "TEXT",
-        name: data.name,
+        fileName: data.name,
         text: data.text,
       },
       config:

@@ -1,7 +1,11 @@
 import z from "@/lib/zod";
 
 import { IngestJobStatus } from "@agentset/db";
-import { configSchema, ingestJobPayloadSchema } from "@agentset/validation";
+import {
+  configSchema,
+  ingestJobNameSchema,
+  ingestJobPayloadSchema,
+} from "@agentset/validation";
 
 import { paginationSchema } from "./pagination";
 
@@ -12,6 +16,7 @@ export const IngestJobStatusSchema = z
 export const IngestJobSchema = z
   .object({
     id: z.string().describe("The unique ID of the ingest job."),
+    name: ingestJobNameSchema,
     namespaceId: z.string().describe("The namespace ID of the ingest job."),
     tenantId: z
       .string()
@@ -63,9 +68,11 @@ export const IngestJobSchema = z
 
 export const IngestJobsQuerySchema = z.object({
   statuses: z
-    .array(IngestJobStatusSchema)
+    .string()
+    .transform((val) => val.split(","))
+    .pipe(z.array(IngestJobStatusSchema))
     .optional()
-    .describe("Statuses to filter by."),
+    .describe("Comma separated list of statuses to filter by."),
   orderBy: z
     .enum(["createdAt"])
     .optional()
@@ -82,6 +89,7 @@ export const getIngestionJobsSchema =
   IngestJobsQuerySchema.merge(paginationSchema);
 
 export const createIngestJobSchema = z.object({
+  name: ingestJobNameSchema,
   payload: ingestJobPayloadSchema,
   config: configSchema.optional(),
 });

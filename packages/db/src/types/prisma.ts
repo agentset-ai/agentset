@@ -54,6 +54,6 @@ declare global {
     type DocumentProperties = _DocumentProperties;
 
     type DocumentSource = _DocumentPayload;
-    type DocumentMetadata = Record<string, unknown>;
+    type DocumentConfig = _IngestJobConfig;
   }
 }

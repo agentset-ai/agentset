@@ -24,7 +24,7 @@ export function useJobs() {
     trpc.ingestJob.all.queryOptions(
       {
         namespaceId: activeNamespace.id,
-        statuses,
+        statuses: statuses.length > 0 ? statuses.join(",") : undefined,
         cursor,
         cursorDirection,
       },

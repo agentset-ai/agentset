@@ -60,43 +60,38 @@ export const getPartitionDocumentBody = async (
     }
   }
 
+  const { metadata: ingestJobMetadata, ...ingestJobConfig } =
+    ingestJob.config ?? {};
+  const { metadata: documentMetadata, ...documentConfig } =
+    document.config ?? {};
+
   body.extra_metadata = {
-    ...(ingestJob.config?.metadata ?? {}),
-    ...(document.metadata ?? {}),
+    ...(ingestJobMetadata ?? {}),
+    ...(documentMetadata ?? {}), // document metadata overrides ingest job metadata
     ...(document.tenantId && { tenantId: document.tenantId }),
     namespaceId: namespace.id,
     documentId: document.id,
   };
 
   const unstructuredArgs: PartitionBody["unstructured_args"] = {};
+  const mergedConfig = {
+    ...ingestJobConfig,
+    ...documentConfig,
+  };
 
-  if (ingestJob.config) {
-    if (ingestJob.config.chunkOverlap) {
-      unstructuredArgs.overlap = ingestJob.config.chunkOverlap;
-      // unstructuredArgs.overlap_all = true;
-    }
+  // unstructuredArgs.overlap_all = true; // TODO: add this later
+  if (mergedConfig.chunkOverlap)
+    unstructuredArgs.overlap = mergedConfig.chunkOverlap;
+  if (mergedConfig.chunkSize)
+    unstructuredArgs.new_after_n_chars = mergedConfig.chunkSize;
+  if (mergedConfig.maxChunkSize)
+    unstructuredArgs.max_characters = mergedConfig.maxChunkSize;
+  if (mergedConfig.chunkingStrategy)
+    unstructuredArgs.chunking_strategy = mergedConfig.chunkingStrategy;
+  if (mergedConfig.strategy) unstructuredArgs.strategy = mergedConfig.strategy;
 
-    if (ingestJob.config.chunkSize) {
-      // unstructuredArgs.max_characters = ingestJob.config.chunkSize;
-      unstructuredArgs.new_after_n_chars = ingestJob.config.chunkSize;
-    }
-
-    if (ingestJob.config.maxChunkSize) {
-      unstructuredArgs.max_characters = ingestJob.config.maxChunkSize;
-    }
-
-    if (ingestJob.config.chunkingStrategy) {
-      unstructuredArgs.chunking_strategy = ingestJob.config.chunkingStrategy;
-    }
-
-    if (ingestJob.config.strategy) {
-      unstructuredArgs.strategy = ingestJob.config.strategy;
-    }
-  }
-
-  if (Object.keys(unstructuredArgs).length > 0) {
+  if (Object.keys(unstructuredArgs).length > 0)
     body.unstructured_args = unstructuredArgs;
-  }
 
   body.batch_size = 30;
 

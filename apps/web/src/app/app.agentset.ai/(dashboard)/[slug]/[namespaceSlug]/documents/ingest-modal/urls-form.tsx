@@ -51,10 +51,13 @@ export default function UrlsForm({ onSuccess }: { onSuccess: () => void }) {
   const handleUrlsSubmit = async (data: z.infer<typeof schema>) => {
     await mutateAsync({
       namespaceId: activeNamespace.id,
+      name: data.name,
       payload: {
-        type: "URLS",
-        urls: data.urls,
-        name: data.name,
+        type: "BATCH",
+        items: data.urls.map((url) => ({
+          type: "FILE",
+          fileUrl: url,
+        })),
       },
       config:
         data.chunkSize ||

@@ -84,9 +84,11 @@ export const DocumentSchema = z
 
 export const DocumentsQuerySchema = z.object({
   statuses: z
-    .array(DocumentStatusSchema)
+    .string()
+    .transform((val) => val.split(","))
+    .pipe(z.array(DocumentStatusSchema))
     .optional()
-    .describe("Statuses to filter by."),
+    .describe("Comma separated list of statuses to filter by."),
   orderBy: z
     .enum(["createdAt"])
     .optional()

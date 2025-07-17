@@ -8,9 +8,9 @@ import z from "../zod";
 // remove name from the payload since it's a separate field
 export const documentPayloadSchema = z
   .discriminatedUnion("type", [
-    textPayloadSchema.omit({ name: true }),
-    filePayloadSchema.omit({ name: true }),
-    managedFilePayloadSchema.omit({ name: true }),
+    textPayloadSchema.omit({ fileName: true }),
+    filePayloadSchema.omit({ fileName: true }),
+    managedFilePayloadSchema.omit({ fileName: true }),
   ])
   .describe("The source of the document.");
 

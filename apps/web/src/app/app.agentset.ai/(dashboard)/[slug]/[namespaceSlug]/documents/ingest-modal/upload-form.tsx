@@ -72,10 +72,14 @@ export default function UploadForm({ onSuccess }: { onSuccess: () => void }) {
 
     await mutateAsync({
       namespaceId: activeNamespace.id,
+      name: data.name,
       payload: {
-        type: "MANAGED_FILES",
-        name: data.name,
-        files: uploadedFiles,
+        type: "BATCH",
+        items: uploadedFiles.map((file) => ({
+          type: "MANAGED_FILE",
+          key: file.key,
+          fileName: file.name,
+        })),
       },
       config:
         data.chunkSize ||

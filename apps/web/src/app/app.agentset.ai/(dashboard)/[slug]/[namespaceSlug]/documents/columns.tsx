@@ -28,6 +28,7 @@ import { JobActions } from "./actions";
 export interface JobCol {
   id: string;
   status: IngestJobStatus;
+  name?: IngestJob["name"];
   payload: IngestJob["payload"];
   config: IngestJob["config"];
   tenantId?: IngestJob["tenantId"];
@@ -95,12 +96,10 @@ export const columns: ColumnDef<JobCol>[] = [
   },
   {
     id: "name",
-    accessorKey: "payload",
+    accessorKey: "name",
     header: "Name",
     cell: ({ row }) => {
-      const name =
-        ("name" in row.original.payload ? row.original.payload.name : null) ??
-        "-";
+      const name = row.original.name ?? "-";
       return (
         <p title={name}>
           {name.length > 20 ? name.slice(0, 20) + "..." : name}
