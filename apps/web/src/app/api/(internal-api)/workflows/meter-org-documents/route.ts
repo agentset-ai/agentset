@@ -72,8 +72,9 @@ export const { POST } = serve<MeterOrgDocumentsBody>(
     receiver: qstashReceiver,
     flowControl: {
       key: "meter-org-documents",
-      parallelism: 200,
-      ratePerSecond: 100,
+      parallelism: 100,
+      rate: 50,
+      period: "1m",
     },
   },
 );

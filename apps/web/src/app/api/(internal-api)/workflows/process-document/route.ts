@@ -414,8 +414,9 @@ export const { POST } = serve<TriggerDocumentJobBody>(
     receiver: qstashReceiver,
     flowControl: {
       key: "process-document",
-      parallelism: 200,
-      ratePerSecond: 100,
+      parallelism: 100,
+      rate: 50,
+      period: "1m",
     },
   },
 );
