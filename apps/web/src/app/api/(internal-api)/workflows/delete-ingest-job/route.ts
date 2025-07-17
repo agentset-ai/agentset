@@ -159,53 +159,57 @@ export const { POST } = serve<DeleteIngestJobBody>(
         ]);
       });
 
-      await context.run("check-and-delete-namespace", async () => {
-        const job = await db.ingestJob.findFirst({
-          where: { namespaceId: namespace.id },
-          select: { id: true },
+      if (shouldDeleteNamespace) {
+        await context.run("check-and-delete-namespace", async () => {
+          const job = await db.ingestJob.findFirst({
+            where: { namespaceId: namespace.id },
+            select: { id: true },
+          });
+
+          if (!job) {
+            await db.$transaction([
+              db.namespace.delete({
+                where: { id: namespace.id },
+                select: { id: true },
+              }),
+              db.organization.update({
+                where: { id: namespace.organizationId },
+                select: { id: true },
+                data: { totalNamespaces: { decrement: 1 } },
+              }),
+            ]);
+            return true;
+          }
+
+          return false;
         });
+      }
 
-        if (!job) {
-          await db.$transaction([
-            db.namespace.delete({
-              where: { id: namespace.id },
-              select: { id: true },
-            }),
-            db.organization.update({
-              where: { id: namespace.organizationId },
-              select: { id: true },
-              data: { totalNamespaces: { decrement: 1 } },
-            }),
-          ]);
-          return true;
-        }
+      if (shouldDeleteOrg) {
+        await context.run("check-and-delete-org", async () => {
+          const ns = await db.namespace.findFirst({
+            where: { organizationId: namespace.organizationId },
+            select: { id: true },
+          });
 
-        return false;
-      });
+          if (!ns) {
+            await db.organization
+              .delete({
+                where: { id: namespace.organizationId },
+              })
+              .catch((e) => {
+                if (e.code === "P2025") {
+                  return null; // already deleted
+                }
 
-      await context.run("check-and-delete-org", async () => {
-        const ns = await db.namespace.findFirst({
-          where: { organizationId: namespace.organizationId },
-          select: { id: true },
+                throw e;
+              });
+            return true;
+          }
+
+          return false;
         });
-
-        if (!ns) {
-          await db.organization
-            .delete({
-              where: { id: namespace.organizationId },
-            })
-            .catch((e) => {
-              if (e.code === "P2025") {
-                return null; // already deleted
-              }
-
-              throw e;
-            });
-          return true;
-        }
-
-        return false;
-      });
+      }
     }
   },
   {
