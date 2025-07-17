@@ -161,7 +161,7 @@ function DocumentsDialog({
 
   return (
     <Dialog open onOpenChange={() => onClose()}>
-      <DialogContent className="sm:max-w-5xl">
+      <DialogContent className="sm:max-w-5xl" scrollableOverlay>
         <DialogHeader>
           <DialogTitle>Documents</DialogTitle>
           <DialogDescription>
