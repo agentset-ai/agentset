@@ -93,12 +93,17 @@ export default function DashboardPage() {
                   >
                     <p className="font-medium">{namespace.name}</p>
                     <div className="text-muted-foreground mt-5 flex flex-wrap items-center gap-2 text-sm">
-                      <p>{formatNumber(namespace.totalPages)} pages</p>
+                      <p>
+                        {formatNumber(namespace.totalPages, "compact")} pages
+                      </p>
                       <Separator
                         orientation="vertical"
                         className="!h-4 shrink-0"
                       />
-                      <p>{formatNumber(namespace.totalDocuments)} documents</p>
+                      <p>
+                        {formatNumber(namespace.totalDocuments, "compact")}{" "}
+                        documents
+                      </p>
                     </div>
                   </Link>
                 );

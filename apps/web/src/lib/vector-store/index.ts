@@ -2,17 +2,13 @@ import { env } from "@/env";
 
 import type { Namespace } from "@agentset/db";
 
-export const DIGNA_NAMESPACE_ID = "cm7zzvk4w0001ri45hfl7lkyo";
-
 export const getNamespaceVectorStore = async (
   namespace: Pick<Namespace, "vectorStoreConfig" | "id" | "createdAt">,
   tenant?: string,
 ) => {
   const config = namespace.vectorStoreConfig;
 
-  const tenantId = tenant
-    ? `agentset:${namespace.id}:${tenant}`
-    : `agentset:${namespace.id === DIGNA_NAMESPACE_ID ? "digna" : namespace.id}`;
+  const tenantId = `agentset:${namespace.id}${tenant ? `:${tenant}` : ""}`;
 
   // TODO: handle different embedding models
   if (!config) {

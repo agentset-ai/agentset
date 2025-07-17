@@ -14,7 +14,7 @@ export function Usage() {
 
   const formatUsage = (usage: number, limit: number) => {
     if (limit >= INFINITY_NUMBER) return "Unlimited";
-    return `${usage} of ${formatNumber(limit, "compact")}`;
+    return `${formatNumber(usage, "compact")} of ${formatNumber(limit, "compact")}`;
   };
 
   return (
