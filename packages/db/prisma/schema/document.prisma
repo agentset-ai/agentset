@@ -24,8 +24,8 @@ model Document {
   /// [DocumentSource]
   source Json
 
-  /// [DocumentMetadata]
-  metadata Json?
+  /// [DocumentConfig]
+  config Json?
 
   queuedAt        DateTime? @default(now())
   preProcessingAt DateTime?

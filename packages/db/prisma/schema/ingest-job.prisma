@@ -22,6 +22,9 @@ model IngestJob {
   status IngestJobStatus @default(BACKLOG)
   error  String?
 
+  // ingest job name
+  name String?
+
   /// [IngestJobPayload]
   payload Json
 
