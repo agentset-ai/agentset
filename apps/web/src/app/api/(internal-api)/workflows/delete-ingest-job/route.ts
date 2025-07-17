@@ -218,8 +218,8 @@ export const { POST } = serve<DeleteIngestJobBody>(
     flowControl: {
       key: "delete-ingest-job",
       parallelism: 100,
-      rate: 50,
-      period: "1m",
+      rate: 10,
+      period: "10s",
     },
   },
 );

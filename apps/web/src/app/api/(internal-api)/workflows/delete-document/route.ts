@@ -279,8 +279,8 @@ export const { POST } = serve<DeleteDocumentBody>(
     flowControl: {
       key: "delete-document",
       parallelism: 100,
-      rate: 50,
-      period: "1m",
+      rate: 10,
+      period: "10s",
     },
   },
 );
