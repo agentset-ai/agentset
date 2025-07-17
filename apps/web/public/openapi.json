@@ -496,13 +496,10 @@
           {
             "in": "query",
             "name": "statuses",
-            "description": "Statuses to filter by.",
+            "description": "Comma separated list of statuses to filter by.",
             "schema": {
-              "type": "array",
-              "items": {
-                "$ref": "#/components/schemas/IngestJobStatusSchema"
-              },
-              "description": "Statuses to filter by."
+              "type": "string",
+              "description": "Comma separated list of statuses to filter by."
             }
           },
           {
@@ -688,6 +685,11 @@
               "schema": {
                 "type": "object",
                 "properties": {
+                  "name": {
+                    "type": "string",
+                    "nullable": true,
+                    "description": "The name of the ingest job."
+                  },
                   "payload": {
                     "oneOf": [
                       {
@@ -703,10 +705,10 @@
                             "type": "string",
                             "description": "The text to ingest."
                           },
-                          "name": {
+                          "fileName": {
                             "type": "string",
                             "nullable": true,
-                            "description": "The name of the ingest job."
+                            "description": "The name of the file."
                           }
                         },
                         "required": [
@@ -728,10 +730,10 @@
                             "type": "string",
                             "description": "The URL of the file to ingest."
                           },
-                          "name": {
+                          "fileName": {
                             "type": "string",
                             "nullable": true,
-                            "description": "The name of the ingest job."
+                            "description": "The name of the file."
                           }
                         },
                         "required": [
@@ -753,10 +755,10 @@
                             "type": "string",
                             "description": "The key of the managed file to ingest."
                           },
-                          "name": {
+                          "fileName": {
                             "type": "string",
                             "nullable": true,
-                            "description": "The name of the ingest job."
+                            "description": "The name of the file."
                           }
                         },
                         "required": [
@@ -771,69 +773,221 @@
                           "type": {
                             "type": "string",
                             "enum": [
-                              "MANAGED_FILES"
+                              "BATCH"
                             ]
                           },
-                          "files": {
+                          "items": {
                             "type": "array",
                             "items": {
-                              "type": "object",
-                              "properties": {
-                                "key": {
-                                  "type": "string",
-                                  "description": "The key of the managed file to ingest."
+                              "oneOf": [
+                                {
+                                  "type": "object",
+                                  "properties": {
+                                    "type": {
+                                      "type": "string",
+                                      "enum": [
+                                        "TEXT"
+                                      ]
+                                    },
+                                    "text": {
+                                      "type": "string",
+                                      "description": "The text to ingest."
+                                    },
+                                    "fileName": {
+                                      "type": "string",
+                                      "nullable": true,
+                                      "description": "The name of the file."
+                                    },
+                                    "config": {
+                                      "type": "object",
+                                      "properties": {
+                                        "chunkSize": {
+                                          "type": "number",
+                                          "description": "Soft chunk size."
+                                        },
+                                        "maxChunkSize": {
+                                          "type": "number",
+                                          "description": "Hard chunk size."
+                                        },
+                                        "chunkOverlap": {
+                                          "type": "number",
+                                          "description": "Custom chunk overlap."
+                                        },
+                                        "metadata": {
+                                          "type": "object",
+                                          "additionalProperties": {},
+                                          "description": "Custom metadata to be added to the ingested documents."
+                                        },
+                                        "chunkingStrategy": {
+                                          "type": "string",
+                                          "enum": [
+                                            "basic",
+                                            "by_title"
+                                          ],
+                                          "description": "The chunking strategy to use. Defaults to `basic`."
+                                        },
+                                        "strategy": {
+                                          "type": "string",
+                                          "enum": [
+                                            "auto",
+                                            "fast",
+                                            "hi_res",
+                                            "ocr_only"
+                                          ],
+                                          "description": "The strategy to use. Defaults to `auto`."
+                                        }
+                                      },
+                                      "description": "The ingest job config."
+                                    }
+                                  },
+                                  "required": [
+                                    "type",
+                                    "text"
+                                  ],
+                                  "title": "Text Payload"
                                 },
-                                "name": {
-                                  "type": "string",
-                                  "nullable": true,
-                                  "description": "The name of the file."
+                                {
+                                  "type": "object",
+                                  "properties": {
+                                    "type": {
+                                      "type": "string",
+                                      "enum": [
+                                        "FILE"
+                                      ]
+                                    },
+                                    "fileUrl": {
+                                      "type": "string",
+                                      "description": "The URL of the file to ingest."
+                                    },
+                                    "fileName": {
+                                      "type": "string",
+                                      "nullable": true,
+                                      "description": "The name of the file."
+                                    },
+                                    "config": {
+                                      "type": "object",
+                                      "properties": {
+                                        "chunkSize": {
+                                          "type": "number",
+                                          "description": "Soft chunk size."
+                                        },
+                                        "maxChunkSize": {
+                                          "type": "number",
+                                          "description": "Hard chunk size."
+                                        },
+                                        "chunkOverlap": {
+                                          "type": "number",
+                                          "description": "Custom chunk overlap."
+                                        },
+                                        "metadata": {
+                                          "type": "object",
+                                          "additionalProperties": {},
+                                          "description": "Custom metadata to be added to the ingested documents."
+                                        },
+                                        "chunkingStrategy": {
+                                          "type": "string",
+                                          "enum": [
+                                            "basic",
+                                            "by_title"
+                                          ],
+                                          "description": "The chunking strategy to use. Defaults to `basic`."
+                                        },
+                                        "strategy": {
+                                          "type": "string",
+                                          "enum": [
+                                            "auto",
+                                            "fast",
+                                            "hi_res",
+                                            "ocr_only"
+                                          ],
+                                          "description": "The strategy to use. Defaults to `auto`."
+                                        }
+                                      },
+                                      "description": "The ingest job config."
+                                    }
+                                  },
+                                  "required": [
+                                    "type",
+                                    "fileUrl"
+                                  ],
+                                  "title": "URL Payload"
+                                },
+                                {
+                                  "type": "object",
+                                  "properties": {
+                                    "type": {
+                                      "type": "string",
+                                      "enum": [
+                                        "MANAGED_FILE"
+                                      ]
+                                    },
+                                    "key": {
+                                      "type": "string",
+                                      "description": "The key of the managed file to ingest."
+                                    },
+                                    "fileName": {
+                                      "type": "string",
+                                      "nullable": true,
+                                      "description": "The name of the file."
+                                    },
+                                    "config": {
+                                      "type": "object",
+                                      "properties": {
+                                        "chunkSize": {
+                                          "type": "number",
+                                          "description": "Soft chunk size."
+                                        },
+                                        "maxChunkSize": {
+                                          "type": "number",
+                                          "description": "Hard chunk size."
+                                        },
+                                        "chunkOverlap": {
+                                          "type": "number",
+                                          "description": "Custom chunk overlap."
+                                        },
+                                        "metadata": {
+                                          "type": "object",
+                                          "additionalProperties": {},
+                                          "description": "Custom metadata to be added to the ingested documents."
+                                        },
+                                        "chunkingStrategy": {
+                                          "type": "string",
+                                          "enum": [
+                                            "basic",
+                                            "by_title"
+                                          ],
+                                          "description": "The chunking strategy to use. Defaults to `basic`."
+                                        },
+                                        "strategy": {
+                                          "type": "string",
+                                          "enum": [
+                                            "auto",
+                                            "fast",
+                                            "hi_res",
+                                            "ocr_only"
+                                          ],
+                                          "description": "The strategy to use. Defaults to `auto`."
+                                        }
+                                      },
+                                      "description": "The ingest job config."
+                                    }
+                                  },
+                                  "required": [
+                                    "type",
+                                    "key"
+                                  ],
+                                  "title": "Managed File Payload"
                                 }
-                              },
-                              "required": [
-                                "key"
                               ]
-                            }
-                          },
-                          "name": {
-                            "type": "string",
-                            "nullable": true,
-                            "description": "The name of the ingest job."
-                          }
-                        },
-                        "required": [
-                          "type",
-                          "files"
-                        ],
-                        "title": "Managed Files Payload"
-                      },
-                      {
-                        "type": "object",
-                        "properties": {
-                          "type": {
-                            "type": "string",
-                            "enum": [
-                              "URLS"
-                            ]
-                          },
-                          "urls": {
-                            "type": "array",
-                            "items": {
-                              "type": "string",
-                              "format": "uri"
                             },
-                            "description": "The URLs to ingest."
-                          },
-                          "name": {
-                            "type": "string",
-                            "nullable": true,
-                            "description": "The name of the ingest job."
+                            "minItems": 1
                           }
                         },
                         "required": [
                           "type",
-                          "urls"
+                          "items"
                         ],
-                        "title": "URLs Payload"
+                        "title": "Batch Payload"
                       }
                     ],
                     "description": "The ingest job payload."
@@ -1185,13 +1339,10 @@
           {
             "in": "query",
             "name": "statuses",
-            "description": "Statuses to filter by.",
+            "description": "Comma separated list of statuses to filter by.",
             "schema": {
-              "type": "array",
-              "items": {
-                "$ref": "#/components/schemas/DocumentStatusSchema"
-              },
-              "description": "Statuses to filter by."
+              "type": "string",
+              "description": "Comma separated list of statuses to filter by."
             }
           },
           {
@@ -1990,6 +2141,11 @@
             "type": "string",
             "description": "The unique ID of the ingest job."
           },
+          "name": {
+            "type": "string",
+            "nullable": true,
+            "description": "The name of the ingest job."
+          },
           "namespaceId": {
             "type": "string",
             "description": "The namespace ID of the ingest job."
@@ -2024,10 +2180,10 @@
                     "type": "string",
                     "description": "The text to ingest."
                   },
-                  "name": {
+                  "fileName": {
                     "type": "string",
                     "nullable": true,
-                    "description": "The name of the ingest job."
+                    "description": "The name of the file."
                   }
                 },
                 "required": [
@@ -2049,10 +2205,10 @@
                     "type": "string",
                     "description": "The URL of the file to ingest."
                   },
-                  "name": {
+                  "fileName": {
                     "type": "string",
                     "nullable": true,
-                    "description": "The name of the ingest job."
+                    "description": "The name of the file."
                   }
                 },
                 "required": [
@@ -2074,10 +2230,10 @@
                     "type": "string",
                     "description": "The key of the managed file to ingest."
                   },
-                  "name": {
+                  "fileName": {
                     "type": "string",
                     "nullable": true,
-                    "description": "The name of the ingest job."
+                    "description": "The name of the file."
                   }
                 },
                 "required": [
@@ -2092,69 +2248,221 @@
                   "type": {
                     "type": "string",
                     "enum": [
-                      "MANAGED_FILES"
+                      "BATCH"
                     ]
                   },
-                  "files": {
+                  "items": {
                     "type": "array",
                     "items": {
-                      "type": "object",
-                      "properties": {
-                        "key": {
-                          "type": "string",
-                          "description": "The key of the managed file to ingest."
+                      "oneOf": [
+                        {
+                          "type": "object",
+                          "properties": {
+                            "type": {
+                              "type": "string",
+                              "enum": [
+                                "TEXT"
+                              ]
+                            },
+                            "text": {
+                              "type": "string",
+                              "description": "The text to ingest."
+                            },
+                            "fileName": {
+                              "type": "string",
+                              "nullable": true,
+                              "description": "The name of the file."
+                            },
+                            "config": {
+                              "type": "object",
+                              "properties": {
+                                "chunkSize": {
+                                  "type": "number",
+                                  "description": "Soft chunk size."
+                                },
+                                "maxChunkSize": {
+                                  "type": "number",
+                                  "description": "Hard chunk size."
+                                },
+                                "chunkOverlap": {
+                                  "type": "number",
+                                  "description": "Custom chunk overlap."
+                                },
+                                "metadata": {
+                                  "type": "object",
+                                  "additionalProperties": {},
+                                  "description": "Custom metadata to be added to the ingested documents."
+                                },
+                                "chunkingStrategy": {
+                                  "type": "string",
+                                  "enum": [
+                                    "basic",
+                                    "by_title"
+                                  ],
+                                  "description": "The chunking strategy to use. Defaults to `basic`."
+                                },
+                                "strategy": {
+                                  "type": "string",
+                                  "enum": [
+                                    "auto",
+                                    "fast",
+                                    "hi_res",
+                                    "ocr_only"
+                                  ],
+                                  "description": "The strategy to use. Defaults to `auto`."
+                                }
+                              },
+                              "description": "The ingest job config."
+                            }
+                          },
+                          "required": [
+                            "type",
+                            "text"
+                          ],
+                          "title": "Text Payload"
                         },
-                        "name": {
-                          "type": "string",
-                          "nullable": true,
-                          "description": "The name of the file."
+                        {
+                          "type": "object",
+                          "properties": {
+                            "type": {
+                              "type": "string",
+                              "enum": [
+                                "FILE"
+                              ]
+                            },
+                            "fileUrl": {
+                              "type": "string",
+                              "description": "The URL of the file to ingest."
+                            },
+                            "fileName": {
+                              "type": "string",
+                              "nullable": true,
+                              "description": "The name of the file."
+                            },
+                            "config": {
+                              "type": "object",
+                              "properties": {
+                                "chunkSize": {
+                                  "type": "number",
+                                  "description": "Soft chunk size."
+                                },
+                                "maxChunkSize": {
+                                  "type": "number",
+                                  "description": "Hard chunk size."
+                                },
+                                "chunkOverlap": {
+                                  "type": "number",
+                                  "description": "Custom chunk overlap."
+                                },
+                                "metadata": {
+                                  "type": "object",
+                                  "additionalProperties": {},
+                                  "description": "Custom metadata to be added to the ingested documents."
+                                },
+                                "chunkingStrategy": {
+                                  "type": "string",
+                                  "enum": [
+                                    "basic",
+                                    "by_title"
+                                  ],
+                                  "description": "The chunking strategy to use. Defaults to `basic`."
+                                },
+                                "strategy": {
+                                  "type": "string",
+                                  "enum": [
+                                    "auto",
+                                    "fast",
+                                    "hi_res",
+                                    "ocr_only"
+                                  ],
+                                  "description": "The strategy to use. Defaults to `auto`."
+                                }
+                              },
+                              "description": "The ingest job config."
+                            }
+                          },
+                          "required": [
+                            "type",
+                            "fileUrl"
+                          ],
+                          "title": "URL Payload"
+                        },
+                        {
+                          "type": "object",
+                          "properties": {
+                            "type": {
+                              "type": "string",
+                              "enum": [
+                                "MANAGED_FILE"
+                              ]
+                            },
+                            "key": {
+                              "type": "string",
+                              "description": "The key of the managed file to ingest."
+                            },
+                            "fileName": {
+                              "type": "string",
+                              "nullable": true,
+                              "description": "The name of the file."
+                            },
+                            "config": {
+                              "type": "object",
+                              "properties": {
+                                "chunkSize": {
+                                  "type": "number",
+                                  "description": "Soft chunk size."
+                                },
+                                "maxChunkSize": {
+                                  "type": "number",
+                                  "description": "Hard chunk size."
+                                },
+                                "chunkOverlap": {
+                                  "type": "number",
+                                  "description": "Custom chunk overlap."
+                                },
+                                "metadata": {
+                                  "type": "object",
+                                  "additionalProperties": {},
+                                  "description": "Custom metadata to be added to the ingested documents."
+                                },
+                                "chunkingStrategy": {
+                                  "type": "string",
+                                  "enum": [
+                                    "basic",
+                                    "by_title"
+                                  ],
+                                  "description": "The chunking strategy to use. Defaults to `basic`."
+                                },
+                                "strategy": {
+                                  "type": "string",
+                                  "enum": [
+                                    "auto",
+                                    "fast",
+                                    "hi_res",
+                                    "ocr_only"
+                                  ],
+                                  "description": "The strategy to use. Defaults to `auto`."
+                                }
+                              },
+                              "description": "The ingest job config."
+                            }
+                          },
+                          "required": [
+                            "type",
+                            "key"
+                          ],
+                          "title": "Managed File Payload"
                         }
-                      },
-                      "required": [
-                        "key"
                       ]
-                    }
-                  },
-                  "name": {
-                    "type": "string",
-                    "nullable": true,
-                    "description": "The name of the ingest job."
-                  }
-                },
-                "required": [
-                  "type",
-                  "files"
-                ],
-                "title": "Managed Files Payload"
-              },
-              {
-                "type": "object",
-                "properties": {
-                  "type": {
-                    "type": "string",
-                    "enum": [
-                      "URLS"
-                    ]
-                  },
-                  "urls": {
-                    "type": "array",
-                    "items": {
-                      "type": "string",
-                      "format": "uri"
                     },
-                    "description": "The URLs to ingest."
-                  },
-                  "name": {
-                    "type": "string",
-                    "nullable": true,
-                    "description": "The name of the ingest job."
+                    "minItems": 1
                   }
                 },
                 "required": [
                   "type",
-                  "urls"
+                  "items"
                 ],
-                "title": "URLs Payload"
+                "title": "Batch Payload"
               }
             ],
             "description": "The ingest job payload."

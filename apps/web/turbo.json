@@ -16,7 +16,7 @@
     },
     "generate-openapi": {
       "outputs": [
-        "openapi.json"
+        "public/openapi.json"
       ]
     },
     "dev": {
