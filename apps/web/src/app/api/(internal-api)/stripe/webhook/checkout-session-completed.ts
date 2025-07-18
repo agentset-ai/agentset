@@ -38,7 +38,9 @@ export async function checkoutSessionCompleted(event: Stripe.Event) {
 
   // ignore metered plan
   const priceId = subscription.items.data.filter(
-    (item) => item.price.lookup_key !== PRO_PLAN_METERED.lookupKey,
+    (item) =>
+      item.price.lookup_key !== PRO_PLAN_METERED.monthly.lookupKey &&
+      item.price.lookup_key !== PRO_PLAN_METERED.yearly.lookupKey,
   )[0]?.price.id;
   const plan = getPlanFromPriceId(priceId);
 

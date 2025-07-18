@@ -97,11 +97,20 @@ export const ENTERPRISE_PLAN = {
 };
 
 export const PRO_PLAN_METERED = {
-  lookupKey: "pro_plan_metered",
   meterName: "ingested_pages",
-  priceId: {
-    test: "price_1RapvfDPtsw7PNYQvLZvqIpc",
-    live: "price_1RaqhNDPtsw7PNYQ9lqtoORc",
+  monthly: {
+    lookupKey: "pro_plan_metered",
+    priceId: {
+      test: "price_1RapvfDPtsw7PNYQvLZvqIpc",
+      live: "price_1RaqhNDPtsw7PNYQ9lqtoORc",
+    },
+  },
+  yearly: {
+    lookupKey: "pro_plan_metered_yearly",
+    priceId: {
+      test: "price_1RmA0bDPtsw7PNYQ5PAGCBeW",
+      live: "price_1Rm9yXDPtsw7PNYQCUTQIMCo",
+    },
   },
 };
 
