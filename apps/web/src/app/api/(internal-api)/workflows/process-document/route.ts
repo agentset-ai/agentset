@@ -415,8 +415,8 @@ export const { POST } = serve<TriggerDocumentJobBody>(
     flowControl: {
       key: "process-document",
       parallelism: 150,
-      rate: 20,
-      period: "5s",
+      rate: 60,
+      period: "3s",
     },
   },
 );

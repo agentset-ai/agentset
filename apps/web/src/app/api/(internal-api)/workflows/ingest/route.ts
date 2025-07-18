@@ -217,8 +217,8 @@ export const { POST } = serve<TriggerIngestionJobBody>(
     flowControl: {
       key: "ingest-job",
       parallelism: 150,
-      rate: 20,
-      period: "5s",
+      rate: 60,
+      period: "3s",
     },
   },
 );
