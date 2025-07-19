@@ -1,8 +1,9 @@
-import type { QueryVectorStoreResult } from "@/lib/vector-store/parse";
 import type { LanguageModelV1 } from "ai";
 import { formatSources } from "@/lib/agentic/utils";
 import z from "@/lib/zod";
 import { generateText } from "ai";
+
+import type { QueryVectorStoreResult } from "@agentset/engine";
 
 import {
   CORRECTNESS_SYSTEM_PROMPT,

@@ -29,44 +29,11 @@ export const env = createEnv({
     QSTASH_CURRENT_SIGNING_KEY: z.string(),
     QSTASH_NEXT_SIGNING_KEY: z.string(),
 
-    DEFAULT_PINECONE_API_KEY: z.string(),
-    DEFAULT_PINECONE_HOST: z.string().url(),
-
-    SECONDARY_PINECONE_API_KEY: z.string().optional(),
-    SECONDARY_PINECONE_HOST: z.string().url().optional(),
-
-    AZURE_SEARCH_URL: z.string().url(),
-    AZURE_SEARCH_INDEX: z.string(),
-    AZURE_SEARCH_KEY: z.string(),
-
-    DEFAULT_AZURE_BASE_URL: z.string().url(),
-    DEFAULT_AZURE_API_KEY: z.string(),
-    DEFAULT_AZURE_TEXT_3_LARGE_EMBEDDING_DEPLOYMENT: z.string(),
-    DEFAULT_AZURE_TEXT_3_LARGE_EMBEDDING_VERSION: z.string().optional(),
-    DEFAULT_AZURE_GPT_4_1_DEPLOYMENT: z.string(),
-    DEFAULT_AZURE_GPT_4_1_VERSION: z.string().optional(),
-
     GITHUB_CLIENT_ID: z.string(),
     GITHUB_CLIENT_SECRET: z.string(),
 
     GOOGLE_CLIENT_ID: z.string(),
     GOOGLE_CLIENT_SECRET: z.string(),
-
-    PARTITION_API_KEY: z.string(),
-    PARTITION_API_URL: z.string().url(),
-
-    DEFAULT_COHERE_API_KEY: z.string(),
-
-    S3_ACCESS_KEY: z.string(),
-    S3_SECRET_KEY: z.string(),
-    S3_ENDPOINT: z.string().url(),
-    S3_BUCKET: z.string(),
-
-    ASSETS_S3_ACCESS_KEY: z.string(),
-    ASSETS_S3_SECRET_KEY: z.string(),
-    ASSETS_S3_ENDPOINT: z.string().url(),
-    ASSETS_S3_BUCKET: z.string(),
-    ASSETS_S3_URL: z.string().url(),
 
     REDIS_URL: z.string().url(),
     REDIS_TOKEN: z.string(),
@@ -106,47 +73,11 @@ export const env = createEnv({
     QSTASH_CURRENT_SIGNING_KEY: process.env.QSTASH_CURRENT_SIGNING_KEY,
     QSTASH_NEXT_SIGNING_KEY: process.env.QSTASH_NEXT_SIGNING_KEY,
 
-    DEFAULT_PINECONE_API_KEY: process.env.DEFAULT_PINECONE_API_KEY,
-    DEFAULT_PINECONE_HOST: process.env.DEFAULT_PINECONE_HOST,
-
-    SECONDARY_PINECONE_API_KEY: process.env.SECONDARY_PINECONE_API_KEY,
-    SECONDARY_PINECONE_HOST: process.env.SECONDARY_PINECONE_HOST,
-
-    AZURE_SEARCH_URL: process.env.AZURE_SEARCH_URL,
-    AZURE_SEARCH_INDEX: process.env.AZURE_SEARCH_INDEX,
-    AZURE_SEARCH_KEY: process.env.AZURE_SEARCH_KEY,
-
-    DEFAULT_AZURE_BASE_URL: process.env.DEFAULT_AZURE_BASE_URL,
-    DEFAULT_AZURE_API_KEY: process.env.DEFAULT_AZURE_API_KEY,
-    DEFAULT_AZURE_TEXT_3_LARGE_EMBEDDING_DEPLOYMENT:
-      process.env.DEFAULT_AZURE_TEXT_3_LARGE_EMBEDDING_DEPLOYMENT,
-    DEFAULT_AZURE_TEXT_3_LARGE_EMBEDDING_VERSION:
-      process.env.DEFAULT_AZURE_TEXT_3_LARGE_EMBEDDING_VERSION,
-    DEFAULT_AZURE_GPT_4_1_DEPLOYMENT:
-      process.env.DEFAULT_AZURE_GPT_4_1_DEPLOYMENT,
-    DEFAULT_AZURE_GPT_4_1_VERSION: process.env.DEFAULT_AZURE_GPT_4_1_VERSION,
-
     GITHUB_CLIENT_ID: process.env.GITHUB_CLIENT_ID,
     GITHUB_CLIENT_SECRET: process.env.GITHUB_CLIENT_SECRET,
 
     GOOGLE_CLIENT_ID: process.env.GOOGLE_CLIENT_ID,
     GOOGLE_CLIENT_SECRET: process.env.GOOGLE_CLIENT_SECRET,
-
-    PARTITION_API_KEY: process.env.PARTITION_API_KEY,
-    PARTITION_API_URL: process.env.PARTITION_API_URL,
-
-    DEFAULT_COHERE_API_KEY: process.env.DEFAULT_COHERE_API_KEY,
-
-    S3_ACCESS_KEY: process.env.S3_ACCESS_KEY,
-    S3_SECRET_KEY: process.env.S3_SECRET_KEY,
-    S3_ENDPOINT: process.env.S3_ENDPOINT,
-    S3_BUCKET: process.env.S3_BUCKET,
-
-    ASSETS_S3_ACCESS_KEY: process.env.ASSETS_S3_ACCESS_KEY,
-    ASSETS_S3_SECRET_KEY: process.env.ASSETS_S3_SECRET_KEY,
-    ASSETS_S3_ENDPOINT: process.env.ASSETS_S3_ENDPOINT,
-    ASSETS_S3_BUCKET: process.env.ASSETS_S3_BUCKET,
-    ASSETS_S3_URL: process.env.ASSETS_S3_URL,
 
     REDIS_URL: process.env.REDIS_URL,
     REDIS_TOKEN: process.env.REDIS_TOKEN,

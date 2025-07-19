@@ -1,4 +1,4 @@
-import type { QueryVectorStoreResult } from "@/lib/vector-store/parse";
+import type { QueryVectorStoreResult } from "@agentset/engine";
 
 import { CitationModal } from "./citation-modal";
 

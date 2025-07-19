@@ -3,11 +3,11 @@ import { withNamespaceApiHandler } from "@/lib/api/handler";
 import { makeApiSuccessResponse } from "@/lib/api/response";
 import { parseRequestBody } from "@/lib/api/utils";
 import { INFINITY_NUMBER } from "@/lib/constants";
-import { queryVectorStore } from "@/lib/vector-store";
 import { queryVectorStoreSchema } from "@/schemas/api/query";
 import { waitUntil } from "@vercel/functions";
 
 import { db } from "@agentset/db";
+import { queryVectorStore } from "@agentset/engine";
 
 // export const runtime = "edge";
 export const preferredRegion = "iad1"; // make this closer to the DB

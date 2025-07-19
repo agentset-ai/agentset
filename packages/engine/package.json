@@ -1,0 +1,41 @@
+{
+  "name": "@agentset/engine",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts",
+    "./env": "./src/env.ts"
+  },
+  "scripts": {
+    "build": "tsc",
+    "clean": "git clean -xdf .cache .turbo dist node_modules",
+    "dev": "tsc",
+    "format": "prettier --check . --ignore-path ../../.gitignore",
+    "lint": "eslint",
+    "typecheck": "tsc --noEmit --emitDeclarationOnly false"
+  },
+  "dependencies": {
+    "@agentset/db": "workspace:*",
+    "@agentset/storage": "workspace:*",
+    "@agentset/utils": "workspace:*",
+    "@ai-sdk/anthropic": "^1.2.11",
+    "@ai-sdk/azure": "^1.2.1",
+    "@ai-sdk/google": "^1.2.17",
+    "@ai-sdk/openai": "^1.2.1",
+    "@azure/search-documents": "^12.1.0",
+    "@llamaindex/core": "^0.5.8",
+    "@pinecone-database/pinecone": "5.1.1",
+    "cohere-ai": "^7.16.0",
+    "llamaindex": "^0.9.11",
+    "voyage-ai-provider": "^1.0.1"
+  },
+  "devDependencies": {
+    "@agentset/eslint-config": "workspace:*",
+    "@agentset/prettier-config": "workspace:*",
+    "@agentset/tsconfig": "workspace:*",
+    "eslint": "catalog:",
+    "prettier": "catalog:",
+    "typescript": "catalog:"
+  },
+  "prettier": "@agentset/prettier-config"
+}

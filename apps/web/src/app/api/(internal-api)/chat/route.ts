@@ -10,11 +10,11 @@ import {
   CONDENSE_USER_PROMPT,
   NEW_MESSAGE_PROMPT,
 } from "@/lib/prompts";
-import { queryVectorStore } from "@/lib/vector-store";
 import { waitUntil } from "@vercel/functions";
 import { createDataStreamResponse, generateText, streamText } from "ai";
 
 import { db } from "@agentset/db";
+import { queryVectorStore } from "@agentset/engine";
 
 import { chatSchema } from "./schema";
 

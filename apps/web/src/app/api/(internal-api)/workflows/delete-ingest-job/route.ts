@@ -1,5 +1,4 @@
 import type { DeleteIngestJobBody } from "@/lib/workflow";
-import { chunkArray } from "@/lib/functions";
 import {
   cancelWorkflow,
   qstashClient,
@@ -9,6 +8,7 @@ import {
 import { serve } from "@upstash/workflow/nextjs";
 
 import { db, DocumentStatus, IngestJobStatus } from "@agentset/db";
+import { chunkArray } from "@agentset/utils";
 
 const BATCH_SIZE = 30;
 

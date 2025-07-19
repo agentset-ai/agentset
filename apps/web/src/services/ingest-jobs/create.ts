@@ -1,10 +1,10 @@
 import type z from "@/lib/zod";
 import type { createIngestJobSchema } from "@/schemas/api/ingest-job";
-import { checkFileExists } from "@/lib/s3";
 import { triggerIngestionJob } from "@/lib/workflow";
 
 import type { IngestJobBatchItem } from "@agentset/validation";
 import { db, IngestJobStatus } from "@agentset/db";
+import { checkFileExists } from "@agentset/storage";
 
 export const createIngestJob = async ({
   namespaceId,

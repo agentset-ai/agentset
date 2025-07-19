@@ -4,11 +4,11 @@ import { embed } from "ai";
 import { MetadataMode } from "llamaindex";
 
 import type { Namespace } from "@agentset/db";
+import { filterFalsy } from "@agentset/utils";
 
-import { getNamespaceVectorStore } from ".";
 import { getNamespaceEmbeddingModel } from "../embedding";
-import { filterFalsy } from "../functions";
 import { rerankResults } from "../rerank/cohere";
+import { getNamespaceVectorStore } from "./index";
 
 type Result = {
   id: string;

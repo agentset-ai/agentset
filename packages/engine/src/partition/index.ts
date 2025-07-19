@@ -1,8 +1,6 @@
-import { v4 as uuidv4 } from "uuid";
-
+// import { v4 as uuidv4 } from "uuid";
 import type { Document, IngestJob, Namespace } from "@agentset/db";
-
-import { presignGetUrl } from "./s3";
+import { presignGetUrl } from "@agentset/storage";
 
 export interface PartitionBody {
   // one of url or text is required
@@ -22,16 +20,75 @@ export interface PartitionBody {
     languages?: string[];
   };
 
-  notify_id: string;
+  notify_id?: string;
+  trigger_token?: string;
 }
+
+export type PartitionResult = {
+  status: number; // 200
+  metadata: {
+    filename: string;
+    filetype: string;
+    sizeInBytes: number;
+  };
+  total_characters: number;
+  total_chunks: number;
+  total_pages?: number;
+  total_batches: number;
+  results_id: string;
+  batch_template: string; // replace [BATCH_INDEX] with batch index
+  // total_tokens: number;
+};
+
+export type PartitionBatch = {
+  id_: string;
+  embedding: null;
+  metadata: {
+    link_texts?: string[];
+    link_urls?: string[];
+    languages?: string[];
+    filename: string;
+    filetype: string;
+    sequence_number: number;
+  };
+  excluded_embed_metadata_keys: string[];
+  excluded_llm_metadata_keys: string[];
+  relationships: Record<
+    string,
+    {
+      node_id: string;
+      node_type: string;
+      metadata: {
+        link_texts?: string[];
+        link_urls?: string[];
+        languages?: string[];
+        filename?: string;
+        filetype?: string;
+      };
+      hash: string;
+      class_name: string;
+    }
+  >;
+  metadata_template: string;
+  metadata_separator: string;
+  text: string;
+  mimetype: string;
+  start_char_idx: number | null;
+  end_char_idx: number | null;
+  metadata_seperator: string;
+  text_template: string;
+  class_name: string;
+}[];
 
 export const getPartitionDocumentBody = async (
   document: Document,
   ingestJob: IngestJob,
   namespace: Pick<Namespace, "id" | "embeddingConfig">,
+  triggerToken: string,
 ) => {
   const body: Partial<PartitionBody> = {
-    notify_id: `partition-${uuidv4()}`,
+    // notify_id: `partition-${uuidv4()}`,
+    trigger_token: triggerToken,
   };
 
   const type = document.source.type;

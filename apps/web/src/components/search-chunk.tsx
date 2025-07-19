@@ -1,6 +1,6 @@
-import type { QueryVectorStoreResult } from "@/lib/vector-store/parse";
 import { useState } from "react";
 
+import type { QueryVectorStoreResult } from "@agentset/engine";
 import { Button } from "@agentset/ui";
 
 import { CodeBlock } from "./chat/code-block";

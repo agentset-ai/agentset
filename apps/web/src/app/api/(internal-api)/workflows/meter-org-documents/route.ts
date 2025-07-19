@@ -1,11 +1,11 @@
 import type { MeterOrgDocumentsBody } from "@/lib/workflow";
-import { chunkArray } from "@/lib/functions";
 import { meterDocumentsPages } from "@/lib/meters";
 import { isProPlan } from "@/lib/plans";
 import { qstashClient, qstashReceiver } from "@/lib/workflow";
 import { serve } from "@upstash/workflow/nextjs";
 
 import { db, DocumentStatus } from "@agentset/db";
+import { chunkArray } from "@agentset/utils";
 
 const BATCH_SIZE = 100;
 

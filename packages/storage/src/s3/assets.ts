@@ -5,7 +5,7 @@ import {
   S3Client,
 } from "@aws-sdk/client-s3";
 
-import { fetchWithTimeout } from "../utils";
+import { fetchWithTimeout } from "@agentset/utils";
 
 interface ImageOptions {
   contentType?: string;

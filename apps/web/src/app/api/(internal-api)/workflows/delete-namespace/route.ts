@@ -1,7 +1,5 @@
 import type { DeleteNamespaceBody } from "@/lib/workflow";
 import { env } from "@/env";
-import { chunkArray } from "@/lib/functions";
-import { deleteAsset } from "@/lib/s3/assets";
 import {
   qstashClient,
   qstashReceiver,
@@ -10,6 +8,8 @@ import {
 import { serve } from "@upstash/workflow/nextjs";
 
 import { db } from "@agentset/db";
+import { deleteAsset } from "@agentset/storage";
+import { chunkArray } from "@agentset/utils";
 
 const BATCH_SIZE = 30;
 export const { POST } = serve<DeleteNamespaceBody>(

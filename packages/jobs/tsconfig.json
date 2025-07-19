@@ -1,0 +1,5 @@
+{
+  "extends": "@agentset/tsconfig/internal-package.json",
+  "include": ["src", "generate-types.ts"],
+  "exclude": ["node_modules"]
+}

@@ -1,6 +1,5 @@
 "use client";
 
-import type { QueryVectorStoreResult } from "@/lib/vector-store/parse";
 import { useState } from "react";
 import { InfoTooltip } from "@/components/info-tooltip";
 import { useNamespace } from "@/contexts/namespace-context";
@@ -8,6 +7,7 @@ import { useMutation } from "@tanstack/react-query";
 import { Loader2Icon } from "lucide-react";
 import { toast } from "sonner";
 
+import type { QueryVectorStoreResult } from "@agentset/engine";
 import {
   Button,
   Card,

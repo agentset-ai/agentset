@@ -1,5 +1,4 @@
 import type { TriggerIngestionJobBody } from "@/lib/workflow";
-import { chunkArray } from "@/lib/functions";
 import {
   qstashClient,
   qstashReceiver,
@@ -9,6 +8,7 @@ import { serve } from "@upstash/workflow/nextjs";
 
 import type { Document, Prisma } from "@agentset/db";
 import { db, DocumentStatus, IngestJobStatus } from "@agentset/db";
+import { chunkArray } from "@agentset/utils";
 
 const BATCH_SIZE = 30;
 

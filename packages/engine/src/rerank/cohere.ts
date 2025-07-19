@@ -3,7 +3,7 @@ import { env } from "@/env";
 import { CohereClient } from "cohere-ai";
 import { MetadataMode } from "llamaindex";
 
-import { tryCatch } from "../error";
+import { tryCatch } from "@agentset/utils";
 
 interface BaseRerankDocument {
   node: BaseNode<Metadata>;

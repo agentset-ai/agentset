@@ -1,12 +1,11 @@
 import type { DeleteDocumentBody } from "@/lib/workflow";
-import { chunkArray } from "@/lib/functions";
-import { KeywordStore } from "@/lib/keyword-store";
-import { deleteObject } from "@/lib/s3";
-import { getNamespaceVectorStore } from "@/lib/vector-store";
 import { cancelWorkflow, qstashClient, qstashReceiver } from "@/lib/workflow";
 import { serve } from "@upstash/workflow/nextjs";
 
 import { db, DocumentStatus } from "@agentset/db";
+import { getNamespaceVectorStore, KeywordStore } from "@agentset/engine";
+import { deleteObject } from "@agentset/storage";
+import { chunkArray } from "@agentset/utils";
 
 const BATCH_SIZE = 30;
 

@@ -1,6 +1,7 @@
-import type { PartitionBatch } from "@/types/partition";
 import { nodeToMetadata } from "@llamaindex/core/vector-store";
 import { jsonToNode, ObjectType } from "llamaindex";
+
+import type { PartitionBatch } from "./partition";
 
 export const makeChunk = ({
   documentId,
@@ -58,7 +59,7 @@ const nodeRelationshipMap = {
 //   none: MetadataMode.NONE,
 // };
 
-export const chunkResultToLlamaIndex = (chunk: PartitionBatch[number]) => {
+const chunkResultToLlamaIndex = (chunk: PartitionBatch[number]) => {
   const newChunk = {
     ...chunk,
     type: nodeClassNameMap[chunk.class_name as keyof typeof nodeClassNameMap],

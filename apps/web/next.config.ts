@@ -4,6 +4,8 @@
  */
 import type { NextConfig } from "next";
 
+import "@agentset/engine/env";
+import "@agentset/storage/env";
 import "./src/env";
 
 const config: NextConfig = {
@@ -14,12 +16,16 @@ const config: NextConfig = {
       },
     ],
   },
+
   /** Enables hot reloading for local packages without a build step */
   transpilePackages: [
     "@agentset/db",
     "@agentset/emails",
-    "@agentset/validation",
     "@agentset/ui",
+    "@agentset/utils",
+    "@agentset/validation",
+    "@agentset/engine",
+    "@agentset/storage",
   ],
 
   /** We already do linting and typechecking as separate tasks in CI */
