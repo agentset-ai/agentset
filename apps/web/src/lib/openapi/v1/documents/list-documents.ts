@@ -1,8 +1,8 @@
 import type { ZodOpenApiOperationObject } from "zod-openapi";
 import { openApiErrorResponses, successSchema } from "@/lib/openapi/responses";
-import z from "@/lib/zod";
 import { DocumentSchema, getDocumentsSchema } from "@/schemas/api/document";
 import { tenantHeaderSchema } from "@/schemas/api/tenant";
+import { z } from "zod/v4";
 
 export const listDocuments: ZodOpenApiOperationObject = {
   operationId: "listDocuments",

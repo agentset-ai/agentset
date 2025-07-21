@@ -1,11 +1,11 @@
 {
-  "name": "@agentset/storage",
+  "name": "@agentset/stripe",
   "private": true,
   "type": "module",
   "exports": {
     ".": "./src/index.ts",
-    "./env": "./src/env.ts",
-    "./constants": "./src/constants.ts"
+    "./client": "./src/client.ts",
+    "./env": "./src/env.ts"
   },
   "scripts": {
     "build": "tsc",
@@ -17,18 +17,19 @@
   },
   "dependencies": {
     "@agentset/utils": "workspace:*",
-    "@aws-sdk/client-s3": "^3.772.0",
-    "@aws-sdk/s3-request-presigner": "^3.772.0",
+    "@stripe/stripe-js": "^7.0.0",
     "@t3-oss/env-nextjs": "catalog:",
+    "stripe": "^18.0.0",
     "zod": "catalog:"
   },
+  "prettier": "@agentset/prettier-config",
   "devDependencies": {
+    "@agentset/db": "workspace:*",
     "@agentset/eslint-config": "workspace:*",
     "@agentset/prettier-config": "workspace:*",
     "@agentset/tsconfig": "workspace:*",
     "eslint": "catalog:",
     "prettier": "catalog:",
     "typescript": "catalog:"
-  },
-  "prettier": "@agentset/prettier-config"
+  }
 }

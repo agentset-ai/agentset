@@ -1,4 +1,4 @@
-import { schemaTask } from "@trigger.dev/sdk/v3";
+import { schemaTask } from "@trigger.dev/sdk";
 
 import type { Document, Prisma } from "@agentset/db";
 import { DocumentStatus, IngestJobStatus } from "@agentset/db";
@@ -15,9 +15,12 @@ const BATCH_SIZE = 30;
 
 export const ingestJob = schemaTask({
   id: TRIGGER_INGESTION_JOB_ID,
-  maxDuration: 3600, // 1 hour
+  maxDuration: 600, // 10 minutes
   queue: {
     concurrencyLimit: 30,
+  },
+  machine: {
+    preset: "large-1x",
   },
   schema: triggerIngestionJobBodySchema,
   catchError: async ({ payload, error }) => {

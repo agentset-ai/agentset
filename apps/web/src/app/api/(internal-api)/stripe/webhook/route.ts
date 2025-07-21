@@ -1,8 +1,9 @@
-import type Stripe from "stripe";
 import { NextResponse } from "next/server";
 import { env } from "@/env";
 import { log } from "@/lib/log";
-import { stripe } from "@/lib/stripe";
+
+import type { Stripe } from "@agentset/stripe";
+import { stripe } from "@agentset/stripe";
 
 import { checkoutSessionCompleted } from "./checkout-session-completed";
 import { customerSubscriptionDeleted } from "./customer-subscription-deleted";

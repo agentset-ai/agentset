@@ -1,7 +1,12 @@
 import { createEnv } from "@t3-oss/env-nextjs";
-import { z } from "zod";
+import { z } from "zod/v4";
+
+import { env as engineEnv } from "@agentset/engine/env";
+import { env as storageEnv } from "@agentset/storage/env";
+import { env as stripeEnv } from "@agentset/stripe/env";
 
 export const env = createEnv({
+  extends: [engineEnv, storageEnv, stripeEnv],
   shared: {
     NODE_ENV: z
       .enum(["development", "test", "production"])
@@ -15,16 +20,16 @@ export const env = createEnv({
       .default("development"),
   },
   server: {
-    DATABASE_URL: z.string().url(),
-    SUPABASE_URL: z.string().url().optional(),
+    DATABASE_URL: z.url(),
+    SUPABASE_URL: z.url().optional(),
     SUPABASE_ANON_KEY: z.string().optional(),
 
     RESEND_API_KEY: z.string(),
 
     BETTER_AUTH_SECRET: z.string(),
-    BETTER_AUTH_URL: z.string().url(),
+    BETTER_AUTH_URL: z.url(),
 
-    QSTASH_URL: z.string().url(),
+    QSTASH_URL: z.url(),
     QSTASH_TOKEN: z.string(),
     QSTASH_CURRENT_SIGNING_KEY: z.string(),
     QSTASH_NEXT_SIGNING_KEY: z.string(),
@@ -35,24 +40,23 @@ export const env = createEnv({
     GOOGLE_CLIENT_ID: z.string(),
     GOOGLE_CLIENT_SECRET: z.string(),
 
-    REDIS_URL: z.string().url(),
+    REDIS_URL: z.url(),
     REDIS_TOKEN: z.string(),
 
-    STRIPE_API_KEY: z.string(),
     STRIPE_WEBHOOK_SECRET: z.string(),
 
-    DISCORD_HOOK_ALERTS: z.string().url().optional(),
-    DISCORD_HOOK_CRON: z.string().url().optional(),
-    DISCORD_HOOK_SUBSCRIBERS: z.string().url().optional(),
-    DISCORD_HOOK_ERRORS: z.string().url().optional(),
+    DISCORD_HOOK_ALERTS: z.url().optional(),
+    DISCORD_HOOK_CRON: z.url().optional(),
+    DISCORD_HOOK_SUBSCRIBERS: z.url().optional(),
+    DISCORD_HOOK_ERRORS: z.url().optional(),
+
+    TRIGGER_SECRET_KEY: z.string(),
 
     VERCEL_PROJECT_ID: z.string(),
     VERCEL_TEAM_ID: z.string(),
     VERCEL_API_TOKEN: z.string(),
   },
-  client: {
-    NEXT_PUBLIC_STRIPE_PUBLIC_KEY: z.string(),
-  },
+  client: {},
   runtimeEnv: {
     NEXT_PUBLIC_APP_NAME: process.env.NEXT_PUBLIC_APP_NAME,
     NEXT_PUBLIC_APP_SHORT_DOMAIN: process.env.NEXT_PUBLIC_APP_SHORT_DOMAIN,
@@ -82,19 +86,20 @@ export const env = createEnv({
     REDIS_URL: process.env.REDIS_URL,
     REDIS_TOKEN: process.env.REDIS_TOKEN,
 
-    STRIPE_API_KEY: process.env.STRIPE_API_KEY,
     STRIPE_WEBHOOK_SECRET: process.env.STRIPE_WEBHOOK_SECRET,
-    NEXT_PUBLIC_STRIPE_PUBLIC_KEY: process.env.NEXT_PUBLIC_STRIPE_PUBLIC_KEY,
 
     DISCORD_HOOK_ALERTS: process.env.DISCORD_HOOK_ALERTS,
     DISCORD_HOOK_CRON: process.env.DISCORD_HOOK_CRON,
     DISCORD_HOOK_SUBSCRIBERS: process.env.DISCORD_HOOK_SUBSCRIBERS,
     DISCORD_HOOK_ERRORS: process.env.DISCORD_HOOK_ERRORS,
 
+    TRIGGER_SECRET_KEY: process.env.TRIGGER_SECRET_KEY,
+
     VERCEL_PROJECT_ID: process.env.VERCEL_PROJECT_ID,
     VERCEL_TEAM_ID: process.env.VERCEL_TEAM_ID,
     VERCEL_API_TOKEN: process.env.VERCEL_API_TOKEN,
   },
-  skipValidation: !!process.env.SKIP_ENV_VALIDATION,
+  skipValidation:
+    !!process.env.CI || process.env.npm_lifecycle_event === "lint",
   emptyStringAsUndefined: true,
 });

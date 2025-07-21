@@ -1,5 +1,5 @@
 // Task payload type definitions for Trigger.dev workflows
-import { z } from "zod";
+import { z } from "zod/v4";
 
 export const TRIGGER_INGESTION_JOB_ID = "trigger-ingestion-job";
 export const triggerIngestionJobBodySchema = z.object({

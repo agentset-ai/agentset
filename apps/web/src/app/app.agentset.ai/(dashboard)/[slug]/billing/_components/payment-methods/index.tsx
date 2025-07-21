@@ -1,6 +1,5 @@
 "use client";
 
-import type { Stripe } from "stripe";
 import { useRouter } from "next/navigation";
 import { useOrganization } from "@/contexts/organization-context";
 import { useTRPC } from "@/trpc/react";
@@ -8,6 +7,7 @@ import { useMutation, useQuery } from "@tanstack/react-query";
 import { CreditCardIcon } from "lucide-react";
 import { toast } from "sonner";
 
+import type { Stripe } from "@agentset/stripe";
 import {
   Badge,
   Button,

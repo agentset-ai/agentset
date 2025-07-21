@@ -1,10 +1,10 @@
 import type { MeterOrgDocumentsBody } from "@/lib/workflow";
-import { meterDocumentsPages } from "@/lib/meters";
-import { isProPlan } from "@/lib/plans";
+import { prefixId } from "@/lib/api/ids";
 import { qstashClient, qstashReceiver } from "@/lib/workflow";
 import { serve } from "@upstash/workflow/nextjs";
 
 import { db, DocumentStatus } from "@agentset/db";
+import { isProPlan, meterDocumentsPages } from "@agentset/stripe";
 import { chunkArray } from "@agentset/utils";
 
 const BATCH_SIZE = 100;
@@ -61,7 +61,10 @@ export const { POST } = serve<MeterOrgDocumentsBody>(
       const batch = batches[i]!;
       await context.run(`meter-org-documents-${i}`, async () => {
         await meterDocumentsPages({
-          documents: batch,
+          documents: batch.map((document) => ({
+            id: prefixId(document.id, "doc_"),
+            totalPages: document.totalPages,
+          })),
           stripeCustomerId: stripeCustomerId,
         });
       });

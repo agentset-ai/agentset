@@ -1,18 +1,18 @@
 import { createEnv } from "@t3-oss/env-nextjs";
-import { z } from "zod";
+import { z } from "zod/v4";
 
 export const env = createEnv({
   server: {
     S3_ACCESS_KEY: z.string(),
     S3_SECRET_KEY: z.string(),
-    S3_ENDPOINT: z.string().url(),
+    S3_ENDPOINT: z.url(),
     S3_BUCKET: z.string(),
 
     ASSETS_S3_ACCESS_KEY: z.string(),
     ASSETS_S3_SECRET_KEY: z.string(),
-    ASSETS_S3_ENDPOINT: z.string().url(),
+    ASSETS_S3_ENDPOINT: z.url(),
     ASSETS_S3_BUCKET: z.string(),
-    ASSETS_S3_URL: z.string().url(),
+    ASSETS_S3_URL: z.url(),
   },
   runtimeEnv: {
     S3_ACCESS_KEY: process.env.S3_ACCESS_KEY,

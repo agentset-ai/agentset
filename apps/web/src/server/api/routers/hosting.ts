@@ -2,12 +2,12 @@ import type { ProtectedProcedureContext } from "@/server/api/trpc";
 import { env } from "@/env";
 import { prefixId } from "@/lib/api/ids";
 import { DEFAULT_SYSTEM_PROMPT } from "@/lib/prompts";
-import z from "@/lib/zod";
 import { slugSchema, uploadedImageSchema } from "@/schemas/api/misc";
 import { createTRPCRouter, protectedProcedure } from "@/server/api/trpc";
 import { TRPCError } from "@trpc/server";
 import { waitUntil } from "@vercel/functions";
 import { nanoid } from "nanoid";
+import { z } from "zod/v4";
 
 import { Prisma } from "@agentset/db";
 import { deleteAsset, uploadImage } from "@agentset/storage";

@@ -1,4 +1,4 @@
-import { stripe } from ".";
+import { stripe } from "./instance";
 
 export async function cancelSubscription(customer?: string) {
   if (!customer) return;

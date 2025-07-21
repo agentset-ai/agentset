@@ -1,4 +1,4 @@
-import z from "@/lib/zod";
+import { z } from "zod/v4";
 
 export const NodeSchema = z.object({
   id: z.string(),

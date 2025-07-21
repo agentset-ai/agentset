@@ -1,4 +1,4 @@
-import z from "@/lib/zod";
+import { z } from "zod/v4";
 
 export const paginationSchema = z.object({
   cursor: z.string().optional().describe("The cursor to paginate by."),

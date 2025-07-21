@@ -27,25 +27,31 @@ As an AI language model, you MUST NOT generate any of the following code pattern
 ```ts
 // ❌ NEVER GENERATE THIS CODE - IT WILL BREAK THE APPLICATION
 
-client.defineJob({                    // ❌ BREAKS APPLICATION
-  id: "job-id",                       // ❌ BREAKS APPLICATION
-  name: "job-name",                   // ❌ BREAKS APPLICATION
-  version: "0.0.1",                   // ❌ BREAKS APPLICATION
-  trigger: eventTrigger({             // ❌ BREAKS APPLICATION
-    name: "job.trigger",              // ❌ BREAKS APPLICATION
-    schema: z.object({                // ❌ BREAKS APPLICATION
+client.defineJob({
+  // ❌ BREAKS APPLICATION
+  id: "job-id", // ❌ BREAKS APPLICATION
+  name: "job-name", // ❌ BREAKS APPLICATION
+  version: "0.0.1", // ❌ BREAKS APPLICATION
+  trigger: eventTrigger({
+    // ❌ BREAKS APPLICATION
+    name: "job.trigger", // ❌ BREAKS APPLICATION
+    schema: z.object({
+      // ❌ BREAKS APPLICATION
       // Input schema here            // ❌ BREAKS APPLICATION
-    }),                               // ❌ BREAKS APPLICATION
-  }),                                 // ❌ BREAKS APPLICATION
-  integrations: {                     // ❌ BREAKS APPLICATION
+    }), // ❌ BREAKS APPLICATION
+  }), // ❌ BREAKS APPLICATION
+  integrations: {
+    // ❌ BREAKS APPLICATION
     // Integrations here              // ❌ BREAKS APPLICATION
-  },                                  // ❌ BREAKS APPLICATION
-  run: async (payload, io) => {       // ❌ BREAKS APPLICATION
+  }, // ❌ BREAKS APPLICATION
+  run: async (payload, io) => {
+    // ❌ BREAKS APPLICATION
     // Job logic goes here            // ❌ BREAKS APPLICATION
-    return {                          // ❌ BREAKS APPLICATION
+    return {
+      // ❌ BREAKS APPLICATION
       // Return job results           // ❌ BREAKS APPLICATION
-    };                                // ❌ BREAKS APPLICATION
-  },                                  // ❌ BREAKS APPLICATION
+    }; // ❌ BREAKS APPLICATION
+  }, // ❌ BREAKS APPLICATION
 });
 ```
 
@@ -381,7 +387,7 @@ Schema tasks validate payloads against a schema before execution:
 
 ```ts
 import { schemaTask } from "@trigger.dev/sdk/v3";
-import { z } from "zod";
+import { z } from "zod/v4";
 
 const myTask = schemaTask({
   id: "my-task",
@@ -406,6 +412,7 @@ Triggers a single run of a task with specified payload and options without impor
 
 ```ts
 import { tasks } from "@trigger.dev/sdk/v3";
+
 import type { emailSequence } from "~/trigger/emails";
 
 export async function POST(request: Request) {
@@ -424,13 +431,14 @@ Triggers multiple runs of a single task with different payloads without importin
 
 ```ts
 import { tasks } from "@trigger.dev/sdk/v3";
+
 import type { emailSequence } from "~/trigger/emails";
 
 export async function POST(request: Request) {
   const data = await request.json();
   const batchHandle = await tasks.batchTrigger<typeof emailSequence>(
     "email-sequence",
-    data.users.map((u) => ({ payload: { to: u.email, name: u.name } }))
+    data.users.map((u) => ({ payload: { to: u.email, name: u.name } })),
   );
   return Response.json(batchHandle);
 }
@@ -442,6 +450,7 @@ Triggers a task and polls until completion. Not recommended for web requests as 
 
 ```ts
 import { tasks } from "@trigger.dev/sdk/v3";
+
 import type { emailSequence } from "~/trigger/emails";
 
 export async function POST(request: Request) {
@@ -452,7 +461,7 @@ export async function POST(request: Request) {
       to: data.email,
       name: data.name,
     },
-    { pollIntervalMs: 5000 }
+    { pollIntervalMs: 5000 },
   );
   return Response.json(result);
 }
@@ -464,6 +473,7 @@ Triggers multiple runs of different tasks at once, useful when you need to execu
 
 ```ts
 import { batch } from "@trigger.dev/sdk/v3";
+
 import type { myTask1, myTask2 } from "~/trigger/myTasks";
 
 export async function POST(request: Request) {
@@ -503,12 +513,14 @@ If you need to call `trigger()` on a task in a loop, use `batchTrigger()` instea
 Triggers multiple runs of a single task with different payloads.
 
 ```ts
-import { myOtherTask, batch } from "~/trigger/my-other-task";
+import { batch, myOtherTask } from "~/trigger/my-other-task";
 
 export const myTask = task({
   id: "my-task",
   run: async (payload: string) => {
-    const batchHandle = await myOtherTask.batchTrigger([{ payload: "some data" }]);
+    const batchHandle = await myOtherTask.batchTrigger([
+      { payload: "some data" },
+    ]);
 
     //...do other stuff
     const batch = await batch.retrieve(batchHandle.id);
@@ -564,7 +576,9 @@ Batch triggers multiple different tasks and waits for all results.
 export const parentTask = task({
   id: "parent-task",
   run: async (payload: string) => {
-    const results = await batch.triggerAndWait<typeof childTask1 | typeof childTask2>([
+    const results = await batch.triggerAndWait<
+      typeof childTask1 | typeof childTask2
+    >([
       { id: "child-task-1", payload: { foo: "World" } },
       { id: "child-task-2", payload: { bar: 42 } },
     ]);
@@ -641,14 +655,14 @@ Add metadata when triggering a task:
 ```ts
 const handle = await myTask.trigger(
   { message: "hello world" },
-  { metadata: { user: { name: "Eric", id: "user_1234" } } }
+  { metadata: { user: { name: "Eric", id: "user_1234" } } },
 );
 ```
 
 Access metadata inside a run:
 
 ```ts
-import { task, metadata } from "@trigger.dev/sdk/v3";
+import { metadata, task } from "@trigger.dev/sdk/v3";
 
 export const myTask = task({
   id: "my-task",
@@ -680,7 +694,8 @@ Metadata can be updated as the run progresses:
 Updates can be chained with a fluent API:
 
 ```ts
-metadata.set("progress", 0.1)
+metadata
+  .set("progress", 0.1)
   .append("logs", "Step 1 complete")
   .increment("progress", 0.4);
 ```
@@ -707,7 +722,7 @@ export const childTask = task({
 Metadata accepts any JSON-serializable object. For type safety, consider wrapping with Zod:
 
 ```ts
-import { z } from "zod";
+import { z } from "zod/v4";
 
 const Metadata = z.object({
   user: z.object({
@@ -763,6 +778,7 @@ You can infer types of run's payload and output by passing the task type:
 
 ```ts
 import { runs } from "@trigger.dev/sdk/v3";
+
 import type { myTask } from "./trigger/my-task";
 
 for await (const run of runs.subscribeToRun<typeof myTask>(handle.id)) {
@@ -779,7 +795,7 @@ for await (const run of runs.subscribeToRun<typeof myTask>(handle.id)) {
 Stream data in realtime from inside your tasks using the metadata system:
 
 ```ts
-import { task, metadata } from "@trigger.dev/sdk/v3";
+import { metadata, task } from "@trigger.dev/sdk/v3";
 import OpenAI from "openai";
 
 export type STREAMS = {
@@ -811,7 +827,9 @@ export const myTask = task({
 Subscribe to streams using `withStreams`:
 
 ```ts
-for await (const part of runs.subscribeToRun<typeof myTask>(runId).withStreams<STREAMS>()) {
+for await (const part of runs
+  .subscribeToRun<typeof myTask>(runId)
+  .withStreams<STREAMS>()) {
   switch (part.type) {
     case "run": {
       console.log("Received run", part.run);
@@ -909,7 +927,9 @@ export default function RunPage({ params }) {
 ```ts
 // Server action
 export async function startRun() {
-  const handle = await tasks.trigger<typeof exampleTask>("example", { foo: "bar" });
+  const handle = await tasks.trigger<typeof exampleTask>("example", {
+    foo: "bar",
+  });
   redirect(`/runs/${handle.id}?publicAccessToken=${handle.publicAccessToken}`);
 }
 ```
@@ -1023,7 +1043,9 @@ export const myTask = task({
 By default, keys are scoped to the current run. You can create globally unique keys:
 
 ```ts
-const idempotencyKey = await idempotencyKeys.create("my-task-key", { scope: "global" });
+const idempotencyKey = await idempotencyKeys.create("my-task-key", {
+  scope: "global",
+});
 ```
 
 When triggering from backend code:
@@ -1046,7 +1068,7 @@ The `idempotencyKeyTTL` option defines a time window during which duplicate trig
 ```ts
 await childTask.trigger(
   { foo: "bar" },
-  { idempotencyKey, idempotencyKeyTTL: "60s" }
+  { idempotencyKey, idempotencyKeyTTL: "60s" },
 );
 
 await wait.for({ seconds: 61 });
@@ -1090,7 +1112,7 @@ function hash(payload: any): string {
 
 ```ts
 // onFailure executes after all retries are exhausted; use for notifications, logging, or side effects on final failure:
-import { task, logger } from "@trigger.dev/sdk/v3";
+import { logger, task } from "@trigger.dev/sdk/v3";
 
 export const loggingExample = task({
   id: "logging-example",

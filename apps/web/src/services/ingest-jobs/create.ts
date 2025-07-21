@@ -1,5 +1,5 @@
-import type z from "@/lib/zod";
 import type { createIngestJobSchema } from "@/schemas/api/ingest-job";
+import type { z } from "zod/v4";
 import { triggerIngestionJob } from "@/lib/workflow";
 
 import type { IngestJobBatchItem } from "@agentset/validation";

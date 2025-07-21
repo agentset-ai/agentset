@@ -4,8 +4,6 @@
  */
 import type { NextConfig } from "next";
 
-import "@agentset/engine/env";
-import "@agentset/storage/env";
 import "./src/env";
 
 const config: NextConfig = {

@@ -3,7 +3,6 @@ import { withNamespaceApiHandler } from "@/lib/api/handler";
 import { prefixId } from "@/lib/api/ids";
 import { makeApiSuccessResponse } from "@/lib/api/response";
 import { parseRequestBody } from "@/lib/api/utils";
-import { isProPlan } from "@/lib/plans";
 import {
   createIngestJobSchema,
   getIngestionJobsSchema,
@@ -13,6 +12,7 @@ import { createIngestJob } from "@/services/ingest-jobs/create";
 import { getPaginationArgs, paginateResults } from "@/services/pagination";
 
 import { db } from "@agentset/db";
+import { isProPlan } from "@agentset/stripe";
 
 export const GET = withNamespaceApiHandler(
   async ({ searchParams, namespace, tenantId, headers }) => {

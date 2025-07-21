@@ -3,10 +3,10 @@ import type {
   ZodOpenApiPathsObject,
 } from "zod-openapi";
 import { openApiErrorResponses, successSchema } from "@/lib/openapi/responses";
-import z from "@/lib/zod";
 import { NodeSchema } from "@/schemas/api/node";
 import { queryVectorStoreSchema } from "@/schemas/api/query";
 import { tenantHeaderSchema } from "@/schemas/api/tenant";
+import { z } from "zod/v4";
 
 export const search: ZodOpenApiOperationObject = {
   operationId: "search",

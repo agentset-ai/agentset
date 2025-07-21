@@ -1,4 +1,3 @@
-import { isProPlan } from "@/lib/plans";
 import { triggerReIngestJob } from "@/lib/workflow";
 import {
   createIngestJobSchema,
@@ -9,9 +8,10 @@ import { createIngestJob } from "@/services/ingest-jobs/create";
 import { deleteIngestJob } from "@/services/ingest-jobs/delete";
 import { getPaginationArgs, paginateResults } from "@/services/pagination";
 import { TRPCError } from "@trpc/server";
-import { z } from "zod";
+import { z } from "zod/v4";
 
 import { IngestJobStatus } from "@agentset/db";
+import { isProPlan } from "@agentset/stripe";
 
 import { getNamespaceByUser } from "../auth";
 

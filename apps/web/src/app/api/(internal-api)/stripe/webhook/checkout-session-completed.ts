@@ -1,18 +1,18 @@
-import type Stripe from "stripe";
 import { limiter } from "@/lib/bottleneck";
 import { APP_DOMAIN } from "@/lib/constants";
 import { log } from "@/lib/log";
+import { sendEmail } from "@/lib/resend";
+import { triggerMeterOrgDocuments } from "@/lib/workflow";
+
+import type { Stripe } from "@agentset/stripe";
+import { db } from "@agentset/db";
+import { UpgradeEmail } from "@agentset/emails";
 import {
   getPlanFromPriceId,
   planToOrganizationFields,
   PRO_PLAN_METERED,
-} from "@/lib/plans";
-import { sendEmail } from "@/lib/resend";
-import { stripe } from "@/lib/stripe";
-import { triggerMeterOrgDocuments } from "@/lib/workflow";
-
-import { db } from "@agentset/db";
-import { UpgradeEmail } from "@agentset/emails";
+  stripe,
+} from "@agentset/stripe";
 
 export async function checkoutSessionCompleted(event: Stripe.Event) {
   const checkoutSession = event.data.object as Stripe.Checkout.Session;

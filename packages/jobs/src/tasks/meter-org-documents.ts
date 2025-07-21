@@ -1,8 +1,7 @@
-import { meterDocumentsPages } from "@/lib/meters";
-import { isProPlan } from "@/lib/plans";
-import { schemaTask } from "@trigger.dev/sdk/v3";
+import { schemaTask } from "@trigger.dev/sdk";
 
 import { DocumentStatus } from "@agentset/db";
+import { isProPlan, meterDocumentsPages } from "@agentset/stripe";
 import { chunkArray } from "@agentset/utils";
 
 import {
@@ -16,11 +15,8 @@ const BATCH_SIZE = 100;
 export const meterOrgDocuments = schemaTask({
   id: METER_ORG_DOCUMENTS_JOB_ID,
   maxDuration: 1800, // 30 minutes
-  retry: {
-    maxAttempts: 3,
-    factor: 2,
-    minTimeoutInMs: 1000,
-    maxTimeoutInMs: 30000,
+  queue: {
+    concurrencyLimit: 50,
   },
   schema: meterOrgDocumentsBodySchema,
   run: async ({ organizationId }) => {
@@ -85,7 +81,10 @@ export const meterOrgDocuments = schemaTask({
       const batch = batches[i]!;
 
       await meterDocumentsPages({
-        documents: batch,
+        documents: batch.map((document) => ({
+          id: `doc_${document.id}`,
+          totalPages: document.totalPages,
+        })),
         stripeCustomerId,
       });
 

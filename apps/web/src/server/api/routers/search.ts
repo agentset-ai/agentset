@@ -3,7 +3,7 @@ import { incrementSearchUsage } from "@/lib/api/usage";
 import { getNamespaceLanguageModel } from "@/lib/llm";
 import { createTRPCRouter, protectedProcedure } from "@/server/api/trpc";
 import { TRPCError } from "@trpc/server";
-import { z } from "zod";
+import { z } from "zod/v4";
 
 import { getNamespaceByUser } from "../auth";
 

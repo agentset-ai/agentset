@@ -1,6 +1,6 @@
 import { deleteOrganization } from "@/services/organizations/delete";
 import { TRPCError } from "@trpc/server";
-import { z } from "zod";
+import { z } from "zod/v4";
 
 import { OrganizationStatus } from "@agentset/db";
 

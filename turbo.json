@@ -57,6 +57,10 @@
       "cache": false,
       "interactive": true
     },
+    "jobs": {
+      "persistent": true,
+      "cache": false
+    },
     "studio": {
       "cache": false,
       "persistent": true
@@ -96,7 +100,32 @@
     "DISCORD_HOOK_ALERTS",
     "DISCORD_HOOK_CRON",
     "DISCORD_HOOK_SUBSCRIBERS",
-    "DISCORD_HOOK_ERRORS"
+    "DISCORD_HOOK_ERRORS",
+    "DEFAULT_PINECONE_API_KEY",
+    "DEFAULT_PINECONE_HOST",
+    "SECONDARY_PINECONE_API_KEY",
+    "SECONDARY_PINECONE_HOST",
+    "AZURE_SEARCH_URL",
+    "AZURE_SEARCH_INDEX",
+    "AZURE_SEARCH_KEY",
+    "DEFAULT_AZURE_BASE_URL",
+    "DEFAULT_AZURE_API_KEY",
+    "DEFAULT_AZURE_TEXT_3_LARGE_EMBEDDING_DEPLOYMENT",
+    "DEFAULT_AZURE_TEXT_3_LARGE_EMBEDDING_VERSION",
+    "DEFAULT_AZURE_GPT_4_1_DEPLOYMENT",
+    "DEFAULT_AZURE_GPT_4_1_VERSION",
+    "DEFAULT_COHERE_API_KEY",
+    "PARTITION_API_URL",
+    "PARTITION_API_KEY",
+    "S3_ACCESS_KEY",
+    "S3_SECRET_KEY",
+    "S3_ENDPOINT",
+    "S3_BUCKET",
+    "ASSETS_S3_ACCESS_KEY",
+    "ASSETS_S3_SECRET_KEY",
+    "ASSETS_S3_ENDPOINT",
+    "ASSETS_S3_BUCKET",
+    "ASSETS_S3_URL"
   ],
   "globalPassThroughEnv": [
     "NODE_ENV",

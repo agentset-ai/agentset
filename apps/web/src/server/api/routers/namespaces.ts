@@ -6,7 +6,7 @@ import {
   validateVectorStoreConfig,
 } from "@/services/namespaces/validate";
 import { TRPCError } from "@trpc/server";
-import { z } from "zod";
+import { z } from "zod/v4";
 
 import { NamespaceStatus } from "@agentset/db";
 import { EmbeddingConfigSchema, VectorStoreSchema } from "@agentset/validation";

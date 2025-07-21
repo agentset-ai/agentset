@@ -1,11 +1,11 @@
 import type { ZodOpenApiOperationObject } from "zod-openapi";
 import { openApiErrorResponses, successSchema } from "@/lib/openapi/responses";
-import z from "@/lib/zod";
 import {
   getIngestionJobsSchema,
   IngestJobSchema,
 } from "@/schemas/api/ingest-job";
 import { tenantHeaderSchema } from "@/schemas/api/tenant";
+import { z } from "zod/v4";
 
 export const listIngestJobs: ZodOpenApiOperationObject = {
   operationId: "listIngestJobs",

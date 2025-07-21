@@ -1,4 +1,4 @@
-import { schemaTask } from "@trigger.dev/sdk/v3";
+import { schemaTask } from "@trigger.dev/sdk";
 
 import { DocumentStatus, IngestJobStatus } from "@agentset/db";
 import { chunkArray } from "@agentset/utils";
@@ -11,7 +11,10 @@ const BATCH_SIZE = 30;
 
 export const deleteIngestJob = schemaTask({
   id: DELETE_INGEST_JOB_ID,
-  maxDuration: 1800, // 30 minutes
+  maxDuration: 60 * 30, // 30 minutes
+  queue: {
+    concurrencyLimit: 50,
+  },
   schema: deleteIngestJobBodySchema,
   run: async ({ jobId }) => {
     const db = getDb();

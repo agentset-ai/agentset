@@ -1,9 +1,9 @@
 import { DEFAULT_SYSTEM_PROMPT } from "@/lib/prompts";
-import z from "@/lib/zod";
 import {
   baseQueryVectorStoreSchema,
   refineRereankLimit,
 } from "@/schemas/api/query";
+import { z } from "zod/v4";
 
 export const chatSchema = refineRereankLimit(
   baseQueryVectorStoreSchema.omit({ query: true }).extend({

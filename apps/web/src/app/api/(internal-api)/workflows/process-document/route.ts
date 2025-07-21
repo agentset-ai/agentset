@@ -1,8 +1,7 @@
 import type { TriggerDocumentJobBody } from "@/lib/workflow";
 import type { WorkflowContext } from "@upstash/workflow";
 import { env } from "@/env";
-import { meterIngestedPages } from "@/lib/meters";
-import { isProPlan } from "@/lib/plans";
+import { prefixId } from "@/lib/api/ids";
 import { redis } from "@/lib/redis";
 import { qstashClient, qstashReceiver } from "@/lib/workflow";
 import { serve } from "@upstash/workflow/nextjs";
@@ -21,6 +20,7 @@ import {
   KeywordStore,
   makeChunk,
 } from "@agentset/engine";
+import { isProPlan, meterIngestedPages } from "@agentset/stripe";
 import { chunkArray } from "@agentset/utils";
 
 const BATCH_SIZE = 30;
@@ -400,7 +400,7 @@ export const { POST } = serve<TriggerDocumentJobBody>(
     ) {
       await context.run("log-usage-to-stripe", async () => {
         await meterIngestedPages({
-          documentId: document.id,
+          documentId: prefixId(document.id, "doc_"),
           totalPages,
           stripeCustomerId,
         });

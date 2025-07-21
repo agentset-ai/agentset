@@ -12,7 +12,7 @@ const BATCH_SIZE = 50;
 
 export const deleteDocument = schemaTask({
   id: DELETE_DOCUMENT_JOB_ID,
-  maxDuration: 1800, // 30 minutes
+  maxDuration: 60 * 30, // 30 minutes
   queue: {
     concurrencyLimit: 50,
   },

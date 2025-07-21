@@ -1,7 +1,7 @@
 import type { LanguageModelV1 } from "ai";
 import { formatSources } from "@/lib/agentic/utils";
-import z from "@/lib/zod";
 import { generateText } from "ai";
+import { z } from "zod/v4";
 
 import type { QueryVectorStoreResult } from "@agentset/engine";
 

@@ -1,4 +1,4 @@
-import z from "@/lib/zod";
+import { z } from "zod/v4";
 
 export const baseQueryVectorStoreSchema = z.object({
   query: z.string().describe("The query to search for."),

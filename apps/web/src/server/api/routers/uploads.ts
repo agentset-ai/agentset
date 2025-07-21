@@ -2,7 +2,7 @@ import { extname } from "node:path";
 import { filenamize } from "@/lib/string-utils";
 import { createTRPCRouter, protectedProcedure } from "@/server/api/trpc";
 import { TRPCError } from "@trpc/server";
-import { z } from "zod";
+import { z } from "zod/v4";
 
 import { presignUploadUrl } from "@agentset/storage";
 import { MAX_UPLOAD_SIZE } from "@agentset/storage/constants";

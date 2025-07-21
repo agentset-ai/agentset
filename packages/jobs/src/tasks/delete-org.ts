@@ -1,4 +1,4 @@
-import { schemaTask } from "@trigger.dev/sdk/v3";
+import { schemaTask } from "@trigger.dev/sdk";
 
 import { chunkArray } from "@agentset/utils";
 
@@ -14,6 +14,9 @@ const BATCH_SIZE = 30;
 export const deleteOrganization = schemaTask({
   id: DELETE_ORGANIZATION_JOB_ID,
   maxDuration: 1800, // 30 minutes
+  queue: {
+    concurrencyLimit: 50,
+  },
   schema: deleteOrganizationBodySchema,
   run: async ({ organizationId }) => {
     const db = getDb();

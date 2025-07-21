@@ -1,5 +1,5 @@
 {
-  "name": "@midday/jobs",
+  "name": "@agentset/jobs",
   "version": "0.0.1",
   "private": true,
   "scripts": {
@@ -17,8 +17,12 @@
     "@agentset/db": "workspace:*",
     "@agentset/engine": "workspace:*",
     "@agentset/storage": "workspace:*",
+    "@agentset/stripe": "workspace:*",
     "@agentset/utils": "workspace:*",
-    "@trigger.dev/sdk": "4.0.0-v4-beta.23"
+    "@trigger.dev/sdk": "4.0.0-v4-beta.23",
+    "@upstash/redis": "^1.34.9",
+    "ai": "catalog:",
+    "zod": "catalog:"
   },
   "devDependencies": {
     "@agentset/eslint-config": "workspace:*",
@@ -27,6 +31,7 @@
     "@trigger.dev/build": "4.0.0-v4-beta.23",
     "eslint": "catalog:",
     "prettier": "catalog:",
+    "trigger.dev": "4.0.0-v4-beta.23",
     "typescript": "catalog:"
   },
   "prettier": "@agentset/prettier-config"

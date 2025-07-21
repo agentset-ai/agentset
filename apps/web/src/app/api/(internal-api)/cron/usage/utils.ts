@@ -1,11 +1,14 @@
 import { APP_DOMAIN } from "@/lib/constants";
 import { getAdjustedBillingCycleStart } from "@/lib/datetime";
 import { log } from "@/lib/log";
-import { isProPlan } from "@/lib/plans";
 import { capitalize } from "@/lib/string-utils";
-import { qstashClient, triggerMeterOrgDocuments } from "@/lib/workflow";
+import { qstashClient } from "@/lib/workflow";
+import { tasks } from "@trigger.dev/sdk";
 
+import type { MeterOrgDocumentsBody } from "@agentset/jobs";
 import { db } from "@agentset/db";
+import { METER_ORG_DOCUMENTS_JOB_ID } from "@agentset/jobs";
+import { isProPlan } from "@agentset/stripe";
 
 const limit = 100;
 
@@ -81,9 +84,12 @@ export const updateUsage = async () => {
       (organization) => isProPlan(organization.plan) && organization.stripeId,
     );
     if (orgsToMeter.length > 0) {
-      await triggerMeterOrgDocuments(
+      await tasks.batchTrigger(
+        METER_ORG_DOCUMENTS_JOB_ID,
         orgsToMeter.map(({ id }) => ({
-          organizationId: id,
+          payload: {
+            organizationId: id,
+          } satisfies MeterOrgDocumentsBody,
         })),
       );
     }

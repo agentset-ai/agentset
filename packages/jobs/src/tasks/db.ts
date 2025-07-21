@@ -1,4 +1,4 @@
-import { locals, logger, tasks } from "@trigger.dev/sdk";
+import { locals, tasks } from "@trigger.dev/sdk";
 
 import { PrismaClient } from "@agentset/db";
 
@@ -13,7 +13,7 @@ export function setDb(db: PrismaClient) {
   locals.set(DbLocal, db);
 }
 
-tasks.middleware("db", async ({ ctx, payload, next, task }) => {
+tasks.middleware("db", async ({ next }) => {
   // This would be your database client here
   const db = locals.set(DbLocal, new PrismaClient());
 
@@ -23,13 +23,13 @@ tasks.middleware("db", async ({ ctx, payload, next, task }) => {
 });
 
 // Disconnect when the run is paused
-tasks.onWait("db", async ({ ctx, payload, task }) => {
+tasks.onWait("db", async () => {
   const db = getDb();
   await db.$disconnect();
 });
 
 // Reconnect when the run is resumed
-tasks.onResume("db", async ({ ctx, payload, task }) => {
+tasks.onResume("db", async () => {
   const db = getDb();
   await db.$connect();
 });

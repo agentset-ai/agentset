@@ -1,6 +1,3 @@
-import { meterIngestedPages } from "@/lib/meters";
-import { isProPlan } from "@/lib/plans";
-import { redis } from "@/lib/redis";
 import { schemaTask, wait } from "@trigger.dev/sdk";
 import { embedMany } from "ai";
 
@@ -18,18 +15,16 @@ import {
   makeChunk,
 } from "@agentset/engine";
 import { env } from "@agentset/engine/env";
+import { isProPlan, meterIngestedPages } from "@agentset/stripe";
 import { chunkArray } from "@agentset/utils";
 
 import { TRIGGER_DOCUMENT_JOB_ID, triggerDocumentJobBodySchema } from "..";
+import { redis } from "../redis";
 import { getDb } from "./db";
 
 const BATCH_SIZE = 30;
 
-const partitionDocument = async (
-  partitionBody: PartitionBody,
-  documentId: string,
-) => {
-  // Step 1: Start partition process
+const partitionDocument = async (partitionBody: PartitionBody) => {
   const response = await fetch(env.PARTITION_API_URL, {
     method: "POST",
     headers: {
@@ -39,66 +34,32 @@ const partitionDocument = async (
     body: JSON.stringify(partitionBody),
   });
 
-  const body = await response.json();
-  if (response.status !== 200 || !body?.call_id) {
+  const body = (await response.json()) as { call_id: string };
+  if (response.status !== 200 || !body.call_id) {
     return {
       result: null,
       error: "Partition error",
     };
   }
 
-  // Step 2: Poll for completion
-  let attempts = 0;
-  const maxAttempts = 288; // 24 hours with 5 minute intervals
-
-  while (attempts < maxAttempts) {
-    await wait.for({ minutes: 5 });
-
-    // Check Redis for the partition result
-    const eventData = await redis.get<PartitionResult>(
-      `partition:${partitionBody.notify_id}`,
-    );
-
-    if (eventData) {
-      // Clean up the event data from Redis
-      await redis.del(`partition:${partitionBody.notify_id}`);
-
-      if (eventData.status !== 200) {
-        return {
-          result: null,
-          error: "Partition error",
-        };
-      }
-
-      return {
-        result: eventData,
-        error: null,
-      } as const;
-    }
-
-    attempts++;
-  }
-
-  return {
-    result: null,
-    error: "Partition timeout",
-  };
+  return true;
 };
 
 export const processDocument = schemaTask({
   id: TRIGGER_DOCUMENT_JOB_ID,
-  maxDuration: 7200, // 2 hours
-  retry: {
-    maxAttempts: 3,
-    factor: 2,
-    minTimeoutInMs: 1000,
-    maxTimeoutInMs: 30000,
+  maxDuration: 600, // 10 minutes
+  queue: {
+    concurrencyLimit: 100,
+  },
+  machine: {
+    preset: "large-1x",
   },
   schema: triggerDocumentJobBodySchema,
   onFailure: async ({ payload, error }) => {
     const db = getDb();
 
-    const errorMessage = error instanceof Error ? error.message : String(error);
+    const errorMessage =
+      (error instanceof Error ? error.message : null) || "Unknown error";
     await db.document.update({
       where: { id: payload.documentId },
       data: {
@@ -109,7 +70,7 @@ export const processDocument = schemaTask({
           update: {
             status: IngestJobStatus.FAILED,
             failedAt: new Date(),
-            error: error || "Unknown error",
+            error: errorMessage,
           },
         },
       },
@@ -170,14 +131,16 @@ export const processDocument = schemaTask({
     );
 
     // Partition the document
-    const { result: body, error } = await partitionDocument(
-      partitionBody,
-      documentId,
-    );
-
-    if (error || !body) {
-      throw new Error(error || "Failed to partition document");
+    const initialResult = await partitionDocument(partitionBody);
+    if (initialResult !== true) {
+      throw new Error(initialResult.error || "Failed to partition document");
     }
+
+    // This must be called inside a task run function
+    const result = await wait.forToken<PartitionResult>(token);
+    if (!result.ok || result.output.status !== 200) return;
+
+    const body = result.output;
 
     // Update document properties and status to processing
     const totalPages =
@@ -358,7 +321,7 @@ export const processDocument = schemaTask({
       !shouldCleanup // don't log usage if re-processing
     ) {
       await meterIngestedPages({
-        documentId: document.id,
+        documentId: `doc_${document.id}`,
         totalPages,
         stripeCustomerId,
       });

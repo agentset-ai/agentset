@@ -7,7 +7,7 @@ import { validateDomain } from "@/lib/domains/utils";
 import { verifyDomain } from "@/lib/domains/verify-domain";
 import { createTRPCRouter, protectedProcedure } from "@/server/api/trpc";
 import { TRPCError } from "@trpc/server";
-import { z } from "zod";
+import { z } from "zod/v4";
 
 import type { Domain } from "@agentset/db";
 

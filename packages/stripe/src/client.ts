@@ -1,6 +1,7 @@
 import type { Stripe } from "@stripe/stripe-js";
-import { env } from "@/env";
 import { loadStripe } from "@stripe/stripe-js";
+
+import { env } from "./env";
 
 let stripePromise: Promise<Stripe | null> | null = null;
 export const getStripe = () => {

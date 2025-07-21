@@ -1,7 +1,7 @@
-import { cancelSubscription } from "@/lib/stripe/cancel-subscription";
 import { triggerDeleteNamespace } from "@/lib/workflow";
 
 import { db, OrganizationStatus } from "@agentset/db";
+import { cancelSubscription } from "@agentset/stripe";
 
 export async function deleteOrganization({
   organizationId,

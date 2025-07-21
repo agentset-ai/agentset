@@ -1,4 +1,4 @@
-import z from "@/lib/zod";
+import { z } from "zod/v4";
 
 import { DocumentStatus } from "@agentset/db";
 import {
@@ -78,7 +78,7 @@ export const DocumentSchema = z
       .describe("The date and time the document failed.")
       .default(null),
   })
-  .openapi({
+  .meta({
     title: "Document",
   });
 

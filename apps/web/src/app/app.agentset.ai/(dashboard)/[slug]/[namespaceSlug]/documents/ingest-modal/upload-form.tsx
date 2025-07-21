@@ -5,7 +5,7 @@ import { useTRPC } from "@/trpc/react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation } from "@tanstack/react-query";
 import { useForm } from "react-hook-form";
-import { z } from "zod";
+import { z } from "zod/v4";
 
 import { MAX_UPLOAD_SIZE } from "@agentset/storage/constants";
 import {

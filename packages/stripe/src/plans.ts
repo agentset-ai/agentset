@@ -1,8 +1,7 @@
-import { env } from "@/env";
-
 import type { Prisma } from "@agentset/db";
+import { INFINITY_NUMBER } from "@agentset/utils";
 
-import { INFINITY_NUMBER } from "./constants";
+import { env } from "./env";
 
 export type PlanFeature = {
   id?: string;
