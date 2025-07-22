@@ -2,17 +2,19 @@ import { limiter } from "@/lib/bottleneck";
 import { APP_DOMAIN } from "@/lib/constants";
 import { log } from "@/lib/log";
 import { sendEmail } from "@/lib/resend";
-import { triggerMeterOrgDocuments } from "@/lib/workflow";
+import { tasks } from "@trigger.dev/sdk";
 
+import type { MeterOrgDocumentsBody } from "@agentset/jobs";
 import type { Stripe } from "@agentset/stripe";
 import { db } from "@agentset/db";
 import { UpgradeEmail } from "@agentset/emails";
+import { METER_ORG_DOCUMENTS_JOB_ID } from "@agentset/jobs";
+import { stripe } from "@agentset/stripe";
 import {
   getPlanFromPriceId,
   planToOrganizationFields,
   PRO_PLAN_METERED,
-  stripe,
-} from "@agentset/stripe";
+} from "@agentset/stripe/plans";
 
 export async function checkoutSessionCompleted(event: Stripe.Event) {
   const checkoutSession = event.data.object as Stripe.Checkout.Session;
@@ -105,8 +107,8 @@ export async function checkoutSessionCompleted(event: Stripe.Event) {
         }),
       ),
     ),
-    triggerMeterOrgDocuments({
+    tasks.trigger(METER_ORG_DOCUMENTS_JOB_ID, {
       organizationId,
-    }),
+    } satisfies MeterOrgDocumentsBody),
   ]);
 }

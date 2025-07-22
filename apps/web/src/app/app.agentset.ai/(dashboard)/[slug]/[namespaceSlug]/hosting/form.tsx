@@ -70,7 +70,7 @@ export default function HostingForm({
   onSubmit: (data: FormSubmissionData) => void;
   defaultValues?: Partial<FormSubmissionData>;
 }) {
-  const form = useForm<FormValues>({
+  const form = useForm({
     resolver: zodResolver(schema),
     defaultValues: {
       title: "",
@@ -108,7 +108,7 @@ export default function HostingForm({
   const url = `${APP_DOMAIN}${HOSTING_PREFIX}${defaultValues?.slug}`;
 
   const handleCopy = () => {
-    navigator.clipboard.writeText(url);
+    void navigator.clipboard.writeText(url);
     toast.success("Copied to clipboard");
   };
 

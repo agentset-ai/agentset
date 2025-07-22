@@ -2,12 +2,12 @@ import { getBaseUrl } from "@/lib/utils";
 import { TRPCError } from "@trpc/server";
 import { z } from "zod/v4";
 
+import { stripe } from "@agentset/stripe";
 import {
   getStripeEnvironment,
   isProPlan,
   PRO_PLAN_METERED,
-  stripe,
-} from "@agentset/stripe";
+} from "@agentset/stripe/plans";
 
 import { createTRPCRouter, protectedProcedure } from "../trpc";
 

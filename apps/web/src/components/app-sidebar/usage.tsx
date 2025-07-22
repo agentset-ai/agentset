@@ -3,10 +3,10 @@
 import Link from "next/link";
 import { useOrganization } from "@/contexts/organization-context";
 import { useCal } from "@/hooks/use-cal";
-import { INFINITY_NUMBER } from "@/lib/constants";
 import { formatNumber } from "@/lib/utils";
 
 import { Button, Progress } from "@agentset/ui";
+import { INFINITY_NUMBER } from "@agentset/utils";
 
 export function Usage() {
   const { activeOrganization } = useOrganization();

@@ -55,10 +55,14 @@ export default function CreateNamespaceDetailsStep({
     [activeOrganization.id],
   );
 
-  const form = useForm<FormSchema>({
+  const form = useForm({
     resolver: zodResolver(formSchema, undefined, { mode: "async" }),
     reValidateMode: "onBlur",
-    defaultValues: defaultValues,
+    defaultValues: {
+      name: "",
+      slug: "",
+      ...defaultValues,
+    },
   });
 
   const name = form.watch("name");

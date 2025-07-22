@@ -21,7 +21,8 @@ export interface PartitionBody {
   };
 
   notify_id?: string;
-  trigger_token?: string;
+  trigger_token_id?: string;
+  trigger_access_token?: string;
 }
 
 export type PartitionResult = {
@@ -84,11 +85,18 @@ export const getPartitionDocumentBody = async (
   document: Document,
   ingestJob: IngestJob,
   namespace: Pick<Namespace, "id" | "embeddingConfig">,
-  triggerToken: string,
+  {
+    triggerTokenId,
+    triggerAccessToken,
+  }: {
+    triggerTokenId: string;
+    triggerAccessToken: string;
+  },
 ) => {
   const body: Partial<PartitionBody> = {
     // notify_id: `partition-${uuidv4()}`,
-    trigger_token: triggerToken,
+    trigger_token_id: triggerTokenId,
+    trigger_access_token: triggerAccessToken,
   };
 
   const type = document.source.type;

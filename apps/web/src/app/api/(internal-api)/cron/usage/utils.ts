@@ -8,7 +8,7 @@ import { tasks } from "@trigger.dev/sdk";
 import type { MeterOrgDocumentsBody } from "@agentset/jobs";
 import { db } from "@agentset/db";
 import { METER_ORG_DOCUMENTS_JOB_ID } from "@agentset/jobs";
-import { isProPlan } from "@agentset/stripe";
+import { isProPlan } from "@agentset/stripe/plans";
 
 const limit = 100;
 

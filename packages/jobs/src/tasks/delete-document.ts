@@ -59,7 +59,7 @@ export const deleteDocument = schemaTask({
       data: {
         status: DocumentStatus.DELETING,
       },
-      select: {},
+      select: { id: true },
     });
 
     // Get vector store and clean up chunks
@@ -134,7 +134,7 @@ export const deleteDocument = schemaTask({
     await db.$transaction([
       db.document.delete({
         where: { id: document.id },
-        select: {},
+        select: { id: true },
       }),
       db.namespace.update({
         where: { id: namespace.id },
@@ -148,7 +148,7 @@ export const deleteDocument = schemaTask({
             },
           },
         },
-        select: {},
+        select: { id: true },
       }),
     ]);
 

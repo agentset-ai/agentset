@@ -1,12 +1,8 @@
-import { schemaTask, wait } from "@trigger.dev/sdk";
+import { metadata, schemaTask, wait } from "@trigger.dev/sdk";
 import { embedMany } from "ai";
 
-import type {
-  PartitionBatch,
-  PartitionBody,
-  PartitionResult,
-} from "@agentset/engine";
-import { DocumentStatus, IngestJobStatus } from "@agentset/db";
+import type { PartitionBatch, PartitionResult } from "@agentset/engine";
+import { DocumentStatus } from "@agentset/db";
 import {
   getNamespaceEmbeddingModel,
   getNamespaceVectorStore,
@@ -15,7 +11,8 @@ import {
   makeChunk,
 } from "@agentset/engine";
 import { env } from "@agentset/engine/env";
-import { isProPlan, meterIngestedPages } from "@agentset/stripe";
+import { meterIngestedPages } from "@agentset/stripe";
+import { isProPlan } from "@agentset/stripe/plans";
 import { chunkArray } from "@agentset/utils";
 
 import { TRIGGER_DOCUMENT_JOB_ID, triggerDocumentJobBodySchema } from "..";
@@ -24,35 +21,14 @@ import { getDb } from "./db";
 
 const BATCH_SIZE = 30;
 
-const partitionDocument = async (partitionBody: PartitionBody) => {
-  const response = await fetch(env.PARTITION_API_URL, {
-    method: "POST",
-    headers: {
-      "api-key": env.PARTITION_API_KEY,
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify(partitionBody),
-  });
-
-  const body = (await response.json()) as { call_id: string };
-  if (response.status !== 200 || !body.call_id) {
-    return {
-      result: null,
-      error: "Partition error",
-    };
-  }
-
-  return true;
-};
-
 export const processDocument = schemaTask({
   id: TRIGGER_DOCUMENT_JOB_ID,
-  maxDuration: 600, // 10 minutes
+  maxDuration: 60 * 60, // 1 hour
   queue: {
     concurrencyLimit: 100,
   },
   machine: {
-    preset: "large-1x",
+    preset: "medium-1x",
   },
   schema: triggerDocumentJobBodySchema,
   onFailure: async ({ payload, error }) => {
@@ -64,15 +40,8 @@ export const processDocument = schemaTask({
       where: { id: payload.documentId },
       data: {
         status: DocumentStatus.FAILED,
-        error: error || "Unknown error",
+        error: errorMessage,
         failedAt: new Date(),
-        ingestJob: {
-          update: {
-            status: IngestJobStatus.FAILED,
-            failedAt: new Date(),
-            error: errorMessage,
-          },
-        },
       },
       select: { id: true },
     });
@@ -127,38 +96,55 @@ export const processDocument = schemaTask({
       document,
       ingestJob,
       namespace,
-      token.id,
+      {
+        triggerTokenId: token.id,
+        triggerAccessToken: token.publicAccessToken,
+      },
     );
 
     // Partition the document
-    const initialResult = await partitionDocument(partitionBody);
-    if (initialResult !== true) {
-      throw new Error(initialResult.error || "Failed to partition document");
+    const response = await fetch(env.PARTITION_API_URL, {
+      method: "POST",
+      headers: {
+        "api-key": env.PARTITION_API_KEY,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(partitionBody),
+    });
+
+    const initialBody = (await response.json()) as { call_id: string };
+    if (response.status !== 200 || !initialBody.call_id) {
+      throw new Error("Partition Error");
     }
 
     // This must be called inside a task run function
-    const result = await wait.forToken<PartitionResult>(token);
-    if (!result.ok || result.output.status !== 200) return;
+    const result = await wait
+      .forToken<PartitionResult | undefined>(token.id)
+      .unwrap();
 
-    const body = result.output;
+    metadata.set("partition-result", result ?? null);
+
+    if (!result || result.status !== 200) {
+      throw new Error("Partition Error");
+    }
 
     // Update document properties and status to processing
     const totalPages =
-      body.total_pages && typeof body.total_pages === "number"
-        ? body.total_pages
-        : body.total_characters / 1000;
+      result.total_pages && typeof result.total_pages === "number"
+        ? result.total_pages
+        : result.total_characters / 1000;
 
     await db.document.update({
       where: { id: document.id },
       data: {
         status: DocumentStatus.PROCESSING,
         processingAt: new Date(),
-        totalCharacters: body.total_characters,
-        totalChunks: body.total_chunks,
+        totalCharacters: result.total_characters,
+        totalChunks: result.total_chunks,
         totalPages,
         documentProperties: {
-          fileSize: body.metadata.sizeInBytes,
-          mimeType: body.metadata.filetype,
+          fileSize: result.metadata.sizeInBytes,
+          mimeType: result.metadata.filetype,
         },
       },
       select: { id: true },
@@ -233,9 +219,9 @@ export const processDocument = schemaTask({
     // Process all batches and embed chunks
     let totalTokens = 0;
 
-    for (let batchIdx = 0; batchIdx < body.total_batches; batchIdx++) {
+    for (let batchIdx = 0; batchIdx < result.total_batches; batchIdx++) {
       const chunkBatch = await redis.get<PartitionBatch>(
-        body.batch_template.replace("[BATCH_INDEX]", batchIdx.toString()),
+        result.batch_template.replace("[BATCH_INDEX]", batchIdx.toString()),
       );
 
       if (!chunkBatch) {
@@ -302,10 +288,10 @@ export const processDocument = schemaTask({
     ]);
 
     // Delete all chunks from redis
-    const keys = new Array(body.total_batches)
+    const keys = new Array(result.total_batches)
       .fill(null)
       .map((_, idx) =>
-        body.batch_template.replace("[BATCH_INDEX]", idx.toString()),
+        result.batch_template.replace("[BATCH_INDEX]", idx.toString()),
       );
 
     const keyBatches = chunkArray(keys, 150);
@@ -331,7 +317,7 @@ export const processDocument = schemaTask({
       documentId: document.id,
       totalPages,
       totalTokens,
-      totalChunks: body.total_chunks,
+      totalChunks: result.total_chunks,
     };
   },
 });

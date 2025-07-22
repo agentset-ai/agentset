@@ -74,7 +74,7 @@ export const deleteNamespace = schemaTask({
     // Delete the namespace directly
     await db.namespace.delete({
       where: { id: namespace.id },
-      select: {},
+      select: { id: true },
     });
 
     return {

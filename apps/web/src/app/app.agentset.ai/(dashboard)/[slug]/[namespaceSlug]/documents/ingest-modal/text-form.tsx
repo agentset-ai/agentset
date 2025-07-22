@@ -26,13 +26,13 @@ const schema = z
     name: z.string().optional(),
     text: z.string().min(10, "Text must be at least 10 characters"),
   })
-  .merge(configSchema);
+  .extend(configSchema.shape);
 
 export default function TextForm({ onSuccess }: { onSuccess: () => void }) {
   const { activeNamespace } = useNamespace();
   const trpc = useTRPC();
 
-  const form = useForm<z.infer<typeof schema>>({
+  const form = useForm({
     resolver: zodResolver(schema),
   });
 

@@ -12,7 +12,7 @@ import { createIngestJob } from "@/services/ingest-jobs/create";
 import { getPaginationArgs, paginateResults } from "@/services/pagination";
 
 import { db } from "@agentset/db";
-import { isProPlan } from "@agentset/stripe";
+import { isProPlan } from "@agentset/stripe/plans";
 
 export const GET = withNamespaceApiHandler(
   async ({ searchParams, namespace, tenantId, headers }) => {

@@ -60,7 +60,7 @@ export const deleteOrganization = schemaTask({
     // Delete the namespace directly
     await db.organization.delete({
       where: { id: organization.id },
-      select: {},
+      select: { id: true },
     });
 
     return {

@@ -9,8 +9,8 @@ import { useTRPC } from "@/trpc/react";
 import { useMutation } from "@tanstack/react-query";
 import { toast } from "sonner";
 
-import { SELF_SERVE_PAID_PLANS } from "@agentset/stripe";
 import { getStripe } from "@agentset/stripe/client";
+import { SELF_SERVE_PAID_PLANS } from "@agentset/stripe/plans";
 import { Button } from "@agentset/ui";
 
 export function UpgradePlanButton({

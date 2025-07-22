@@ -1,6 +1,8 @@
-import { triggerDeleteNamespace } from "@/lib/workflow";
+import { tasks } from "@trigger.dev/sdk";
 
+import type { DeleteNamespaceBody } from "@agentset/jobs";
 import { db, NamespaceStatus } from "@agentset/db";
+import { DELETE_NAMESPACE_JOB_ID } from "@agentset/jobs";
 
 export const deleteNamespace = async ({
   namespaceId,
@@ -12,5 +14,7 @@ export const deleteNamespace = async ({
     data: { status: NamespaceStatus.DELETING },
   });
 
-  await triggerDeleteNamespace({ namespaceId });
+  await tasks.trigger(DELETE_NAMESPACE_JOB_ID, {
+    namespaceId,
+  } satisfies DeleteNamespaceBody);
 };

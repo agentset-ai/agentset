@@ -3,7 +3,6 @@
 import { useMemo } from "react";
 import Link from "next/link";
 import { useOrganization } from "@/contexts/organization-context";
-import { INFINITY_NUMBER } from "@/lib/constants";
 import { getFirstAndLastDay } from "@/lib/datetime";
 import { capitalize } from "@/lib/string-utils";
 import { formatNumber } from "@/lib/utils";
@@ -25,6 +24,7 @@ import {
   Separator,
   Skeleton,
 } from "@agentset/ui";
+import { INFINITY_NUMBER } from "@agentset/utils";
 
 import SubscriptionMenu from "./subscription-menu";
 

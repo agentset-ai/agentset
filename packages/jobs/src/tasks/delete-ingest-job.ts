@@ -43,7 +43,7 @@ export const deleteIngestJob = schemaTask({
       data: {
         status: IngestJobStatus.DELETING,
       },
-      select: {},
+      select: { id: true },
     });
 
     // Cancel any running workflows for this ingest job
@@ -82,7 +82,7 @@ export const deleteIngestJob = schemaTask({
 
     await db.ingestJob.delete({
       where: { id: ingestJob.id },
-      select: {},
+      select: { id: true },
     });
 
     return {

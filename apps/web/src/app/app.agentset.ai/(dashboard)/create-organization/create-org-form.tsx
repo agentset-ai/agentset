@@ -48,7 +48,7 @@ export function CreateOrgForm({
   onSuccess?: () => void;
 }) {
   const router = useRouter();
-  const form = useForm<z.infer<typeof formSchema>>({
+  const form = useForm({
     resolver: zodResolver(formSchema, undefined, { mode: "async" }),
     reValidateMode: "onBlur",
     defaultValues: {

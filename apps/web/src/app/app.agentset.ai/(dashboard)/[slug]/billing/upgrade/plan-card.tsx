@@ -1,7 +1,7 @@
 import NumberFlow from "@number-flow/react";
 import { CheckIcon, MinusIcon } from "lucide-react";
 
-import type { ENTERPRISE_PLAN, PRO_PLAN } from "@agentset/stripe";
+import type { ENTERPRISE_PLAN, PRO_PLAN } from "@agentset/stripe/plans";
 import { Button, cn } from "@agentset/ui";
 
 import { UpgradePlanButton } from "./upgrade-button";

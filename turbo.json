@@ -125,7 +125,8 @@
     "ASSETS_S3_SECRET_KEY",
     "ASSETS_S3_ENDPOINT",
     "ASSETS_S3_BUCKET",
-    "ASSETS_S3_URL"
+    "ASSETS_S3_URL",
+    "TRIGGER_SECRET_KEY"
   ],
   "globalPassThroughEnv": [
     "NODE_ENV",

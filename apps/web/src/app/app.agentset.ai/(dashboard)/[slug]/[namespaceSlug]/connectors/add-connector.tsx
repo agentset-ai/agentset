@@ -50,7 +50,7 @@ export default function AddConnector() {
   const [selectedType, setSelectedType] = useState<string>("");
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
 
-  const form = useForm<z.infer<typeof formSchema>>({
+  const form = useForm({
     resolver: zodResolver(formSchema),
   });
 

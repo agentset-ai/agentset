@@ -1,7 +1,8 @@
 import { schemaTask } from "@trigger.dev/sdk";
 
 import { DocumentStatus } from "@agentset/db";
-import { isProPlan, meterDocumentsPages } from "@agentset/stripe";
+import { meterDocumentsPages } from "@agentset/stripe";
+import { isProPlan } from "@agentset/stripe/plans";
 import { chunkArray } from "@agentset/utils";
 
 import {

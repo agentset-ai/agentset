@@ -15,7 +15,7 @@ const BATCH_SIZE = 30;
 
 export const ingestJob = schemaTask({
   id: TRIGGER_INGESTION_JOB_ID,
-  maxDuration: 600, // 10 minutes
+  maxDuration: 60 * 60 * 12, // 12 hours
   queue: {
     concurrencyLimit: 30,
   },
@@ -23,10 +23,11 @@ export const ingestJob = schemaTask({
     preset: "large-1x",
   },
   schema: triggerIngestionJobBodySchema,
-  catchError: async ({ payload, error }) => {
+  onFailure: async ({ payload, error }) => {
     const db = getDb();
 
-    const errorMessage = error instanceof Error ? error.message : String(error);
+    const errorMessage =
+      (error instanceof Error ? error.message : null) || "Unknown error";
     await db.ingestJob.update({
       where: { id: payload.jobId },
       data: {
@@ -57,7 +58,7 @@ export const ingestJob = schemaTask({
         status: IngestJobStatus.PRE_PROCESSING,
         preProcessingAt: new Date(),
       },
-      select: {},
+      select: { id: true },
     });
 
     const commonData = {
@@ -152,7 +153,7 @@ export const ingestJob = schemaTask({
           },
         },
       },
-      select: {},
+      select: { id: true },
     });
 
     // Update status to processing
@@ -162,16 +163,19 @@ export const ingestJob = schemaTask({
         status: IngestJobStatus.PROCESSING,
         processingAt: new Date(),
       },
-      select: {},
+      select: { id: true },
     });
 
     const chunks = chunkArray(documents, BATCH_SIZE);
+    let success = true;
     for (const chunk of chunks) {
       const handles = await processDocument.batchTriggerAndWait(
         chunk.map((document) => ({
           payload: { documentId: document.id },
         })),
       );
+
+      if (handles.runs.some((run) => !run.ok)) success = false;
 
       // await Promise.all(
       //   handles.map((batch) =>
@@ -188,9 +192,9 @@ export const ingestJob = schemaTask({
     }
 
     await db.ingestJob.update({
-      where: { id: ingestJob.id },
+      where: { id: ingestionJob.id },
       data: {
-        status: IngestJobStatus.COMPLETED,
+        status: success ? IngestJobStatus.COMPLETED : IngestJobStatus.FAILED,
         completedAt: new Date(),
         failedAt: null,
         error: null,

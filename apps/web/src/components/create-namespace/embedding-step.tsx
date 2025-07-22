@@ -43,7 +43,7 @@ export default function CreateNamespaceEmbeddingStep({
   onBack: () => void;
   defaultValues?: Partial<z.infer<typeof formSchema>>;
 }) {
-  const form = useForm<z.infer<typeof formSchema>>({
+  const form = useForm({
     resolver: zodResolver(formSchema),
     defaultValues,
   });
@@ -72,15 +72,22 @@ export default function CreateNamespaceEmbeddingStep({
   }, [currentEmbeddingProvider]);
 
   const currentEmbeddingOptions = useMemo(() => {
-    const shape =
-      EmbeddingConfigSchema.optionsMap.get(currentEmbeddingProvider)?.shape ??
-      {};
-    return {
-      fields: Object.keys(shape).filter(
-        (key) => key !== "provider" && key !== "model",
-      ),
-      shape,
-    };
+    const shape = EmbeddingConfigSchema.options.find(
+      (o) => o.shape.provider.value === currentEmbeddingProvider,
+    )?.shape;
+
+    if (!shape) return [];
+
+    return Object.keys(shape)
+      .filter((key) => key !== "provider" && key !== "model")
+      .map((key) => {
+        const field = shape[key as keyof typeof shape];
+
+        return {
+          name: key,
+          isOptional: field.safeParse(undefined).success,
+        };
+      });
   }, [currentEmbeddingProvider]);
 
   return (
@@ -167,20 +174,18 @@ export default function CreateNamespaceEmbeddingStep({
 
           {/* render other fields based on the provider dynamically */}
           {currentEmbeddingProvider ? (
-            currentEmbeddingOptions.fields.map((key) => (
+            currentEmbeddingOptions.map((key) => (
               <FormField
-                key={key}
+                key={key.name}
                 control={form.control}
                 name={
-                  `embeddingModel.${key}` as `embeddingModel.${keyof z.infer<typeof EmbeddingConfigSchema>}`
+                  `embeddingModel.${key.name}` as `embeddingModel.${keyof z.infer<typeof EmbeddingConfigSchema>}`
                 }
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>
-                      {camelCaseToWords(key)}{" "}
-                      {currentEmbeddingOptions.shape[
-                        key
-                      ]?.isOptional() ? null : (
+                      {camelCaseToWords(key.name)}{" "}
+                      {key.isOptional ? null : (
                         <span className="text-destructive-foreground">*</span>
                       )}
                     </FormLabel>

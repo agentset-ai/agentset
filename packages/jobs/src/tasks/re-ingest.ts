@@ -113,7 +113,7 @@ export const reIngestJob = schemaTask({
         failedAt: null,
         error: null,
       },
-      select: {},
+      select: { id: true },
     });
 
     return {

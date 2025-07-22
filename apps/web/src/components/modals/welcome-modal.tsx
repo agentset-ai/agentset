@@ -2,7 +2,7 @@ import type { Dispatch, SetStateAction } from "react";
 import { useCallback, useMemo, useState } from "react";
 import { useRouterStuff } from "@/hooks/use-router-stuff";
 
-import { PLANS, PRO_PLAN } from "@agentset/stripe";
+import { PLANS, PRO_PLAN } from "@agentset/stripe/plans";
 import {
   Button,
   Dialog,

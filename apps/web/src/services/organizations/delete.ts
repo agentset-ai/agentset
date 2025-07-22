@@ -1,6 +1,8 @@
-import { triggerDeleteNamespace } from "@/lib/workflow";
+import { tasks } from "@trigger.dev/sdk";
 
+import type { DeleteOrganizationBody } from "@agentset/jobs";
 import { db, OrganizationStatus } from "@agentset/db";
+import { DELETE_ORGANIZATION_JOB_ID } from "@agentset/jobs";
 import { cancelSubscription } from "@agentset/stripe";
 
 export async function deleteOrganization({
@@ -30,14 +32,7 @@ export async function deleteOrganization({
     await cancelSubscription(org.stripeId);
   }
 
-  if (org.namespaces.length > 0) {
-    await Promise.all(
-      org.namespaces.map((namespace) =>
-        triggerDeleteNamespace({
-          namespaceId: namespace.id,
-          deleteOrgWhenDone: true,
-        }),
-      ),
-    );
-  }
+  await tasks.trigger(DELETE_ORGANIZATION_JOB_ID, {
+    organizationId,
+  } satisfies DeleteOrganizationBody);
 }

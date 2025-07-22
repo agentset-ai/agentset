@@ -8,7 +8,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { PlusIcon } from "lucide-react";
 import { toast } from "sonner";
 
-import { isProPlan } from "@agentset/stripe";
+import { isProPlan } from "@agentset/stripe/plans";
 import {
   Button,
   Dialog,
