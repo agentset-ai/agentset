@@ -216,9 +216,9 @@ export const { POST } = serve<TriggerIngestionJobBody>(
     receiver: qstashReceiver,
     flowControl: {
       key: "ingest-job",
-      parallelism: 150,
-      rate: 100,
-      period: "1s",
+      parallelism: 100,
+      rate: 10,
+      period: "3s",
     },
   },
 );
