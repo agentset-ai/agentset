@@ -84,12 +84,38 @@ const partitionDocument = async (
     "wait-for-partition-processing",
     partitionBody.notify_id,
     {
-      timeout: "1d", // 1 day timeout
+      timeout: "2h", // 1 day timeout
     },
   );
 
+  if (timeout) {
+    const { body, status } = await context.call<PartitionResult | undefined>(
+      "poll-result",
+      {
+        url: `${env.PARTITION_API_URL}/results/${partitionBody.notify_id}`,
+        method: "GET",
+        headers: {
+          "api-key": env.PARTITION_API_KEY,
+        },
+        timeout: "1m",
+      },
+    );
+
+    if (status !== 200 || !body) {
+      return {
+        result: null,
+        error: "Partition error",
+      };
+    }
+
+    return {
+      result: body,
+      error: null,
+    } as const;
+  }
+
   const typedData = eventData as PartitionResult | undefined;
-  if (timeout || !typedData || typedData.status !== 200) {
+  if (!typedData || typedData.status !== 200) {
     return {
       result: null,
       error: "Partition error",
