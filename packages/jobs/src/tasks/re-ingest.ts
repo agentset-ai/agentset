@@ -3,8 +3,8 @@ import { schemaTask } from "@trigger.dev/sdk";
 import { DocumentStatus, IngestJobStatus } from "@agentset/db";
 import { chunkArray } from "@agentset/utils";
 
-import { RE_INGEST_JOB_ID, reIngestJobBodySchema } from "../index";
-import { getDb } from "./db";
+import { getDb } from "../db";
+import { RE_INGEST_JOB_ID, reIngestJobBodySchema } from "../schema";
 import { processDocument } from "./process-document";
 
 const BATCH_SIZE = 30;

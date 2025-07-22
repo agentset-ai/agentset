@@ -5,11 +5,11 @@ import { meterDocumentsPages } from "@agentset/stripe";
 import { isProPlan } from "@agentset/stripe/plans";
 import { chunkArray } from "@agentset/utils";
 
+import { getDb } from "../db";
 import {
   METER_ORG_DOCUMENTS_JOB_ID,
   meterOrgDocumentsBodySchema,
-} from "../index";
-import { getDb } from "./db";
+} from "../schema";
 
 const BATCH_SIZE = 100;
 

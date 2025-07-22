@@ -1,11 +1,9 @@
 import type { createIngestJobSchema } from "@/schemas/api/ingest-job";
 import type { z } from "zod/v4";
-import { tasks } from "@trigger.dev/sdk";
 
-import type { TriggerIngestionJobBody } from "@agentset/jobs";
 import type { IngestJobBatchItem } from "@agentset/validation";
 import { db, IngestJobStatus } from "@agentset/db";
-import { TRIGGER_INGESTION_JOB_ID } from "@agentset/jobs";
+import { triggerIngestionJob } from "@agentset/jobs";
 import { checkFileExists } from "@agentset/storage";
 
 export const createIngestJob = async ({
@@ -109,9 +107,9 @@ export const createIngestJob = async ({
     }),
   ]);
 
-  const handle = await tasks.trigger(TRIGGER_INGESTION_JOB_ID, {
+  const handle = await triggerIngestionJob({
     jobId: job.id,
-  } satisfies TriggerIngestionJobBody);
+  });
 
   await db.ingestJob.update({
     where: { id: job.id },

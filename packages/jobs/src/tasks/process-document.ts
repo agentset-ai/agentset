@@ -15,9 +15,12 @@ import { meterIngestedPages } from "@agentset/stripe";
 import { isProPlan } from "@agentset/stripe/plans";
 import { chunkArray } from "@agentset/utils";
 
-import { TRIGGER_DOCUMENT_JOB_ID, triggerDocumentJobBodySchema } from "..";
+import { getDb } from "../db";
 import { redis } from "../redis";
-import { getDb } from "./db";
+import {
+  TRIGGER_DOCUMENT_JOB_ID,
+  triggerDocumentJobBodySchema,
+} from "../schema";
 
 const BATCH_SIZE = 30;
 

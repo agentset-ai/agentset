@@ -2,13 +2,11 @@ import { limiter } from "@/lib/bottleneck";
 import { APP_DOMAIN } from "@/lib/constants";
 import { log } from "@/lib/log";
 import { sendEmail } from "@/lib/resend";
-import { tasks } from "@trigger.dev/sdk";
 
-import type { MeterOrgDocumentsBody } from "@agentset/jobs";
 import type { Stripe } from "@agentset/stripe";
 import { db } from "@agentset/db";
 import { UpgradeEmail } from "@agentset/emails";
-import { METER_ORG_DOCUMENTS_JOB_ID } from "@agentset/jobs";
+import { triggerMeterOrgDocuments } from "@agentset/jobs";
 import { stripe } from "@agentset/stripe";
 import {
   getPlanFromPriceId,
@@ -107,8 +105,8 @@ export async function checkoutSessionCompleted(event: Stripe.Event) {
         }),
       ),
     ),
-    tasks.trigger(METER_ORG_DOCUMENTS_JOB_ID, {
+    triggerMeterOrgDocuments({
       organizationId,
-    } satisfies MeterOrgDocumentsBody),
+    }),
   ]);
 }

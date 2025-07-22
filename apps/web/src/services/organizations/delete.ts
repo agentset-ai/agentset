@@ -1,8 +1,5 @@
-import { tasks } from "@trigger.dev/sdk";
-
-import type { DeleteOrganizationBody } from "@agentset/jobs";
 import { db, OrganizationStatus } from "@agentset/db";
-import { DELETE_ORGANIZATION_JOB_ID } from "@agentset/jobs";
+import { triggerDeleteOrganization } from "@agentset/jobs";
 import { cancelSubscription } from "@agentset/stripe";
 
 export async function deleteOrganization({
@@ -32,7 +29,7 @@ export async function deleteOrganization({
     await cancelSubscription(org.stripeId);
   }
 
-  await tasks.trigger(DELETE_ORGANIZATION_JOB_ID, {
+  await triggerDeleteOrganization({
     organizationId,
-  } satisfies DeleteOrganizationBody);
+  });
 }

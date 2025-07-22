@@ -5,8 +5,8 @@ import { getNamespaceVectorStore, KeywordStore } from "@agentset/engine";
 import { deleteObject } from "@agentset/storage";
 import { chunkArray } from "@agentset/utils";
 
-import { DELETE_DOCUMENT_JOB_ID, deleteDocumentBodySchema } from "../index";
-import { getDb } from "./db";
+import { getDb } from "../db";
+import { DELETE_DOCUMENT_JOB_ID, deleteDocumentBodySchema } from "../schema";
 
 const BATCH_SIZE = 50;
 

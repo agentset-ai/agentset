@@ -6,13 +6,11 @@ import { createTRPCRouter, protectedProcedure } from "@/server/api/trpc";
 import { createIngestJob } from "@/services/ingest-jobs/create";
 import { deleteIngestJob } from "@/services/ingest-jobs/delete";
 import { getPaginationArgs, paginateResults } from "@/services/pagination";
-import { tasks } from "@trigger.dev/sdk";
 import { TRPCError } from "@trpc/server";
 import { z } from "zod/v4";
 
-import type { ReIngestJobBody } from "@agentset/jobs";
 import { IngestJobStatus } from "@agentset/db";
-import { RE_INGEST_JOB_ID } from "@agentset/jobs";
+import { triggerReIngestJob } from "@agentset/jobs";
 import { isProPlan } from "@agentset/stripe/plans";
 
 import { getNamespaceByUser } from "../auth";
@@ -154,9 +152,9 @@ export const ingestJobRouter = createTRPCRouter({
         });
       }
 
-      const handle = await tasks.trigger(RE_INGEST_JOB_ID, {
+      const handle = await triggerReIngestJob({
         jobId: ingestJob.id,
-      } satisfies ReIngestJobBody);
+      });
 
       await ctx.db.ingestJob.update({
         where: { id: ingestJob.id },

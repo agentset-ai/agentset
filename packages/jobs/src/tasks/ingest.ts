@@ -4,11 +4,11 @@ import type { Document, Prisma } from "@agentset/db";
 import { DocumentStatus, IngestJobStatus } from "@agentset/db";
 import { chunkArray } from "@agentset/utils";
 
+import { getDb } from "../db";
 import {
   TRIGGER_INGESTION_JOB_ID,
   triggerIngestionJobBodySchema,
-} from "../index";
-import { getDb } from "./db";
+} from "../schema";
 import { processDocument } from "./process-document";
 
 const BATCH_SIZE = 30;

@@ -1,8 +1,5 @@
-import { tasks } from "@trigger.dev/sdk";
-
-import type { DeleteIngestJobBody } from "@agentset/jobs";
 import { db, IngestJobStatus } from "@agentset/db";
-import { DELETE_INGEST_JOB_ID } from "@agentset/jobs";
+import { triggerDeleteIngestJob } from "@agentset/jobs";
 
 export const deleteIngestJob = async (jobId: string) => {
   const job = await db.ingestJob.update({
@@ -12,9 +9,9 @@ export const deleteIngestJob = async (jobId: string) => {
     },
   });
 
-  const handle = await tasks.trigger(DELETE_INGEST_JOB_ID, {
+  const handle = await triggerDeleteIngestJob({
     jobId: job.id,
-  } satisfies DeleteIngestJobBody);
+  });
 
   await db.ingestJob.update({
     where: { id: job.id },

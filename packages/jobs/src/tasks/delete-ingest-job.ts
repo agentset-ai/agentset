@@ -3,8 +3,8 @@ import { schemaTask } from "@trigger.dev/sdk";
 import { DocumentStatus, IngestJobStatus } from "@agentset/db";
 import { chunkArray } from "@agentset/utils";
 
-import { DELETE_INGEST_JOB_ID, deleteIngestJobBodySchema } from "../index";
-import { getDb } from "./db";
+import { getDb } from "../db";
+import { DELETE_INGEST_JOB_ID, deleteIngestJobBodySchema } from "../schema";
 import { deleteDocument } from "./delete-document";
 
 const BATCH_SIZE = 30;

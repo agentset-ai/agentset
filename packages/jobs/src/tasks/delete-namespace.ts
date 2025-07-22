@@ -4,8 +4,8 @@ import { deleteAsset } from "@agentset/storage";
 import { env } from "@agentset/storage/env";
 import { chunkArray } from "@agentset/utils";
 
-import { DELETE_NAMESPACE_JOB_ID, deleteNamespaceBodySchema } from "../index";
-import { getDb } from "./db";
+import { getDb } from "../db";
+import { DELETE_NAMESPACE_JOB_ID, deleteNamespaceBodySchema } from "../schema";
 import { deleteIngestJob } from "./delete-ingest-job";
 
 const BATCH_SIZE = 30;

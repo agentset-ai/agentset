@@ -2,11 +2,11 @@ import { schemaTask } from "@trigger.dev/sdk";
 
 import { chunkArray } from "@agentset/utils";
 
+import { getDb } from "../db";
 import {
   DELETE_ORGANIZATION_JOB_ID,
   deleteOrganizationBodySchema,
-} from "../index";
-import { getDb } from "./db";
+} from "../schema";
 import { deleteNamespace } from "./delete-namespace";
 
 const BATCH_SIZE = 30;
