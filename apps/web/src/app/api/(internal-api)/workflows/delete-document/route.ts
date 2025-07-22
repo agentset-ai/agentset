@@ -287,7 +287,7 @@ export const { POST } = serve<DeleteDocumentBody>(
     receiver: qstashReceiver,
     flowControl: {
       key: "delete-document",
-      parallelism: 50,
+      parallelism: 100,
       rate: 10,
       period: "3s",
     },
