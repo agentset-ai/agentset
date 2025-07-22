@@ -65,11 +65,25 @@ export type DeleteDocumentBody = {
   deleteNamespaceWhenDone?: boolean;
   deleteOrgWhenDone?: boolean;
 };
-export const triggerDeleteDocumentJob = async (body: DeleteDocumentBody) => {
+export const triggerDeleteDocumentJob = async <
+  T extends DeleteDocumentBody | DeleteDocumentBody[],
+>(
+  body: T,
+) => {
+  const url = `${getBaseUrl()}/api/workflows/delete-document`;
+  if (Array.isArray(body)) {
+    return workflowClient.trigger(
+      body.map((item) => ({
+        url,
+        body: item,
+      })),
+    ) as TriggerReturnType<T>;
+  }
+
   return workflowClient.trigger({
-    url: `${getBaseUrl()}/api/workflows/delete-document`,
+    url,
     body,
-  });
+  }) as TriggerReturnType<T>;
 };
 
 export type DeleteIngestJobBody = {
@@ -77,11 +91,25 @@ export type DeleteIngestJobBody = {
   deleteNamespaceWhenDone?: boolean;
   deleteOrgWhenDone?: boolean;
 };
-export const triggerDeleteIngestJob = async (body: DeleteIngestJobBody) => {
+export const triggerDeleteIngestJob = async <
+  T extends DeleteIngestJobBody | DeleteIngestJobBody[],
+>(
+  body: T,
+) => {
+  const url = `${getBaseUrl()}/api/workflows/delete-ingest-job`;
+  if (Array.isArray(body)) {
+    return workflowClient.trigger(
+      body.map((item) => ({
+        url,
+        body: item,
+      })),
+    ) as TriggerReturnType<T>;
+  }
+
   return workflowClient.trigger({
-    url: `${getBaseUrl()}/api/workflows/delete-ingest-job`,
+    url,
     body,
-  });
+  }) as TriggerReturnType<T>;
 };
 
 export type DeleteNamespaceBody = {

@@ -65,23 +65,6 @@ export const { POST } = serve<ReIngestJobBody>(
       ]);
     });
 
-    const documentIdToWorkflowRunId = await context.run(
-      "enqueue-documents",
-      async () => {
-        const documentIdToWorkflowRunIds = await triggerDocumentJob(
-          documents.map((document) => ({
-            documentId: document.id,
-            cleanup: true,
-          })),
-        );
-
-        return documentIdToWorkflowRunIds.map((data, idx) => ({
-          documentId: documents[idx]!.id,
-          workflowRunId: data.workflowRunId,
-        }));
-      },
-    );
-
     await context.run("update-status-processing", async () => {
       await db.ingestJob.update({
         where: { id: ingestJob.id },
@@ -93,22 +76,33 @@ export const { POST } = serve<ReIngestJobBody>(
       });
     });
 
-    // update documents with workflowRunIds (in parallel)
-    const batches = chunkArray(documentIdToWorkflowRunId, BATCH_SIZE);
-    await Promise.all(
-      batches.map((batch, i) =>
-        context.run(`update-documents-with-workflowRunIds-${i}`, async () => {
-          await db.$transaction(
-            batch.map(({ documentId, workflowRunId }) =>
-              db.document.update({
-                where: { id: documentId },
-                data: { workflowRunsIds: { push: workflowRunId } },
-              }),
-            ),
-          );
-        }),
-      ),
-    );
+    // update documents with workflowRunIds
+    const batches = chunkArray(documents, BATCH_SIZE);
+    for (let i = 0; i < batches.length; i++) {
+      const batch = batches[i]!;
+      await context.run(`enqueue-and-update-documents-${i}`, async () => {
+        const documentIdToWorkflowRunIds = (
+          await triggerDocumentJob(
+            batch.map((document) => ({
+              documentId: document.id,
+              cleanup: true,
+            })),
+          )
+        ).map((data, idx) => ({
+          documentId: batch[idx]!.id,
+          workflowRunId: data.workflowRunId,
+        }));
+
+        await db.$transaction(
+          documentIdToWorkflowRunIds.map(({ documentId, workflowRunId }) =>
+            db.document.update({
+              where: { id: documentId },
+              data: { workflowRunsIds: { push: workflowRunId } },
+            }),
+          ),
+        );
+      });
+    }
   },
   {
     failureFunction: async ({ context, failResponse }) => {

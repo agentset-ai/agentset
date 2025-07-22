@@ -90,53 +90,48 @@ export const { POST } = serve<DeleteIngestJobBody>(
     // enqueue delete documents in parallel
     if (shouldEnqueueDeleteDocuments) {
       const batches = chunkArray(documents, BATCH_SIZE);
-      await Promise.all(
-        batches.map((batch, i) =>
-          context.run(`enqueue-delete-documents-${i}`, async () => {
-            await db.document.updateMany({
-              where: { id: { in: batch.map((d) => d.id) } },
-              data: { status: DocumentStatus.DELETING },
-            });
+      for (let i = 0; i < batches.length; i++) {
+        const batch = batches[i]!;
+        await context.run(`enqueue-delete-documents-${i}`, async () => {
+          await db.document.updateMany({
+            where: { id: { in: batch.map((d) => d.id) } },
+            data: { status: DocumentStatus.DELETING },
+          });
 
-            const docIdToWorkflowRunId = (
-              await Promise.all(
-                batch.map(async (document) => {
-                  const { workflowRunId } = await triggerDeleteDocumentJob({
-                    documentId: document.id,
-                    deleteJobWhenDone: true,
-                    deleteNamespaceWhenDone: shouldDeleteNamespace,
-                    deleteOrgWhenDone: shouldDeleteOrg,
-                  });
+          const results = await triggerDeleteDocumentJob(
+            batch.map((document) => ({
+              documentId: document.id,
+              deleteJobWhenDone: true,
+              deleteNamespaceWhenDone: shouldDeleteNamespace,
+              deleteOrgWhenDone: shouldDeleteOrg,
+            })),
+          );
 
-                  return { documentId: document.id, workflowRunId };
-                }),
-              )
-            ).reduce(
-              (acc, curr) => {
-                acc[curr.documentId] = curr.workflowRunId;
-                return acc;
-              },
-              {} as Record<string, string>,
-            );
+          const docIdToWorkflowRunId = results.reduce(
+            (acc, curr, idx) => {
+              acc[batch[idx]!.id] = curr.workflowRunId;
+              return acc;
+            },
+            {} as Record<string, string>,
+          );
 
-            // update documents with workflowRunIds
-            await db.$transaction(
-              batch.map((document) =>
-                db.document.update({
-                  where: { id: document.id },
-                  data: {
-                    workflowRunsIds: {
-                      push: docIdToWorkflowRunId[document.id],
-                    },
+          // update documents with workflowRunIds
+          await db.$transaction(
+            batch.map((document) =>
+              db.document.update({
+                where: { id: document.id },
+                data: {
+                  workflowRunsIds: {
+                    push: docIdToWorkflowRunId[document.id],
                   },
-                }),
-              ),
-            );
+                },
+              }),
+            ),
+          );
 
-            return Object.values(docIdToWorkflowRunId);
-          }),
-        ),
-      );
+          return Object.values(docIdToWorkflowRunId);
+        });
+      }
     } else {
       await context.run("delete-ingest-job", async () => {
         await db.$transaction([
@@ -217,9 +212,9 @@ export const { POST } = serve<DeleteIngestJobBody>(
     receiver: qstashReceiver,
     flowControl: {
       key: "delete-ingest-job",
-      parallelism: 150,
-      rate: 100,
-      period: "1s",
+      parallelism: 50,
+      rate: 5,
+      period: "3s",
     },
   },
 );

@@ -66,14 +66,12 @@ export const { POST } = serve<DeleteNamespaceBody>(
     for (let i = 0; i < batches.length; i++) {
       const batch = batches[i]!;
       await context.run(`enqueue-ingest-jobs-deletion-${i}`, async () => {
-        await Promise.all(
-          batch.map((ingestJob) =>
-            triggerDeleteIngestJob({
-              jobId: ingestJob.id,
-              deleteNamespaceWhenDone: true,
-              deleteOrgWhenDone,
-            }),
-          ),
+        await triggerDeleteIngestJob(
+          batch.map((ingestJob) => ({
+            jobId: ingestJob.id,
+            deleteNamespaceWhenDone: true,
+            deleteOrgWhenDone,
+          })),
         );
       });
     }
