@@ -151,25 +151,34 @@ export const { POST } = serve<DeleteDocumentBody>(
     }
 
     await context.run("delete-document", async () => {
-      await db.$transaction([
-        db.document.delete({
+      const result = await db.document
+        .delete({
           where: { id: document.id },
           select: { id: true },
-        }),
-        db.namespace.update({
-          where: { id: namespace.id },
-          data: {
-            totalDocuments: { decrement: 1 },
-            totalPages: { decrement: document.totalPages },
-            organization: {
-              update: {
-                totalDocuments: { decrement: 1 },
-                totalPages: { decrement: document.totalPages },
-              },
+        })
+        .catch((e) => {
+          if (e.code === "P2025") {
+            return null; // already deleted
+          }
+
+          throw e;
+        });
+
+      if (!result) return;
+
+      await db.namespace.update({
+        where: { id: namespace.id },
+        data: {
+          totalDocuments: { decrement: 1 },
+          totalPages: { decrement: document.totalPages },
+          organization: {
+            update: {
+              totalDocuments: { decrement: 1 },
+              totalPages: { decrement: document.totalPages },
             },
           },
-        }),
-      ]);
+        },
+      });
     });
 
     await context.run("check-and-delete-managed-file", async () => {
