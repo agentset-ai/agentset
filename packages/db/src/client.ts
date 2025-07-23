@@ -1,8 +1,19 @@
+import type { Prisma } from "@prisma/client";
 import { neonConfig } from "@neondatabase/serverless";
 import { PrismaNeon } from "@prisma/adapter-neon";
 import { PrismaClient } from "@prisma/client";
 
 const createPrismaClient = () => {
+  const log = (
+    process.env.NODE_ENV === "development"
+      ? ["query", "error", "warn"]
+      : ["error"]
+  ) satisfies Prisma.LogLevel[];
+
+  if (typeof WebSocket === "undefined") {
+    return new PrismaClient({ log });
+  }
+
   // Supabase pooled connection string (must use Supavisor)
   const connectionString = process.env.DATABASE_URL ?? "";
 
@@ -22,10 +33,7 @@ const createPrismaClient = () => {
   const adapter = new PrismaNeon({ connectionString });
   return new PrismaClient({
     adapter,
-    log:
-      process.env.NODE_ENV === "development"
-        ? ["query", "error", "warn"]
-        : ["error"],
+    log,
   });
 };
 

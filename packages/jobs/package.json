@@ -4,11 +4,14 @@
   "private": true,
   "scripts": {
     "dev": "trigger dev",
-    "deploy": "trigger deploy",
+    "trigger:deploy": "trigger deploy --skip-sync-env-vars",
     "typecheck": "tsc --noEmit --emitDeclarationOnly false",
     "clean": "git clean -xdf .cache .turbo .trigger node_modules",
     "format": "prettier --check . --ignore-path ../../.gitignore",
     "lint": "eslint"
+  },
+  "prisma": {
+    "schema": "prisma/schema/schema.prisma"
   },
   "exports": {
     ".": "./src/index.ts"
