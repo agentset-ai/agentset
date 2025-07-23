@@ -53,15 +53,8 @@ export async function agenticSearch(
     const { queries: newQueries, totalTokens: queriesTokens } =
       await generateQueries(model, messages, queries);
 
-    if (i === 0) {
-      newQueries.unshift({
-        query: lastMessage,
-        type: "semantic",
-      });
-    }
-
     newQueries.forEach((q) => {
-      if (queries.includes(q)) return;
+      if (queries.some((q2) => q2.query === q.query)) return;
       queries.push(q);
     });
 
@@ -71,7 +64,18 @@ export async function agenticSearch(
 
     const data = (
       await Promise.all(
-        newQueries.map(async (query) => {
+        [
+          // add the last message as a query if it's the first eval loop
+          ...(i === 0
+            ? [
+                {
+                  query: lastMessage,
+                  type: "semantic",
+                },
+              ]
+            : []),
+          ...newQueries,
+        ].map(async (query) => {
           if (namespace.keywordEnabled && query.type === "keyword") {
             const keywordStore = new KeywordStore(
               namespace.id,

@@ -33,7 +33,7 @@ const defaultState: NamespaceState = {
   rerankLimit: 5,
   systemPrompt: null,
   temperature: 0,
-  mode: "normal",
+  mode: "agentic",
 };
 
 const updateNamespace = (
