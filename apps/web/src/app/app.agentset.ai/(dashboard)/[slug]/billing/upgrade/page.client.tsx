@@ -11,7 +11,7 @@ import {
   FREE_PLAN,
   isDowngradePlan,
   PRO_PLAN,
-} from "@agentset/stripe";
+} from "@agentset/stripe/plans";
 import { Tabs, TabsList, TabsTrigger } from "@agentset/ui";
 
 import PlanCard from "./plan-card";

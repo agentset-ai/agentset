@@ -26,6 +26,7 @@ export const deleteIngestJob = schemaTask({
         id: true,
         tenantId: true,
         payload: true,
+        namespaceId: true,
       },
     });
 
@@ -80,10 +81,25 @@ export const deleteIngestJob = schemaTask({
       }
     }
 
-    await db.ingestJob.delete({
-      where: { id: ingestJob.id },
-      select: { id: true },
-    });
+    await db.$transaction([
+      db.ingestJob.delete({
+        where: { id: ingestJob.id },
+        select: { id: true },
+      }),
+      db.namespace.update({
+        where: { id: ingestJob.namespaceId },
+        data: {
+          totalIngestJobs: {
+            decrement: 1,
+          },
+          organization: {
+            update: {
+              totalIngestJobs: { decrement: 1 },
+            },
+          },
+        },
+      }),
+    ]);
 
     return {
       jobId: ingestJob.id,

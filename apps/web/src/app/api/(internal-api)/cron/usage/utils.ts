@@ -1,8 +1,8 @@
 import { APP_DOMAIN } from "@/lib/constants";
 import { getAdjustedBillingCycleStart } from "@/lib/datetime";
 import { log } from "@/lib/log";
+import { qstashClient } from "@/lib/qstash";
 import { capitalize } from "@/lib/string-utils";
-import { qstashClient } from "@/lib/workflow";
 
 import { db } from "@agentset/db";
 import { triggerMeterOrgDocumentsBatch } from "@agentset/jobs";

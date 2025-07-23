@@ -2,7 +2,8 @@ import type { CoreMessage, LanguageModelV1 } from "ai";
 import { generateText } from "ai";
 import { z } from "zod/v4";
 
-import type { QueryVectorStoreResult } from "../vector-store/parse";
+import type { QueryVectorStoreResult } from "@agentset/engine";
+
 import { EVALUATE_QUERIES_PROMPT, GENERATE_QUERIES_PROMPT } from "./prompts";
 
 export const formatChatHistory = (messages: CoreMessage[]) => {

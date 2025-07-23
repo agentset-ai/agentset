@@ -17,10 +17,7 @@ export const ingestJob = schemaTask({
   id: TRIGGER_INGESTION_JOB_ID,
   maxDuration: 60 * 60 * 12, // 12 hours
   queue: {
-    concurrencyLimit: 30,
-  },
-  machine: {
-    preset: "large-1x",
+    concurrencyLimit: 90,
   },
   schema: triggerIngestionJobBodySchema,
   onFailure: async ({ payload, error }) => {

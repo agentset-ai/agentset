@@ -82,9 +82,9 @@ export type PartitionBatch = {
 }[];
 
 export const getPartitionDocumentBody = async (
-  document: Document,
-  ingestJob: IngestJob,
-  namespace: Pick<Namespace, "id" | "embeddingConfig">,
+  document: Pick<Document, "id" | "name" | "source" | "config" | "tenantId">,
+  ingestJob: Pick<IngestJob, "config">,
+  namespace: Pick<Namespace, "id">,
   {
     triggerTokenId,
     triggerAccessToken,

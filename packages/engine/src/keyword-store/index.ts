@@ -3,7 +3,6 @@ import type {
   SearchResult,
   SelectFields,
 } from "@azure/search-documents";
-import { env } from "@/env";
 import {
   AzureKeyCredential,
   odata,
@@ -12,6 +11,7 @@ import {
 import { metadataDictToNode } from "@llamaindex/core/vector-store";
 import { TextNode } from "llamaindex";
 
+import { env } from "../env";
 import { formatResults } from "../vector-store/parse";
 
 export type KeywordSearchChunk = {

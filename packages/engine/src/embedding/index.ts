@@ -1,6 +1,6 @@
-import { env } from "@/env";
-
 import type { Namespace } from "@agentset/db";
+
+import { env } from "../env";
 
 export const getNamespaceEmbeddingModel = async (
   namespace: Pick<Namespace, "embeddingConfig">,

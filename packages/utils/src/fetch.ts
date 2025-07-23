@@ -1,5 +1,5 @@
 export function fetchWithTimeout(
-  input: RequestInfo | URL,
+  input: string | Request | URL,
   init?: RequestInit,
   timeout: number = 5000,
 ) {

@@ -7,7 +7,7 @@ import {
   getPlanFromPriceId,
   planToOrganizationFields,
   PRO_PLAN_METERED,
-} from "@agentset/stripe";
+} from "@agentset/stripe/plans";
 
 import { sendCancellationFeedback } from "./utils";
 

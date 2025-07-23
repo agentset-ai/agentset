@@ -1,5 +1,4 @@
 import type { GetObjectCommandInput } from "@aws-sdk/client-s3";
-import { env } from "@/env";
 import {
   DeleteObjectCommand,
   DeleteObjectsCommand,
@@ -11,6 +10,7 @@ import {
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 
 import { MAX_UPLOAD_SIZE } from "../constants";
+import { env } from "../env";
 
 const s3Client = new S3Client({
   region: "auto",

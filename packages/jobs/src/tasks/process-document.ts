@@ -1,4 +1,4 @@
-import { metadata, schemaTask, wait } from "@trigger.dev/sdk";
+import { schemaTask, wait } from "@trigger.dev/sdk";
 import { embedMany } from "ai";
 
 import type { PartitionBatch, PartitionResult } from "@agentset/engine";
@@ -28,10 +28,10 @@ export const processDocument = schemaTask({
   id: TRIGGER_DOCUMENT_JOB_ID,
   maxDuration: 60 * 60, // 1 hour
   queue: {
-    concurrencyLimit: 100,
+    concurrencyLimit: 95,
   },
   machine: {
-    preset: "medium-1x",
+    preset: "small-2x",
   },
   schema: triggerDocumentJobBodySchema,
   onFailure: async ({ payload, error }) => {
@@ -53,13 +53,25 @@ export const processDocument = schemaTask({
     const db = getDb();
 
     // Get document configuration
-    const documentData = await db.document.findUnique({
+    const document = await db.document.findUnique({
       where: { id: documentId },
-      include: {
+      select: {
+        id: true,
+        tenantId: true,
+        name: true,
+        source: true,
+        config: true,
         ingestJob: {
-          include: {
+          select: {
+            id: true,
+            config: true,
             namespace: {
-              include: {
+              select: {
+                id: true,
+                keywordEnabled: true,
+                embeddingConfig: true,
+                vectorStoreConfig: true,
+                createdAt: true,
                 organization: {
                   select: {
                     plan: true,
@@ -73,14 +85,9 @@ export const processDocument = schemaTask({
       },
     });
 
-    if (!documentData) {
+    if (!document) {
       throw new Error("Document not found");
     }
-
-    const {
-      ingestJob: { namespace, ...ingestJob },
-      ...document
-    } = documentData;
 
     // Update status to pre-processing
     await db.document.update({
@@ -92,13 +99,13 @@ export const processDocument = schemaTask({
       select: { id: true },
     });
 
-    const token = await wait.createToken({ timeout: "3h" });
+    const token = await wait.createToken({ timeout: "2h" });
 
     // Get partition document body
     const partitionBody = await getPartitionDocumentBody(
       document,
-      ingestJob,
-      namespace,
+      document.ingestJob,
+      document.ingestJob.namespace,
       {
         triggerTokenId: token.id,
         triggerAccessToken: token.publicAccessToken,
@@ -124,8 +131,6 @@ export const processDocument = schemaTask({
     const result = await wait
       .forToken<PartitionResult | undefined>(token.id)
       .unwrap();
-
-    metadata.set("partition-result", result ?? null);
 
     if (!result || result.status !== 200) {
       throw new Error("Partition Error");
@@ -155,12 +160,15 @@ export const processDocument = schemaTask({
 
     // Get embedding model and vector store
     const [embeddingModel, vectorStore] = await Promise.all([
-      getNamespaceEmbeddingModel(namespace, "document"),
-      getNamespaceVectorStore(namespace, document.tenantId ?? undefined),
+      getNamespaceEmbeddingModel(document.ingestJob.namespace, "document"),
+      getNamespaceVectorStore(
+        document.ingestJob.namespace,
+        document.tenantId ?? undefined,
+      ),
     ]);
 
     const keywordStore = new KeywordStore(
-      namespace.id,
+      document.ingestJob.namespace.id,
       document.tenantId ?? undefined,
     );
 
@@ -194,7 +202,7 @@ export const processDocument = schemaTask({
       }
 
       // Clean up keyword store if enabled
-      if (namespace.keywordEnabled) {
+      if (document.ingestJob.namespace.keywordEnabled) {
         let page = 1;
         let hasNextPage = true;
         const keywordChunkIds: string[] = [];
@@ -248,7 +256,7 @@ export const processDocument = schemaTask({
       await vectorStore.upsert(nodes);
 
       // Store in keyword store if enabled
-      if (namespace.keywordEnabled) {
+      if (document.ingestJob.namespace.keywordEnabled) {
         await keywordStore.upsert(
           nodes.map((node, idx) => ({
             id: node.id,
@@ -277,7 +285,7 @@ export const processDocument = schemaTask({
       }),
       // Update namespace + organization total pages
       db.namespace.update({
-        where: { id: namespace.id },
+        where: { id: document.ingestJob.namespace.id },
         data: {
           totalPages: { increment: totalPages },
           organization: {
@@ -303,9 +311,9 @@ export const processDocument = schemaTask({
     }
 
     // Log usage to stripe
-    const stripeCustomerId = namespace.organization.stripeId;
+    const stripeCustomerId = document.ingestJob.namespace.organization.stripeId;
     if (
-      isProPlan(namespace.organization.plan) &&
+      isProPlan(document.ingestJob.namespace.organization.plan) &&
       !!stripeCustomerId &&
       !shouldCleanup // don't log usage if re-processing
     ) {

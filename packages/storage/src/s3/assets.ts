@@ -1,4 +1,3 @@
-import { env } from "@/env";
 import {
   DeleteObjectCommand,
   PutObjectCommand,
@@ -6,6 +5,8 @@ import {
 } from "@aws-sdk/client-s3";
 
 import { fetchWithTimeout } from "@agentset/utils";
+
+import { env } from "../env";
 
 interface ImageOptions {
   contentType?: string;
