@@ -1,13 +1,6 @@
-import { auth } from "@/lib/auth";
-import { headers } from "next/headers";
 import { cache } from "react";
-import type { ProtectedProcedureContext } from "./trpc";
 
-export const getServerAuthSession = cache(async (headersObj?: Headers) =>
-  auth.api.getSession({
-    headers: headersObj ?? (await headers()),
-  }),
-);
+import type { ProtectedProcedureContext } from "./trpc";
 
 export const getNamespaceByUser = cache(
   async (

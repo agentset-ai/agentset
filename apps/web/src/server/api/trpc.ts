@@ -6,13 +6,12 @@
  * TL;DR - This is where all the tRPC server stuff is created and plugged in. The pieces you will
  * need to use are documented accordingly near the end.
  */
+import { getSession } from "@/lib/auth";
 import { initTRPC, TRPCError } from "@trpc/server";
 import superjson from "superjson";
 import { ZodError } from "zod/v4";
 
 import { db } from "@agentset/db";
-
-import { getServerAuthSession } from "./auth";
 
 /**
  * 1. CONTEXT
@@ -27,7 +26,7 @@ import { getServerAuthSession } from "./auth";
  * @see https://trpc.io/docs/server/context
  */
 export const createTRPCContext = async (opts: { headers: Headers }) => {
-  const session = await getServerAuthSession(opts.headers);
+  const session = await getSession(opts.headers);
 
   return {
     db,

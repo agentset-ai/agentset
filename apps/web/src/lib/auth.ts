@@ -2,6 +2,7 @@ import { cache } from "react";
 import { headers } from "next/headers";
 import { betterAuth } from "better-auth";
 import { prismaAdapter } from "better-auth/adapters/prisma";
+import { nextCookies } from "better-auth/next-js";
 import { admin, magicLink, organization } from "better-auth/plugins";
 
 import { db } from "@agentset/db";
@@ -59,6 +60,7 @@ export const makeAuth = (baseUrl = env.BETTER_AUTH_URL, isHosting = false) => {
           });
         },
       }),
+      nextCookies(),
     ],
     account: {
       accountLinking: {
@@ -114,7 +116,11 @@ export const makeAuth = (baseUrl = env.BETTER_AUTH_URL, isHosting = false) => {
     database: prismaAdapter(db, {
       provider: "postgresql",
     }),
+    advanced: {
+      useSecureCookies: true,
+    },
     session: {
+      expiresIn: 60 * 60 * 24 * 14, // 14 days
       cookieCache: {
         enabled: true,
         maxAge: 5 * 60, // Cache duration in seconds
@@ -125,11 +131,10 @@ export const makeAuth = (baseUrl = env.BETTER_AUTH_URL, isHosting = false) => {
 
 export const auth = makeAuth();
 
-export const getSession = cache(async () => {
-  const allHeaders = await headers();
+export const getSession = cache(async (headersObj?: Headers) => {
   const session = await auth.api
     .getSession({
-      headers: allHeaders,
+      headers: headersObj ?? (await headers()),
     })
     .catch(() => null);
 
