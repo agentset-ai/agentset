@@ -1,5 +1,5 @@
 {
-  "openapi": "3.0.3",
+  "openapi": "3.1.1",
   "info": {
     "title": "AgentsetAPI",
     "description": "Agentset is agentic rag-as-a-service",
@@ -8,6 +8,10 @@
       "name": "Agentset Support",
       "email": "support@agentset.ai",
       "url": "https://api.agentset.ai/"
+    },
+    "license": {
+      "name": "MIT License",
+      "url": "https://github.com/agentset-ai/agentset/blob/main/LICENSE.md"
     }
   },
   "servers": [
@@ -41,9 +45,7 @@
                   "properties": {
                     "success": {
                       "type": "boolean",
-                      "enum": [
-                        true
-                      ]
+                      "const": true
                     },
                     "data": {
                       "type": "array",
@@ -55,7 +57,8 @@
                   "required": [
                     "success",
                     "data"
-                  ]
+                  ],
+                  "additionalProperties": false
                 }
               }
             }
@@ -144,9 +147,7 @@
                   "properties": {
                     "success": {
                       "type": "boolean",
-                      "enum": [
-                        true
-                      ]
+                      "const": true
                     },
                     "data": {
                       "$ref": "#/components/schemas/NamespaceSchema"
@@ -155,7 +156,8 @@
                   "required": [
                     "success",
                     "data"
-                  ]
+                  ],
+                  "additionalProperties": false
                 }
               }
             }
@@ -208,12 +210,12 @@
           {
             "in": "path",
             "name": "namespaceId",
-            "description": "The id of the namespace to retrieve.",
             "schema": {
-              "type": "string",
-              "description": "The id of the namespace to retrieve."
+              "description": "The id of the namespace to retrieve.",
+              "type": "string"
             },
-            "required": true
+            "required": true,
+            "description": "The id of the namespace to retrieve."
           }
         ],
         "responses": {
@@ -226,9 +228,7 @@
                   "properties": {
                     "success": {
                       "type": "boolean",
-                      "enum": [
-                        true
-                      ]
+                      "const": true
                     },
                     "data": {
                       "$ref": "#/components/schemas/NamespaceSchema"
@@ -237,7 +237,8 @@
                   "required": [
                     "success",
                     "data"
-                  ]
+                  ],
+                  "additionalProperties": false
                 }
               }
             }
@@ -289,12 +290,12 @@
           {
             "in": "path",
             "name": "namespaceId",
-            "description": "The id of the namespace to update.",
             "schema": {
-              "type": "string",
-              "description": "The id of the namespace to update."
+              "description": "The id of the namespace to update.",
+              "type": "string"
             },
-            "required": true
+            "required": true,
+            "description": "The id of the namespace to update."
           }
         ],
         "requestBody": {
@@ -328,9 +329,7 @@
                   "properties": {
                     "success": {
                       "type": "boolean",
-                      "enum": [
-                        true
-                      ]
+                      "const": true
                     },
                     "data": {
                       "$ref": "#/components/schemas/NamespaceSchema"
@@ -339,7 +338,8 @@
                   "required": [
                     "success",
                     "data"
-                  ]
+                  ],
+                  "additionalProperties": false
                 }
               }
             }
@@ -391,12 +391,12 @@
           {
             "in": "path",
             "name": "namespaceId",
-            "description": "The id of the namespace to delete.",
             "schema": {
-              "type": "string",
-              "description": "The id of the namespace to delete."
+              "description": "The id of the namespace to delete.",
+              "type": "string"
             },
-            "required": true
+            "required": true,
+            "description": "The id of the namespace to delete."
           }
         ],
         "responses": {
@@ -409,9 +409,7 @@
                   "properties": {
                     "success": {
                       "type": "boolean",
-                      "enum": [
-                        true
-                      ]
+                      "const": true
                     },
                     "data": {
                       "$ref": "#/components/schemas/NamespaceSchema"
@@ -420,7 +418,8 @@
                   "required": [
                     "success",
                     "data"
-                  ]
+                  ],
+                  "additionalProperties": false
                 }
               }
             }
@@ -486,92 +485,92 @@
           {
             "in": "path",
             "name": "namespaceId",
-            "description": "The id of the namespace to create the ingest job for.",
             "schema": {
-              "type": "string",
-              "description": "The id of the namespace to create the ingest job for."
+              "description": "The id of the namespace to create the ingest job for.",
+              "type": "string"
             },
-            "required": true
+            "required": true,
+            "description": "The id of the namespace to create the ingest job for."
           },
           {
             "in": "query",
             "name": "statuses",
-            "description": "Comma separated list of statuses to filter by.",
             "schema": {
-              "type": "string",
-              "description": "Comma separated list of statuses to filter by."
-            }
+              "description": "Comma separated list of statuses to filter by.",
+              "type": "string"
+            },
+            "description": "Comma separated list of statuses to filter by."
           },
           {
             "in": "query",
             "name": "orderBy",
-            "description": "The field to order by. Default is `createdAt`.",
             "schema": {
+              "description": "The field to order by. Default is `createdAt`.",
+              "default": "createdAt",
               "type": "string",
               "enum": [
                 "createdAt"
-              ],
-              "default": "createdAt",
-              "description": "The field to order by. Default is `createdAt`."
-            }
+              ]
+            },
+            "description": "The field to order by. Default is `createdAt`."
           },
           {
             "in": "query",
             "name": "order",
-            "description": "The sort order. Default is `desc`.",
             "schema": {
+              "description": "The sort order. Default is `desc`.",
+              "default": "desc",
               "type": "string",
               "enum": [
                 "asc",
                 "desc"
-              ],
-              "default": "desc",
-              "description": "The sort order. Default is `desc`."
-            }
+              ]
+            },
+            "description": "The sort order. Default is `desc`."
           },
           {
             "in": "query",
             "name": "cursor",
-            "description": "The cursor to paginate by.",
             "schema": {
-              "type": "string",
-              "description": "The cursor to paginate by."
-            }
+              "description": "The cursor to paginate by.",
+              "type": "string"
+            },
+            "description": "The cursor to paginate by."
           },
           {
             "in": "query",
             "name": "cursorDirection",
-            "description": "The direction to paginate by.",
             "schema": {
+              "description": "The direction to paginate by.",
+              "default": "forward",
               "type": "string",
               "enum": [
                 "forward",
                 "backward"
-              ],
-              "default": "forward",
-              "description": "The direction to paginate by."
-            }
+              ]
+            },
+            "description": "The direction to paginate by."
           },
           {
             "in": "query",
             "name": "perPage",
-            "description": "The number of records to return per page.",
             "schema": {
+              "description": "The number of records to return per page.",
+              "default": 30,
               "type": "number",
               "minimum": 1,
-              "maximum": 100,
-              "default": 30,
-              "description": "The number of records to return per page."
-            }
+              "maximum": 100
+            },
+            "description": "The number of records to return per page."
           },
           {
             "in": "header",
             "name": "x-tenant-id",
-            "description": "The tenant id to use for the request. If not provided, the default tenant will be used.",
             "schema": {
-              "type": "string",
-              "description": "The tenant id to use for the request. If not provided, the default tenant will be used."
-            }
+              "description": "The tenant id to use for the request. If not provided, the default tenant will be used.",
+              "type": "string"
+            },
+            "description": "The tenant id to use for the request. If not provided, the default tenant will be used."
           }
         ],
         "responses": {
@@ -584,9 +583,7 @@
                   "properties": {
                     "success": {
                       "type": "boolean",
-                      "enum": [
-                        true
-                      ]
+                      "const": true
                     },
                     "data": {
                       "type": "array",
@@ -598,20 +595,28 @@
                       "type": "object",
                       "properties": {
                         "nextCursor": {
-                          "type": "string",
-                          "nullable": true
+                          "anyOf": [
+                            {
+                              "type": "string"
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ]
                         }
                       },
                       "required": [
                         "nextCursor"
-                      ]
+                      ],
+                      "additionalProperties": false
                     }
                   },
                   "required": [
                     "success",
                     "data",
                     "pagination"
-                  ]
+                  ],
+                  "additionalProperties": false
                 }
               }
             }
@@ -662,21 +667,21 @@
           {
             "in": "path",
             "name": "namespaceId",
-            "description": "The id of the namespace to create the ingest job for.",
             "schema": {
-              "type": "string",
-              "description": "The id of the namespace to create the ingest job for."
+              "description": "The id of the namespace to create the ingest job for.",
+              "type": "string"
             },
-            "required": true
+            "required": true,
+            "description": "The id of the namespace to create the ingest job for."
           },
           {
             "in": "header",
             "name": "x-tenant-id",
-            "description": "The tenant id to use for the request. If not provided, the default tenant will be used.",
             "schema": {
-              "type": "string",
-              "description": "The tenant id to use for the request. If not provided, the default tenant will be used."
-            }
+              "description": "The tenant id to use for the request. If not provided, the default tenant will be used.",
+              "type": "string"
+            },
+            "description": "The tenant id to use for the request. If not provided, the default tenant will be used."
           }
         ],
         "requestBody": {
@@ -686,97 +691,117 @@
                 "type": "object",
                 "properties": {
                   "name": {
-                    "type": "string",
-                    "nullable": true,
-                    "description": "The name of the ingest job."
+                    "description": "The name of the ingest job.",
+                    "anyOf": [
+                      {
+                        "type": "string"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
                   },
                   "payload": {
+                    "description": "The ingest job payload.",
                     "oneOf": [
                       {
+                        "title": "Text Payload",
                         "type": "object",
                         "properties": {
                           "type": {
                             "type": "string",
-                            "enum": [
-                              "TEXT"
-                            ]
+                            "const": "TEXT"
                           },
                           "text": {
-                            "type": "string",
-                            "description": "The text to ingest."
+                            "description": "The text to ingest.",
+                            "type": "string"
                           },
                           "fileName": {
-                            "type": "string",
-                            "nullable": true,
-                            "description": "The name of the file."
+                            "description": "The name of the file.",
+                            "anyOf": [
+                              {
+                                "type": "string"
+                              },
+                              {
+                                "type": "null"
+                              }
+                            ]
                           }
                         },
                         "required": [
                           "type",
                           "text"
-                        ],
-                        "title": "Text Payload"
+                        ]
                       },
                       {
+                        "title": "URL Payload",
                         "type": "object",
                         "properties": {
                           "type": {
                             "type": "string",
-                            "enum": [
-                              "FILE"
-                            ]
+                            "const": "FILE"
                           },
                           "fileUrl": {
-                            "type": "string",
-                            "description": "The URL of the file to ingest."
+                            "description": "The URL of the file to ingest.",
+                            "type": "string"
                           },
                           "fileName": {
-                            "type": "string",
-                            "nullable": true,
-                            "description": "The name of the file."
+                            "description": "The name of the file.",
+                            "anyOf": [
+                              {
+                                "type": "string"
+                              },
+                              {
+                                "type": "null"
+                              }
+                            ]
                           }
                         },
                         "required": [
                           "type",
                           "fileUrl"
-                        ],
-                        "title": "URL Payload"
+                        ]
                       },
                       {
+                        "title": "Managed File Payload",
                         "type": "object",
                         "properties": {
                           "type": {
                             "type": "string",
-                            "enum": [
-                              "MANAGED_FILE"
-                            ]
+                            "const": "MANAGED_FILE"
                           },
                           "key": {
-                            "type": "string",
-                            "description": "The key of the managed file to ingest."
+                            "description": "The key of the managed file to ingest.",
+                            "type": "string"
                           },
                           "fileName": {
-                            "type": "string",
-                            "nullable": true,
-                            "description": "The name of the file."
+                            "description": "The name of the file.",
+                            "anyOf": [
+                              {
+                                "type": "string"
+                              },
+                              {
+                                "type": "null"
+                              }
+                            ]
                           }
                         },
                         "required": [
                           "type",
                           "key"
-                        ],
-                        "title": "Managed File Payload"
+                        ]
                       },
                       {
+                        "title": "Batch Payload",
                         "type": "object",
                         "properties": {
                           "type": {
                             "type": "string",
-                            "enum": [
-                              "BATCH"
-                            ]
+                            "const": "BATCH"
                           },
                           "items": {
+                            "description": "The items to ingest.",
+                            "minItems": 1,
                             "type": "array",
                             "items": {
                               "oneOf": [
@@ -785,253 +810,273 @@
                                   "properties": {
                                     "type": {
                                       "type": "string",
-                                      "enum": [
-                                        "TEXT"
-                                      ]
+                                      "const": "TEXT"
                                     },
                                     "text": {
-                                      "type": "string",
-                                      "description": "The text to ingest."
+                                      "description": "The text to ingest.",
+                                      "type": "string"
                                     },
                                     "fileName": {
-                                      "type": "string",
-                                      "nullable": true,
-                                      "description": "The name of the file."
+                                      "description": "The name of the file.",
+                                      "anyOf": [
+                                        {
+                                          "type": "string"
+                                        },
+                                        {
+                                          "type": "null"
+                                        }
+                                      ]
                                     },
                                     "config": {
+                                      "description": "The ingest job config.",
                                       "type": "object",
                                       "properties": {
                                         "chunkSize": {
-                                          "type": "number",
-                                          "description": "Soft chunk size."
+                                          "description": "Soft chunk size.",
+                                          "type": "number"
                                         },
                                         "maxChunkSize": {
-                                          "type": "number",
-                                          "description": "Hard chunk size."
+                                          "description": "Hard chunk size.",
+                                          "type": "number"
                                         },
                                         "chunkOverlap": {
-                                          "type": "number",
-                                          "description": "Custom chunk overlap."
+                                          "description": "Custom chunk overlap.",
+                                          "type": "number"
                                         },
                                         "metadata": {
+                                          "description": "Custom metadata to be added to the ingested documents.",
                                           "type": "object",
-                                          "additionalProperties": {},
-                                          "description": "Custom metadata to be added to the ingested documents."
+                                          "propertyNames": {
+                                            "type": "string"
+                                          },
+                                          "additionalProperties": {}
                                         },
                                         "chunkingStrategy": {
+                                          "description": "The chunking strategy to use. Defaults to `basic`.",
                                           "type": "string",
                                           "enum": [
                                             "basic",
                                             "by_title"
-                                          ],
-                                          "description": "The chunking strategy to use. Defaults to `basic`."
+                                          ]
                                         },
                                         "strategy": {
+                                          "description": "The strategy to use. Defaults to `auto`.",
                                           "type": "string",
                                           "enum": [
                                             "auto",
                                             "fast",
                                             "hi_res",
                                             "ocr_only"
-                                          ],
-                                          "description": "The strategy to use. Defaults to `auto`."
+                                          ]
                                         }
-                                      },
-                                      "description": "The ingest job config."
+                                      }
                                     }
                                   },
                                   "required": [
                                     "type",
                                     "text"
-                                  ],
-                                  "title": "Text Payload"
+                                  ]
                                 },
                                 {
                                   "type": "object",
                                   "properties": {
                                     "type": {
                                       "type": "string",
-                                      "enum": [
-                                        "FILE"
-                                      ]
+                                      "const": "FILE"
                                     },
                                     "fileUrl": {
-                                      "type": "string",
-                                      "description": "The URL of the file to ingest."
+                                      "description": "The URL of the file to ingest.",
+                                      "type": "string"
                                     },
                                     "fileName": {
-                                      "type": "string",
-                                      "nullable": true,
-                                      "description": "The name of the file."
+                                      "description": "The name of the file.",
+                                      "anyOf": [
+                                        {
+                                          "type": "string"
+                                        },
+                                        {
+                                          "type": "null"
+                                        }
+                                      ]
                                     },
                                     "config": {
+                                      "description": "The ingest job config.",
                                       "type": "object",
                                       "properties": {
                                         "chunkSize": {
-                                          "type": "number",
-                                          "description": "Soft chunk size."
+                                          "description": "Soft chunk size.",
+                                          "type": "number"
                                         },
                                         "maxChunkSize": {
-                                          "type": "number",
-                                          "description": "Hard chunk size."
+                                          "description": "Hard chunk size.",
+                                          "type": "number"
                                         },
                                         "chunkOverlap": {
-                                          "type": "number",
-                                          "description": "Custom chunk overlap."
+                                          "description": "Custom chunk overlap.",
+                                          "type": "number"
                                         },
                                         "metadata": {
+                                          "description": "Custom metadata to be added to the ingested documents.",
                                           "type": "object",
-                                          "additionalProperties": {},
-                                          "description": "Custom metadata to be added to the ingested documents."
+                                          "propertyNames": {
+                                            "type": "string"
+                                          },
+                                          "additionalProperties": {}
                                         },
                                         "chunkingStrategy": {
+                                          "description": "The chunking strategy to use. Defaults to `basic`.",
                                           "type": "string",
                                           "enum": [
                                             "basic",
                                             "by_title"
-                                          ],
-                                          "description": "The chunking strategy to use. Defaults to `basic`."
+                                          ]
                                         },
                                         "strategy": {
+                                          "description": "The strategy to use. Defaults to `auto`.",
                                           "type": "string",
                                           "enum": [
                                             "auto",
                                             "fast",
                                             "hi_res",
                                             "ocr_only"
-                                          ],
-                                          "description": "The strategy to use. Defaults to `auto`."
+                                          ]
                                         }
-                                      },
-                                      "description": "The ingest job config."
+                                      }
                                     }
                                   },
                                   "required": [
                                     "type",
                                     "fileUrl"
-                                  ],
-                                  "title": "URL Payload"
+                                  ]
                                 },
                                 {
                                   "type": "object",
                                   "properties": {
                                     "type": {
                                       "type": "string",
-                                      "enum": [
-                                        "MANAGED_FILE"
-                                      ]
+                                      "const": "MANAGED_FILE"
                                     },
                                     "key": {
-                                      "type": "string",
-                                      "description": "The key of the managed file to ingest."
+                                      "description": "The key of the managed file to ingest.",
+                                      "type": "string"
                                     },
                                     "fileName": {
-                                      "type": "string",
-                                      "nullable": true,
-                                      "description": "The name of the file."
+                                      "description": "The name of the file.",
+                                      "anyOf": [
+                                        {
+                                          "type": "string"
+                                        },
+                                        {
+                                          "type": "null"
+                                        }
+                                      ]
                                     },
                                     "config": {
+                                      "description": "The ingest job config.",
                                       "type": "object",
                                       "properties": {
                                         "chunkSize": {
-                                          "type": "number",
-                                          "description": "Soft chunk size."
+                                          "description": "Soft chunk size.",
+                                          "type": "number"
                                         },
                                         "maxChunkSize": {
-                                          "type": "number",
-                                          "description": "Hard chunk size."
+                                          "description": "Hard chunk size.",
+                                          "type": "number"
                                         },
                                         "chunkOverlap": {
-                                          "type": "number",
-                                          "description": "Custom chunk overlap."
+                                          "description": "Custom chunk overlap.",
+                                          "type": "number"
                                         },
                                         "metadata": {
+                                          "description": "Custom metadata to be added to the ingested documents.",
                                           "type": "object",
-                                          "additionalProperties": {},
-                                          "description": "Custom metadata to be added to the ingested documents."
+                                          "propertyNames": {
+                                            "type": "string"
+                                          },
+                                          "additionalProperties": {}
                                         },
                                         "chunkingStrategy": {
+                                          "description": "The chunking strategy to use. Defaults to `basic`.",
                                           "type": "string",
                                           "enum": [
                                             "basic",
                                             "by_title"
-                                          ],
-                                          "description": "The chunking strategy to use. Defaults to `basic`."
+                                          ]
                                         },
                                         "strategy": {
+                                          "description": "The strategy to use. Defaults to `auto`.",
                                           "type": "string",
                                           "enum": [
                                             "auto",
                                             "fast",
                                             "hi_res",
                                             "ocr_only"
-                                          ],
-                                          "description": "The strategy to use. Defaults to `auto`."
+                                          ]
                                         }
-                                      },
-                                      "description": "The ingest job config."
+                                      }
                                     }
                                   },
                                   "required": [
                                     "type",
                                     "key"
-                                  ],
-                                  "title": "Managed File Payload"
+                                  ]
                                 }
-                              ]
-                            },
-                            "minItems": 1
+                              ],
+                              "type": "object"
+                            }
                           }
                         },
                         "required": [
                           "type",
                           "items"
-                        ],
-                        "title": "Batch Payload"
+                        ]
                       }
                     ],
-                    "description": "The ingest job payload."
+                    "type": "object"
                   },
                   "config": {
+                    "description": "The ingest job config.",
                     "type": "object",
                     "properties": {
                       "chunkSize": {
-                        "type": "number",
-                        "description": "Soft chunk size."
+                        "description": "Soft chunk size.",
+                        "type": "number"
                       },
                       "maxChunkSize": {
-                        "type": "number",
-                        "description": "Hard chunk size."
+                        "description": "Hard chunk size.",
+                        "type": "number"
                       },
                       "chunkOverlap": {
-                        "type": "number",
-                        "description": "Custom chunk overlap."
+                        "description": "Custom chunk overlap.",
+                        "type": "number"
                       },
                       "metadata": {
+                        "description": "Custom metadata to be added to the ingested documents.",
                         "type": "object",
-                        "additionalProperties": {},
-                        "description": "Custom metadata to be added to the ingested documents."
+                        "propertyNames": {
+                          "type": "string"
+                        },
+                        "additionalProperties": {}
                       },
                       "chunkingStrategy": {
+                        "description": "The chunking strategy to use. Defaults to `basic`.",
                         "type": "string",
                         "enum": [
                           "basic",
                           "by_title"
-                        ],
-                        "description": "The chunking strategy to use. Defaults to `basic`."
+                        ]
                       },
                       "strategy": {
+                        "description": "The strategy to use. Defaults to `auto`.",
                         "type": "string",
                         "enum": [
                           "auto",
                           "fast",
                           "hi_res",
                           "ocr_only"
-                        ],
-                        "description": "The strategy to use. Defaults to `auto`."
+                        ]
                       }
-                    },
-                    "description": "The ingest job config."
+                    }
                   }
                 },
                 "required": [
@@ -1051,9 +1096,7 @@
                   "properties": {
                     "success": {
                       "type": "boolean",
-                      "enum": [
-                        true
-                      ]
+                      "const": true
                     },
                     "data": {
                       "$ref": "#/components/schemas/IngestJobSchema"
@@ -1062,7 +1105,8 @@
                   "required": [
                     "success",
                     "data"
-                  ]
+                  ],
+                  "additionalProperties": false
                 }
               }
             }
@@ -1115,31 +1159,31 @@
           {
             "in": "path",
             "name": "namespaceId",
-            "description": "The id of the namespace to retrieve.",
             "schema": {
-              "type": "string",
-              "description": "The id of the namespace to retrieve."
+              "description": "The id of the namespace to retrieve.",
+              "type": "string"
             },
-            "required": true
+            "required": true,
+            "description": "The id of the namespace to retrieve."
           },
           {
             "in": "path",
             "name": "jobId",
-            "description": "The id of the ingest job to retrieve.",
             "schema": {
-              "type": "string",
-              "description": "The id of the ingest job to retrieve."
+              "description": "The id of the ingest job to retrieve.",
+              "type": "string"
             },
-            "required": true
+            "required": true,
+            "description": "The id of the ingest job to retrieve."
           },
           {
             "in": "header",
             "name": "x-tenant-id",
-            "description": "The tenant id to use for the request. If not provided, the default tenant will be used.",
             "schema": {
-              "type": "string",
-              "description": "The tenant id to use for the request. If not provided, the default tenant will be used."
-            }
+              "description": "The tenant id to use for the request. If not provided, the default tenant will be used.",
+              "type": "string"
+            },
+            "description": "The tenant id to use for the request. If not provided, the default tenant will be used."
           }
         ],
         "responses": {
@@ -1152,9 +1196,7 @@
                   "properties": {
                     "success": {
                       "type": "boolean",
-                      "enum": [
-                        true
-                      ]
+                      "const": true
                     },
                     "data": {
                       "$ref": "#/components/schemas/IngestJobSchema"
@@ -1163,7 +1205,8 @@
                   "required": [
                     "success",
                     "data"
-                  ]
+                  ],
+                  "additionalProperties": false
                 }
               }
             }
@@ -1215,31 +1258,31 @@
           {
             "in": "path",
             "name": "namespaceId",
-            "description": "The id of the namespace to delete.",
             "schema": {
-              "type": "string",
-              "description": "The id of the namespace to delete."
+              "description": "The id of the namespace to delete.",
+              "type": "string"
             },
-            "required": true
+            "required": true,
+            "description": "The id of the namespace to delete."
           },
           {
             "in": "path",
             "name": "jobId",
-            "description": "The id of the ingest job to delete.",
             "schema": {
-              "type": "string",
-              "description": "The id of the ingest job to delete."
+              "description": "The id of the ingest job to delete.",
+              "type": "string"
             },
-            "required": true
+            "required": true,
+            "description": "The id of the ingest job to delete."
           },
           {
             "in": "header",
             "name": "x-tenant-id",
-            "description": "The tenant id to use for the request. If not provided, the default tenant will be used.",
             "schema": {
-              "type": "string",
-              "description": "The tenant id to use for the request. If not provided, the default tenant will be used."
-            }
+              "description": "The tenant id to use for the request. If not provided, the default tenant will be used.",
+              "type": "string"
+            },
+            "description": "The tenant id to use for the request. If not provided, the default tenant will be used."
           }
         ],
         "responses": {
@@ -1252,9 +1295,7 @@
                   "properties": {
                     "success": {
                       "type": "boolean",
-                      "enum": [
-                        true
-                      ]
+                      "const": true
                     },
                     "data": {
                       "$ref": "#/components/schemas/IngestJobSchema"
@@ -1263,7 +1304,8 @@
                   "required": [
                     "success",
                     "data"
-                  ]
+                  ],
+                  "additionalProperties": false
                 }
               }
             }
@@ -1329,101 +1371,101 @@
           {
             "in": "path",
             "name": "namespaceId",
-            "description": "The id of the namespace to create the ingest job for.",
             "schema": {
-              "type": "string",
-              "description": "The id of the namespace to create the ingest job for."
+              "description": "The id of the namespace to create the ingest job for.",
+              "type": "string"
             },
-            "required": true
+            "required": true,
+            "description": "The id of the namespace to create the ingest job for."
           },
           {
             "in": "query",
             "name": "statuses",
-            "description": "Comma separated list of statuses to filter by.",
             "schema": {
-              "type": "string",
-              "description": "Comma separated list of statuses to filter by."
-            }
+              "description": "Comma separated list of statuses to filter by.",
+              "type": "string"
+            },
+            "description": "Comma separated list of statuses to filter by."
           },
           {
             "in": "query",
             "name": "orderBy",
-            "description": "The field to order by. Default is `createdAt`.",
             "schema": {
+              "description": "The field to order by. Default is `createdAt`.",
+              "default": "createdAt",
               "type": "string",
               "enum": [
                 "createdAt"
-              ],
-              "default": "createdAt",
-              "description": "The field to order by. Default is `createdAt`."
-            }
+              ]
+            },
+            "description": "The field to order by. Default is `createdAt`."
           },
           {
             "in": "query",
             "name": "order",
-            "description": "The order to sort by. Default is `desc`.",
             "schema": {
+              "description": "The order to sort by. Default is `desc`.",
+              "default": "desc",
               "type": "string",
               "enum": [
                 "asc",
                 "desc"
-              ],
-              "default": "desc",
-              "description": "The order to sort by. Default is `desc`."
-            }
+              ]
+            },
+            "description": "The order to sort by. Default is `desc`."
           },
           {
             "in": "query",
             "name": "ingestJobId",
-            "description": "The ingest job ID to filter documents by.",
             "schema": {
-              "type": "string",
-              "description": "The ingest job ID to filter documents by."
-            }
+              "description": "The ingest job ID to filter documents by.",
+              "type": "string"
+            },
+            "description": "The ingest job ID to filter documents by."
           },
           {
             "in": "query",
             "name": "cursor",
-            "description": "The cursor to paginate by.",
             "schema": {
-              "type": "string",
-              "description": "The cursor to paginate by."
-            }
+              "description": "The cursor to paginate by.",
+              "type": "string"
+            },
+            "description": "The cursor to paginate by."
           },
           {
             "in": "query",
             "name": "cursorDirection",
-            "description": "The direction to paginate by.",
             "schema": {
+              "description": "The direction to paginate by.",
+              "default": "forward",
               "type": "string",
               "enum": [
                 "forward",
                 "backward"
-              ],
-              "default": "forward",
-              "description": "The direction to paginate by."
-            }
+              ]
+            },
+            "description": "The direction to paginate by."
           },
           {
             "in": "query",
             "name": "perPage",
-            "description": "The number of records to return per page.",
             "schema": {
+              "description": "The number of records to return per page.",
+              "default": 30,
               "type": "number",
               "minimum": 1,
-              "maximum": 100,
-              "default": 30,
-              "description": "The number of records to return per page."
-            }
+              "maximum": 100
+            },
+            "description": "The number of records to return per page."
           },
           {
             "in": "header",
             "name": "x-tenant-id",
-            "description": "The tenant id to use for the request. If not provided, the default tenant will be used.",
             "schema": {
-              "type": "string",
-              "description": "The tenant id to use for the request. If not provided, the default tenant will be used."
-            }
+              "description": "The tenant id to use for the request. If not provided, the default tenant will be used.",
+              "type": "string"
+            },
+            "description": "The tenant id to use for the request. If not provided, the default tenant will be used."
           }
         ],
         "responses": {
@@ -1436,9 +1478,7 @@
                   "properties": {
                     "success": {
                       "type": "boolean",
-                      "enum": [
-                        true
-                      ]
+                      "const": true
                     },
                     "data": {
                       "type": "array",
@@ -1450,20 +1490,28 @@
                       "type": "object",
                       "properties": {
                         "nextCursor": {
-                          "type": "string",
-                          "nullable": true
+                          "anyOf": [
+                            {
+                              "type": "string"
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ]
                         }
                       },
                       "required": [
                         "nextCursor"
-                      ]
+                      ],
+                      "additionalProperties": false
                     }
                   },
                   "required": [
                     "success",
                     "data",
                     "pagination"
-                  ]
+                  ],
+                  "additionalProperties": false
                 }
               }
             }
@@ -1516,31 +1564,31 @@
           {
             "in": "path",
             "name": "namespaceId",
-            "description": "The id of the namespace to retrieve.",
             "schema": {
-              "type": "string",
-              "description": "The id of the namespace to retrieve."
+              "description": "The id of the namespace to retrieve.",
+              "type": "string"
             },
-            "required": true
+            "required": true,
+            "description": "The id of the namespace to retrieve."
           },
           {
             "in": "path",
             "name": "documentId",
-            "description": "The id of the document to retrieve.",
             "schema": {
-              "type": "string",
-              "description": "The id of the document to retrieve."
+              "description": "The id of the document to retrieve.",
+              "type": "string"
             },
-            "required": true
+            "required": true,
+            "description": "The id of the document to retrieve."
           },
           {
             "in": "header",
             "name": "x-tenant-id",
-            "description": "The tenant id to use for the request. If not provided, the default tenant will be used.",
             "schema": {
-              "type": "string",
-              "description": "The tenant id to use for the request. If not provided, the default tenant will be used."
-            }
+              "description": "The tenant id to use for the request. If not provided, the default tenant will be used.",
+              "type": "string"
+            },
+            "description": "The tenant id to use for the request. If not provided, the default tenant will be used."
           }
         ],
         "responses": {
@@ -1553,9 +1601,7 @@
                   "properties": {
                     "success": {
                       "type": "boolean",
-                      "enum": [
-                        true
-                      ]
+                      "const": true
                     },
                     "data": {
                       "$ref": "#/components/schemas/DocumentSchema"
@@ -1564,7 +1610,8 @@
                   "required": [
                     "success",
                     "data"
-                  ]
+                  ],
+                  "additionalProperties": false
                 }
               }
             }
@@ -1616,31 +1663,31 @@
           {
             "in": "path",
             "name": "namespaceId",
-            "description": "The id of the namespace to delete.",
             "schema": {
-              "type": "string",
-              "description": "The id of the namespace to delete."
+              "description": "The id of the namespace to delete.",
+              "type": "string"
             },
-            "required": true
+            "required": true,
+            "description": "The id of the namespace to delete."
           },
           {
             "in": "path",
             "name": "documentId",
-            "description": "The id of the document to delete.",
             "schema": {
-              "type": "string",
-              "description": "The id of the document to delete."
+              "description": "The id of the document to delete.",
+              "type": "string"
             },
-            "required": true
+            "required": true,
+            "description": "The id of the document to delete."
           },
           {
             "in": "header",
             "name": "x-tenant-id",
-            "description": "The tenant id to use for the request. If not provided, the default tenant will be used.",
             "schema": {
-              "type": "string",
-              "description": "The tenant id to use for the request. If not provided, the default tenant will be used."
-            }
+              "description": "The tenant id to use for the request. If not provided, the default tenant will be used.",
+              "type": "string"
+            },
+            "description": "The tenant id to use for the request. If not provided, the default tenant will be used."
           }
         ],
         "responses": {
@@ -1653,9 +1700,7 @@
                   "properties": {
                     "success": {
                       "type": "boolean",
-                      "enum": [
-                        true
-                      ]
+                      "const": true
                     },
                     "data": {
                       "$ref": "#/components/schemas/DocumentSchema"
@@ -1664,7 +1709,8 @@
                   "required": [
                     "success",
                     "data"
-                  ]
+                  ],
+                  "additionalProperties": false
                 }
               }
             }
@@ -1717,21 +1763,21 @@
           {
             "in": "path",
             "name": "namespaceId",
-            "description": "The id of the namespace to search.",
             "schema": {
-              "type": "string",
-              "description": "The id of the namespace to search."
+              "description": "The id of the namespace to search.",
+              "type": "string"
             },
-            "required": true
+            "required": true,
+            "description": "The id of the namespace to search."
           },
           {
             "in": "header",
             "name": "x-tenant-id",
-            "description": "The tenant id to use for the request. If not provided, the default tenant will be used.",
             "schema": {
-              "type": "string",
-              "description": "The tenant id to use for the request. If not provided, the default tenant will be used."
-            }
+              "description": "The tenant id to use for the request. If not provided, the default tenant will be used.",
+              "type": "string"
+            },
+            "description": "The tenant id to use for the request. If not provided, the default tenant will be used."
           }
         ],
         "requestBody": {
@@ -1741,47 +1787,50 @@
                 "type": "object",
                 "properties": {
                   "query": {
-                    "type": "string",
-                    "description": "The query to search for."
+                    "description": "The query to search for.",
+                    "type": "string"
                   },
                   "topK": {
+                    "description": "The number of results to fetch from the vector store. Defaults to `10`.",
+                    "default": 10,
                     "type": "number",
                     "minimum": 1,
-                    "maximum": 100,
-                    "default": 10,
-                    "description": "The number of results to fetch from the vector store. Defaults to `10`."
+                    "maximum": 100
                   },
                   "rerank": {
-                    "type": "boolean",
+                    "description": "Whether to rerank the results. Defaults to `true`.",
                     "default": true,
-                    "description": "Whether to rerank the results. Defaults to `true`."
+                    "type": "boolean"
                   },
                   "rerankLimit": {
+                    "description": "The number of results to return after reranking. Defaults to `topK`.",
                     "type": "number",
                     "minimum": 1,
-                    "maximum": 100,
-                    "description": "The number of results to return after reranking. Defaults to `topK`."
+                    "maximum": 100
                   },
                   "filter": {
+                    "description": "A filter to apply to the results.",
                     "type": "object",
-                    "additionalProperties": {},
-                    "description": "A filter to apply to the results."
+                    "propertyNames": {
+                      "type": "string"
+                    },
+                    "additionalProperties": {}
                   },
                   "minScore": {
+                    "description": "The minimum score to return.",
                     "type": "number",
                     "minimum": 0,
-                    "maximum": 1,
-                    "description": "The minimum score to return."
+                    "maximum": 1
                   },
                   "includeRelationships": {
-                    "type": "boolean",
+                    "description": "Whether to include relationships in the results. Defaults to `false`.",
                     "default": false,
-                    "description": "Whether to include relationships in the results. Defaults to `false`."
+                    "type": "boolean"
                   },
                   "includeMetadata": {
-                    "type": "boolean",
+                    "description": "Whether to include metadata in the results. Defaults to `true`.",
                     "default": true,
-                    "description": "Whether to include metadata in the results. Defaults to `true`."
+                    "type": "boolean"
                   }
                 },
                 "required": [
@@ -1801,9 +1850,7 @@
                   "properties": {
                     "success": {
                       "type": "boolean",
-                      "enum": [
-                        true
-                      ]
+                      "const": true
                     },
                     "data": {
                       "type": "array",
@@ -1823,6 +1870,9 @@
                           },
                           "relationships": {
                             "type": "object",
+                            "propertyNames": {
+                              "type": "string"
+                            },
                             "additionalProperties": {}
                           },
                           "metadata": {
@@ -1857,20 +1907,23 @@
                               "file_directory",
                               "filename",
                               "filetype"
-                            ]
+                            ],
+                            "additionalProperties": false
                           }
                         },
                         "required": [
                           "id",
                           "score"
-                        ]
+                        ],
+                        "additionalProperties": false
                       }
                     }
                   },
                   "required": [
                     "success",
                     "data"
-                  ]
+                  ],
+                  "additionalProperties": false
                 }
               }
             }
@@ -1907,25 +1960,17 @@
     }
   },
   "components": {
-    "securitySchemes": {
-      "token": {
-        "type": "http",
-        "description": "Default authentication mechanism",
-        "scheme": "bearer",
-        "x-speakeasy-example": "AGENTSET_API_KEY"
-      }
-    },
     "schemas": {
       "EmbeddingConfigSchema": {
+        "description": "The embedding model config. If not provided, our managed embedding model will be used. Note: You can't change the embedding model config after the namespace is created.",
         "oneOf": [
           {
+            "title": "OpenAI Embedding Config",
             "type": "object",
             "properties": {
               "provider": {
                 "type": "string",
-                "enum": [
-                  "OPENAI"
-                ]
+                "const": "OPENAI"
               },
               "model": {
                 "type": "string",
@@ -1942,17 +1987,15 @@
               "provider",
               "model",
               "apiKey"
-            ],
-            "title": "OpenAI Embedding Config"
+            ]
           },
           {
+            "title": "Azure Embedding Config",
             "type": "object",
             "properties": {
               "provider": {
                 "type": "string",
-                "enum": [
-                  "AZURE_OPENAI"
-                ]
+                "const": "AZURE_OPENAI"
               },
               "model": {
                 "type": "string",
@@ -1962,22 +2005,22 @@
                 ]
               },
               "baseUrl": {
-                "type": "string",
-                "format": "uri",
                 "description": "The base URL of the Azure OpenAI API.",
-                "example": "https://example.openai.azure.com/openai/deployments"
+                "example": "https://example.openai.azure.com/openai/deployments",
+                "type": "string",
+                "format": "uri"
               },
               "deployment": {
-                "type": "string",
-                "description": "The deployment name of the Azure OpenAI API."
+                "description": "The deployment name of the Azure OpenAI API.",
+                "type": "string"
               },
               "apiKey": {
-                "type": "string",
-                "description": "The API key for the Azure OpenAI API."
+                "description": "The API key for the Azure OpenAI API.",
+                "type": "string"
               },
               "apiVersion": {
-                "type": "string",
-                "description": "The API version for the Azure OpenAI API."
+                "description": "The API version for the Azure OpenAI API.",
+                "type": "string"
               }
             },
             "required": [
@@ -1986,17 +2029,15 @@
               "baseUrl",
               "deployment",
               "apiKey"
-            ],
-            "title": "Azure Embedding Config"
+            ]
           },
           {
+            "title": "Voyage Embedding Config",
             "type": "object",
             "properties": {
               "provider": {
                 "type": "string",
-                "enum": [
-                  "VOYAGE"
-                ]
+                "const": "VOYAGE"
               },
               "model": {
                 "type": "string",
@@ -2017,17 +2058,15 @@
               "provider",
               "model",
               "apiKey"
-            ],
-            "title": "Voyage Embedding Config"
+            ]
           },
           {
+            "title": "Google Embedding Config",
             "type": "object",
             "properties": {
               "provider": {
                 "type": "string",
-                "enum": [
-                  "GOOGLE"
-                ]
+                "const": "GOOGLE"
               },
               "model": {
                 "type": "string",
@@ -2043,84 +2082,121 @@
               "provider",
               "model",
               "apiKey"
-            ],
-            "title": "Google Embedding Config"
+            ]
           }
         ],
-        "description": "The embedding model config. If not provided, our managed embedding model will be used. Note: You can't change the embedding model config after the namespace is created."
+        "type": "object"
       },
       "VectorStoreSchema": {
+        "description": "The vector store config. If not provided, our managed vector store will be used. Note: You can't change the vector store config after the namespace is created.",
         "oneOf": [
           {
+            "title": "Pinecone Config",
             "type": "object",
             "properties": {
               "provider": {
                 "type": "string",
-                "enum": [
-                  "PINECONE"
-                ]
+                "const": "PINECONE"
               },
               "apiKey": {
-                "type": "string",
-                "description": "The API key for the Pinecone index."
+                "description": "The API key for the Pinecone index.",
+                "type": "string"
               },
               "indexHost": {
-                "type": "string",
-                "format": "uri",
                 "description": "The host of the Pinecone index.",
-                "example": "https://example.svc.aped-1234-a56b.pinecone.io"
+                "example": "https://example.svc.aped-1234-a56b.pinecone.io",
+                "type": "string",
+                "format": "uri"
               }
             },
             "required": [
               "provider",
               "apiKey",
               "indexHost"
-            ],
-            "title": "Pinecone Config"
+            ]
           }
         ],
-        "description": "The vector store config. If not provided, our managed vector store will be used. Note: You can't change the vector store config after the namespace is created."
+        "type": "object"
+      },
+      "IngestJobStatusSchema": {
+        "description": "The status of the ingest job.",
+        "type": "string",
+        "enum": [
+          "BACKLOG",
+          "QUEUED",
+          "QUEUED_FOR_RESYNC",
+          "QUEUED_FOR_DELETE",
+          "PRE_PROCESSING",
+          "PROCESSING",
+          "DELETING",
+          "CANCELLING",
+          "COMPLETED",
+          "FAILED",
+          "CANCELLED"
+        ]
+      },
+      "DocumentStatusSchema": {
+        "description": "The status of the document.",
+        "type": "string",
+        "enum": [
+          "BACKLOG",
+          "QUEUED",
+          "QUEUED_FOR_RESYNC",
+          "QUEUED_FOR_DELETE",
+          "PRE_PROCESSING",
+          "PROCESSING",
+          "DELETING",
+          "CANCELLING",
+          "COMPLETED",
+          "FAILED",
+          "CANCELLED"
+        ]
       },
       "NamespaceSchema": {
+        "title": "Namespace",
         "type": "object",
         "properties": {
           "id": {
-            "type": "string",
-            "description": "The unique ID of the namespace."
+            "description": "The unique ID of the namespace.",
+            "type": "string"
           },
           "name": {
-            "type": "string",
-            "description": "The name of the namespace."
+            "description": "The name of the namespace.",
+            "type": "string"
           },
           "slug": {
-            "type": "string",
-            "description": "The slug of the namespace."
+            "description": "The slug of the namespace.",
+            "type": "string"
           },
           "organizationId": {
-            "type": "string",
-            "description": "The ID of the organization that owns the namespace."
+            "description": "The ID of the organization that owns the namespace.",
+            "type": "string"
           },
           "createdAt": {
-            "type": "string",
-            "description": "The date and time the namespace was created."
+            "description": "The date and time the namespace was created.",
+            "type": "string"
           },
           "embeddingConfig": {
-            "allOf": [
+            "default": null,
+            "anyOf": [
               {
-                "$ref": "#/components/schemas/EmbeddingConfigSchema"
+                "$ref": "#/components/schemas/EmbeddingConfigSchemaOutput"
+              },
+              {
+                "type": "null"
               }
-            ],
-            "nullable": true,
-            "default": null
+            ]
           },
           "vectorStoreConfig": {
-            "allOf": [
+            "default": null,
+            "anyOf": [
               {
-                "$ref": "#/components/schemas/VectorStoreSchema"
+                "$ref": "#/components/schemas/VectorStoreSchemaOutput"
+              },
+              {
+                "type": "null"
               }
-            ],
-            "nullable": true,
-            "default": null
+            ]
           }
         },
         "required": [
@@ -2132,126 +2208,162 @@
           "embeddingConfig",
           "vectorStoreConfig"
         ],
-        "title": "Namespace"
+        "additionalProperties": false
       },
       "IngestJobSchema": {
+        "title": "Ingest Job",
         "type": "object",
         "properties": {
           "id": {
-            "type": "string",
-            "description": "The unique ID of the ingest job."
+            "description": "The unique ID of the ingest job.",
+            "type": "string"
           },
           "name": {
-            "type": "string",
-            "nullable": true,
-            "description": "The name of the ingest job."
+            "description": "The name of the ingest job.",
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
           },
           "namespaceId": {
-            "type": "string",
-            "description": "The namespace ID of the ingest job."
+            "description": "The namespace ID of the ingest job.",
+            "type": "string"
           },
           "tenantId": {
-            "type": "string",
-            "nullable": true,
+            "description": "The tenant ID of the ingest job.",
             "default": null,
-            "description": "The tenant ID of the ingest job."
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
           },
           "status": {
             "$ref": "#/components/schemas/IngestJobStatusSchema"
           },
           "error": {
-            "type": "string",
-            "nullable": true,
+            "description": "The error message of the ingest job. Only exists when the status is failed.",
             "default": null,
-            "description": "The error message of the ingest job. Only exists when the status is failed."
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
           },
           "payload": {
+            "description": "The ingest job payload.",
             "oneOf": [
               {
+                "title": "Text Payload",
                 "type": "object",
                 "properties": {
                   "type": {
                     "type": "string",
-                    "enum": [
-                      "TEXT"
-                    ]
+                    "const": "TEXT"
                   },
                   "text": {
-                    "type": "string",
-                    "description": "The text to ingest."
+                    "description": "The text to ingest.",
+                    "type": "string"
                   },
                   "fileName": {
-                    "type": "string",
-                    "nullable": true,
-                    "description": "The name of the file."
+                    "description": "The name of the file.",
+                    "anyOf": [
+                      {
+                        "type": "string"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
                   }
                 },
                 "required": [
                   "type",
                   "text"
                 ],
-                "title": "Text Payload"
+                "additionalProperties": false
               },
               {
+                "title": "URL Payload",
                 "type": "object",
                 "properties": {
                   "type": {
                     "type": "string",
-                    "enum": [
-                      "FILE"
-                    ]
+                    "const": "FILE"
                   },
                   "fileUrl": {
-                    "type": "string",
-                    "description": "The URL of the file to ingest."
+                    "description": "The URL of the file to ingest.",
+                    "type": "string"
                   },
                   "fileName": {
-                    "type": "string",
-                    "nullable": true,
-                    "description": "The name of the file."
+                    "description": "The name of the file.",
+                    "anyOf": [
+                      {
+                        "type": "string"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
                   }
                 },
                 "required": [
                   "type",
                   "fileUrl"
                 ],
-                "title": "URL Payload"
+                "additionalProperties": false
               },
               {
+                "title": "Managed File Payload",
                 "type": "object",
                 "properties": {
                   "type": {
                     "type": "string",
-                    "enum": [
-                      "MANAGED_FILE"
-                    ]
+                    "const": "MANAGED_FILE"
                   },
                   "key": {
-                    "type": "string",
-                    "description": "The key of the managed file to ingest."
+                    "description": "The key of the managed file to ingest.",
+                    "type": "string"
                   },
                   "fileName": {
-                    "type": "string",
-                    "nullable": true,
-                    "description": "The name of the file."
+                    "description": "The name of the file.",
+                    "anyOf": [
+                      {
+                        "type": "string"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
                   }
                 },
                 "required": [
                   "type",
                   "key"
                 ],
-                "title": "Managed File Payload"
+                "additionalProperties": false
               },
               {
+                "title": "Batch Payload",
                 "type": "object",
                 "properties": {
                   "type": {
                     "type": "string",
-                    "enum": [
-                      "BATCH"
-                    ]
+                    "const": "BATCH"
                   },
                   "items": {
+                    "description": "The items to ingest.",
+                    "minItems": 1,
                     "type": "array",
                     "items": {
                       "oneOf": [
@@ -2260,289 +2372,353 @@
                           "properties": {
                             "type": {
                               "type": "string",
-                              "enum": [
-                                "TEXT"
-                              ]
+                              "const": "TEXT"
                             },
                             "text": {
-                              "type": "string",
-                              "description": "The text to ingest."
+                              "description": "The text to ingest.",
+                              "type": "string"
                             },
                             "fileName": {
-                              "type": "string",
-                              "nullable": true,
-                              "description": "The name of the file."
+                              "description": "The name of the file.",
+                              "anyOf": [
+                                {
+                                  "type": "string"
+                                },
+                                {
+                                  "type": "null"
+                                }
+                              ]
                             },
                             "config": {
+                              "description": "The ingest job config.",
                               "type": "object",
                               "properties": {
                                 "chunkSize": {
-                                  "type": "number",
-                                  "description": "Soft chunk size."
+                                  "description": "Soft chunk size.",
+                                  "type": "number"
                                 },
                                 "maxChunkSize": {
-                                  "type": "number",
-                                  "description": "Hard chunk size."
+                                  "description": "Hard chunk size.",
+                                  "type": "number"
                                 },
                                 "chunkOverlap": {
-                                  "type": "number",
-                                  "description": "Custom chunk overlap."
+                                  "description": "Custom chunk overlap.",
+                                  "type": "number"
                                 },
                                 "metadata": {
+                                  "description": "Custom metadata to be added to the ingested documents.",
                                   "type": "object",
-                                  "additionalProperties": {},
-                                  "description": "Custom metadata to be added to the ingested documents."
+                                  "propertyNames": {
+                                    "type": "string"
+                                  },
+                                  "additionalProperties": {}
                                 },
                                 "chunkingStrategy": {
+                                  "description": "The chunking strategy to use. Defaults to `basic`.",
                                   "type": "string",
                                   "enum": [
                                     "basic",
                                     "by_title"
-                                  ],
-                                  "description": "The chunking strategy to use. Defaults to `basic`."
+                                  ]
                                 },
                                 "strategy": {
+                                  "description": "The strategy to use. Defaults to `auto`.",
                                   "type": "string",
                                   "enum": [
                                     "auto",
                                     "fast",
                                     "hi_res",
                                     "ocr_only"
-                                  ],
-                                  "description": "The strategy to use. Defaults to `auto`."
+                                  ]
                                 }
                               },
-                              "description": "The ingest job config."
+                              "additionalProperties": false
                             }
                           },
                           "required": [
                             "type",
                             "text"
                           ],
-                          "title": "Text Payload"
+                          "additionalProperties": false
                         },
                         {
                           "type": "object",
                           "properties": {
                             "type": {
                               "type": "string",
-                              "enum": [
-                                "FILE"
-                              ]
+                              "const": "FILE"
                             },
                             "fileUrl": {
-                              "type": "string",
-                              "description": "The URL of the file to ingest."
+                              "description": "The URL of the file to ingest.",
+                              "type": "string"
                             },
                             "fileName": {
-                              "type": "string",
-                              "nullable": true,
-                              "description": "The name of the file."
+                              "description": "The name of the file.",
+                              "anyOf": [
+                                {
+                                  "type": "string"
+                                },
+                                {
+                                  "type": "null"
+                                }
+                              ]
                             },
                             "config": {
+                              "description": "The ingest job config.",
                               "type": "object",
                               "properties": {
                                 "chunkSize": {
-                                  "type": "number",
-                                  "description": "Soft chunk size."
+                                  "description": "Soft chunk size.",
+                                  "type": "number"
                                 },
                                 "maxChunkSize": {
-                                  "type": "number",
-                                  "description": "Hard chunk size."
+                                  "description": "Hard chunk size.",
+                                  "type": "number"
                                 },
                                 "chunkOverlap": {
-                                  "type": "number",
-                                  "description": "Custom chunk overlap."
+                                  "description": "Custom chunk overlap.",
+                                  "type": "number"
                                 },
                                 "metadata": {
+                                  "description": "Custom metadata to be added to the ingested documents.",
                                   "type": "object",
-                                  "additionalProperties": {},
-                                  "description": "Custom metadata to be added to the ingested documents."
+                                  "propertyNames": {
+                                    "type": "string"
+                                  },
+                                  "additionalProperties": {}
                                 },
                                 "chunkingStrategy": {
+                                  "description": "The chunking strategy to use. Defaults to `basic`.",
                                   "type": "string",
                                   "enum": [
                                     "basic",
                                     "by_title"
-                                  ],
-                                  "description": "The chunking strategy to use. Defaults to `basic`."
+                                  ]
                                 },
                                 "strategy": {
+                                  "description": "The strategy to use. Defaults to `auto`.",
                                   "type": "string",
                                   "enum": [
                                     "auto",
                                     "fast",
                                     "hi_res",
                                     "ocr_only"
-                                  ],
-                                  "description": "The strategy to use. Defaults to `auto`."
+                                  ]
                                 }
                               },
-                              "description": "The ingest job config."
+                              "additionalProperties": false
                             }
                           },
                           "required": [
                             "type",
                             "fileUrl"
                           ],
-                          "title": "URL Payload"
+                          "additionalProperties": false
                         },
                         {
                           "type": "object",
                           "properties": {
                             "type": {
                               "type": "string",
-                              "enum": [
-                                "MANAGED_FILE"
-                              ]
+                              "const": "MANAGED_FILE"
                             },
                             "key": {
-                              "type": "string",
-                              "description": "The key of the managed file to ingest."
+                              "description": "The key of the managed file to ingest.",
+                              "type": "string"
                             },
                             "fileName": {
-                              "type": "string",
-                              "nullable": true,
-                              "description": "The name of the file."
+                              "description": "The name of the file.",
+                              "anyOf": [
+                                {
+                                  "type": "string"
+                                },
+                                {
+                                  "type": "null"
+                                }
+                              ]
                             },
                             "config": {
+                              "description": "The ingest job config.",
                               "type": "object",
                               "properties": {
                                 "chunkSize": {
-                                  "type": "number",
-                                  "description": "Soft chunk size."
+                                  "description": "Soft chunk size.",
+                                  "type": "number"
                                 },
                                 "maxChunkSize": {
-                                  "type": "number",
-                                  "description": "Hard chunk size."
+                                  "description": "Hard chunk size.",
+                                  "type": "number"
                                 },
                                 "chunkOverlap": {
-                                  "type": "number",
-                                  "description": "Custom chunk overlap."
+                                  "description": "Custom chunk overlap.",
+                                  "type": "number"
                                 },
                                 "metadata": {
+                                  "description": "Custom metadata to be added to the ingested documents.",
                                   "type": "object",
-                                  "additionalProperties": {},
-                                  "description": "Custom metadata to be added to the ingested documents."
+                                  "propertyNames": {
+                                    "type": "string"
+                                  },
+                                  "additionalProperties": {}
                                 },
                                 "chunkingStrategy": {
+                                  "description": "The chunking strategy to use. Defaults to `basic`.",
                                   "type": "string",
                                   "enum": [
                                     "basic",
                                     "by_title"
-                                  ],
-                                  "description": "The chunking strategy to use. Defaults to `basic`."
+                                  ]
                                 },
                                 "strategy": {
+                                  "description": "The strategy to use. Defaults to `auto`.",
                                   "type": "string",
                                   "enum": [
                                     "auto",
                                     "fast",
                                     "hi_res",
                                     "ocr_only"
-                                  ],
-                                  "description": "The strategy to use. Defaults to `auto`."
+                                  ]
                                 }
                               },
-                              "description": "The ingest job config."
+                              "additionalProperties": false
                             }
                           },
                           "required": [
                             "type",
                             "key"
                           ],
-                          "title": "Managed File Payload"
+                          "additionalProperties": false
                         }
-                      ]
-                    },
-                    "minItems": 1
+                      ],
+                      "type": "object"
+                    }
                   }
                 },
                 "required": [
                   "type",
                   "items"
                 ],
-                "title": "Batch Payload"
+                "additionalProperties": false
               }
             ],
-            "description": "The ingest job payload."
+            "type": "object"
           },
           "config": {
-            "type": "object",
-            "nullable": true,
-            "properties": {
-              "chunkSize": {
-                "type": "number",
-                "description": "Soft chunk size."
-              },
-              "maxChunkSize": {
-                "type": "number",
-                "description": "Hard chunk size."
-              },
-              "chunkOverlap": {
-                "type": "number",
-                "description": "Custom chunk overlap."
-              },
-              "metadata": {
+            "default": null,
+            "anyOf": [
+              {
+                "description": "The ingest job config.",
                 "type": "object",
-                "additionalProperties": {},
-                "description": "Custom metadata to be added to the ingested documents."
+                "properties": {
+                  "chunkSize": {
+                    "description": "Soft chunk size.",
+                    "type": "number"
+                  },
+                  "maxChunkSize": {
+                    "description": "Hard chunk size.",
+                    "type": "number"
+                  },
+                  "chunkOverlap": {
+                    "description": "Custom chunk overlap.",
+                    "type": "number"
+                  },
+                  "metadata": {
+                    "description": "Custom metadata to be added to the ingested documents.",
+                    "type": "object",
+                    "propertyNames": {
+                      "type": "string"
+                    },
+                    "additionalProperties": {}
+                  },
+                  "chunkingStrategy": {
+                    "description": "The chunking strategy to use. Defaults to `basic`.",
+                    "type": "string",
+                    "enum": [
+                      "basic",
+                      "by_title"
+                    ]
+                  },
+                  "strategy": {
+                    "description": "The strategy to use. Defaults to `auto`.",
+                    "type": "string",
+                    "enum": [
+                      "auto",
+                      "fast",
+                      "hi_res",
+                      "ocr_only"
+                    ]
+                  }
+                },
+                "additionalProperties": false
               },
-              "chunkingStrategy": {
-                "type": "string",
-                "enum": [
-                  "basic",
-                  "by_title"
-                ],
-                "description": "The chunking strategy to use. Defaults to `basic`."
-              },
-              "strategy": {
-                "type": "string",
-                "enum": [
-                  "auto",
-                  "fast",
-                  "hi_res",
-                  "ocr_only"
-                ],
-                "description": "The strategy to use. Defaults to `auto`."
+              {
+                "type": "null"
               }
-            },
-            "description": "The ingest job config.",
-            "default": null
+            ]
           },
           "createdAt": {
-            "type": "string",
-            "description": "The date and time the namespace was created."
+            "description": "The date and time the namespace was created.",
+            "type": "string"
           },
           "queuedAt": {
-            "type": "string",
-            "nullable": true,
+            "default": null,
             "description": "The date and time the ingest job was queued.",
-            "default": null
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
           },
           "preProcessingAt": {
-            "type": "string",
-            "nullable": true,
+            "default": null,
             "description": "The date and time the ingest job was pre-processed.",
-            "default": null
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
           },
           "processingAt": {
-            "type": "string",
-            "nullable": true,
+            "default": null,
             "description": "The date and time the ingest job was processed.",
-            "default": null
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
           },
           "completedAt": {
-            "type": "string",
-            "nullable": true,
+            "default": null,
             "description": "The date and time the ingest job was completed.",
-            "default": null
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
           },
           "failedAt": {
-            "type": "string",
-            "nullable": true,
+            "default": null,
             "description": "The date and time the ingest job failed.",
-            "default": null
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
           }
         },
         "required": [
@@ -2560,199 +2736,245 @@
           "completedAt",
           "failedAt"
         ],
-        "title": "Ingest Job"
-      },
-      "IngestJobStatusSchema": {
-        "type": "string",
-        "enum": [
-          "BACKLOG",
-          "QUEUED",
-          "QUEUED_FOR_RESYNC",
-          "QUEUED_FOR_DELETE",
-          "PRE_PROCESSING",
-          "PROCESSING",
-          "DELETING",
-          "CANCELLING",
-          "COMPLETED",
-          "FAILED",
-          "CANCELLED"
-        ],
-        "description": "The status of the ingest job."
+        "additionalProperties": false
       },
       "DocumentSchema": {
+        "title": "Document",
         "type": "object",
         "properties": {
           "id": {
-            "type": "string",
-            "description": "The unique ID of the document."
+            "description": "The unique ID of the document.",
+            "type": "string"
           },
           "ingestJobId": {
-            "type": "string",
-            "description": "The ingest job ID of the document."
+            "description": "The ingest job ID of the document.",
+            "type": "string"
           },
           "externalId": {
-            "type": "string",
-            "nullable": true,
+            "description": "A unique external ID.",
             "default": null,
-            "description": "A unique external ID."
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
           },
           "name": {
-            "type": "string",
-            "nullable": true,
+            "description": "The name of the document.",
             "default": null,
-            "description": "The name of the document."
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
           },
           "tenantId": {
-            "type": "string",
-            "nullable": true,
+            "description": "The tenant ID of the ingest job.",
             "default": null,
-            "description": "The tenant ID of the ingest job."
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
           },
           "status": {
             "$ref": "#/components/schemas/DocumentStatusSchema"
           },
           "error": {
-            "type": "string",
-            "nullable": true,
+            "description": "The error message of the document. Only exists when the status is failed.",
             "default": null,
-            "description": "The error message of the document. Only exists when the status is failed."
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
           },
           "source": {
+            "description": "The source of the document.",
             "oneOf": [
               {
                 "type": "object",
                 "properties": {
                   "type": {
                     "type": "string",
-                    "enum": [
-                      "TEXT"
-                    ]
+                    "const": "TEXT"
                   },
                   "text": {
-                    "type": "string",
-                    "description": "The text to ingest."
+                    "description": "The text to ingest.",
+                    "type": "string"
                   }
                 },
                 "required": [
                   "type",
                   "text"
                 ],
-                "title": "Text Payload"
+                "additionalProperties": false
               },
               {
                 "type": "object",
                 "properties": {
                   "type": {
                     "type": "string",
-                    "enum": [
-                      "FILE"
-                    ]
+                    "const": "FILE"
                   },
                   "fileUrl": {
-                    "type": "string",
-                    "description": "The URL of the file to ingest."
+                    "description": "The URL of the file to ingest.",
+                    "type": "string"
                   }
                 },
                 "required": [
                   "type",
                   "fileUrl"
                 ],
-                "title": "URL Payload"
+                "additionalProperties": false
               },
               {
                 "type": "object",
                 "properties": {
                   "type": {
                     "type": "string",
-                    "enum": [
-                      "MANAGED_FILE"
-                    ]
+                    "const": "MANAGED_FILE"
                   },
                   "key": {
-                    "type": "string",
-                    "description": "The key of the managed file to ingest."
+                    "description": "The key of the managed file to ingest.",
+                    "type": "string"
                   }
                 },
                 "required": [
                   "type",
                   "key"
                 ],
-                "title": "Managed File Payload"
+                "additionalProperties": false
               }
             ],
-            "description": "The source of the document."
+            "type": "object"
           },
           "properties": {
-            "type": "object",
-            "nullable": true,
-            "properties": {
-              "fileSize": {
-                "type": "number",
-                "description": "The size of the file in bytes."
+            "default": null,
+            "anyOf": [
+              {
+                "description": "The properties of the document.",
+                "type": "object",
+                "properties": {
+                  "fileSize": {
+                    "description": "The size of the file in bytes.",
+                    "type": "number"
+                  },
+                  "mimeType": {
+                    "description": "The MIME type of the file.",
+                    "default": null,
+                    "anyOf": [
+                      {
+                        "type": "string"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  }
+                },
+                "required": [
+                  "fileSize",
+                  "mimeType"
+                ],
+                "additionalProperties": false
               },
-              "mimeType": {
-                "type": "string",
-                "nullable": true,
-                "default": null,
-                "description": "The MIME type of the file."
+              {
+                "type": "null"
               }
-            },
-            "required": [
-              "fileSize",
-              "mimeType"
-            ],
-            "description": "The properties of the document.",
-            "default": null
+            ]
           },
           "totalChunks": {
-            "type": "number",
-            "description": "The total number of chunks."
+            "description": "The total number of chunks.",
+            "type": "number"
           },
           "totalTokens": {
-            "type": "number",
-            "description": "The total number of tokens."
+            "description": "The total number of tokens.",
+            "type": "number"
           },
           "totalCharacters": {
-            "type": "number",
-            "description": "The total number of characters."
+            "description": "The total number of characters.",
+            "type": "number"
           },
           "totalPages": {
-            "type": "number",
-            "description": "The total number of pages. Will be 0 if the document is not paged (e.g. PDF)."
+            "description": "The total number of pages. Will be 0 if the document is not paged (e.g. PDF).",
+            "type": "number"
           },
           "createdAt": {
-            "type": "string",
-            "description": "The date and time the document was created."
+            "description": "The date and time the document was created.",
+            "type": "string"
           },
           "queuedAt": {
-            "type": "string",
-            "nullable": true,
+            "default": null,
             "description": "The date and time the document was queued.",
-            "default": null
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
           },
           "preProcessingAt": {
-            "type": "string",
-            "nullable": true,
+            "default": null,
             "description": "The date and time the document was pre-processed.",
-            "default": null
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
           },
           "processingAt": {
-            "type": "string",
-            "nullable": true,
+            "default": null,
             "description": "The date and time the document was processed.",
-            "default": null
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
           },
           "completedAt": {
-            "type": "string",
-            "nullable": true,
+            "default": null,
             "description": "The date and time the document was completed.",
-            "default": null
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
           },
           "failedAt": {
-            "type": "string",
-            "nullable": true,
+            "default": null,
             "description": "The date and time the document failed.",
-            "default": null
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
           }
         },
         "required": [
@@ -2776,467 +2998,206 @@
           "completedAt",
           "failedAt"
         ],
-        "title": "Document"
+        "additionalProperties": false
       },
-      "DocumentStatusSchema": {
-        "type": "string",
-        "enum": [
-          "BACKLOG",
-          "QUEUED",
-          "QUEUED_FOR_RESYNC",
-          "QUEUED_FOR_DELETE",
-          "PRE_PROCESSING",
-          "PROCESSING",
-          "DELETING",
-          "CANCELLING",
-          "COMPLETED",
-          "FAILED",
-          "CANCELLED"
+      "EmbeddingConfigSchemaOutput": {
+        "description": "The embedding model config. If not provided, our managed embedding model will be used. Note: You can't change the embedding model config after the namespace is created.",
+        "oneOf": [
+          {
+            "title": "OpenAI Embedding Config",
+            "type": "object",
+            "properties": {
+              "provider": {
+                "type": "string",
+                "const": "OPENAI"
+              },
+              "model": {
+                "type": "string",
+                "enum": [
+                  "text-embedding-3-small",
+                  "text-embedding-3-large"
+                ]
+              },
+              "apiKey": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "provider",
+              "model",
+              "apiKey"
+            ],
+            "additionalProperties": false
+          },
+          {
+            "title": "Azure Embedding Config",
+            "type": "object",
+            "properties": {
+              "provider": {
+                "type": "string",
+                "const": "AZURE_OPENAI"
+              },
+              "model": {
+                "type": "string",
+                "enum": [
+                  "text-embedding-3-small",
+                  "text-embedding-3-large"
+                ]
+              },
+              "baseUrl": {
+                "description": "The base URL of the Azure OpenAI API.",
+                "example": "https://example.openai.azure.com/openai/deployments",
+                "type": "string",
+                "format": "uri"
+              },
+              "deployment": {
+                "description": "The deployment name of the Azure OpenAI API.",
+                "type": "string"
+              },
+              "apiKey": {
+                "description": "The API key for the Azure OpenAI API.",
+                "type": "string"
+              },
+              "apiVersion": {
+                "description": "The API version for the Azure OpenAI API.",
+                "type": "string"
+              }
+            },
+            "required": [
+              "provider",
+              "model",
+              "baseUrl",
+              "deployment",
+              "apiKey"
+            ],
+            "additionalProperties": false
+          },
+          {
+            "title": "Voyage Embedding Config",
+            "type": "object",
+            "properties": {
+              "provider": {
+                "type": "string",
+                "const": "VOYAGE"
+              },
+              "model": {
+                "type": "string",
+                "enum": [
+                  "voyage-3-large",
+                  "voyage-3",
+                  "voyage-3-lite",
+                  "voyage-code-3",
+                  "voyage-finance-2",
+                  "voyage-law-2"
+                ]
+              },
+              "apiKey": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "provider",
+              "model",
+              "apiKey"
+            ],
+            "additionalProperties": false
+          },
+          {
+            "title": "Google Embedding Config",
+            "type": "object",
+            "properties": {
+              "provider": {
+                "type": "string",
+                "const": "GOOGLE"
+              },
+              "model": {
+                "type": "string",
+                "enum": [
+                  "text-embedding-004"
+                ]
+              },
+              "apiKey": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "provider",
+              "model",
+              "apiKey"
+            ],
+            "additionalProperties": false
+          }
         ],
-        "description": "The status of the document."
+        "type": "object"
+      },
+      "VectorStoreSchemaOutput": {
+        "description": "The vector store config. If not provided, our managed vector store will be used. Note: You can't change the vector store config after the namespace is created.",
+        "oneOf": [
+          {
+            "title": "Pinecone Config",
+            "type": "object",
+            "properties": {
+              "provider": {
+                "type": "string",
+                "const": "PINECONE"
+              },
+              "apiKey": {
+                "description": "The API key for the Pinecone index.",
+                "type": "string"
+              },
+              "indexHost": {
+                "description": "The host of the Pinecone index.",
+                "example": "https://example.svc.aped-1234-a56b.pinecone.io",
+                "type": "string",
+                "format": "uri"
+              }
+            },
+            "required": [
+              "provider",
+              "apiKey",
+              "indexHost"
+            ],
+            "additionalProperties": false
+          }
+        ],
+        "type": "object"
       }
     },
     "responses": {
       "400": {
-        "description": "The server cannot or will not process the request due to something that is perceived to be a client error (e.g., malformed request syntax, invalid request message framing, or deceptive request routing).",
-        "content": {
-          "application/json": {
-            "schema": {
-              "x-speakeasy-name-override": "BadRequest",
-              "type": "object",
-              "properties": {
-                "success": {
-                  "type": "boolean",
-                  "example": false
-                },
-                "error": {
-                  "type": "object",
-                  "properties": {
-                    "code": {
-                      "type": "string",
-                      "enum": [
-                        "bad_request"
-                      ],
-                      "description": "A short code indicating the error code returned.",
-                      "example": "bad_request"
-                    },
-                    "message": {
-                      "x-speakeasy-error-message": true,
-                      "type": "string",
-                      "description": "A human readable explanation of what went wrong.",
-                      "example": "The requested resource was not found."
-                    },
-                    "doc_url": {
-                      "type": "string",
-                      "description": "A link to our documentation with more details about this error code",
-                      "example": "https://docs.agentset.com/api-reference/errors#bad-request"
-                    }
-                  },
-                  "required": [
-                    "code",
-                    "message"
-                  ]
-                }
-              },
-              "required": [
-                "success",
-                "error"
-              ]
-            }
-          }
-        }
+        "$ref": "#/components/responses/400"
       },
       "401": {
-        "description": "Although the HTTP standard specifies \"unauthorized\", semantically this response means \"unauthenticated\". That is, the client must authenticate itself to get the requested response.",
-        "content": {
-          "application/json": {
-            "schema": {
-              "x-speakeasy-name-override": "Unauthorized",
-              "type": "object",
-              "properties": {
-                "success": {
-                  "type": "boolean",
-                  "example": false
-                },
-                "error": {
-                  "type": "object",
-                  "properties": {
-                    "code": {
-                      "type": "string",
-                      "enum": [
-                        "unauthorized"
-                      ],
-                      "description": "A short code indicating the error code returned.",
-                      "example": "unauthorized"
-                    },
-                    "message": {
-                      "x-speakeasy-error-message": true,
-                      "type": "string",
-                      "description": "A human readable explanation of what went wrong.",
-                      "example": "The requested resource was not found."
-                    },
-                    "doc_url": {
-                      "type": "string",
-                      "description": "A link to our documentation with more details about this error code",
-                      "example": "https://docs.agentset.com/api-reference/errors#unauthorized"
-                    }
-                  },
-                  "required": [
-                    "code",
-                    "message"
-                  ]
-                }
-              },
-              "required": [
-                "success",
-                "error"
-              ]
-            }
-          }
-        }
+        "$ref": "#/components/responses/401"
       },
       "403": {
-        "description": "The client does not have access rights to the content; that is, it is unauthorized, so the server is refusing to give the requested resource. Unlike 401 Unauthorized, the client's identity is known to the server.",
-        "content": {
-          "application/json": {
-            "schema": {
-              "x-speakeasy-name-override": "Forbidden",
-              "type": "object",
-              "properties": {
-                "success": {
-                  "type": "boolean",
-                  "example": false
-                },
-                "error": {
-                  "type": "object",
-                  "properties": {
-                    "code": {
-                      "type": "string",
-                      "enum": [
-                        "forbidden"
-                      ],
-                      "description": "A short code indicating the error code returned.",
-                      "example": "forbidden"
-                    },
-                    "message": {
-                      "x-speakeasy-error-message": true,
-                      "type": "string",
-                      "description": "A human readable explanation of what went wrong.",
-                      "example": "The requested resource was not found."
-                    },
-                    "doc_url": {
-                      "type": "string",
-                      "description": "A link to our documentation with more details about this error code",
-                      "example": "https://docs.agentset.com/api-reference/errors#forbidden"
-                    }
-                  },
-                  "required": [
-                    "code",
-                    "message"
-                  ]
-                }
-              },
-              "required": [
-                "success",
-                "error"
-              ]
-            }
-          }
-        }
+        "$ref": "#/components/responses/403"
       },
       "404": {
-        "description": "The server cannot find the requested resource.",
-        "content": {
-          "application/json": {
-            "schema": {
-              "x-speakeasy-name-override": "NotFound",
-              "type": "object",
-              "properties": {
-                "success": {
-                  "type": "boolean",
-                  "example": false
-                },
-                "error": {
-                  "type": "object",
-                  "properties": {
-                    "code": {
-                      "type": "string",
-                      "enum": [
-                        "not_found"
-                      ],
-                      "description": "A short code indicating the error code returned.",
-                      "example": "not_found"
-                    },
-                    "message": {
-                      "x-speakeasy-error-message": true,
-                      "type": "string",
-                      "description": "A human readable explanation of what went wrong.",
-                      "example": "The requested resource was not found."
-                    },
-                    "doc_url": {
-                      "type": "string",
-                      "description": "A link to our documentation with more details about this error code",
-                      "example": "https://docs.agentset.com/api-reference/errors#not-found"
-                    }
-                  },
-                  "required": [
-                    "code",
-                    "message"
-                  ]
-                }
-              },
-              "required": [
-                "success",
-                "error"
-              ]
-            }
-          }
-        }
+        "$ref": "#/components/responses/404"
       },
       "409": {
-        "description": "This response is sent when a request conflicts with the current state of the server.",
-        "content": {
-          "application/json": {
-            "schema": {
-              "x-speakeasy-name-override": "Conflict",
-              "type": "object",
-              "properties": {
-                "success": {
-                  "type": "boolean",
-                  "example": false
-                },
-                "error": {
-                  "type": "object",
-                  "properties": {
-                    "code": {
-                      "type": "string",
-                      "enum": [
-                        "conflict"
-                      ],
-                      "description": "A short code indicating the error code returned.",
-                      "example": "conflict"
-                    },
-                    "message": {
-                      "x-speakeasy-error-message": true,
-                      "type": "string",
-                      "description": "A human readable explanation of what went wrong.",
-                      "example": "The requested resource was not found."
-                    },
-                    "doc_url": {
-                      "type": "string",
-                      "description": "A link to our documentation with more details about this error code",
-                      "example": "https://docs.agentset.com/api-reference/errors#conflict"
-                    }
-                  },
-                  "required": [
-                    "code",
-                    "message"
-                  ]
-                }
-              },
-              "required": [
-                "success",
-                "error"
-              ]
-            }
-          }
-        }
+        "$ref": "#/components/responses/409"
       },
       "410": {
-        "description": "This response is sent when the requested content has been permanently deleted from server, with no forwarding address.",
-        "content": {
-          "application/json": {
-            "schema": {
-              "x-speakeasy-name-override": "InviteExpired",
-              "type": "object",
-              "properties": {
-                "success": {
-                  "type": "boolean",
-                  "example": false
-                },
-                "error": {
-                  "type": "object",
-                  "properties": {
-                    "code": {
-                      "type": "string",
-                      "enum": [
-                        "invite_expired"
-                      ],
-                      "description": "A short code indicating the error code returned.",
-                      "example": "invite_expired"
-                    },
-                    "message": {
-                      "x-speakeasy-error-message": true,
-                      "type": "string",
-                      "description": "A human readable explanation of what went wrong.",
-                      "example": "The requested resource was not found."
-                    },
-                    "doc_url": {
-                      "type": "string",
-                      "description": "A link to our documentation with more details about this error code",
-                      "example": "https://docs.agentset.com/api-reference/errors#invite-expired"
-                    }
-                  },
-                  "required": [
-                    "code",
-                    "message"
-                  ]
-                }
-              },
-              "required": [
-                "success",
-                "error"
-              ]
-            }
-          }
-        }
+        "$ref": "#/components/responses/410"
       },
       "422": {
-        "description": "The request was well-formed but was unable to be followed due to semantic errors.",
-        "content": {
-          "application/json": {
-            "schema": {
-              "x-speakeasy-name-override": "UnprocessableEntity",
-              "type": "object",
-              "properties": {
-                "success": {
-                  "type": "boolean",
-                  "example": false
-                },
-                "error": {
-                  "type": "object",
-                  "properties": {
-                    "code": {
-                      "type": "string",
-                      "enum": [
-                        "unprocessable_entity"
-                      ],
-                      "description": "A short code indicating the error code returned.",
-                      "example": "unprocessable_entity"
-                    },
-                    "message": {
-                      "x-speakeasy-error-message": true,
-                      "type": "string",
-                      "description": "A human readable explanation of what went wrong.",
-                      "example": "The requested resource was not found."
-                    },
-                    "doc_url": {
-                      "type": "string",
-                      "description": "A link to our documentation with more details about this error code",
-                      "example": "https://docs.agentset.com/api-reference/errors#unprocessable-entity"
-                    }
-                  },
-                  "required": [
-                    "code",
-                    "message"
-                  ]
-                }
-              },
-              "required": [
-                "success",
-                "error"
-              ]
-            }
-          }
-        }
+        "$ref": "#/components/responses/422"
       },
       "429": {
-        "description": "The user has sent too many requests in a given amount of time (\"rate limiting\")",
-        "content": {
-          "application/json": {
-            "schema": {
-              "x-speakeasy-name-override": "RateLimitExceeded",
-              "type": "object",
-              "properties": {
-                "success": {
-                  "type": "boolean",
-                  "example": false
-                },
-                "error": {
-                  "type": "object",
-                  "properties": {
-                    "code": {
-                      "type": "string",
-                      "enum": [
-                        "rate_limit_exceeded"
-                      ],
-                      "description": "A short code indicating the error code returned.",
-                      "example": "rate_limit_exceeded"
-                    },
-                    "message": {
-                      "x-speakeasy-error-message": true,
-                      "type": "string",
-                      "description": "A human readable explanation of what went wrong.",
-                      "example": "The requested resource was not found."
-                    },
-                    "doc_url": {
-                      "type": "string",
-                      "description": "A link to our documentation with more details about this error code",
-                      "example": "https://docs.agentset.com/api-reference/errors#rate-limit_exceeded"
-                    }
-                  },
-                  "required": [
-                    "code",
-                    "message"
-                  ]
-                }
-              },
-              "required": [
-                "success",
-                "error"
-              ]
-            }
-          }
-        }
+        "$ref": "#/components/responses/429"
       },
       "500": {
-        "description": "The server has encountered a situation it does not know how to handle.",
-        "content": {
-          "application/json": {
-            "schema": {
-              "x-speakeasy-name-override": "InternalServerError",
-              "type": "object",
-              "properties": {
-                "success": {
-                  "type": "boolean",
-                  "example": false
-                },
-                "error": {
-                  "type": "object",
-                  "properties": {
-                    "code": {
-                      "type": "string",
-                      "enum": [
-                        "internal_server_error"
-                      ],
-                      "description": "A short code indicating the error code returned.",
-                      "example": "internal_server_error"
-                    },
-                    "message": {
-                      "x-speakeasy-error-message": true,
-                      "type": "string",
-                      "description": "A human readable explanation of what went wrong.",
-                      "example": "The requested resource was not found."
-                    },
-                    "doc_url": {
-                      "type": "string",
-                      "description": "A link to our documentation with more details about this error code",
-                      "example": "https://docs.agentset.com/api-reference/errors#internal-server_error"
-                    }
-                  },
-                  "required": [
-                    "code",
-                    "message"
-                  ]
-                }
-              },
-              "required": [
-                "success",
-                "error"
-              ]
-            }
-          }
-        }
+        "$ref": "#/components/responses/500"
+      }
+    },
+    "securitySchemes": {
+      "token": {
+        "type": "http",
+        "description": "Default authentication mechanism",
+        "scheme": "bearer",
+        "x-speakeasy-example": "AGENTSET_API_KEY"
       }
     }
   }
