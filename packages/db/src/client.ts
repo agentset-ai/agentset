@@ -1,7 +1,6 @@
 import { neonConfig } from "@neondatabase/serverless";
 import { PrismaNeon } from "@prisma/adapter-neon";
-
-import { PrismaClient } from "../generated/client";
+import { PrismaClient } from "@prisma/client";
 
 const createPrismaClient = () => {
   if (typeof WebSocket === "undefined") {
