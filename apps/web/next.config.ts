@@ -19,11 +19,13 @@ const config: NextConfig = {
   transpilePackages: [
     "@agentset/db",
     "@agentset/emails",
+    "@agentset/engine",
+    "@agentset/jobs",
+    "@agentset/storage",
+    "@agentset/stripe",
     "@agentset/ui",
     "@agentset/utils",
     "@agentset/validation",
-    "@agentset/engine",
-    "@agentset/storage",
   ],
 
   /** We already do linting and typechecking as separate tasks in CI */
