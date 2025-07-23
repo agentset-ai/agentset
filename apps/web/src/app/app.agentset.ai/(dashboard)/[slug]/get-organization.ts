@@ -1,5 +1,4 @@
 import { cache } from "react";
-import { cookies } from "next/headers";
 import { notFound, redirect } from "next/navigation";
 import { getSession } from "@/lib/auth";
 
@@ -10,10 +9,6 @@ export type OrganizationParams = Promise<{ slug: string }>;
 export const getOrganization = cache(async (slug: string) => {
   const session = await getSession();
   if (!session) {
-    // clear cookies
-    const ck = await cookies();
-    ck.delete("better-auth.session_token");
-    ck.delete("better-auth.session_data");
     redirect("/login");
   }
 
