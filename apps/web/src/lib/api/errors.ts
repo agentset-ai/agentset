@@ -237,6 +237,7 @@ export const errorSchemaFactory = (
         },
       },
     },
+    id: code,
   };
 };
 
