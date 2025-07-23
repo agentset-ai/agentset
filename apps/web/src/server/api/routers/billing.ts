@@ -1,8 +1,13 @@
-import { getStripeEnvironment, isProPlan, PRO_PLAN_METERED } from "@/lib/plans";
-import { stripe } from "@/lib/stripe";
 import { getBaseUrl } from "@/lib/utils";
 import { TRPCError } from "@trpc/server";
-import { z } from "zod";
+import { z } from "zod/v4";
+
+import { stripe } from "@agentset/stripe";
+import {
+  getStripeEnvironment,
+  isProPlan,
+  PRO_PLAN_METERED,
+} from "@agentset/stripe/plans";
 
 import { createTRPCRouter, protectedProcedure } from "../trpc";
 

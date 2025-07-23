@@ -1,3 +1,4 @@
+import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { getSession } from "@/lib/auth";
 
@@ -6,6 +7,10 @@ import { db, OrganizationStatus } from "@agentset/db";
 export default async function DashboardRootPage() {
   const session = await getSession();
   if (!session) {
+    // clear cookies
+    const ck = await cookies();
+    ck.delete("better-auth.session_token");
+    ck.delete("better-auth.session_data");
     redirect("/login");
   }
 

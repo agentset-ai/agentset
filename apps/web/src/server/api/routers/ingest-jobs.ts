@@ -1,5 +1,3 @@
-import { isProPlan } from "@/lib/plans";
-import { triggerReIngestJob } from "@/lib/workflow";
 import {
   createIngestJobSchema,
   getIngestionJobsSchema,
@@ -9,9 +7,11 @@ import { createIngestJob } from "@/services/ingest-jobs/create";
 import { deleteIngestJob } from "@/services/ingest-jobs/delete";
 import { getPaginationArgs, paginateResults } from "@/services/pagination";
 import { TRPCError } from "@trpc/server";
-import { z } from "zod";
+import { z } from "zod/v4";
 
 import { IngestJobStatus } from "@agentset/db";
+import { triggerReIngestJob } from "@agentset/jobs";
+import { isProPlan } from "@agentset/stripe/plans";
 
 import { getNamespaceByUser } from "../auth";
 
@@ -152,7 +152,7 @@ export const ingestJobRouter = createTRPCRouter({
         });
       }
 
-      const { workflowRunId } = await triggerReIngestJob({
+      const handle = await triggerReIngestJob({
         jobId: ingestJob.id,
       });
 
@@ -161,7 +161,7 @@ export const ingestJobRouter = createTRPCRouter({
         data: {
           status: IngestJobStatus.QUEUED_FOR_RESYNC,
           queuedAt: new Date(),
-          workflowRunsIds: { push: workflowRunId },
+          workflowRunsIds: { push: handle.id },
         },
         select: { id: true },
       });

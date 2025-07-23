@@ -1,9 +1,10 @@
+import { z } from "zod/v4";
+
 import {
   filePayloadSchema,
   managedFilePayloadSchema,
   textPayloadSchema,
 } from "../ingest-payload";
-import z from "../zod";
 
 // remove name from the payload since it's a separate field
 export const documentPayloadSchema = z

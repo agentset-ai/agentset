@@ -34,7 +34,8 @@ export default function CreateApiKey({ orgId }: { orgId: string }) {
     trpc.apiKey.createApiKey.mutationOptions({
       onSuccess: (newKey) => {
         const queryFilter = trpc.apiKey.getApiKeys.queryFilter({ orgId });
-        queryClient.setQueriesData(queryFilter, (old) => {
+
+        queryClient.setQueryData(queryFilter.queryKey, (old) => {
           if (!old) return [];
           return [...old, newKey];
         });

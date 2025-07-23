@@ -1,7 +1,5 @@
 import { env } from "@/env";
 
-export const INFINITY_NUMBER = 1000000000;
-
 export const APP_NAME = env.NEXT_PUBLIC_APP_NAME;
 export const SHORT_DOMAIN = env.NEXT_PUBLIC_APP_SHORT_DOMAIN;
 

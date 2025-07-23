@@ -1,5 +1,6 @@
-import type Stripe from "stripe";
 import { sendEmail } from "@/lib/resend";
+
+import type { Stripe } from "@agentset/stripe";
 
 const cancellationReasonMap = {
   customer_service: "you had a bad experience with our customer service",

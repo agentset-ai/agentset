@@ -1,4 +1,4 @@
-import z from "../zod";
+import { z } from "zod/v4";
 
 export const voyageEmbeddingModelEnum = z.enum([
   "voyage-3-large",
@@ -15,6 +15,6 @@ export const VoyageEmbeddingConfigSchema = z
     model: voyageEmbeddingModelEnum,
     apiKey: z.string(),
   })
-  .openapi({
+  .meta({
     title: "Voyage Embedding Config",
   });

@@ -4,7 +4,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation } from "@tanstack/react-query";
 import { Trash2Icon } from "lucide-react";
 import { useForm } from "react-hook-form";
-import { z } from "zod";
+import { z } from "zod/v4";
 
 import {
   Button,
@@ -29,13 +29,13 @@ const schema = z
       .array(z.string().url("Please enter a valid URL"))
       .min(1, "Add at least one URL"),
   })
-  .merge(configSchema);
+  .extend(configSchema.shape);
 
 export default function UrlsForm({ onSuccess }: { onSuccess: () => void }) {
   const { activeNamespace } = useNamespace();
   const trpc = useTRPC();
 
-  const form = useForm<z.infer<typeof schema>>({
+  const form = useForm({
     resolver: zodResolver(schema),
     defaultValues: {
       urls: [""],

@@ -1,5 +1,5 @@
-import type z from "@/lib/zod";
 import type { paginationSchema } from "@/schemas/api/pagination";
+import type { z } from "zod/v4";
 import { normalizeId } from "@/lib/api/ids";
 
 export const getPaginationArgs = (

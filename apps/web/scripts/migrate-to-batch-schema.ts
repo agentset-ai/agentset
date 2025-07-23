@@ -1,6 +1,5 @@
-import { chunkArray } from "@/lib/functions";
-
 import { db } from "@agentset/db";
+import { chunkArray } from "@agentset/utils";
 
 type OldJobSchema = {
   /** @description The unique ID of the ingest job. */

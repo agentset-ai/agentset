@@ -14,12 +14,18 @@ const config: NextConfig = {
       },
     ],
   },
+
   /** Enables hot reloading for local packages without a build step */
   transpilePackages: [
     "@agentset/db",
     "@agentset/emails",
-    "@agentset/validation",
+    "@agentset/engine",
+    "@agentset/jobs",
+    "@agentset/storage",
+    "@agentset/stripe",
     "@agentset/ui",
+    "@agentset/utils",
+    "@agentset/validation",
   ],
 
   /** We already do linting and typechecking as separate tasks in CI */

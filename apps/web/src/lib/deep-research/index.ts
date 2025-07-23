@@ -10,13 +10,13 @@ import {
   streamText,
   wrapLanguageModel,
 } from "ai";
-import { z } from "zod";
+import { z } from "zod/v4";
 
 import type { Namespace } from "@agentset/db";
+import type { QueryVectorStoreOptions } from "@agentset/engine";
+import { queryVectorStore } from "@agentset/engine";
 
-import type { QueryVectorStoreOptions } from "../vector-store/parse";
 import type { FilteredResultsData, IterativeResearchResult } from "./classes";
-import { queryVectorStore } from "../vector-store";
 import { SearchResult, SearchResults } from "./classes";
 import { PROMPTS, RESEARCH_CONFIG } from "./config";
 
@@ -123,20 +123,22 @@ export class DeepResearchPipeline {
    * @returns List of search queries
    */
   private async generateResearchQueries(topic: string): Promise<string[]> {
-    const parsedPlan = await generateObject({
+    const { object } = await generateObject<
+      z.infer<typeof this.researchPlanSchema>
+    >({
       model: this.modelConfig.json,
+      schema: this.researchPlanSchema,
       system: this.prompts.planningPrompt,
       prompt: `Research Topic: ${topic}`,
-      schema: this.researchPlanSchema,
     });
 
     console.log(
-      `\x1b[35m📋 Research queries generated: \n - ${parsedPlan.object.queries.join(
+      `\x1b[35m📋 Research queries generated: \n - ${object.queries.join(
         "\n - ",
       )}\x1b[0m`,
     );
 
-    return parsedPlan.object.queries;
+    return object.queries;
   }
 
   /**
@@ -315,14 +317,16 @@ export class DeepResearchPipeline {
     // );
     // console.log(`\x1b[36m📝 Evaluation:\n\n ${evaluation.text}\x1b[0m`);
 
-    const parsedEvaluation = await generateObject({
+    const { object } = await generateObject<
+      z.infer<typeof this.researchPlanSchema>
+    >({
       model: this.modelConfig.json,
       system: this.prompts.evaluationParsingPrompt,
       prompt: `Evaluation to be parsed: ${evaluation.text}`,
       schema: this.researchPlanSchema,
     });
 
-    return parsedEvaluation.object.queries;
+    return object.queries;
   }
 
   /**
@@ -372,14 +376,16 @@ export class DeepResearchPipeline {
 
     // console.log(`\x1b[36m📝 Filter response: ${filterResponse.text}\x1b[0m`);
 
-    const parsedFilter = await generateObject({
+    const { object } = await generateObject<
+      z.infer<typeof this.sourceListSchema>
+    >({
       model: this.modelConfig.json,
       system: this.prompts.sourceParsingPrompt,
       prompt: `Filter response to be parsed: ${filterResponse.text}`,
       schema: this.sourceListSchema,
     });
 
-    const sources = parsedFilter.object.sources;
+    const sources = object.sources;
     console.log(`\x1b[36m📊 Filtered sources: ${sources}\x1b[0m`);
 
     // Limit sources if needed

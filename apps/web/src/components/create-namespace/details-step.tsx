@@ -6,7 +6,7 @@ import { toSlug } from "@/lib/slug";
 import { trpcClient } from "@/trpc/react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
-import { z } from "zod";
+import { z } from "zod/v4";
 
 import {
   Button,
@@ -55,10 +55,14 @@ export default function CreateNamespaceDetailsStep({
     [activeOrganization.id],
   );
 
-  const form = useForm<FormSchema>({
+  const form = useForm({
     resolver: zodResolver(formSchema, undefined, { mode: "async" }),
     reValidateMode: "onBlur",
-    defaultValues: defaultValues,
+    defaultValues: {
+      name: "",
+      slug: "",
+      ...defaultValues,
+    },
   });
 
   const name = form.watch("name");

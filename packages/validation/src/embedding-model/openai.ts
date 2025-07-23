@@ -1,4 +1,4 @@
-import z from "../zod";
+import { z } from "zod/v4";
 
 export const openaiEmbeddingModelEnum = z.enum([
   "text-embedding-3-small",
@@ -11,6 +11,6 @@ export const OpenAIEmbeddingConfigSchema = z
     model: openaiEmbeddingModelEnum,
     apiKey: z.string(),
   })
-  .openapi({
+  .meta({
     title: "OpenAI Embedding Config",
   });

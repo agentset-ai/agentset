@@ -1,4 +1,4 @@
-import z from "../zod";
+import { z } from "zod/v4";
 
 export const googleEmbeddingModelEnum = z.enum(["text-embedding-004"]);
 
@@ -8,6 +8,6 @@ export const GoogleEmbeddingConfigSchema = z
     model: googleEmbeddingModelEnum,
     apiKey: z.string(),
   })
-  .openapi({
+  .meta({
     title: "Google Embedding Config",
   });

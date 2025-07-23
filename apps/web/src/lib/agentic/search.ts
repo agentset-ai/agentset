@@ -1,14 +1,13 @@
 import type { CoreMessage, LanguageModelV1 } from "ai";
 
 import type { Namespace } from "@agentset/db";
-
 import type {
   QueryVectorStoreOptions,
   QueryVectorStoreResult,
-} from "../vector-store/parse";
+} from "@agentset/engine";
+import { KeywordStore, queryVectorStore } from "@agentset/engine";
+
 import type { Queries } from "./utils";
-import { KeywordStore } from "../keyword-store";
-import { queryVectorStore } from "../vector-store/parse";
 import { evaluateQueries, generateQueries } from "./utils";
 
 export type AgenticSearchNamespace = Pick<

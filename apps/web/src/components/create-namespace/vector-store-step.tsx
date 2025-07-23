@@ -4,7 +4,7 @@ import { useEffect, useMemo } from "react";
 import { camelCaseToWords, capitalize } from "@/lib/string-utils";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
-import { z } from "zod";
+import { z } from "zod/v4";
 
 import {
   Button,
@@ -43,7 +43,7 @@ export default function CreateNamespaceVectorStoreStep({
   isLoading: boolean;
   onBack: () => void;
 }) {
-  const form = useForm<z.infer<typeof formSchema>>({
+  const form = useForm({
     resolver: zodResolver(formSchema, undefined),
   });
 
@@ -66,12 +66,22 @@ export default function CreateNamespaceVectorStoreStep({
   }, [currentVectorProvider]);
 
   const currentVectorStoreOptions = useMemo(() => {
-    const shape =
-      VectorStoreSchema.optionsMap.get(currentVectorProvider)?.shape ?? {};
-    return {
-      fields: Object.keys(shape).filter((key) => key !== "provider"),
-      shape,
-    };
+    const shape = VectorStoreSchema.options.find(
+      (o) => o.shape.provider.value === currentVectorProvider,
+    )?.shape;
+
+    if (!shape) return [];
+
+    return Object.keys(shape)
+      .filter((key) => key !== "provider")
+      .map((key) => {
+        const field = shape[key as keyof typeof shape];
+
+        return {
+          name: key,
+          isOptional: field.safeParse(undefined).success,
+        };
+      });
   }, [currentVectorProvider]);
 
   return (
@@ -92,10 +102,7 @@ export default function CreateNamespaceVectorStoreStep({
                         field.onChange(newValue);
                       }
                     }}
-                    defaultValue={
-                      (field.value as typeof field.value | undefined) ??
-                      "agentset"
-                    }
+                    defaultValue={field.value ?? "agentset"}
                     className="grid grid-cols-3 gap-4"
                   >
                     <RadioButton
@@ -126,20 +133,18 @@ export default function CreateNamespaceVectorStoreStep({
 
           {/* render other fields based on the provider dynamically */}
           {currentVectorProvider ? (
-            currentVectorStoreOptions.fields.map((key) => (
+            currentVectorStoreOptions.map((key) => (
               <FormField
-                key={key}
+                key={key.name}
                 control={form.control}
                 name={
-                  `vectorStore.${key}` as `vectorStore.${keyof z.infer<typeof VectorStoreSchema>}`
+                  `vectorStore.${key.name}` as `vectorStore.${keyof z.infer<typeof VectorStoreSchema>}`
                 }
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>
-                      {camelCaseToWords(key)}{" "}
-                      {currentVectorStoreOptions.shape[
-                        key
-                      ]?.isOptional() ? null : (
+                      {camelCaseToWords(key.name)}{" "}
+                      {key.isOptional ? null : (
                         <span className="text-destructive-foreground">*</span>
                       )}
                     </FormLabel>

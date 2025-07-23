@@ -38,7 +38,7 @@ export const RemoveMemberButton = ({
         organizationId: activeOrganization.id,
       });
 
-      queryClient.setQueriesData(queryFilter, (old) => {
+      queryClient.setQueryData(queryFilter.queryKey, (old) => {
         if (!old) return old;
 
         return {

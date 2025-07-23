@@ -5,7 +5,7 @@ import { capitalize } from "@/lib/string-utils";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { PlusIcon } from "lucide-react";
 import { useForm } from "react-hook-form";
-import { z } from "zod";
+import { z } from "zod/v4";
 
 import {
   Button,
@@ -50,7 +50,7 @@ export default function AddConnector() {
   const [selectedType, setSelectedType] = useState<string>("");
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
 
-  const form = useForm<z.infer<typeof formSchema>>({
+  const form = useForm({
     resolver: zodResolver(formSchema),
   });
 

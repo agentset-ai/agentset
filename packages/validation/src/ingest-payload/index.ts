@@ -1,4 +1,4 @@
-import z from "../zod";
+import { z } from "zod/v4";
 
 // type IngestJobPayloadConnection = {
 //   type: "CONNECTION";
@@ -62,7 +62,7 @@ export const textPayloadSchema = z
     text: z.string().describe("The text to ingest."),
     fileName: fileNameSchema,
   })
-  .openapi({
+  .meta({
     title: "Text Payload",
   });
 
@@ -72,7 +72,7 @@ export const filePayloadSchema = z
     fileUrl: z.string().describe("The URL of the file to ingest."),
     fileName: fileNameSchema,
   })
-  .openapi({
+  .meta({
     title: "URL Payload",
   });
 
@@ -82,7 +82,7 @@ export const managedFilePayloadSchema = z
     key: z.string().describe("The key of the managed file to ingest."),
     fileName: fileNameSchema,
   })
-  .openapi({
+  .meta({
     title: "Managed File Payload",
   });
 
@@ -100,7 +100,7 @@ export const batchPayloadSchema = z
       .min(1)
       .describe("The items to ingest."),
   })
-  .openapi({
+  .meta({
     title: "Batch Payload",
   });
 

@@ -1,4 +1,4 @@
-import z from "@/lib/zod";
+import { z } from "zod/v4";
 
 export const baseQueryVectorStoreSchema = z.object({
   query: z.string().describe("The query to search for."),
@@ -50,34 +50,19 @@ export const baseQueryVectorStoreSchema = z.object({
     ),
 });
 
-export const refineRereankLimit = <
-  T extends Partial<(typeof baseQueryVectorStoreSchema)["shape"]> &
-    z.ZodRawShape,
-  Out extends {
-    rerankLimit?: number;
-    topK: number;
-    [key: string]: any;
-  },
->(
-  schema: z.ZodObject<T, "strip", z.ZodTypeAny, Out>,
-) => {
-  return schema.superRefine((val, ctx) => {
-    if (val.rerankLimit && val.rerankLimit > val.topK) {
-      ctx.addIssue({
+export const queryVectorStoreSchema = baseQueryVectorStoreSchema.check(
+  (ctx) => {
+    if (ctx.value.rerankLimit && ctx.value.rerankLimit > ctx.value.topK) {
+      ctx.issues.push({
         path: ["rerankLimit"],
-        code: z.ZodIssueCode.too_big,
+        code: "too_big",
         message: "rerankLimit cannot be larger than topK",
         inclusive: true,
         type: "number",
-        maximum: val.topK,
+        maximum: ctx.value.topK,
+        input: ctx.value.rerankLimit,
+        origin: "number",
       });
-      return false;
     }
-
-    return true;
-  });
-};
-
-export const queryVectorStoreSchema = refineRereankLimit(
-  baseQueryVectorStoreSchema,
+  },
 );

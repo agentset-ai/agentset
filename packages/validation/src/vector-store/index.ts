@@ -1,4 +1,5 @@
-import z from "../zod";
+import { z } from "zod/v4";
+
 import { PineconeVectorStoreConfigSchema } from "./pinecone";
 
 export const VectorStoreSchema = z

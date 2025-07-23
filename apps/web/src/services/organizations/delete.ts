@@ -1,7 +1,6 @@
-import { cancelSubscription } from "@/lib/stripe/cancel-subscription";
-import { triggerDeleteNamespace } from "@/lib/workflow";
-
 import { db, OrganizationStatus } from "@agentset/db";
+import { triggerDeleteOrganization } from "@agentset/jobs";
+import { cancelSubscription } from "@agentset/stripe";
 
 export async function deleteOrganization({
   organizationId,
@@ -30,14 +29,7 @@ export async function deleteOrganization({
     await cancelSubscription(org.stripeId);
   }
 
-  if (org.namespaces.length > 0) {
-    await Promise.all(
-      org.namespaces.map((namespace) =>
-        triggerDeleteNamespace({
-          namespaceId: namespace.id,
-          deleteOrgWhenDone: true,
-        }),
-      ),
-    );
-  }
+  await triggerDeleteOrganization({
+    organizationId,
+  });
 }

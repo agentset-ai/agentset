@@ -1,17 +1,14 @@
-import z from "../zod";
+import { z } from "zod/v4";
+
 import { openaiEmbeddingModelEnum } from "./openai";
 
 export const AzureEmbeddingConfigSchema = z
   .object({
     provider: z.literal("AZURE_OPENAI"),
     model: openaiEmbeddingModelEnum,
-    baseUrl: z
-      .string()
-      .url()
-      .describe("The base URL of the Azure OpenAI API.")
-      .openapi({
-        example: `https://example.openai.azure.com/openai/deployments`,
-      }),
+    baseUrl: z.url().describe("The base URL of the Azure OpenAI API.").meta({
+      example: `https://example.openai.azure.com/openai/deployments`,
+    }),
     deployment: z
       .string()
       .describe("The deployment name of the Azure OpenAI API."),
@@ -21,6 +18,6 @@ export const AzureEmbeddingConfigSchema = z
       .optional()
       .describe("The API version for the Azure OpenAI API."),
   })
-  .openapi({
+  .meta({
     title: "Azure Embedding Config",
   });

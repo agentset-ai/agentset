@@ -3,12 +3,12 @@
 import { useState } from "react";
 import { useNamespace } from "@/contexts/namespace-context";
 import { useOrganization } from "@/contexts/organization-context";
-import { isProPlan } from "@/lib/plans";
 import { useTRPC } from "@/trpc/react";
 import { useQueryClient } from "@tanstack/react-query";
 import { PlusIcon } from "lucide-react";
 import { toast } from "sonner";
 
+import { isProPlan } from "@agentset/stripe/plans";
 import {
   Button,
   Dialog,

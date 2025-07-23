@@ -1,7 +1,8 @@
-import type { QueryVectorStoreResult } from "@/lib/vector-store/parse";
 import { useState } from "react";
 import { useHosting } from "@/contexts/hosting-context";
 import { useQuery } from "@tanstack/react-query";
+
+import type { QueryVectorStoreResult } from "@agentset/engine";
 
 export const useSearch = () => {
   const [inputQuery, setInputQuery] = useState("");

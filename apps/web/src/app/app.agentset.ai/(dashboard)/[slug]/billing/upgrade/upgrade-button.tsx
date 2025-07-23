@@ -3,14 +3,14 @@
 import type { ComponentProps } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useOrganization } from "@/contexts/organization-context";
-import { SELF_SERVE_PAID_PLANS } from "@/lib/plans";
 import { capitalize } from "@/lib/string-utils";
-import { getStripe } from "@/lib/stripe/client";
 import { getBaseUrl } from "@/lib/utils";
 import { useTRPC } from "@/trpc/react";
 import { useMutation } from "@tanstack/react-query";
 import { toast } from "sonner";
 
+import { getStripe } from "@agentset/stripe/client";
+import { SELF_SERVE_PAID_PLANS } from "@agentset/stripe/plans";
 import { Button } from "@agentset/ui";
 
 export function UpgradePlanButton({

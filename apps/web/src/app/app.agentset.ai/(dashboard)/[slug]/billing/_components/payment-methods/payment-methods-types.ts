@@ -1,9 +1,9 @@
 "use client";
 
-import type { Stripe } from "stripe";
 import { capitalize } from "@/lib/string-utils";
 import { CreditCardIcon, LandmarkIcon } from "lucide-react";
 
+import type { Stripe } from "@agentset/stripe";
 import {
   CardAmex,
   CardDiscover,

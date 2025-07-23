@@ -1,8 +1,7 @@
 import type { ZodOpenApiResponseObject } from "zod-openapi";
 import { NextResponse } from "next/server";
-import z from "@/lib/zod";
-import { ZodError } from "zod";
 import { generateErrorMessage } from "zod-error";
+import { z, ZodError } from "zod/v4";
 
 import { capitalize } from "../string-utils";
 
@@ -57,18 +56,18 @@ const speakeasyErrorOverrides: Record<z.infer<typeof ErrorCode>, string> = {
 const _ErrorSchema = z.object({
   success: z.literal(false),
   error: z.object({
-    code: ErrorCode.openapi({
+    code: ErrorCode.meta({
       description: "A short code indicating the error code returned.",
       example: "not_found",
     }),
-    message: z.string().openapi({
+    message: z.string().meta({
       description: "A human readable error message.",
       example: "The requested resource was not found.",
     }),
     doc_url: z
       .string()
       .optional()
-      .openapi({
+      .meta({
         description: "A URL to more information about the error code reported.",
         example: `${docsBase}/api-reference`,
       }),
@@ -103,7 +102,7 @@ export function fromZodError(error: ZodError): Pick<ErrorResponse, "error"> {
   return {
     error: {
       code: "unprocessable_entity",
-      message: generateErrorMessage(error.issues, {
+      message: generateErrorMessage(error.issues as any, {
         maxErrors: 1,
         delimiter: {
           component: ": ",

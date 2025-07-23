@@ -1,9 +1,11 @@
 import type { CoreMessage, JSONValue, LanguageModelV1 } from "ai";
 import { createDataStreamResponse, generateText, streamText } from "ai";
 
-import type { QueryVectorStoreOptions } from "../vector-store/parse";
+import type { QueryVectorStoreOptions } from "@agentset/engine";
+
+import type { AgenticSearchNamespace } from "./search";
 import { NEW_MESSAGE_PROMPT } from "../prompts";
-import { agenticSearch, AgenticSearchNamespace } from "./search";
+import { agenticSearch } from "./search";
 import { formatSources } from "./utils";
 
 type AgenticPipelineOptions = {

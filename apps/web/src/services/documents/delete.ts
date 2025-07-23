@@ -1,6 +1,5 @@
-import { triggerDeleteDocumentJob } from "@/lib/workflow";
-
 import { db, DocumentStatus } from "@agentset/db";
+import { triggerDeleteDocument } from "@agentset/jobs";
 
 export const deleteDocument = async (documentId: string) => {
   const updatedDoc = await db.document.update({
@@ -10,14 +9,14 @@ export const deleteDocument = async (documentId: string) => {
     },
   });
 
-  const { workflowRunId } = await triggerDeleteDocumentJob({
+  const handle = await triggerDeleteDocument({
     documentId: updatedDoc.id,
   });
 
   await db.document.update({
     where: { id: updatedDoc.id },
     data: {
-      workflowRunsIds: { push: workflowRunId },
+      workflowRunsIds: { push: handle.id },
     },
   });
 

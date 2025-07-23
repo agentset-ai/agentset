@@ -1,7 +1,7 @@
-import type Stripe from "stripe";
 import { APP_DOMAIN } from "@/lib/constants";
 import { sendEmail } from "@/lib/resend";
 
+import type { Stripe } from "@agentset/stripe";
 import { db } from "@agentset/db";
 import { FailedPayment } from "@agentset/emails";
 

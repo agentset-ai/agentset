@@ -1,7 +1,6 @@
 import type { ZodOpenApiComponentsObject } from "zod-openapi";
 import { errorSchemaFactory } from "@/lib/api/errors";
-
-import z from "../zod";
+import { z } from "zod/v4";
 
 export const openApiErrorResponses: ZodOpenApiComponentsObject["responses"] = {
   "400": errorSchemaFactory(

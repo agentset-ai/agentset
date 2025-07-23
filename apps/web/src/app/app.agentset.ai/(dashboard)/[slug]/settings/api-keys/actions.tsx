@@ -25,7 +25,7 @@ export function ApiKeyActions({ row }: { row: Row<ApiKeyDef> }) {
     trpc.apiKey.deleteApiKey.mutationOptions({
       onSuccess: () => {
         const queryFilter = trpc.apiKey.getApiKeys.queryFilter({ orgId });
-        queryClient.setQueriesData(queryFilter, (old) => {
+        queryClient.setQueryData(queryFilter.queryKey, (old) => {
           if (!old) return [];
           return old.filter((key) => key.id !== id);
         });

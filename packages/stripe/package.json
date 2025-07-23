@@ -1,0 +1,36 @@
+{
+  "name": "@agentset/stripe",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts",
+    "./client": "./src/client.ts",
+    "./plans": "./src/plans.ts",
+    "./env": "./src/env.ts"
+  },
+  "scripts": {
+    "build": "tsc",
+    "clean": "git clean -xdf .cache .turbo dist node_modules",
+    "dev": "tsc",
+    "format": "prettier --check . --ignore-path ../../.gitignore",
+    "lint": "eslint",
+    "typecheck": "tsc --noEmit --emitDeclarationOnly false"
+  },
+  "dependencies": {
+    "@agentset/utils": "workspace:*",
+    "@stripe/stripe-js": "^7.0.0",
+    "@t3-oss/env-nextjs": "catalog:",
+    "stripe": "^18.0.0",
+    "zod": "catalog:"
+  },
+  "prettier": "@agentset/prettier-config",
+  "devDependencies": {
+    "@agentset/db": "workspace:*",
+    "@agentset/eslint-config": "workspace:*",
+    "@agentset/prettier-config": "workspace:*",
+    "@agentset/tsconfig": "workspace:*",
+    "eslint": "catalog:",
+    "prettier": "catalog:",
+    "typescript": "catalog:"
+  }
+}

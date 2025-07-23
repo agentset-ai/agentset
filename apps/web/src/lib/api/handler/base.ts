@@ -1,7 +1,7 @@
 import type { NextRequest } from "next/server";
-import { tryCatch } from "@/lib/error";
 
 import type { Organization } from "@agentset/db";
+import { tryCatch } from "@agentset/utils";
 
 import type { ApiKeyInfo } from "../api-key";
 import { getApiKeyInfo } from "../api-key";

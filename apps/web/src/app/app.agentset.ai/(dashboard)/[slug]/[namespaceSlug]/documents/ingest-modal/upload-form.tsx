@@ -1,13 +1,13 @@
 import { useEffect } from "react";
 import { useNamespace } from "@/contexts/namespace-context";
 import { useUploadFiles } from "@/hooks/use-upload";
-import { MAX_UPLOAD_SIZE } from "@/lib/upload";
 import { useTRPC } from "@/trpc/react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation } from "@tanstack/react-query";
 import { useForm } from "react-hook-form";
-import { z } from "zod";
+import { z } from "zod/v4";
 
+import { MAX_UPLOAD_SIZE } from "@agentset/storage/constants";
 import {
   Button,
   DialogFooter,
@@ -33,13 +33,13 @@ const schema = z
       .min(1, { message: "File is required" })
       .max(100, { message: "Maximum 100 files" }),
   })
-  .merge(configSchema);
+  .extend(configSchema.shape);
 
 export default function UploadForm({ onSuccess }: { onSuccess: () => void }) {
   const { activeNamespace } = useNamespace();
   const trpc = useTRPC();
 
-  const form = useForm<z.infer<typeof schema>>({
+  const form = useForm({
     resolver: zodResolver(schema),
     defaultValues: {
       name: "",

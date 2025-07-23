@@ -1,8 +1,8 @@
-import type { QueryVectorStoreResult } from "@/lib/vector-store/parse";
 import type { Message } from "ai";
 import SearchChunk from "@/components/search-chunk";
 import { LogsIcon } from "lucide-react";
 
+import type { QueryVectorStoreResult } from "@agentset/engine";
 import {
   Accordion,
   AccordionContent,

@@ -4,14 +4,14 @@ import { useState } from "react";
 import Link from "next/link";
 import { useOrganization } from "@/contexts/organization-context";
 import { useCal } from "@/hooks/use-cal";
+import { ChevronLeftIcon } from "lucide-react";
+
 import {
   ENTERPRISE_PLAN,
   FREE_PLAN,
   isDowngradePlan,
   PRO_PLAN,
-} from "@/lib/plans";
-import { ChevronLeftIcon } from "lucide-react";
-
+} from "@agentset/stripe/plans";
 import { Tabs, TabsList, TabsTrigger } from "@agentset/ui";
 
 import PlanCard from "./plan-card";

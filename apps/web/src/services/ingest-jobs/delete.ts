@@ -1,6 +1,5 @@
-import { triggerDeleteIngestJob } from "@/lib/workflow";
-
 import { db, IngestJobStatus } from "@agentset/db";
+import { triggerDeleteIngestJob } from "@agentset/jobs";
 
 export const deleteIngestJob = async (jobId: string) => {
   const job = await db.ingestJob.update({
@@ -10,11 +9,14 @@ export const deleteIngestJob = async (jobId: string) => {
     },
   });
 
-  const { workflowRunId } = await triggerDeleteIngestJob({ jobId: job.id });
+  const handle = await triggerDeleteIngestJob({
+    jobId: job.id,
+  });
+
   await db.ingestJob.update({
     where: { id: job.id },
     data: {
-      workflowRunsIds: { push: workflowRunId },
+      workflowRunsIds: { push: handle.id },
     },
     select: { id: true },
   });

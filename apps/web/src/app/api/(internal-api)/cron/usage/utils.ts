@@ -1,11 +1,12 @@
 import { APP_DOMAIN } from "@/lib/constants";
 import { getAdjustedBillingCycleStart } from "@/lib/datetime";
 import { log } from "@/lib/log";
-import { isProPlan } from "@/lib/plans";
+import { qstashClient } from "@/lib/qstash";
 import { capitalize } from "@/lib/string-utils";
-import { qstashClient, triggerMeterOrgDocuments } from "@/lib/workflow";
 
 import { db } from "@agentset/db";
+import { triggerMeterOrgDocumentsBatch } from "@agentset/jobs";
+import { isProPlan } from "@agentset/stripe/plans";
 
 const limit = 100;
 
@@ -81,7 +82,7 @@ export const updateUsage = async () => {
       (organization) => isProPlan(organization.plan) && organization.stripeId,
     );
     if (orgsToMeter.length > 0) {
-      await triggerMeterOrgDocuments(
+      await triggerMeterOrgDocumentsBatch(
         orgsToMeter.map(({ id }) => ({
           organizationId: id,
         })),

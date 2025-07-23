@@ -1,4 +1,3 @@
-import type { QueryVectorStoreResult } from "@/lib/vector-store/parse";
 import type { CoreMessage } from "ai";
 import { generateAgenticResponse } from "@/lib/agentic";
 import { AgentsetApiError } from "@/lib/api/errors";
@@ -7,11 +6,12 @@ import { makeApiSuccessResponse } from "@/lib/api/response";
 import { parseRequestBody } from "@/lib/api/utils";
 import { getNamespaceLanguageModel } from "@/lib/llm";
 import { NEW_MESSAGE_PROMPT } from "@/lib/prompts";
-import { queryVectorStore } from "@/lib/vector-store";
 import { waitUntil } from "@vercel/functions";
 import { generateText } from "ai";
 
+import type { QueryVectorStoreResult } from "@agentset/engine";
 import { db } from "@agentset/db";
+import { queryVectorStore } from "@agentset/engine";
 
 import { chatSchema } from "./schema";
 import { correctnessEval, faithfulnessEval, relevanceEval } from "./utils";

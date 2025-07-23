@@ -12,7 +12,7 @@ import { openApiErrorResponses } from "./responses";
 import { v1Paths } from "./v1";
 
 export const document = createDocument({
-  openapi: "3.0.3",
+  openapi: "3.1.1",
   info: {
     title: "AgentsetAPI",
     description: "Agentset is agentic rag-as-a-service",
@@ -22,10 +22,10 @@ export const document = createDocument({
       email: "support@agentset.ai",
       url: "https://api.agentset.ai/",
     },
-    // license: {
-    //   name: "AGPL-3.0 license",
-    //   url: "https://github.com/agentset-ai/agentset/blob/main/LICENSE.md",
-    // },
+    license: {
+      name: "MIT License",
+      url: "https://github.com/agentset-ai/agentset/blob/main/LICENSE.md",
+    },
   },
   servers: [
     {

@@ -1,6 +1,6 @@
 import { AgentsetApiError } from "../api/errors";
 import { log } from "../log";
-import { qstashReceiver } from "../workflow";
+import { qstashReceiver } from "../qstash";
 
 export const verifyQstashSignature = async ({
   req,

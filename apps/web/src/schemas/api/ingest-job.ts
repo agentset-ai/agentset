@@ -1,4 +1,4 @@
-import z from "@/lib/zod";
+import { z } from "zod/v4";
 
 import { IngestJobStatus } from "@agentset/db";
 import {
@@ -62,7 +62,7 @@ export const IngestJobSchema = z
       .describe("The date and time the ingest job failed.")
       .default(null),
   })
-  .openapi({
+  .meta({
     title: "Ingest Job",
   });
 

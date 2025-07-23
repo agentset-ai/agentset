@@ -1,8 +1,10 @@
-import { getNamespaceEmbeddingModel } from "@/lib/embedding";
-import { getNamespaceVectorStore } from "@/lib/vector-store";
 import { embed } from "ai";
 
 import type { Namespace } from "@agentset/db";
+import {
+  getNamespaceEmbeddingModel,
+  getNamespaceVectorStore,
+} from "@agentset/engine";
 
 const modelToDimensions: Record<
   PrismaJson.NamespaceEmbeddingConfig["model"],
