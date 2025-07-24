@@ -61,8 +61,12 @@ export class Pinecone {
       body: finalBody,
     });
 
-    const json = await response.json();
+    if (!response.ok || response.status > 299) {
+      const error = await response.text();
+      throw new Error(`Pinecone error: ${error}`);
+    }
 
+    const json = await response.json();
     return json as T;
   }
 

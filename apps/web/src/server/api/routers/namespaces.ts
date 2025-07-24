@@ -51,6 +51,9 @@ export const namespaceRouter = createTRPCRouter({
           organizationId: input.orgId,
           status: NamespaceStatus.ACTIVE,
         },
+        orderBy: {
+          createdAt: "desc",
+        },
       });
 
       return namespaces;

@@ -72,7 +72,7 @@ export default function CreateNamespaceDialog({
           const queryKey = trpc.namespace.getOrgNamespaces.queryKey({
             orgId: organization.id,
           });
-          queryClient.setQueryData(queryKey, (old) => [...(old ?? []), data]);
+          queryClient.setQueryData(queryKey, (old) => [data, ...(old ?? [])]);
           void queryClient.invalidateQueries({ queryKey });
           router.push(`/${organization.slug}/${data.slug}/quick-start`);
         }
