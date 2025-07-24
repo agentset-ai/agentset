@@ -18,7 +18,10 @@ interface CitationModalProps {
   triggerProps: React.ComponentProps<"button">;
 }
 
-const HostingCitation = ({ source }: Pick<CitationModalProps, "source">) => {
+const HostingCitation = ({
+  source,
+  sourceIndex,
+}: Pick<CitationModalProps, "source" | "sourceIndex">) => {
   const hosting = useHosting();
   const citationName = useMemo(() => {
     if (!hosting.citationMetadataPath || !source.metadata) return null;
@@ -27,27 +30,23 @@ const HostingCitation = ({ source }: Pick<CitationModalProps, "source">) => {
     let value: unknown = source.metadata;
 
     for (const key of path) {
-      if (value === null || typeof value !== "object") return null;
+      if (
+        value === null ||
+        typeof value !== "object" ||
+        typeof value === "undefined"
+      )
+        return null;
       value = (value as Record<string, unknown>)[key];
     }
 
-    if (typeof value === "string") {
-      return value;
-    }
-
-    if (typeof value === "number") {
-      return value.toString();
-    }
-
-    if (typeof value === "boolean") {
-      return value ? "True" : "False";
-    }
+    if (typeof value === "string") return value;
+    if (typeof value === "number") return value.toString();
+    if (typeof value === "boolean") return value ? "True" : "False";
 
     return null;
   }, [hosting, source.metadata]);
 
-  if (!citationName) return null;
-  return <>{citationName}</>;
+  return <>{citationName ? citationName : `[${sourceIndex}]`}</>;
 };
 
 export function CitationModal({
@@ -67,7 +66,7 @@ export function CitationModal({
   }, [source]);
 
   const hostingCitation = isHosting ? (
-    <HostingCitation source={source} />
+    <HostingCitation source={source} sourceIndex={sourceIndex} />
   ) : null;
 
   return (
