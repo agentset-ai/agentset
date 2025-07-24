@@ -21,6 +21,10 @@ export type KeywordSearchChunk = {
   tenantId?: string | null;
   documentId: string;
   metadata: string;
+  metadata_array?: {
+    key: string;
+    value: string;
+  }[];
 };
 
 const topLevelMetadataKeys = [
@@ -75,17 +79,20 @@ export class KeywordStore {
       limit = 10,
       includeMetadata,
       includeRelationships,
+      filter: extraFilter,
     }: {
       documentId?: string;
       page?: number;
       limit?: number;
       includeMetadata?: boolean;
       includeRelationships?: boolean;
+      filter?: string; // odata filter string
     } = {},
   ) {
     let filter = odata`namespaceId eq '${this.namespaceId}'`;
     if (this.tenantId) filter += ` and tenantId eq '${this.tenantId}'`;
     if (documentId) filter += ` and documentId eq '${documentId}'`;
+    if (extraFilter) filter += ` and ${extraFilter}`;
 
     const results = await keywordSearchClient.search(query, {
       filter,
@@ -94,8 +101,14 @@ export class KeywordStore {
       searchFields: ["text"],
       highlightFields: "text",
       includeTotalCount: true,
-      // queryType: "full",
-      // searchMode: "all",
+      select: [
+        "id",
+        "namespaceId",
+        "documentId",
+        "tenantId",
+        "metadata",
+        "text",
+      ],
     });
 
     const total = results.count;
@@ -204,12 +217,19 @@ export class KeywordStore {
           tenantId: this.tenantId ?? null,
           documentId: chunk.documentId,
           metadata: JSON.stringify(metadata),
+          metadata_array: Object.entries(metadata).map(([key, value]) => ({
+            key,
+            value: String(value),
+          })),
         };
       }),
     );
   }
 
   async deleteByIds(ids: string[]) {
-    await keywordSearchClient.deleteDocuments("id", ids.map(this.encodeId));
+    await keywordSearchClient.deleteDocuments(
+      "id",
+      ids.map((id) => this.encodeId(id)),
+    );
   }
 }

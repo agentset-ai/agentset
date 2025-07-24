@@ -33,9 +33,11 @@ export const configSchema = z
       .optional()
       .describe("Custom chunk overlap."),
     metadata: z
-      .record(z.string(), z.unknown())
+      .record(z.string(), z.union([z.string(), z.number(), z.boolean()]))
       .optional()
-      .describe("Custom metadata to be added to the ingested documents."),
+      .describe(
+        "Custom metadata to be added to the ingested documents. It cannot contain nested objects; only primitive types (string, number, boolean) are allowed.",
+      ),
     chunkingStrategy: z
       .enum(["basic", "by_title"])
       .optional()
