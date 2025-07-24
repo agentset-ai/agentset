@@ -1,4 +1,4 @@
-import { metadata, schemaTask, wait } from "@trigger.dev/sdk";
+import { schemaTask, wait } from "@trigger.dev/sdk";
 import { embedMany } from "ai";
 
 import type { PartitionBatch, PartitionResult } from "@agentset/engine";
@@ -61,6 +61,7 @@ export const processDocument = schemaTask({
         name: true,
         source: true,
         config: true,
+        totalPages: true,
         ingestJob: {
           select: {
             id: true,
@@ -253,8 +254,7 @@ export const processDocument = schemaTask({
       );
 
       // Upsert to vector store
-      const upserted = await vectorStore.upsert(nodes);
-      metadata.set(`pinecone-${batchIdx}`, upserted);
+      await vectorStore.upsert(nodes);
 
       // Store in keyword store if enabled
       if (document.ingestJob.namespace.keywordEnabled) {
@@ -270,6 +270,8 @@ export const processDocument = schemaTask({
 
       totalTokens += results.usage.tokens;
     }
+
+    const delta = totalPages - document.totalPages;
 
     // Update status to completed
     await db.$transaction([
@@ -288,10 +290,18 @@ export const processDocument = schemaTask({
       db.namespace.update({
         where: { id: document.ingestJob.namespace.id },
         data: {
-          totalPages: { increment: totalPages },
+          totalPages: shouldCleanup
+            ? delta >= 0
+              ? { increment: delta }
+              : { decrement: -delta } // if delta is negative, we need to make it positive to decrement the total pages
+            : { increment: totalPages },
           organization: {
             update: {
-              totalPages: { increment: totalPages },
+              totalPages: shouldCleanup
+                ? delta >= 0
+                  ? { increment: delta }
+                  : { decrement: delta } // if delta is negative, we need to make it positive to decrement the total pages
+                : { increment: totalPages },
             },
           },
         },
