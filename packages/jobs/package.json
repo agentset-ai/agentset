@@ -3,7 +3,7 @@
   "version": "0.0.1",
   "private": true,
   "scripts": {
-    "dev": "trigger dev",
+    "trigger:dev": "trigger dev",
     "trigger:deploy": "trigger deploy --skip-sync-env-vars",
     "typecheck": "tsc --noEmit --emitDeclarationOnly false",
     "clean": "git clean -xdf .cache .turbo .trigger node_modules",

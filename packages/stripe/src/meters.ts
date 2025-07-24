@@ -21,28 +21,40 @@ export const meterIngestedPages = async ({
   });
 };
 
+export const createMeterEventSessionToken = async () => {
+  const token = await stripe.v2.billing.meterEventSession.create();
+  return token.authentication_token;
+};
+
 export const meterDocumentsPages = async ({
   documents,
   stripeCustomerId,
+  token,
 }: {
   documents: {
     id: string;
     totalPages: number;
   }[];
   stripeCustomerId: string;
+  token: string;
 }) => {
   // Track each document to Stripe metered billing
   const billingRestartTimestamp = new Date().toISOString();
 
-  await stripe.v2.billing.meterEventStream.create({
-    events: documents.map((document) => ({
-      identifier: document.id, // idempotency key
-      event_name: PRO_PLAN_METERED.meterName,
-      timestamp: billingRestartTimestamp.toString(),
-      payload: {
-        stripe_customer_id: stripeCustomerId,
-        value: document.totalPages.toFixed(2),
-      },
-    })),
-  });
+  await stripe.v2.billing.meterEventStream.create(
+    {
+      events: documents.map((document) => ({
+        identifier: document.id, // idempotency key
+        event_name: PRO_PLAN_METERED.meterName,
+        timestamp: billingRestartTimestamp.toString(),
+        payload: {
+          stripe_customer_id: stripeCustomerId,
+          value: document.totalPages.toFixed(2),
+        },
+      })),
+    },
+    {
+      apiKey: token,
+    },
+  );
 };

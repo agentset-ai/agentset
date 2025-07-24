@@ -4,16 +4,16 @@ import { z } from "zod/v4";
 export const env = createEnv({
   server: {
     DEFAULT_PINECONE_API_KEY: z.string(),
-    DEFAULT_PINECONE_HOST: z.string().url(),
+    DEFAULT_PINECONE_HOST: z.url(),
 
     SECONDARY_PINECONE_API_KEY: z.string().optional(),
-    SECONDARY_PINECONE_HOST: z.string().url().optional(),
+    SECONDARY_PINECONE_HOST: z.url().optional(),
 
-    AZURE_SEARCH_URL: z.string().url(),
+    AZURE_SEARCH_URL: z.url(),
     AZURE_SEARCH_INDEX: z.string(),
     AZURE_SEARCH_KEY: z.string(),
 
-    DEFAULT_AZURE_BASE_URL: z.string().url(),
+    DEFAULT_AZURE_BASE_URL: z.url(),
     DEFAULT_AZURE_API_KEY: z.string(),
     DEFAULT_AZURE_TEXT_3_LARGE_EMBEDDING_DEPLOYMENT: z.string(),
     DEFAULT_AZURE_TEXT_3_LARGE_EMBEDDING_VERSION: z.string().optional(),
@@ -23,7 +23,7 @@ export const env = createEnv({
     DEFAULT_COHERE_API_KEY: z.string(),
 
     PARTITION_API_KEY: z.string(),
-    PARTITION_API_URL: z.string().url(),
+    PARTITION_API_URL: z.url(),
   },
   runtimeEnv: {
     DEFAULT_PINECONE_API_KEY: process.env.DEFAULT_PINECONE_API_KEY,

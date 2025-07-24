@@ -191,10 +191,19 @@ export const ingestJob = schemaTask({
     await db.ingestJob.update({
       where: { id: ingestionJob.id },
       data: {
-        status: success ? IngestJobStatus.COMPLETED : IngestJobStatus.FAILED,
-        completedAt: new Date(),
-        failedAt: null,
-        error: null,
+        ...(success
+          ? {
+              status: IngestJobStatus.COMPLETED,
+              completedAt: new Date(),
+              failedAt: null,
+              error: null,
+            }
+          : {
+              status: IngestJobStatus.FAILED,
+              completedAt: null,
+              failedAt: new Date(),
+              error: "Failed to process documents",
+            }),
       },
       select: { id: true },
     });

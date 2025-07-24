@@ -1,4 +1,4 @@
-import { schemaTask, wait } from "@trigger.dev/sdk";
+import { metadata, schemaTask, wait } from "@trigger.dev/sdk";
 import { embedMany } from "ai";
 
 import type { PartitionBatch, PartitionResult } from "@agentset/engine";
@@ -253,7 +253,8 @@ export const processDocument = schemaTask({
       );
 
       // Upsert to vector store
-      await vectorStore.upsert(nodes);
+      const upserted = await vectorStore.upsert(nodes);
+      metadata.set(`pinecone-${batchIdx}`, upserted);
 
       // Store in keyword store if enabled
       if (document.ingestJob.namespace.keywordEnabled) {

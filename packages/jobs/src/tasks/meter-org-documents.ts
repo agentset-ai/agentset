@@ -1,7 +1,10 @@
 import { schemaTask } from "@trigger.dev/sdk";
 
 import { DocumentStatus } from "@agentset/db";
-import { meterDocumentsPages } from "@agentset/stripe";
+import {
+  createMeterEventSessionToken,
+  meterDocumentsPages,
+} from "@agentset/stripe";
 import { isProPlan } from "@agentset/stripe/plans";
 import { chunkArray } from "@agentset/utils";
 
@@ -78,6 +81,7 @@ export const meterOrgDocuments = schemaTask({
     const batches = chunkArray(documents, BATCH_SIZE);
     let totalDocumentsProcessed = 0;
 
+    const token = await createMeterEventSessionToken();
     for (let i = 0; i < batches.length; i++) {
       const batch = batches[i]!;
 
@@ -87,6 +91,7 @@ export const meterOrgDocuments = schemaTask({
           totalPages: document.totalPages,
         })),
         stripeCustomerId,
+        token,
       });
 
       totalDocumentsProcessed += batch.length;

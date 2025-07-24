@@ -76,6 +76,8 @@ export const queryVectorStore = async (
     includeMetadata: true,
   });
 
+  console.log(matches);
+
   if (options.minScore !== undefined) {
     matches = matches.filter(
       (match) => match.score && match.score >= options.minScore!,

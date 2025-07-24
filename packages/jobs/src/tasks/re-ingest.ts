@@ -11,12 +11,16 @@ const BATCH_SIZE = 30;
 
 export const reIngestJob = schemaTask({
   id: RE_INGEST_JOB_ID,
-  maxDuration: 3600, // 1 hour
+  maxDuration: 60 * 60 * 12, // 12 hours
+  queue: {
+    concurrencyLimit: 90,
+  },
   schema: reIngestJobBodySchema,
   onFailure: async ({ payload, error }) => {
     const db = getDb();
 
-    const errorMessage = error instanceof Error ? error.message : String(error);
+    const errorMessage =
+      (error instanceof Error ? error.message : null) || "Unknown error";
     await db.ingestJob.update({
       where: { id: payload.jobId },
       data: {
@@ -75,8 +79,9 @@ export const reIngestJob = schemaTask({
     ]);
 
     const chunks = chunkArray(documents, BATCH_SIZE);
+    let success = true;
     for (const chunk of chunks) {
-      await processDocument.batchTriggerAndWait(
+      const handles = await processDocument.batchTriggerAndWait(
         chunk.map((document) => ({
           payload: {
             documentId: document.id,
@@ -85,14 +90,10 @@ export const reIngestJob = schemaTask({
         })),
       );
 
-      // TODO:
-      // Update documents with run IDs (in parallel)
-      // const documentIdToRunId = documents.map((document, idx) => ({
-      //   documentId: document.id,
-      //   runId: documentHandles.runs[idx]!.id,
-      // }));
+      if (handles.runs.some((run) => !run.ok)) success = false;
+
       // await Promise.all(
-      //   batches.map((batch) =>
+      //   handles.map((batch) =>
       //     db.$transaction(
       //       batch.map(({ documentId, runId }) =>
       //         db.document.update({
@@ -108,10 +109,19 @@ export const reIngestJob = schemaTask({
     await db.ingestJob.update({
       where: { id: ingestJob.id },
       data: {
-        status: IngestJobStatus.COMPLETED,
-        completedAt: new Date(),
-        failedAt: null,
-        error: null,
+        ...(success
+          ? {
+              status: IngestJobStatus.COMPLETED,
+              completedAt: new Date(),
+              failedAt: null,
+              error: null,
+            }
+          : {
+              status: IngestJobStatus.FAILED,
+              completedAt: null,
+              failedAt: new Date(),
+              error: "Failed to process documents",
+            }),
       },
       select: { id: true },
     });

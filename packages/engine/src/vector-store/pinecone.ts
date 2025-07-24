@@ -116,13 +116,17 @@ export class Pinecone {
       metadata?: Record<string, unknown>;
     }[],
   ) {
-    return this.makeRequest<{ success: boolean }>("POST", `/vectors/upsert`, {
-      vectors: chunks.map((chunk) => ({
-        id: chunk.id,
-        values: chunk.vector,
-        ...(chunk.metadata && { metadata: chunk.metadata }),
-      })),
-    });
+    return this.makeRequest<{ upsertedCount: number }>(
+      "POST",
+      `/vectors/upsert`,
+      {
+        vectors: chunks.map((chunk) => ({
+          id: chunk.id,
+          values: chunk.vector,
+          ...(chunk.metadata && { metadata: chunk.metadata }),
+        })),
+      },
+    );
   }
 
   async delete(ids: string[]) {
