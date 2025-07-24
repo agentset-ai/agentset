@@ -232,6 +232,9 @@ importers:
       '@agentset/tsconfig':
         specifier: workspace:*
         version: link:../../tooling/typescript
+      '@prisma/nextjs-monorepo-workaround-plugin':
+        specifier: ^6.12.0
+        version: 6.12.0
       '@tailwindcss/postcss':
         specifier: ^4.0.12
         version: 4.0.14
@@ -2380,6 +2383,9 @@ packages:
 
   '@prisma/get-platform@6.12.0':
     resolution: {integrity: sha512-nRerTGhTlgyvcBlyWgt8OLNIV7QgJS2XYXMJD1hysorMCuLAjuDDuoxmVt7C2nLxbuxbWPp7OuFRHC23HqD9dA==}
+
+  '@prisma/nextjs-monorepo-workaround-plugin@6.12.0':
+    resolution: {integrity: sha512-fAquBdU+3nabAE7t7I/VPtFTMDNwElk2Tb7l9YoY3+YHtmM7cC97jZRZ6ZGgM4GaRgEQ4ze4nm1ynsFc4CYoog==}
 
   '@protobufjs/aspromise@1.1.2':
     resolution: {integrity: sha512-j+gKExEuLmKwvz3OgROXtrJ2UG2x8Ch2YZUxahh+s1F2HZ+wAceUNLkvy6zKCPVRkU++ZWQrdxsUeQXmcg4uoQ==}
@@ -10200,6 +10206,8 @@ snapshots:
   '@prisma/get-platform@6.12.0':
     dependencies:
       '@prisma/debug': 6.12.0
+
+  '@prisma/nextjs-monorepo-workaround-plugin@6.12.0': {}
 
   '@protobufjs/aspromise@1.1.2': {}
 
