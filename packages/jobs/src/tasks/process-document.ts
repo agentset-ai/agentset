@@ -321,6 +321,8 @@ export const processDocument = schemaTask({
       await redis.del(...keyBatch);
     }
 
+    let meterSuccess = null;
+
     // Log usage to stripe
     const stripeCustomerId = document.ingestJob.namespace.organization.stripeId;
     if (
@@ -328,11 +330,16 @@ export const processDocument = schemaTask({
       !!stripeCustomerId &&
       !shouldCleanup // don't log usage if re-processing
     ) {
-      await meterIngestedPages({
-        documentId: `doc_${document.id}`,
-        totalPages,
-        stripeCustomerId,
-      });
+      try {
+        await meterIngestedPages({
+          documentId: `doc_${document.id}`,
+          totalPages,
+          stripeCustomerId,
+        });
+        meterSuccess = true;
+      } catch {
+        meterSuccess = false;
+      }
     }
 
     return {
@@ -340,6 +347,7 @@ export const processDocument = schemaTask({
       totalPages,
       totalTokens,
       totalChunks: result.total_chunks,
+      meterSuccess,
     };
   },
 });

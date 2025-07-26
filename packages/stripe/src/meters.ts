@@ -49,7 +49,7 @@ export const meterDocumentsPages = async ({
         timestamp: billingRestartTimestamp.toString(),
         payload: {
           stripe_customer_id: stripeCustomerId,
-          value: document.totalPages.toFixed(2),
+          value: document.totalPages as any, // stripe is wrong
         },
       })),
     },

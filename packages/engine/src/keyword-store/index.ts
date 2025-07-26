@@ -217,10 +217,17 @@ export class KeywordStore {
           tenantId: this.tenantId ?? null,
           documentId: chunk.documentId,
           metadata: JSON.stringify(metadata),
-          metadata_array: Object.entries(metadata).map(([key, value]) => ({
-            key,
-            value: String(value),
-          })),
+          metadata_array: Object.entries(metadata)
+            .filter(
+              ([key, value]) =>
+                value !== undefined &&
+                key !== "_node_content" &&
+                key !== "_node_type",
+            )
+            .map(([key, value]) => ({
+              key,
+              value: typeof value === "string" ? value : JSON.stringify(value),
+            })),
         };
       }),
     );
