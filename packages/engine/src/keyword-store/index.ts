@@ -79,6 +79,7 @@ export class KeywordStore {
       limit = 10,
       includeMetadata,
       includeRelationships,
+      minScore,
       filter: extraFilter,
     }: {
       documentId?: string;
@@ -86,6 +87,7 @@ export class KeywordStore {
       limit?: number;
       includeMetadata?: boolean;
       includeRelationships?: boolean;
+      minScore?: number;
       filter?: string; // odata filter string
     } = {},
   ) {
@@ -114,7 +116,10 @@ export class KeywordStore {
     const total = results.count;
     const totalPages = total ? Math.ceil(total / limit) : 1;
 
-    const resultsArray = await this.asyncIterableToArray(results.results);
+    let resultsArray = await this.asyncIterableToArray(results.results);
+    if (minScore) {
+      resultsArray = resultsArray.filter((result) => result.score >= minScore);
+    }
 
     return {
       total,

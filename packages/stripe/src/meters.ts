@@ -10,13 +10,17 @@ export const meterIngestedPages = async ({
   totalPages: number;
   stripeCustomerId: string;
 }) => {
+  // TODO: track characters instead of pages
+  const value = Number(totalPages.toFixed(0));
+  if (value === 0) return;
+
   await stripe.billing.meterEvents.create({
     identifier: documentId, // idempotency key
     event_name: PRO_PLAN_METERED.meterName,
     timestamp: Math.floor(Date.now() / 1000), // send timestamp in seconds
     payload: {
       stripe_customer_id: stripeCustomerId,
-      value: totalPages.toFixed(2),
+      value: value.toString(),
     },
   });
 };
@@ -49,7 +53,7 @@ export const meterDocumentsPages = async ({
         timestamp: billingRestartTimestamp.toString(),
         payload: {
           stripe_customer_id: stripeCustomerId,
-          value: document.totalPages as any, // stripe is wrong
+          value: document.totalPages.toFixed(2),
         },
       })),
     },

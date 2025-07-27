@@ -5,8 +5,9 @@ import { parseRequestBody } from "@/lib/api/utils";
 import { queryVectorStoreSchema } from "@/schemas/api/query";
 import { waitUntil } from "@vercel/functions";
 
+import type { QueryVectorStoreResult } from "@agentset/engine";
 import { db } from "@agentset/db";
-import { queryVectorStore } from "@agentset/engine";
+import { KeywordStore, queryVectorStore } from "@agentset/engine";
 import { INFINITY_NUMBER } from "@agentset/utils";
 
 // export const runtime = "edge";
@@ -35,20 +36,43 @@ export const POST = withNamespaceApiHandler(
       await parseRequestBody(req),
     );
 
-    // TODO: track the usage
-    const data = await queryVectorStore(namespace, {
-      query: body.query,
-      tenantId,
-      topK: body.topK,
-      minScore: body.minScore,
-      filter: body.filter,
-      includeMetadata: body.includeMetadata,
-      includeRelationships: body.includeRelationships,
-      rerankLimit: body.rerankLimit,
-      rerank: body.rerank,
-    });
+    if (!namespace.keywordEnabled && body.mode === "keyword") {
+      throw new AgentsetApiError({
+        code: "bad_request",
+        message: "Keyword search is not enabled for this namespace",
+      });
+    }
 
-    if (!data) {
+    let results: QueryVectorStoreResult["results"] | undefined = [];
+
+    // TODO: track the usage
+    if (body.mode === "semantic") {
+      results = (
+        await queryVectorStore(namespace, {
+          query: body.query,
+          tenantId,
+          topK: body.topK,
+          minScore: body.minScore,
+          filter: body.filter,
+          includeMetadata: body.includeMetadata,
+          includeRelationships: body.includeRelationships,
+          rerankLimit: body.rerankLimit,
+          rerank: body.rerank,
+        })
+      )?.results;
+    } else if (body.mode === "keyword") {
+      const store = new KeywordStore(namespace.id, tenantId);
+      results = (
+        await store.search(body.query, {
+          limit: body.topK,
+          minScore: body.minScore,
+          includeMetadata: body.includeMetadata,
+          includeRelationships: body.includeRelationships,
+        })
+      ).results;
+    }
+
+    if (!results) {
       throw new AgentsetApiError({
         code: "internal_server_error",
         message: "Failed to parse vector store results",
@@ -70,7 +94,7 @@ export const POST = withNamespaceApiHandler(
     );
 
     return makeApiSuccessResponse({
-      data: data.results,
+      data: results,
       headers,
     });
   },
