@@ -445,6 +445,9 @@ importers:
       '@agentset/utils':
         specifier: workspace:*
         version: link:../utils
+      '@agentset/validation':
+        specifier: workspace:*
+        version: link:../validation
       '@trigger.dev/sdk':
         specifier: 4.0.0-v4-beta.23
         version: 4.0.0-v4-beta.23(ai@4.3.19(react@19.1.0)(zod@4.0.5))(zod@4.0.5)

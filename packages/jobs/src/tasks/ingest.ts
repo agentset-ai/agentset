@@ -41,7 +41,24 @@ export const ingestJob = schemaTask({
     // Get ingestion job configuration
     const ingestionJob = await db.ingestJob.findUnique({
       where: { id: jobId },
-      include: { namespace: true },
+      include: {
+        namespace: {
+          select: {
+            id: true,
+            keywordEnabled: true,
+            embeddingConfig: true,
+            vectorStoreConfig: true,
+            createdAt: true,
+            organization: {
+              select: {
+                id: true,
+                plan: true,
+                stripeId: true,
+              },
+            },
+          },
+        },
+      },
     });
 
     if (!ingestionJob) {
@@ -139,40 +156,53 @@ export const ingestJob = schemaTask({
       }
     }
 
-    // Update total documents in namespace + organization
-    await db.namespace.update({
-      where: { id: ingestionJob.namespace.id },
-      data: {
-        totalDocuments: { increment: documents.length },
-        organization: {
-          update: {
-            totalDocuments: { increment: documents.length },
-          },
+    await db.$transaction([
+      // Update total documents in namespace + organization
+      db.namespace.update({
+        where: { id: ingestionJob.namespace.id },
+        data: {
+          totalDocuments: { increment: documents.length },
         },
-      },
-      select: { id: true },
-    });
-
-    // Update status to processing
-    await db.ingestJob.update({
-      where: { id: ingestionJob.id },
-      data: {
-        status: IngestJobStatus.PROCESSING,
-        processingAt: new Date(),
-      },
-      select: { id: true },
-    });
+        select: { id: true },
+      }),
+      db.organization.update({
+        where: { id: ingestionJob.namespace.organization.id },
+        data: {
+          totalDocuments: { increment: documents.length },
+        },
+        select: { id: true },
+      }),
+      // Update status to processing
+      db.ingestJob.update({
+        where: { id: ingestionJob.id },
+        data: {
+          status: IngestJobStatus.PROCESSING,
+          processingAt: new Date(),
+        },
+        select: { id: true },
+      }),
+    ]);
 
     const chunks = chunkArray(documents, BATCH_SIZE);
     let success = true;
+    let totalPages = 0;
     for (const chunk of chunks) {
       const handles = await processDocument.batchTriggerAndWait(
         chunk.map((document) => ({
-          payload: { documentId: document.id },
+          payload: {
+            documentId: document.id,
+            ingestJob: ingestionJob,
+          },
         })),
       );
 
-      if (handles.runs.some((run) => !run.ok)) success = false;
+      for (const handle of handles.runs) {
+        if (!handle.ok) {
+          success = false;
+        } else {
+          totalPages += handle.output.pagesDelta;
+        }
+      }
 
       // await Promise.all(
       //   handles.map((batch) =>
@@ -188,25 +218,46 @@ export const ingestJob = schemaTask({
       // );
     }
 
-    await db.ingestJob.update({
-      where: { id: ingestionJob.id },
-      data: {
-        ...(success
-          ? {
-              status: IngestJobStatus.COMPLETED,
-              completedAt: new Date(),
-              failedAt: null,
-              error: null,
-            }
-          : {
-              status: IngestJobStatus.FAILED,
-              completedAt: null,
-              failedAt: new Date(),
-              error: "Failed to process documents",
-            }),
-      },
-      select: { id: true },
-    });
+    const pagesUpdate = (
+      totalPages >= 0
+        ? { totalPages: { increment: totalPages } }
+        : {
+            // add negative to make it positive, because we're decrementing the total pages
+            totalPages: { decrement: -totalPages },
+          }
+    ) satisfies Prisma.NamespaceUpdateInput | Prisma.OrganizationUpdateInput;
+
+    await db.$transaction([
+      db.ingestJob.update({
+        where: { id: ingestionJob.id },
+        data: {
+          ...(success
+            ? {
+                status: IngestJobStatus.COMPLETED,
+                completedAt: new Date(),
+                failedAt: null,
+                error: null,
+              }
+            : {
+                status: IngestJobStatus.FAILED,
+                completedAt: null,
+                failedAt: new Date(),
+                error: "Failed to process documents",
+              }),
+        },
+        select: { id: true },
+      }),
+      db.namespace.update({
+        where: { id: ingestionJob.namespace.id },
+        data: pagesUpdate,
+        select: { id: true },
+      }),
+      db.organization.update({
+        where: { id: ingestionJob.namespace.organization.id },
+        data: pagesUpdate,
+        select: { id: true },
+      }),
+    ]);
 
     return {
       ingestionJobId: ingestionJob.id,

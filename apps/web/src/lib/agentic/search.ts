@@ -46,10 +46,6 @@ export async function agenticSearch(
   const lastMessage = messages[messages.length - 1]!.content as string;
 
   for (let i = 0; i < maxEvals; i++) {
-    console.log(`[EVAL LOOP] ${i + 1} / ${maxEvals}`);
-    console.dir(messages, { depth: null });
-    console.dir(queries, { depth: null });
-
     const { queries: newQueries, totalTokens: queriesTokens } =
       await generateQueries(model, messages, queries);
 

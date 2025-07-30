@@ -1,6 +1,12 @@
 import { tasks } from "@trigger.dev/sdk";
 import { z } from "zod/v4";
 
+import {
+  configSchema,
+  EmbeddingConfigSchema,
+  VectorStoreSchema,
+} from "@agentset/validation";
+
 export const TRIGGER_INGESTION_JOB_ID = "trigger-ingestion-job";
 export const triggerIngestionJobBodySchema = z.object({
   jobId: z.string(),
@@ -12,6 +18,21 @@ export const triggerIngestionJob = (
 export const TRIGGER_DOCUMENT_JOB_ID = "trigger-document-job";
 export const triggerDocumentJobBodySchema = z.object({
   documentId: z.string(),
+  ingestJob: z.object({
+    id: z.string(),
+    config: configSchema.nullable(),
+    namespace: z.object({
+      id: z.string(),
+      keywordEnabled: z.boolean(),
+      embeddingConfig: EmbeddingConfigSchema.nullable(),
+      vectorStoreConfig: VectorStoreSchema.nullable(),
+      createdAt: z.date(),
+      organization: z.object({
+        plan: z.string(),
+        stripeId: z.string().optional().nullable(),
+      }),
+    }),
+  }),
   cleanup: z.boolean().optional(),
 });
 export const triggerDocumentJob = (

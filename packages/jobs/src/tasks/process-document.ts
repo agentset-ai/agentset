@@ -46,7 +46,7 @@ export const processDocument = schemaTask({
       select: { id: true },
     });
   },
-  run: async ({ documentId, cleanup: shouldCleanup }) => {
+  run: async ({ documentId, ingestJob, cleanup: shouldCleanup }) => {
     const db = getDb();
 
     // Get document configuration
@@ -59,27 +59,6 @@ export const processDocument = schemaTask({
         source: true,
         config: true,
         totalPages: true,
-        ingestJob: {
-          select: {
-            id: true,
-            config: true,
-            namespace: {
-              select: {
-                id: true,
-                keywordEnabled: true,
-                embeddingConfig: true,
-                vectorStoreConfig: true,
-                createdAt: true,
-                organization: {
-                  select: {
-                    plan: true,
-                    stripeId: true,
-                  },
-                },
-              },
-            },
-          },
-        },
       },
     });
 
@@ -102,8 +81,8 @@ export const processDocument = schemaTask({
     // Get partition document body
     const partitionBody = await getPartitionDocumentBody(
       document,
-      document.ingestJob,
-      document.ingestJob.namespace,
+      ingestJob,
+      ingestJob.namespace,
       {
         triggerTokenId: token.id,
         triggerAccessToken: token.publicAccessToken,
@@ -158,15 +137,15 @@ export const processDocument = schemaTask({
 
     // Get embedding model and vector store
     const [embeddingModel, vectorStore] = await Promise.all([
-      getNamespaceEmbeddingModel(document.ingestJob.namespace, "document"),
+      getNamespaceEmbeddingModel(ingestJob.namespace, "document"),
       getNamespaceVectorStore(
-        document.ingestJob.namespace,
+        ingestJob.namespace,
         document.tenantId ?? undefined,
       ),
     ]);
 
     const keywordStore = new KeywordStore(
-      document.ingestJob.namespace.id,
+      ingestJob.namespace.id,
       document.tenantId ?? undefined,
     );
 
@@ -200,7 +179,7 @@ export const processDocument = schemaTask({
       }
 
       // Clean up keyword store if enabled
-      if (document.ingestJob.namespace.keywordEnabled) {
+      if (ingestJob.namespace.keywordEnabled) {
         let page = 1;
         let hasNextPage = true;
         const keywordChunkIds: string[] = [];
@@ -254,7 +233,7 @@ export const processDocument = schemaTask({
       await vectorStore.upsert(nodes);
 
       // Store in keyword store if enabled
-      if (document.ingestJob.namespace.keywordEnabled) {
+      if (ingestJob.namespace.keywordEnabled) {
         await keywordStore.upsert(
           nodes.map((node, idx) => ({
             id: node.id,
@@ -268,43 +247,17 @@ export const processDocument = schemaTask({
       totalTokens += results.usage.tokens;
     }
 
-    const delta = totalPages - document.totalPages;
-
-    // Update status to completed
-    await db.$transaction([
-      db.document.update({
-        where: { id: document.id },
-        data: {
-          status: DocumentStatus.COMPLETED,
-          totalTokens,
-          completedAt: new Date(),
-          failedAt: null,
-          error: null,
-        },
-        select: { id: true },
-      }),
-      // Update namespace + organization total pages
-      db.namespace.update({
-        where: { id: document.ingestJob.namespace.id },
-        data: {
-          totalPages: shouldCleanup
-            ? delta >= 0
-              ? { increment: delta }
-              : { decrement: -delta } // if delta is negative, we need to make it positive to decrement the total pages
-            : { increment: totalPages },
-          organization: {
-            update: {
-              totalPages: shouldCleanup
-                ? delta >= 0
-                  ? { increment: delta }
-                  : { decrement: delta } // if delta is negative, we need to make it positive to decrement the total pages
-                : { increment: totalPages },
-            },
-          },
-        },
-        select: { id: true },
-      }),
-    ]);
+    await db.document.update({
+      where: { id: document.id },
+      data: {
+        status: DocumentStatus.COMPLETED,
+        totalTokens,
+        completedAt: new Date(),
+        failedAt: null,
+        error: null,
+      },
+      select: { id: true },
+    });
 
     // Delete all chunks from redis
     const keys = new Array(result.total_batches)
@@ -321,9 +274,9 @@ export const processDocument = schemaTask({
     let meterSuccess = null;
 
     // Log usage to stripe
-    const stripeCustomerId = document.ingestJob.namespace.organization.stripeId;
+    const stripeCustomerId = ingestJob.namespace.organization.stripeId;
     if (
-      isProPlan(document.ingestJob.namespace.organization.plan) &&
+      isProPlan(ingestJob.namespace.organization.plan) &&
       !!stripeCustomerId &&
       !shouldCleanup // don't log usage if re-processing
     ) {
@@ -339,12 +292,14 @@ export const processDocument = schemaTask({
       }
     }
 
+    const delta = totalPages - document.totalPages;
     return {
       documentId: document.id,
       totalPages,
       totalTokens,
       totalChunks: result.total_chunks,
       meterSuccess,
+      pagesDelta: shouldCleanup ? delta : totalPages,
     };
   },
 });

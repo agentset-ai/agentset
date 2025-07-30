@@ -11,17 +11,13 @@ import { IngestJobStatus } from "@agentset/db";
 import {
   Badge,
   Button,
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
   Tooltip,
   TooltipContent,
   TooltipTrigger,
 } from "@agentset/ui";
 
 import { JobActions } from "./actions";
+import { ConfigModal } from "./config-modal";
 
 // This type is used to define the shape of our data.
 // You can use a Zod schema here if you want.
@@ -29,8 +25,6 @@ export interface JobCol {
   id: string;
   status: IngestJobStatus;
   name?: IngestJob["name"];
-  payload: IngestJob["payload"];
-  config: IngestJob["config"];
   tenantId?: IngestJob["tenantId"];
   completedAt?: IngestJob["completedAt"];
   failedAt?: IngestJob["failedAt"];
@@ -107,44 +101,21 @@ export const columns: ColumnDef<JobCol>[] = [
       );
     },
   },
-  {
-    id: "type",
-    accessorKey: "payload",
-    header: "Type",
-    cell: ({ row }) => {
-      return (
-        <p>{capitalize(row.original.payload.type.split("_").join(" "))}</p>
-      );
-    },
-  },
+  // {
+  //   id: "type",
+  //   accessorKey: "payload",
+  //   header: "Type",
+  //   cell: ({ row }) => {
+  //     return (
+  //       <p>{capitalize(row.original.payload.type.split("_").join(" "))}</p>
+  //     );
+  //   },
+  // },
   {
     accessorKey: "config",
     header: "Config",
     cell: ({ row }) => {
-      const config = row.original.config;
-      if (!config) return <p>-</p>;
-
-      const configStr = JSON.stringify(config, null, 2);
-      const truncatedConfig =
-        configStr.length > 50 ? configStr.slice(0, 50) + "..." : configStr;
-
-      return (
-        <Dialog>
-          <DialogTrigger asChild>
-            <Button variant="ghost" className="h-auto p-0 hover:bg-transparent">
-              <pre className="text-left">{truncatedConfig}</pre>
-            </Button>
-          </DialogTrigger>
-          <DialogContent className="max-w-3xl">
-            <DialogHeader>
-              <DialogTitle>Job Config</DialogTitle>
-            </DialogHeader>
-            <pre className="bg-muted max-h-[60vh] overflow-auto rounded-md p-4">
-              {configStr}
-            </pre>
-          </DialogContent>
-        </Dialog>
-      );
+      return <ConfigModal jobId={row.original.id} />;
     },
   },
   {

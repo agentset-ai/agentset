@@ -1,5 +1,6 @@
 import { schemaTask } from "@trigger.dev/sdk";
 
+import type { Prisma } from "@agentset/db";
 import { DocumentStatus, IngestJobStatus } from "@agentset/db";
 import { chunkArray } from "@agentset/utils";
 
@@ -37,7 +38,24 @@ export const reIngestJob = schemaTask({
     // Get ingest job configuration
     const ingestJob = await db.ingestJob.findUnique({
       where: { id: jobId },
-      include: { namespace: true },
+      include: {
+        namespace: {
+          select: {
+            id: true,
+            keywordEnabled: true,
+            embeddingConfig: true,
+            vectorStoreConfig: true,
+            createdAt: true,
+            organization: {
+              select: {
+                id: true,
+                plan: true,
+                stripeId: true,
+              },
+            },
+          },
+        },
+      },
     });
 
     if (!ingestJob) {
@@ -80,17 +98,25 @@ export const reIngestJob = schemaTask({
 
     const chunks = chunkArray(documents, BATCH_SIZE);
     let success = true;
+    let totalPages = 0;
     for (const chunk of chunks) {
       const handles = await processDocument.batchTriggerAndWait(
         chunk.map((document) => ({
           payload: {
             documentId: document.id,
             cleanup: true, // Enable cleanup for re-processing
+            ingestJob,
           },
         })),
       );
 
-      if (handles.runs.some((run) => !run.ok)) success = false;
+      for (const handle of handles.runs) {
+        if (!handle.ok) {
+          success = false;
+        } else {
+          totalPages += handle.output.pagesDelta;
+        }
+      }
 
       // await Promise.all(
       //   handles.map((batch) =>
@@ -106,25 +132,46 @@ export const reIngestJob = schemaTask({
       // );
     }
 
-    await db.ingestJob.update({
-      where: { id: ingestJob.id },
-      data: {
-        ...(success
-          ? {
-              status: IngestJobStatus.COMPLETED,
-              completedAt: new Date(),
-              failedAt: null,
-              error: null,
-            }
-          : {
-              status: IngestJobStatus.FAILED,
-              completedAt: null,
-              failedAt: new Date(),
-              error: "Failed to process documents",
-            }),
-      },
-      select: { id: true },
-    });
+    const pagesUpdate = (
+      totalPages >= 0
+        ? { totalPages: { increment: totalPages } }
+        : {
+            // add negative to make it positive, because we're decrementing the total pages
+            totalPages: { decrement: -totalPages },
+          }
+    ) satisfies Prisma.NamespaceUpdateInput | Prisma.OrganizationUpdateInput;
+
+    await db.$transaction([
+      db.ingestJob.update({
+        where: { id: ingestJob.id },
+        data: {
+          ...(success
+            ? {
+                status: IngestJobStatus.COMPLETED,
+                completedAt: new Date(),
+                failedAt: null,
+                error: null,
+              }
+            : {
+                status: IngestJobStatus.FAILED,
+                completedAt: null,
+                failedAt: new Date(),
+                error: "Failed to process documents",
+              }),
+        },
+        select: { id: true },
+      }),
+      db.namespace.update({
+        where: { id: ingestJob.namespace.id },
+        data: pagesUpdate,
+        select: { id: true },
+      }),
+      db.organization.update({
+        where: { id: ingestJob.namespace.organization.id },
+        data: pagesUpdate,
+        select: { id: true },
+      }),
+    ]);
 
     return {
       ingestJobId: ingestJob.id,

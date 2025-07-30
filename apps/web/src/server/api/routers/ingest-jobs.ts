@@ -35,6 +35,17 @@ export const ingestJobRouter = createTRPCRouter({
               status: { in: input.statuses },
             }),
         },
+        select: {
+          id: true,
+          status: true,
+          name: true,
+          tenantId: true,
+          completedAt: true,
+          failedAt: true,
+          error: true,
+          queuedAt: true,
+          createdAt: true,
+        },
         orderBy: [
           {
             [input.orderBy]: input.order,
@@ -44,6 +55,33 @@ export const ingestJobRouter = createTRPCRouter({
       });
 
       return paginateResults(input, ingestJobs);
+    }),
+  getConfig: protectedProcedure
+    .input(z.object({ jobId: z.string(), namespaceId: z.string() }))
+    .query(async ({ ctx, input }) => {
+      const namespace = await getNamespaceByUser(ctx, {
+        id: input.namespaceId,
+      });
+
+      if (!namespace) {
+        throw new TRPCError({ code: "NOT_FOUND" });
+      }
+
+      const ingestJob = await ctx.db.ingestJob.findUnique({
+        where: {
+          id: input.jobId,
+          namespaceId: namespace.id,
+        },
+        select: {
+          config: true,
+        },
+      });
+
+      if (!ingestJob) {
+        throw new TRPCError({ code: "NOT_FOUND" });
+      }
+
+      return ingestJob.config;
     }),
   ingest: protectedProcedure
     .input(
