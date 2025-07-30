@@ -9,6 +9,7 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
+  DialogTrigger,
 } from "@agentset/ui";
 
 export function ConfigModal({ jobId }: { jobId: string }) {
@@ -33,21 +34,21 @@ export function ConfigModal({ jobId }: { jobId: string }) {
   }, [config, isLoading]);
 
   return (
-    <>
-      <Button variant="ghost" className="h-auto p-0 hover:bg-transparent">
-        Show Config
-      </Button>
+    <Dialog open={open} onOpenChange={setOpen}>
+      <DialogTrigger asChild>
+        <Button variant="ghost" className="h-auto p-0 hover:bg-transparent">
+          Show Config
+        </Button>
+      </DialogTrigger>
 
-      <Dialog open={open} onOpenChange={setOpen}>
-        <DialogContent className="max-w-3xl">
-          <DialogHeader>
-            <DialogTitle>Job Config</DialogTitle>
-          </DialogHeader>
-          <pre className="bg-muted max-h-[60vh] overflow-auto rounded-md p-4">
-            {configStr}
-          </pre>
-        </DialogContent>
-      </Dialog>
-    </>
+      <DialogContent className="max-w-3xl">
+        <DialogHeader>
+          <DialogTitle>Job Config</DialogTitle>
+        </DialogHeader>
+        <pre className="bg-muted max-h-[60vh] overflow-auto rounded-md p-4">
+          {configStr}
+        </pre>
+      </DialogContent>
+    </Dialog>
   );
 }
