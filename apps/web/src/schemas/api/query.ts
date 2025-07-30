@@ -48,6 +48,7 @@ export const baseQueryVectorStoreSchema = z.object({
     .describe(
       "Whether to include metadata in the results. Defaults to `true`.",
     ),
+  keywordFilter: z.string().optional(),
   mode: z.enum(["semantic", "keyword"]).optional().default("semantic"),
 });
 

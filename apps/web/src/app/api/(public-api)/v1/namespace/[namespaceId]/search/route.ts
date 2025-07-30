@@ -68,6 +68,7 @@ export const POST = withNamespaceApiHandler(
           minScore: body.minScore,
           includeMetadata: body.includeMetadata,
           includeRelationships: body.includeRelationships,
+          filter: body.keywordFilter,
         })
       ).results;
     }
