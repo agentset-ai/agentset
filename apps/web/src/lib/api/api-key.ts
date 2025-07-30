@@ -30,7 +30,7 @@ export const getApiKeyInfo = (apiKey: string) => {
     ["apiKey", apiKey],
     {
       tags: [`apiKey:${apiKey}`],
-      revalidate: 60 * 1, // 1 min
+      revalidate: 60 * 5, // 5 min
     },
   )();
 };
