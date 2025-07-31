@@ -27,11 +27,18 @@ export function useCursorPagination() {
     }
   };
 
+  const reset = () => {
+    setCursor(null);
+    setCursorDirection("forward");
+    setCursors([]);
+  };
+
   return {
     cursor: cursor ?? undefined,
     cursorDirection,
     handleNext,
     handlePrevious,
     hasPrevious: cursors.length > 0,
+    reset,
   };
 }

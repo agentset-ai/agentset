@@ -76,6 +76,9 @@ export const deleteIngestJob = schemaTask({
             payload: {
               documentId: document.id,
             },
+            options: {
+              tags: [`doc_${document.id}`],
+            },
           })),
         );
       }

@@ -193,6 +193,9 @@ export const ingestJob = schemaTask({
             documentId: document.id,
             ingestJob: ingestionJob,
           },
+          options: {
+            tags: [`doc_${document.id}`],
+          },
         })),
       );
 

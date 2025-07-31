@@ -1,3 +1,4 @@
+import type { BatchItem } from "@trigger.dev/sdk";
 import { tasks } from "@trigger.dev/sdk";
 import { z } from "zod/v4";
 
@@ -13,7 +14,10 @@ export const triggerIngestionJobBodySchema = z.object({
 });
 export const triggerIngestionJob = (
   body: z.infer<typeof triggerIngestionJobBodySchema>,
-) => tasks.trigger(TRIGGER_INGESTION_JOB_ID, body);
+) =>
+  tasks.trigger(TRIGGER_INGESTION_JOB_ID, body, {
+    tags: [`job_${body.jobId}`],
+  });
 
 export const TRIGGER_DOCUMENT_JOB_ID = "trigger-document-job";
 export const triggerDocumentJobBodySchema = z.object({
@@ -35,9 +39,6 @@ export const triggerDocumentJobBodySchema = z.object({
   }),
   cleanup: z.boolean().optional(),
 });
-export const triggerDocumentJob = (
-  body: z.infer<typeof triggerDocumentJobBodySchema>,
-) => tasks.trigger(TRIGGER_DOCUMENT_JOB_ID, body);
 
 export const DELETE_DOCUMENT_JOB_ID = "delete-document-job";
 export const deleteDocumentBodySchema = z.object({
@@ -45,7 +46,10 @@ export const deleteDocumentBodySchema = z.object({
 });
 export const triggerDeleteDocument = (
   body: z.infer<typeof deleteDocumentBodySchema>,
-) => tasks.trigger(DELETE_DOCUMENT_JOB_ID, body);
+) =>
+  tasks.trigger(DELETE_DOCUMENT_JOB_ID, body, {
+    tags: [`doc_${body.documentId}`],
+  });
 
 export const DELETE_INGEST_JOB_ID = "delete-ingest-job";
 export const deleteIngestJobBodySchema = z.object({
@@ -53,7 +57,7 @@ export const deleteIngestJobBodySchema = z.object({
 });
 export const triggerDeleteIngestJob = (
   body: z.infer<typeof deleteIngestJobBodySchema>,
-) => tasks.trigger(DELETE_INGEST_JOB_ID, body);
+) => tasks.trigger(DELETE_INGEST_JOB_ID, body, { tags: [`job_${body.jobId}`] });
 
 export const DELETE_NAMESPACE_JOB_ID = "delete-namespace-job";
 export const deleteNamespaceBodySchema = z.object({
@@ -61,7 +65,10 @@ export const deleteNamespaceBodySchema = z.object({
 });
 export const triggerDeleteNamespace = (
   body: z.infer<typeof deleteNamespaceBodySchema>,
-) => tasks.trigger(DELETE_NAMESPACE_JOB_ID, body);
+) =>
+  tasks.trigger(DELETE_NAMESPACE_JOB_ID, body, {
+    tags: [`ns_${body.namespaceId}`],
+  });
 
 export const DELETE_ORGANIZATION_JOB_ID = "delete-organization-job";
 export const deleteOrganizationBodySchema = z.object({
@@ -69,7 +76,10 @@ export const deleteOrganizationBodySchema = z.object({
 });
 export const triggerDeleteOrganization = (
   body: z.infer<typeof deleteOrganizationBodySchema>,
-) => tasks.trigger(DELETE_ORGANIZATION_JOB_ID, body);
+) =>
+  tasks.trigger(DELETE_ORGANIZATION_JOB_ID, body, {
+    tags: [`org_${body.organizationId}`],
+  });
 
 export const METER_ORG_DOCUMENTS_JOB_ID = "meter-org-documents-job";
 export const meterOrgDocumentsBodySchema = z.object({
@@ -77,7 +87,11 @@ export const meterOrgDocumentsBodySchema = z.object({
 });
 export const triggerMeterOrgDocuments = (
   body: z.infer<typeof meterOrgDocumentsBodySchema>,
-) => tasks.trigger(METER_ORG_DOCUMENTS_JOB_ID, body);
+) =>
+  tasks.trigger(METER_ORG_DOCUMENTS_JOB_ID, body, {
+    tags: [`org_${body.organizationId}`],
+  });
+
 export const triggerMeterOrgDocumentsBatch = (
   body: z.infer<typeof meterOrgDocumentsBodySchema>[],
 ) =>
@@ -85,7 +99,10 @@ export const triggerMeterOrgDocumentsBatch = (
     METER_ORG_DOCUMENTS_JOB_ID,
     body.map((b) => ({
       payload: b,
-    })),
+      options: {
+        tags: [`org_${b.organizationId}`],
+      },
+    })) satisfies BatchItem<z.infer<typeof meterOrgDocumentsBodySchema>>[],
   );
 
 export const RE_INGEST_JOB_ID = "re-ingest-job";
@@ -94,4 +111,4 @@ export const reIngestJobBodySchema = z.object({
 });
 export const triggerReIngestJob = (
   body: z.infer<typeof reIngestJobBodySchema>,
-) => tasks.trigger(RE_INGEST_JOB_ID, body);
+) => tasks.trigger(RE_INGEST_JOB_ID, body, { tags: [`job_${body.jobId}`] });

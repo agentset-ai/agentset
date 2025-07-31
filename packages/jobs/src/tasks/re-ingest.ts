@@ -107,6 +107,9 @@ export const reIngestJob = schemaTask({
             cleanup: true, // Enable cleanup for re-processing
             ingestJob,
           },
+          options: {
+            tags: [`doc_${document.id}`],
+          },
         })),
       );
 

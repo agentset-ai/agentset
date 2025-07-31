@@ -52,6 +52,9 @@ export const deleteOrganization = schemaTask({
             payload: {
               namespaceId: namespace.id,
             },
+            options: {
+              tags: [`ns_${namespace.id}`],
+            },
           })),
         );
       }

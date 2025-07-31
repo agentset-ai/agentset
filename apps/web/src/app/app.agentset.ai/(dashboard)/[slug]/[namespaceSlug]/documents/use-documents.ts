@@ -15,9 +15,15 @@ const statusLabels = Object.values(DocumentStatus).map((status) => ({
 export function useDocuments(jobId?: string, enabled = true) {
   const { activeNamespace } = useNamespace();
   const trpc = useTRPC();
-  const [statuses, setStatuses] = useState<DocumentStatus[]>([]);
-  const { cursor, cursorDirection, handleNext, handlePrevious, hasPrevious } =
-    useCursorPagination();
+  const [statuses, _setStatuses] = useState<DocumentStatus[]>([]);
+  const {
+    cursor,
+    cursorDirection,
+    handleNext,
+    handlePrevious,
+    hasPrevious,
+    reset,
+  } = useCursorPagination();
 
   const { isLoading, data, refetch, isFetching } = useQuery(
     trpc.document.all.queryOptions(
@@ -34,6 +40,11 @@ export function useDocuments(jobId?: string, enabled = true) {
       },
     ),
   );
+
+  const setStatuses = (statuses: DocumentStatus[]) => {
+    _setStatuses(statuses);
+    reset();
+  };
 
   return {
     isLoading,

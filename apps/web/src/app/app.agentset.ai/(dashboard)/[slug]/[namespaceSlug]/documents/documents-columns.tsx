@@ -20,17 +20,16 @@ export interface DocumentCol {
   id: string;
   status: DocumentStatus;
   name?: Document["name"];
-  source: Document["source"];
   totalChunks: number;
   totalCharacters: number;
   totalTokens: number;
   totalPages: number;
   documentProperties?: Document["documentProperties"];
-  failedAt?: Document["failedAt"];
-  error?: Document["error"];
+  createdAt: Date;
   completedAt?: Document["completedAt"];
   queuedAt?: Document["queuedAt"];
-  createdAt: Date;
+  failedAt?: Document["failedAt"];
+  error?: Document["error"];
 }
 
 const MimeType = ({ mimeType }: { mimeType: string }) => {
@@ -97,14 +96,14 @@ export const documentColumns: ColumnDef<DocumentCol>[] = [
       );
     },
   },
-  {
-    id: "source",
-    header: "Source",
-    accessorKey: "source",
-    cell: ({ row }) => {
-      return <p>{capitalize(row.original.source.type.split("_").join(" "))}</p>;
-    },
-  },
+  // {
+  //   id: "source",
+  //   header: "Source",
+  //   accessorKey: "source",
+  //   cell: ({ row }) => {
+  //     return <p>{capitalize(row.original.source.type.split("_").join(" "))}</p>;
+  //   },
+  // },
   {
     id: "type",
     header: "Type",

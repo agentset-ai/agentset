@@ -59,6 +59,9 @@ export const deleteNamespace = schemaTask({
             payload: {
               jobId: job.id,
             },
+            options: {
+              tags: [`job_${job.id}`],
+            },
           })),
         );
       }

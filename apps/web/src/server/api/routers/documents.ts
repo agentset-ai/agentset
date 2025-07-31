@@ -40,6 +40,21 @@ export const documentsRouter = createTRPCRouter({
             [input.orderBy]: input.order,
           },
         ],
+        select: {
+          id: true,
+          name: true,
+          totalTokens: true,
+          totalChunks: true,
+          totalCharacters: true,
+          totalPages: true,
+          documentProperties: true,
+          createdAt: true,
+          queuedAt: true,
+          completedAt: true,
+          failedAt: true,
+          error: true,
+          status: true,
+        },
         ...getPaginationArgs(input, "doc_"),
       });
 

@@ -15,10 +15,16 @@ const statusLabels = Object.values(IngestJobStatus).map((status) => ({
 export function useJobs() {
   const { activeNamespace } = useNamespace();
   const trpc = useTRPC();
-  const [statuses, setStatuses] = useState<IngestJobStatus[]>([]);
+  const [statuses, _setStatuses] = useState<IngestJobStatus[]>([]);
   const [expandedJobId, setExpandedJobId] = useState<string | null>(null);
-  const { cursor, cursorDirection, handleNext, handlePrevious, hasPrevious } =
-    useCursorPagination();
+  const {
+    cursor,
+    cursorDirection,
+    handleNext,
+    handlePrevious,
+    hasPrevious,
+    reset,
+  } = useCursorPagination();
 
   const { isLoading, data, refetch, isFetching } = useQuery(
     trpc.ingestJob.all.queryOptions(
@@ -31,6 +37,11 @@ export function useJobs() {
       { refetchInterval: 15_000, placeholderData: keepPreviousData }, // Refetch every 15 seconds
     ),
   );
+
+  const setStatuses = (statuses: IngestJobStatus[]) => {
+    _setStatuses(statuses);
+    reset();
+  };
 
   return {
     isLoading,
