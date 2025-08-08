@@ -46,7 +46,7 @@ export const deleteDocument = schemaTask({
     if (!document) {
       return {
         documentId,
-        deleted: false,
+        deleted: false as const,
         reason: "Document not found",
       };
     }
@@ -131,31 +131,16 @@ export const deleteDocument = schemaTask({
     }
 
     // Delete document and update counters
-    await db.$transaction([
-      db.document.delete({
-        where: { id: document.id },
-        select: { id: true },
-      }),
-      db.namespace.update({
-        where: { id: namespace.id },
-        data: {
-          totalDocuments: { decrement: 1 },
-          totalPages: { decrement: document.totalPages },
-          organization: {
-            update: {
-              totalDocuments: { decrement: 1 },
-              totalPages: { decrement: document.totalPages },
-            },
-          },
-        },
-        select: { id: true },
-      }),
-    ]);
+    await db.document.delete({
+      where: { id: document.id },
+      select: { id: true },
+    });
 
     return {
       documentId: document.id,
-      deleted: true,
+      deleted: true as const,
       vectorChunksDeleted: chunkIdsToDelete.length,
+      pagesDeleted: document.totalPages,
     };
   },
 });

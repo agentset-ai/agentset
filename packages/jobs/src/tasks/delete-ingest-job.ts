@@ -59,6 +59,9 @@ export const deleteIngestJob = schemaTask({
       select: { id: true },
     });
 
+    let deletedDocuments = 0;
+    let deletedPages = 0;
+
     // Trigger document deletion tasks (parent-child pattern)
     if (documents.length > 0) {
       // Update document statuses to deleting
@@ -71,7 +74,7 @@ export const deleteIngestJob = schemaTask({
       const batches = chunkArray(documents, BATCH_SIZE);
 
       for (const batch of batches) {
-        await deleteDocument.batchTriggerAndWait(
+        const results = await deleteDocument.batchTriggerAndWait(
           batch.map((document) => ({
             payload: {
               documentId: document.id,
@@ -81,6 +84,13 @@ export const deleteIngestJob = schemaTask({
             },
           })),
         );
+
+        for (const result of results.runs) {
+          if (result.ok && result.output.deleted) {
+            deletedDocuments++;
+            deletedPages += result.output.pagesDeleted;
+          }
+        }
       }
     }
 
@@ -92,12 +102,24 @@ export const deleteIngestJob = schemaTask({
       db.namespace.update({
         where: { id: ingestJob.namespaceId },
         data: {
+          ...(deletedDocuments > 0 && {
+            totalDocuments: { decrement: deletedDocuments },
+          }),
+          ...(deletedPages > 0 && {
+            totalPages: { decrement: deletedPages },
+          }),
           totalIngestJobs: {
             decrement: 1,
           },
           organization: {
             update: {
               totalIngestJobs: { decrement: 1 },
+              ...(deletedDocuments > 0 && {
+                totalDocuments: { decrement: deletedDocuments },
+              }),
+              ...(deletedPages > 0 && {
+                totalPages: { decrement: deletedPages },
+              }),
             },
           },
         },
