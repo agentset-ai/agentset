@@ -16,6 +16,9 @@ export const reIngestJob = schemaTask({
   queue: {
     concurrencyLimit: 90,
   },
+  retry: {
+    maxAttempts: 1,
+  },
   schema: reIngestJobBodySchema,
   onFailure: async ({ payload, error }) => {
     const db = getDb();

@@ -19,6 +19,9 @@ export const ingestJob = schemaTask({
   queue: {
     concurrencyLimit: 90,
   },
+  retry: {
+    maxAttempts: 1,
+  },
   schema: triggerIngestionJobBodySchema,
   onFailure: async ({ payload, error }) => {
     const db = getDb();

@@ -30,6 +30,9 @@ export const processDocument = schemaTask({
   queue: {
     concurrencyLimit: 95,
   },
+  retry: {
+    maxAttempts: 1,
+  },
   schema: triggerDocumentJobBodySchema,
   onFailure: async ({ payload, error }) => {
     const db = getDb();
