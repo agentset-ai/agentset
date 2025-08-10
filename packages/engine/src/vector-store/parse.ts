@@ -7,7 +7,7 @@ import type { Namespace } from "@agentset/db";
 import { filterFalsy } from "@agentset/utils";
 
 import { getNamespaceEmbeddingModel } from "../embedding";
-import { rerankResults } from "../rerank/cohere";
+import { CohereReranker } from "../rerank/cohere";
 import { getNamespaceVectorStore } from "./index";
 
 type Result = {
@@ -107,7 +107,8 @@ export const queryVectorStore = async (
   // If re-ranking is enabled and we have a query, perform reranking
   let rerankedResults: typeof parsedResults | null = null;
   if (options.rerank) {
-    rerankedResults = await rerankResults(parsedResults, {
+    const reranker = new CohereReranker();
+    rerankedResults = await reranker.rerank(parsedResults, {
       limit: options.rerankLimit || options.topK,
       query: options.query,
     });

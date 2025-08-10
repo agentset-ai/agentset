@@ -14,7 +14,7 @@ export const deleteDocument = schemaTask({
   id: DELETE_DOCUMENT_JOB_ID,
   maxDuration: 60 * 30, // 30 minutes
   queue: {
-    concurrencyLimit: 50,
+    concurrencyLimit: 90,
   },
   schema: deleteDocumentBodySchema,
   run: async ({ documentId }) => {
