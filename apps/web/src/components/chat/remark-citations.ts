@@ -7,7 +7,7 @@ interface CitationNode {
   value: string;
   citationNumber: number;
   data: {
-    hName: "span";
+    hName: "citation";
     hProperties: {
       className: string;
       "data-citation": number;
@@ -49,7 +49,7 @@ const remarkCitations: Plugin<[], Root> = () => {
           value: match[0],
           citationNumber,
           data: {
-            hName: "span",
+            hName: "citation",
             hProperties: {
               className: "cursor-pointer text-blue-500 hover:underline",
               "data-citation": citationNumber,

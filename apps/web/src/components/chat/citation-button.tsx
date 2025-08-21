@@ -4,13 +4,11 @@ import { CitationModal } from "./citation-modal";
 
 export const CitationButton = ({
   annotations,
-  node: _,
   ...props
 }: {
   children?: React.ReactNode;
   annotations?: Array<Record<string, unknown>>;
   "data-citation"?: number;
-  node?: any;
   className?: string;
 }) => {
   if (!props.children) return null;
