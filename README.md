@@ -36,7 +36,8 @@ Agentset is the open-source RAG platform for developers.
 - [TypeScript](https://www.typescriptlang.org/) – language
 - [Tailwind](https://tailwindcss.com/) – CSS
 - [Shadcn/ui](https://ui.shadcn.com/) – components
-- [Upstash](https://upstash.com/) – redis, workflows
+- [Upstash](https://upstash.com/) - redis
+- [Trigger.dev](https://trigger.dev/) - background jobs
 - [Supabase](https://supabase.com/) – database
 - [Prisma](https://prisma.io/) - orm
 - [BetterAuth](https://better-auth.com/) – auth
