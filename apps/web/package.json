@@ -8,8 +8,6 @@
     "clean": "git clean -xdf .cache .next .turbo node_modules",
     "check": "pnpm lint && tsc --noEmit",
     "dev": "pnpm with-env next dev --turbopack",
-    "test": "vitest",
-    "test:watch": "vitest --watch",
     "format": "prettier --check . --ignore-path ../../.gitignore",
     "lint": "eslint",
     "lint:fix": "pnpm lint --fix",
@@ -71,9 +69,8 @@
     "@agentset/eslint-config": "workspace:*",
     "@agentset/prettier-config": "workspace:*",
     "@agentset/tsconfig": "workspace:*",
-    "@prisma/nextjs-monorepo-workaround-plugin": "^6.12.0",
-    "@tailwindcss/postcss": "^4.0.12",
-    "@types/humps": "^2.0.6",
+    "@prisma/nextjs-monorepo-workaround-plugin": "^6.14.0",
+    "@tailwindcss/postcss": "^4.1.12",
     "@types/node": "^22.10.10",
     "@types/react": "catalog:react19",
     "@types/react-dom": "catalog:react19",
@@ -83,8 +80,7 @@
     "prettier": "catalog:",
     "tailwindcss": "catalog:",
     "tsx": "^4.19.3",
-    "typescript": "catalog:",
-    "vitest": "^3.0.9"
+    "typescript": "catalog:"
   },
   "prettier": "@agentset/prettier-config"
 }
