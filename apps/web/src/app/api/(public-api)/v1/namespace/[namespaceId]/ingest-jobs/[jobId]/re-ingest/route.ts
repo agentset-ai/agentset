@@ -2,7 +2,6 @@ import { AgentsetApiError } from "@/lib/api/errors";
 import { withNamespaceApiHandler } from "@/lib/api/handler";
 import { normalizeId, prefixId } from "@/lib/api/ids";
 import { makeApiSuccessResponse } from "@/lib/api/response";
-import { IngestJobSchema } from "@/schemas/api/ingest-job";
 
 import { db, IngestJobStatus } from "@agentset/db";
 import { triggerReIngestJob } from "@agentset/jobs";
@@ -59,21 +58,22 @@ export const POST = withNamespaceApiHandler(
       jobId: ingestJob.id,
     });
 
-    const data = await db.ingestJob.update({
+    await db.ingestJob.update({
       where: { id: ingestJob.id },
       data: {
         status: IngestJobStatus.QUEUED_FOR_RESYNC,
         queuedAt: new Date(),
         workflowRunsIds: { push: handle.id },
       },
+      select: {
+        id: true,
+      },
     });
 
     return makeApiSuccessResponse({
-      data: IngestJobSchema.parse({
-        ...data,
-        id: prefixId(data.id, "job_"),
-        namespaceId: prefixId(data.namespaceId, "ns_"),
-      }),
+      data: {
+        id: prefixId(ingestJob.id, "job_"),
+      },
       headers,
     });
   },
