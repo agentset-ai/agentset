@@ -28,7 +28,7 @@ export const processDocument = schemaTask({
   id: TRIGGER_DOCUMENT_JOB_ID,
   maxDuration: 60 * 60, // 1 hour
   queue: {
-    concurrencyLimit: 95,
+    concurrencyLimit: 90,
   },
   retry: {
     maxAttempts: 1,
@@ -222,6 +222,7 @@ export const processDocument = schemaTask({
       const results = await embedMany({
         model: embeddingModel,
         values: chunkBatch.map((chunk) => chunk.text),
+        maxRetries: 5,
       });
 
       const nodes = chunkBatch.map((chunk, idx) =>
