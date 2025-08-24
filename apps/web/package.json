@@ -50,6 +50,7 @@
     "file-type": "^21.0.0",
     "framer-motion": "^12.4.10",
     "next": "15.3.2",
+    "posthog-js": "^1.260.1",
     "react": "catalog:react19",
     "react-dom": "catalog:react19",
     "resend": "^4.1.2",

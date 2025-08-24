@@ -1,5 +1,7 @@
+import { useEffect } from "react";
 import { authClient } from "@/lib/auth-client";
 import { useQuery } from "@tanstack/react-query";
+import posthog from "posthog-js";
 
 export function useSession() {
   const {
@@ -13,6 +15,15 @@ export function useSession() {
     refetchOnWindowFocus: false,
     staleTime: Infinity,
   });
+
+  useEffect(() => {
+    if (session?.user) {
+      posthog.identify(session.user.id, {
+        email: session.user.email,
+        name: session.user.name,
+      });
+    }
+  }, [session]);
 
   const isAdmin = session?.user.role === "admin";
 
