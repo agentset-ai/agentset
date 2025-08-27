@@ -1,4 +1,4 @@
-import { useNamespace } from "@/contexts/namespace-context";
+import { useNamespace } from "@/hooks/use-namespace";
 import { useChat } from "@ai-sdk/react";
 import { toast } from "sonner";
 import { useShallow } from "zustand/react/shallow";
@@ -6,14 +6,14 @@ import { useShallow } from "zustand/react/shallow";
 import { useChatSettings } from "./chat-settings.store";
 
 export function useNamespaceChat() {
-  const { activeNamespace } = useNamespace();
+  const namespace = useNamespace();
   const settings = useChatSettings(
-    useShallow((s) => s.getNamespace(activeNamespace.id)),
+    useShallow((s) => s.getNamespace(namespace.id)),
   );
 
   return useChat({
     id: "chat",
-    api: `/api/chat?namespaceId=${activeNamespace.id}`,
+    api: `/api/chat?namespaceId=${namespace.id}`,
     body: {
       topK: settings.topK,
       rerank: true,

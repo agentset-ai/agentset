@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import { useNamespace } from "@/contexts/namespace-context";
+import { useNamespace } from "@/hooks/use-namespace";
 import { useTRPC } from "@/trpc/react";
 import { useQuery } from "@tanstack/react-query";
 
@@ -15,12 +15,12 @@ import {
 export function ConfigModal({ jobId }: { jobId: string }) {
   const [open, setOpen] = useState(false);
   const trpc = useTRPC();
-  const { activeNamespace } = useNamespace();
+  const namespace = useNamespace();
   const { data: config, isLoading } = useQuery({
     ...trpc.ingestJob.getConfig.queryOptions(
       {
         jobId,
-        namespaceId: activeNamespace.id,
+        namespaceId: namespace.id,
       },
       { enabled: open },
     ),

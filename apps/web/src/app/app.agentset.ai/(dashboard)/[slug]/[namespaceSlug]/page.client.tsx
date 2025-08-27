@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { useNamespace } from "@/contexts/namespace-context";
+import { useNamespace } from "@/hooks/use-namespace";
 import { prefixId } from "@/lib/api/ids";
 import { formatNumber } from "@/lib/utils";
 
@@ -14,6 +14,7 @@ import {
   CardHeader,
   CopyButton,
   Separator,
+  Skeleton,
 } from "@agentset/ui";
 
 const SensitiveInfo = ({ info }: { info: unknown }) => {
@@ -45,13 +46,49 @@ const SensitiveInfo = ({ info }: { info: unknown }) => {
 };
 
 export default function NamespacePage() {
-  const { activeNamespace } = useNamespace();
-  const id = prefixId(activeNamespace.id, "ns_");
+  const namespace = useNamespace();
+
+  if (namespace.isLoading) {
+    return (
+      <div className="flex h-full flex-col space-y-6">
+        <div className="flex items-center gap-5">
+          <Skeleton className="h-8 w-48" />
+          <Skeleton className="h-12 w-32" />
+        </div>
+
+        <div className="mt-5 grid grid-cols-3 gap-4">
+          {Array.from({ length: 3 }).map((_, i) => (
+            <div key={i} className="gap-0">
+              <div className="p-6">
+                <Skeleton className="mb-2 h-4 w-24" />
+              </div>
+              <div className="p-6 pt-0">
+                <Skeleton className="h-8 w-16" />
+              </div>
+            </div>
+          ))}
+        </div>
+
+        <div className="mt-10 flex flex-col gap-10">
+          <div>
+            <Skeleton className="mb-2 h-6 w-32" />
+            <Skeleton className="h-20 w-full" />
+          </div>
+          <div>
+            <Skeleton className="mb-2 h-6 w-24" />
+            <Skeleton className="h-20 w-full" />
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  const id = prefixId(namespace.id, "ns_");
 
   return (
     <>
       <div className="flex items-center gap-5">
-        <h3 className="text-xl font-bold">{activeNamespace.name}</h3>
+        <h3 className="text-xl font-bold">{namespace.name}</h3>
         <pre className="bg-muted relative rounded-md px-3 py-2 pr-10 text-sm">
           {id}
           <CopyButton
@@ -68,7 +105,7 @@ export default function NamespacePage() {
           </CardHeader>
           <CardContent>
             <p className="text-2xl font-bold tabular-nums">
-              {formatNumber(activeNamespace.totalIngestJobs)}
+              {formatNumber(namespace.totalIngestJobs ?? 0)}
             </p>
           </CardContent>
         </Card>
@@ -79,7 +116,7 @@ export default function NamespacePage() {
           </CardHeader>
           <CardContent>
             <p className="text-2xl font-bold tabular-nums">
-              {formatNumber(activeNamespace.totalDocuments)}
+              {formatNumber(namespace.totalDocuments ?? 0)}
             </p>
           </CardContent>
         </Card>
@@ -90,7 +127,7 @@ export default function NamespacePage() {
           </CardHeader>
           <CardContent>
             <p className="text-2xl font-bold tabular-nums">
-              {formatNumber(activeNamespace.totalPages)}
+              {formatNumber(namespace.totalPages ?? 0)}
             </p>
           </CardContent>
         </Card>
@@ -101,8 +138,8 @@ export default function NamespacePage() {
           <h2 className="text-lg font-medium">Vector Store</h2>
           <Separator className="my-2" />
 
-          {activeNamespace.vectorStoreConfig ? (
-            <SensitiveInfo info={activeNamespace.vectorStoreConfig} />
+          {namespace.vectorStoreConfig ? (
+            <SensitiveInfo info={namespace.vectorStoreConfig} />
           ) : (
             <p className="text-muted-foreground">
               No vector store configured for this namespace. Using default
@@ -114,8 +151,8 @@ export default function NamespacePage() {
         <div>
           <h2 className="text-lg font-medium">Embedding</h2>
           <Separator className="my-2" />
-          {activeNamespace.embeddingConfig ? (
-            <SensitiveInfo info={activeNamespace.embeddingConfig} />
+          {namespace.embeddingConfig ? (
+            <SensitiveInfo info={namespace.embeddingConfig} />
           ) : (
             <p className="text-muted-foreground">
               No embedding configured for this namespace. Using default
@@ -124,7 +161,7 @@ export default function NamespacePage() {
           )}
         </div>
 
-        {activeNamespace.keywordEnabled && (
+        {namespace.keywordEnabled && (
           <div>
             <h2 className="text-lg font-medium">Keyword And Hybrid Search</h2>
             <Separator className="my-2" />
@@ -133,17 +170,17 @@ export default function NamespacePage() {
         )}
 
         {/* <div >
-          <h2 className="text-lg font-medium">File Store</h2>
-          <Separator className="my-2" />
-          {activeNamespace.fileStoreConfig ? (
-            <SensitiveInfo info={activeNamespace.fileStoreConfig} />
-          ) : (
-            <p className="text-muted-foreground">
-              No file store configured for this namespace. Using default file
-              store.
-            </p>
-          )}
-        </div> */}
+                <h2 className="text-lg font-medium">File Store</h2>
+                <Separator className="my-2" />
+                {activeNamespace.fileStoreConfig ? (
+                  <SensitiveInfo info={activeNamespace.fileStoreConfig} />
+                ) : (
+                  <p className="text-muted-foreground">
+                    No file store configured for this namespace. Using default file
+                    store.
+                  </p>
+                )}
+              </div> */}
       </div>
     </>
   );

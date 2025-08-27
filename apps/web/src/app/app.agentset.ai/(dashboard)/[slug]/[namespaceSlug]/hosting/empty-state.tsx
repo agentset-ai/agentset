@@ -1,4 +1,4 @@
-import { useNamespace } from "@/contexts/namespace-context";
+import { useNamespace } from "@/hooks/use-namespace";
 import { useTRPC } from "@/trpc/react";
 
 import {
@@ -16,7 +16,7 @@ import { GlobeIcon, LockIcon, PaintbrushIcon } from "lucide-react";
 import { toast } from "sonner";
 
 export function EmptyState() {
-  const { activeNamespace } = useNamespace();
+  const namespace = useNamespace();
 
   const trpc = useTRPC();
   const queryClient = useQueryClient();
@@ -25,7 +25,7 @@ export function EmptyState() {
       onSuccess: (hosting) => {
         toast.success("Hosting enabled successfully");
         queryClient.setQueryData(
-          trpc.hosting.get.queryKey({ namespaceId: activeNamespace.id }),
+          trpc.hosting.get.queryKey({ namespaceId: namespace.id }),
           () => {
             return { ...hosting, domain: null };
           },
@@ -39,7 +39,7 @@ export function EmptyState() {
 
   const handleSubmit = () => {
     enableHosting({
-      namespaceId: activeNamespace.id,
+      namespaceId: namespace.id,
     });
   };
 

@@ -38,6 +38,41 @@ export const organizationsRouter = createTRPCRouter({
 
     return orgs;
   }),
+  getBySlug: protectedProcedure
+    .input(z.object({ slug: z.string() }))
+    .query(async ({ ctx, input }) => {
+      const org = await ctx.db.organization.findUnique({
+        where: {
+          slug: input.slug,
+          members: {
+            some: {
+              userId: ctx.session.user.id,
+            },
+          },
+        },
+        include: {
+          members: {
+            where: {
+              userId: ctx.session.user.id,
+            },
+            take: 1,
+            select: {
+              role: true,
+            },
+          },
+        },
+      });
+
+      if (!org) {
+        throw new TRPCError({ code: "NOT_FOUND" });
+      }
+
+      const { members } = org;
+      const isAdmin =
+        members[0]?.role === "admin" || members[0]?.role === "owner";
+
+      return { ...org, isAdmin };
+    }),
   members: protectedProcedure
     .input(
       z.object({

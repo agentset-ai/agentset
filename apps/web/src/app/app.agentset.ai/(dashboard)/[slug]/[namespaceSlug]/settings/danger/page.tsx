@@ -7,7 +7,7 @@ export const metadata = constructMetadata({ title: "Danger" });
 
 export default function DangerSettingsPage() {
   return (
-    <DashboardPageWrapper title="Danger">
+    <DashboardPageWrapper title="Danger" requireNamespace>
       <div className="flex flex-col gap-1">
         <h2 className="text-lg font-medium">Delete Namespace</h2>
         <p className="text-muted-foreground text-sm">

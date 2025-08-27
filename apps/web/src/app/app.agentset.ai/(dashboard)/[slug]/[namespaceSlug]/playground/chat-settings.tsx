@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useChatSettings } from "@/components/chat/chat-settings.store";
-import { useNamespace } from "@/contexts/namespace-context";
+import { useNamespace } from "@/hooks/use-namespace";
 import { DEFAULT_SYSTEM_PROMPT } from "@/lib/prompts";
 import { Settings2Icon } from "lucide-react";
 import { toast } from "sonner";
@@ -22,10 +22,10 @@ import {
 const defaultPrompt = DEFAULT_SYSTEM_PROMPT.compile().trim();
 
 export default function ChatSettings() {
-  const { activeNamespace } = useNamespace();
+  const namespace = useNamespace();
   const [open, setOpen] = useState(false);
   const store = useChatSettings();
-  const currentState = store.getNamespace(activeNamespace.id);
+  const currentState = store.getNamespace(namespace.id);
 
   const [topK, setTopK] = useState(currentState.topK);
   const [rerankLimit, setRerankLimit] = useState(currentState.rerankLimit);
@@ -41,28 +41,28 @@ export default function ChatSettings() {
     }
 
     if (topK !== currentState.topK) {
-      store.setTopK(activeNamespace.id, topK);
+      store.setTopK(namespace.id, topK);
     }
     if (rerankLimit !== currentState.rerankLimit) {
-      store.setRerankLimit(activeNamespace.id, rerankLimit);
+      store.setRerankLimit(namespace.id, rerankLimit);
     }
 
     if (systemPrompt !== currentState.systemPrompt) {
       store.setSystemPrompt(
-        activeNamespace.id,
+        namespace.id,
         systemPrompt && systemPrompt !== "" ? systemPrompt : null,
       );
     }
 
     if (temperature !== currentState.temperature) {
-      store.setTemperature(activeNamespace.id, temperature);
+      store.setTemperature(namespace.id, temperature);
     }
 
     setOpen(false);
   };
 
   const handleReset = () => {
-    const newState = store.reset(activeNamespace.id);
+    const newState = store.reset(namespace.id);
     setTopK(newState.topK);
     setRerankLimit(newState.rerankLimit);
     setSystemPrompt(newState.systemPrompt);

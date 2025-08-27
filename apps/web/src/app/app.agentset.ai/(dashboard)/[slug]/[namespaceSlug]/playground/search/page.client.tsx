@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import SearchChunk from "@/components/search-chunk";
-import { useNamespace } from "@/contexts/namespace-context";
+import { useNamespace } from "@/hooks/use-namespace";
 import { useTRPC } from "@/trpc/react";
 import { useQuery } from "@tanstack/react-query";
 import { SearchIcon } from "lucide-react";
@@ -10,7 +10,7 @@ import { SearchIcon } from "lucide-react";
 import { Button, EmptyState, Input, Skeleton } from "@agentset/ui";
 
 export default function SearchPageClient() {
-  const { activeNamespace } = useNamespace();
+  const namespace = useNamespace();
   const [query, setQuery] = useState("");
   const [searchQuery, setSearchQuery] = useState("");
   const trpc = useTRPC();
@@ -18,7 +18,7 @@ export default function SearchPageClient() {
   const { data, isLoading, isFetching } = useQuery(
     trpc.search.search.queryOptions(
       {
-        namespaceId: activeNamespace.id,
+        namespaceId: namespace.id,
         query: searchQuery,
       },
       {

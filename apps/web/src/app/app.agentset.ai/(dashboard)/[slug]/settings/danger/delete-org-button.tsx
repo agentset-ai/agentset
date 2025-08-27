@@ -1,7 +1,7 @@
 "use client";
 
 import { DeleteConfirmation } from "@/components/delete-confirmation";
-import { useOrganization } from "@/contexts/organization-context";
+import { useOrganization } from "@/hooks/use-organization";
 import { useTRPC } from "@/trpc/react";
 import { useRouter } from "@bprogress/next/app";
 import { useMutation } from "@tanstack/react-query";
@@ -10,7 +10,7 @@ import { toast } from "sonner";
 import { Button } from "@agentset/ui";
 
 export function DeleteOrgButton() {
-  const { activeOrganization, isAdmin } = useOrganization();
+  const organization = useOrganization();
   const router = useRouter();
   const trpc = useTRPC();
   const { mutate: deleteOrganization, isPending } = useMutation(
@@ -25,16 +25,14 @@ export function DeleteOrgButton() {
     }),
   );
 
-  if (!isAdmin) return null;
+  if (!organization.isAdmin) return null;
 
   return (
     <DeleteConfirmation
       title="Delete Organization"
       description="Are you sure you want to delete this organization? This action cannot be undone."
-      confirmText={activeOrganization.name}
-      onConfirm={() =>
-        deleteOrganization({ organizationId: activeOrganization.id })
-      }
+      confirmText={organization.name}
+      onConfirm={() => deleteOrganization({ organizationId: organization.id })}
       trigger={
         <Button variant="destructive" isLoading={isPending}>
           Delete

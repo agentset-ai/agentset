@@ -1,5 +1,5 @@
 import { useEffect } from "react";
-import { useNamespace } from "@/contexts/namespace-context";
+import { useNamespace } from "@/hooks/use-namespace";
 import { useUploadFiles } from "@/hooks/use-upload";
 import { useTRPC } from "@/trpc/react";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -36,7 +36,7 @@ const schema = z
   .extend(configSchema.shape);
 
 export default function UploadForm({ onSuccess }: { onSuccess: () => void }) {
-  const { activeNamespace } = useNamespace();
+  const namespace = useNamespace();
   const trpc = useTRPC();
 
   const form = useForm({
@@ -57,7 +57,7 @@ export default function UploadForm({ onSuccess }: { onSuccess: () => void }) {
   }, [files, setValue]);
 
   const { onUpload, progresses, isUploading } = useUploadFiles({
-    namespaceId: activeNamespace.id,
+    namespaceId: namespace.id,
   });
 
   const { mutateAsync, isPending: isFilePending } = useMutation(
@@ -71,7 +71,7 @@ export default function UploadForm({ onSuccess }: { onSuccess: () => void }) {
     if (uploadedFiles.length === 0) return;
 
     await mutateAsync({
-      namespaceId: activeNamespace.id,
+      namespaceId: namespace.id,
       name: data.name,
       payload: {
         type: "BATCH",

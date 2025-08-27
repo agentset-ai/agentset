@@ -1,5 +1,5 @@
 import { memo } from "react";
-import { useNamespace } from "@/contexts/namespace-context";
+import { useNamespace } from "@/hooks/use-namespace";
 import { useSession } from "@/hooks/use-session";
 import { BoxIcon, TelescopeIcon } from "lucide-react";
 import { useShallow } from "zustand/react/shallow";
@@ -11,12 +11,12 @@ import { useChatSettings } from "./chat-settings.store";
 const ChatInputModes = memo(() => {
   const { isAdmin } = useSession();
 
-  const { activeNamespace } = useNamespace();
+  const namespace = useNamespace();
   const settings = useChatSettings(
     useShallow((s) => {
-      const namespace = s.getNamespace(activeNamespace.id);
+      const namespaceSettings = s.getNamespace(namespace.id);
       return {
-        mode: namespace.mode,
+        mode: namespaceSettings.mode,
         setMode: s.setMode,
       };
     }),
@@ -25,10 +25,7 @@ const ChatInputModes = memo(() => {
   const currentMode = settings.mode ?? "normal";
 
   const toggleMode = (mode: typeof currentMode) => {
-    settings.setMode(
-      activeNamespace.id,
-      mode === currentMode ? "normal" : mode,
-    );
+    settings.setMode(namespace.id, mode === currentMode ? "normal" : mode);
   };
 
   return (

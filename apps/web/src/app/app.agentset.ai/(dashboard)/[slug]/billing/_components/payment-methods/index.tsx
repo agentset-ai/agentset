@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useOrganization } from "@/contexts/organization-context";
+import { useOrganization } from "@/hooks/use-organization";
 import { useTRPC } from "@/trpc/react";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { CreditCardIcon } from "lucide-react";
@@ -24,8 +24,8 @@ import {
 import { PaymentMethodTypesList } from "./payment-methods-types";
 
 export default function PaymentMethods() {
-  const { activeOrganization } = useOrganization();
-  if (activeOrganization.plan === "free") {
+  const organization = useOrganization();
+  if (organization.plan === "free") {
     return null;
   }
 
@@ -34,12 +34,12 @@ export default function PaymentMethods() {
 
 function PaymentMethodsInner() {
   const router = useRouter();
-  const { activeOrganization } = useOrganization();
+  const organization = useOrganization();
   const trpc = useTRPC();
 
   const { data: paymentMethods, isLoading } = useQuery(
     trpc.billing.getPaymentMethods.queryOptions({
-      orgId: activeOrganization.id,
+      orgId: organization.id,
     }),
   );
 
@@ -56,7 +56,7 @@ function PaymentMethodsInner() {
   );
 
   const managePaymentMethods = async () => {
-    const url = await addPaymentMethod({ orgId: activeOrganization.id });
+    const url = await addPaymentMethod({ orgId: organization.id });
     if (url) {
       router.push(url);
     }
@@ -72,7 +72,7 @@ function PaymentMethodsInner() {
           </p>
         </div>
 
-        {activeOrganization.stripeId && (
+        {organization.stripeId && (
           <Button
             variant="ghost"
             onClick={() => managePaymentMethods()}

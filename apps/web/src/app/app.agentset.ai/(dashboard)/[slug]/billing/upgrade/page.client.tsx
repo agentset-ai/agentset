@@ -2,8 +2,8 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { useOrganization } from "@/contexts/organization-context";
 import { useCal } from "@/hooks/use-cal";
+import { useOrganization } from "@/hooks/use-organization";
 import { ChevronLeftIcon } from "lucide-react";
 
 import {
@@ -19,8 +19,8 @@ import PlanCard from "./plan-card";
 const plans = [FREE_PLAN, PRO_PLAN, ENTERPRISE_PLAN];
 
 export default function OrganizationBillingUpgradePageClient() {
-  const { activeOrganization } = useOrganization();
-  const { plan: currentPlan } = activeOrganization;
+  const organization = useOrganization();
+  const { plan: currentPlan } = organization;
   const [period, setPeriod] = useState<"monthly" | "yearly">("yearly");
 
   const { buttonProps } = useCal();
@@ -29,7 +29,7 @@ export default function OrganizationBillingUpgradePageClient() {
     <div>
       <div className="flex items-center justify-between gap-4">
         <Link
-          href={`/${activeOrganization.slug}/billing`}
+          href={`/${organization.slug}/billing`}
           title="Back to billing"
           className="group flex items-center gap-2"
         >

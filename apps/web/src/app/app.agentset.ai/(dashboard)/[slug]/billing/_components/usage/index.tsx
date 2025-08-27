@@ -2,7 +2,7 @@
 
 import { useMemo } from "react";
 import Link from "next/link";
-import { useOrganization } from "@/contexts/organization-context";
+import { useOrganization } from "@/hooks/use-organization";
 import { getFirstAndLastDay } from "@/lib/datetime";
 import { capitalize } from "@/lib/string-utils";
 import { formatNumber } from "@/lib/utils";
@@ -29,12 +29,12 @@ import { INFINITY_NUMBER } from "@agentset/utils";
 import SubscriptionMenu from "./subscription-menu";
 
 export default function PlanUsage() {
-  const { activeOrganization } = useOrganization();
+  const organization = useOrganization();
 
   const [billingStart, billingEnd] = useMemo(() => {
-    if (activeOrganization.billingCycleStart) {
+    if (organization.billingCycleStart) {
       const { firstDay, lastDay } = getFirstAndLastDay(
-        activeOrganization.billingCycleStart,
+        organization.billingCycleStart,
       );
       const start = firstDay.toLocaleDateString("en-us", {
         month: "short",
@@ -50,14 +50,14 @@ export default function PlanUsage() {
     }
 
     return [];
-  }, [activeOrganization.billingCycleStart]);
+  }, [organization.billingCycleStart]);
 
   return (
     <div>
       <div className="flex flex-col items-start justify-between gap-y-4 lg:flex-row">
         <div>
           <h2 className="text-xl font-medium">
-            {capitalize(activeOrganization.plan)} Plan
+            {capitalize(organization.plan)} Plan
           </h2>
           {billingStart && billingEnd && (
             <p className="text-muted-foreground mt-1 text-sm font-medium text-balance">
@@ -69,20 +69,21 @@ export default function PlanUsage() {
           )}
         </div>
         <div className="flex items-center gap-1">
-          {activeOrganization.plan !== "pro" && (
+          {organization.plan !== "pro" && (
             <Button asChild>
-              <Link href={`/${activeOrganization.slug}/billing/upgrade`}>
+              <Link href={`/${organization.slug}/billing/upgrade`}>
                 Upgrade
               </Link>
             </Button>
           )}
           <Button asChild variant="ghost">
-            <Link href={`/${activeOrganization.slug}/billing/invoices`}>
+            <Link href={`/${organization.slug}/billing/invoices`}>
               View invoices
             </Link>
           </Button>
-          {activeOrganization.stripeId &&
-            activeOrganization.plan !== "free" && <SubscriptionMenu />}
+          {organization.stripeId && organization.plan !== "free" && (
+            <SubscriptionMenu />
+          )}
         </div>
       </div>
 
@@ -93,22 +94,22 @@ export default function PlanUsage() {
           <UsageTabCard
             icon={FoldersIcon}
             title="Namespaces"
-            usage={activeOrganization.totalNamespaces}
+            usage={organization.totalNamespaces}
             limit={3} // TODO: get from API
           />
 
           <UsageTabCard
             icon={BookIcon}
             title="Pages"
-            usage={activeOrganization.totalPages}
-            limit={activeOrganization.pagesLimit}
+            usage={organization.totalPages}
+            limit={organization.pagesLimit}
           />
 
           <UsageTabCard
             icon={SearchIcon}
             title="Retrievals"
-            usage={activeOrganization.searchUsage}
-            limit={activeOrganization.searchLimit}
+            usage={organization.searchUsage}
+            limit={organization.searchLimit}
           />
 
           {/* <UsageTabCard
@@ -123,7 +124,7 @@ export default function PlanUsage() {
             <CardDescription className="mt-1.5">API Ratelimit</CardDescription>
 
             <div className="text-card-foreground mt-2 text-xl leading-8">
-              {activeOrganization.apiRatelimit} requests per min
+              {organization.apiRatelimit} requests per min
             </div>
           </Card>
         </div>

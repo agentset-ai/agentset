@@ -1,4 +1,4 @@
-import { useOrganization } from "@/contexts/organization-context";
+import { useOrganization } from "@/hooks/use-organization";
 import { authClient } from "@/lib/auth-client";
 import { useTRPC } from "@/trpc/react";
 import { useRouter } from "@bprogress/next/app";
@@ -14,7 +14,7 @@ export const RemoveMemberButton = ({
   memberId: string;
   currentMemberId?: string;
 }) => {
-  const { activeOrganization } = useOrganization();
+  const { id } = useOrganization();
   const router = useRouter();
   const isCurrentMember = currentMemberId === memberId;
   const trpc = useTRPC();
@@ -24,7 +24,7 @@ export const RemoveMemberButton = ({
     mutationFn: async () => {
       const data = await authClient.organization.removeMember({
         memberIdOrEmail: memberId,
-        organizationId: activeOrganization.id,
+        organizationId: id,
       });
 
       if (data.error) {
@@ -35,7 +35,7 @@ export const RemoveMemberButton = ({
     },
     onSuccess: () => {
       const queryFilter = trpc.organization.members.queryFilter({
-        organizationId: activeOrganization.id,
+        organizationId: id,
       });
 
       queryClient.setQueryData(queryFilter.queryKey, (old) => {

@@ -1,18 +1,20 @@
 "use client";
 
 import { useMemo } from "react";
-import { useNamespace } from "@/contexts/namespace-context";
+import { useNamespace } from "@/hooks/use-namespace";
 import { useTRPC } from "@/trpc/react";
 import { useQuery } from "@tanstack/react-query";
+
+import { Skeleton } from "@agentset/ui";
 
 import type { OnboardingStatus } from "./onboarding-progress";
 import NamespaceOnboardingProgress from "./onboarding-progress";
 
 export default function GetStartedClientPage() {
-  const { activeNamespace, baseUrl, organization } = useNamespace();
+  const { baseUrl, organization, ...activeNamespace } = useNamespace();
   const trpc = useTRPC();
 
-  const { data: onboardingStatus } = useQuery(
+  const { data: onboardingStatus, isLoading } = useQuery(
     trpc.namespace.getOnboardingStatus.queryOptions(
       {
         orgSlug: organization.slug,
@@ -24,6 +26,25 @@ export default function GetStartedClientPage() {
       },
     ),
   );
+
+  if (isLoading) {
+    return (
+      <div className="space-y-6">
+        <div>
+          <Skeleton className="mb-2 h-8 w-48" />
+          <Skeleton className="h-4 w-64" />
+        </div>
+        <div className="space-y-4">
+          {Array.from({ length: 6 }).map((_, i) => (
+            <div key={i} className="rounded-lg border p-4">
+              <Skeleton className="mb-2 h-6 w-32" />
+              <Skeleton className="h-4 w-full" />
+            </div>
+          ))}
+        </div>
+      </div>
+    );
+  }
 
   const steps = useMemo(() => {
     // if it's still loading, don't show anything

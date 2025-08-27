@@ -3,7 +3,7 @@
 import { Fragment } from "react";
 import Link from "next/link";
 import { useParams, usePathname, useRouter } from "next/navigation";
-import { useOrganization } from "@/contexts/organization-context";
+import { useOrganization } from "@/hooks/use-organization";
 import { ArrowUpRightIcon, ChevronRightIcon } from "lucide-react";
 
 import {

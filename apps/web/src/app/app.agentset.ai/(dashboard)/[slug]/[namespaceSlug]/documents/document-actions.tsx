@@ -1,5 +1,5 @@
 import type { Row } from "@tanstack/react-table";
-import { useNamespace } from "@/contexts/namespace-context";
+import { useNamespace } from "@/hooks/use-namespace";
 import { prefixId } from "@/lib/api/ids";
 import { useTRPC } from "@/trpc/react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
@@ -18,7 +18,7 @@ import {
 import type { DocumentCol } from "./documents-columns";
 
 export default function DocumentActions({ row }: { row: Row<DocumentCol> }) {
-  const { activeNamespace } = useNamespace();
+  const namespace = useNamespace();
   const trpc = useTRPC();
   const queryClient = useQueryClient();
 
@@ -28,7 +28,7 @@ export default function DocumentActions({ row }: { row: Row<DocumentCol> }) {
         toast.success("Document deleted successfully");
         void queryClient.invalidateQueries(
           trpc.document.all.queryFilter({
-            namespaceId: activeNamespace.id,
+            namespaceId: namespace.id,
           }),
         );
       },
@@ -46,7 +46,7 @@ export default function DocumentActions({ row }: { row: Row<DocumentCol> }) {
   const handleDelete = () => {
     deleteDocument({
       documentId: row.original.id,
-      namespaceId: activeNamespace.id,
+      namespaceId: namespace.id,
     });
   };
 

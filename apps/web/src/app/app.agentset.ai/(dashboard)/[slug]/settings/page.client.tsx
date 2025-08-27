@@ -1,10 +1,11 @@
 "use client";
 
 import { useMemo } from "react";
-import { useOrganization } from "@/contexts/organization-context";
+import { useOrganization } from "@/hooks/use-organization";
 import { authClient } from "@/lib/auth-client";
+import { useTRPC } from "@/trpc/react";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { z } from "zod/v4";
@@ -19,6 +20,7 @@ import {
   FormLabel,
   FormMessage,
   Input,
+  Skeleton,
 } from "@agentset/ui";
 
 const makeFormSchema = (currentSlug: string) =>
@@ -45,24 +47,26 @@ const makeFormSchema = (currentSlug: string) =>
   });
 
 export default function SettingsPage() {
-  const { activeOrganization, setActiveOrganization } = useOrganization();
+  const organization = useOrganization();
   const formSchema = useMemo(
-    () => makeFormSchema(activeOrganization.slug),
-    [activeOrganization.slug],
+    () => makeFormSchema(organization.slug),
+    [organization.slug],
   );
 
   const form = useForm({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      name: activeOrganization.name,
-      slug: activeOrganization.slug,
+      name: organization.name,
+      slug: organization.slug,
     },
   });
 
+  const trpc = useTRPC();
+  const queryClient = useQueryClient();
   const { mutateAsync: updateOrganization, isPending } = useMutation({
     mutationFn: async (data: z.infer<typeof formSchema>) => {
       return authClient.organization.update({
-        organizationId: activeOrganization.id,
+        organizationId: organization.id,
         data: {
           name: data.name,
           slug: data.slug,
@@ -70,13 +74,12 @@ export default function SettingsPage() {
       });
     },
     onSuccess: (data) => {
-      if (data.data) {
-        setActiveOrganization({
-          ...activeOrganization,
-          name: data.data.name,
-          slug: data.data.slug,
-        });
-      }
+      // Invalidate the organization query to refetch updated data
+      queryClient.invalidateQueries(
+        trpc.organization.getBySlug.queryFilter({
+          slug: organization.slug,
+        }),
+      );
       toast.success("Organization updated");
     },
     onError: () => {
@@ -97,7 +100,7 @@ export default function SettingsPage() {
         className="flex max-w-md flex-col gap-8"
       >
         <EntityAvatar
-          entity={activeOrganization}
+          entity={organization}
           className="size-14"
           fallbackClassName="text-xl"
         />

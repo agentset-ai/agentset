@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { InfoTooltip } from "@/components/info-tooltip";
-import { useNamespace } from "@/contexts/namespace-context";
+import { useNamespace } from "@/hooks/use-namespace";
 import { useMutation } from "@tanstack/react-query";
 import { Loader2Icon } from "lucide-react";
 import { toast } from "sonner";
@@ -20,7 +20,7 @@ import {
 } from "@agentset/ui";
 
 export default function BenchmarksPageClient() {
-  const { activeNamespace } = useNamespace();
+  const namespace = useNamespace();
   const [message, setMessage] = useState("");
   const [mode, setMode] = useState<"normal" | "agentic">("normal");
 
@@ -33,7 +33,7 @@ export default function BenchmarksPageClient() {
       mode: "normal" | "agentic";
     }) => {
       const response = await fetch(
-        `/api/benchmark?namespaceId=${activeNamespace.id}`,
+        `/api/benchmark?namespaceId=${namespace.id}`,
         {
           method: "POST",
           body: JSON.stringify({

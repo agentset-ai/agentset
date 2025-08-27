@@ -6,7 +6,7 @@ import EmptyState from "./empty-state";
 
 export default function ConnectorsPage() {
   return (
-    <DashboardPageWrapper title="Connectors">
+    <DashboardPageWrapper title="Connectors" requireNamespace>
       {/* <div className="flex items-center justify-end">
         <AddConnector />
       </div> 

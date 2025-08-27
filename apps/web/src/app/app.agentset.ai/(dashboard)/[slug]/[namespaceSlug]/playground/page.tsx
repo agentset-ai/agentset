@@ -32,6 +32,7 @@ export default async function PlaygroundPage({
         </Tabs>
       }
       actions={<ChatActions />}
+      requireNamespace
     >
       <Chat />
     </DashboardPageWrapper>

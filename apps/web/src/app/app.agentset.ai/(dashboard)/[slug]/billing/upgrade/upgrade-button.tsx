@@ -2,7 +2,7 @@
 
 import type { ComponentProps } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import { useOrganization } from "@/contexts/organization-context";
+import { useOrganization } from "@/hooks/use-organization";
 import { capitalize } from "@/lib/string-utils";
 import { getBaseUrl } from "@/lib/utils";
 import { useTRPC } from "@/trpc/react";
@@ -26,7 +26,7 @@ export function UpgradePlanButton({
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const trpc = useTRPC();
-  const { activeOrganization } = useOrganization();
+  const organization = useOrganization();
 
   const { mutateAsync, isPending } = useMutation(
     trpc.billing.upgrade.mutationOptions({
@@ -50,12 +50,11 @@ export function UpgradePlanButton({
   ) ?? SELF_SERVE_PAID_PLANS[0])!;
 
   const queryString = searchParams.toString();
-  const isCurrentPlan =
-    activeOrganization.plan === selectedPlan.name.toLowerCase();
+  const isCurrentPlan = organization.plan === selectedPlan.name.toLowerCase();
 
   const onClick = async () => {
     await mutateAsync({
-      orgId: activeOrganization.id,
+      orgId: organization.id,
       plan: plan as any,
       period,
       baseUrl: `${getBaseUrl()}${pathname}${queryString.length > 0 ? `?${queryString}` : ""}`,
@@ -72,7 +71,7 @@ export function UpgradePlanButton({
       {children ||
         (isCurrentPlan
           ? "Your current plan"
-          : activeOrganization.plan === "free"
+          : organization.plan === "free"
             ? `Get started with ${selectedPlan.name} ${capitalize(period)}`
             : `Switch to ${selectedPlan.name} ${capitalize(period)}`)}
     </Button>

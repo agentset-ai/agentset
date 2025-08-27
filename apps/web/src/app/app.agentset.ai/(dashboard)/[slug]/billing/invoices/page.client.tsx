@@ -2,7 +2,7 @@
 
 import type { RouterOutputs } from "@/trpc/react";
 import Link from "next/link";
-import { useOrganization } from "@/contexts/organization-context";
+import { useOrganization } from "@/hooks/use-organization";
 import { formatNumber } from "@/lib/utils";
 import { useTRPC } from "@/trpc/react";
 import { useQuery } from "@tanstack/react-query";
@@ -20,11 +20,11 @@ import {
 } from "@agentset/ui";
 
 export default function OrganizationInvoicesClient() {
-  const { activeOrganization } = useOrganization();
+  const organization = useOrganization();
   const trpc = useTRPC();
   const { data: invoices, isLoading } = useQuery(
     trpc.billing.invoices.queryOptions({
-      orgId: activeOrganization.id,
+      orgId: organization.id,
     }),
   );
 
@@ -32,7 +32,7 @@ export default function OrganizationInvoicesClient() {
     <div>
       <div>
         <Link
-          href={`/${activeOrganization.slug}/billing`}
+          href={`/${organization.slug}/billing`}
           title="Back to billing"
           className="group flex items-center gap-2"
         >

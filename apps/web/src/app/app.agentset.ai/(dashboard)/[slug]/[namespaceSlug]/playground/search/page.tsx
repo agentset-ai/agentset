@@ -30,6 +30,7 @@ export default async function SearchPage({
           </TabsList>
         </Tabs>
       }
+      requireNamespace
     >
       <SearchPageClient />
     </DashboardPageWrapper>

@@ -1,5 +1,5 @@
 import type { Row } from "@tanstack/react-table";
-import { useNamespace } from "@/contexts/namespace-context";
+import { useNamespace } from "@/hooks/use-namespace";
 import { prefixId } from "@/lib/api/ids";
 import { useTRPC } from "@/trpc/react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
@@ -24,7 +24,7 @@ import type { JobCol } from "./columns";
 
 export function JobActions({ row }: { row: Row<JobCol> }) {
   const queryClient = useQueryClient();
-  const { activeNamespace } = useNamespace();
+  const namespace = useNamespace();
   const trpc = useTRPC();
   const { mutate: deleteJob, isPending: isDeletePending } = useMutation(
     trpc.ingestJob.delete.mutationOptions({
@@ -32,7 +32,7 @@ export function JobActions({ row }: { row: Row<JobCol> }) {
         toast.success("Job deleted successfully");
         void queryClient.invalidateQueries(
           trpc.ingestJob.all.queryFilter({
-            namespaceId: activeNamespace.id,
+            namespaceId: namespace.id,
           }),
         );
       },
@@ -48,7 +48,7 @@ export function JobActions({ row }: { row: Row<JobCol> }) {
         toast.success("Job re-ingestion started");
         void queryClient.invalidateQueries(
           trpc.ingestJob.all.queryFilter({
-            namespaceId: activeNamespace.id,
+            namespaceId: namespace.id,
           }),
         );
       },
@@ -65,14 +65,14 @@ export function JobActions({ row }: { row: Row<JobCol> }) {
 
   const handleDelete = () => {
     deleteJob({
-      namespaceId: activeNamespace.id,
+      namespaceId: namespace.id,
       jobId: row.original.id,
     });
   };
 
   const handleReIngest = () => {
     reIngestJob({
-      namespaceId: activeNamespace.id,
+      namespaceId: namespace.id,
       jobId: row.original.id,
     });
   };

@@ -1,8 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import { useNamespace } from "@/contexts/namespace-context";
-import { useOrganization } from "@/contexts/organization-context";
+import { useNamespace } from "@/hooks/use-namespace";
+import { useOrganization } from "@/hooks/use-organization";
 import { useTRPC } from "@/trpc/react";
 import { useQueryClient } from "@tanstack/react-query";
 import { PlusIcon } from "lucide-react";
@@ -33,13 +33,13 @@ export function IngestModal() {
   const [isOpen, setIsOpen] = useState(false);
   const trpc = useTRPC();
   const queryClient = useQueryClient();
-  const { activeOrganization } = useOrganization();
-  const { activeNamespace } = useNamespace();
+  const organization = useOrganization();
+  const namespace = useNamespace();
 
   const onSuccess = () => {
     setIsOpen(false);
     void queryClient.invalidateQueries(
-      trpc.ingestJob.all.queryFilter({ namespaceId: activeNamespace.id }),
+      trpc.ingestJob.all.queryFilter({ namespaceId: namespace.id }),
     );
   };
 
@@ -64,8 +64,8 @@ export function IngestModal() {
   // if it's not a pro plan, check if the user has exceeded the limit
   // pro plan is unlimited with usage based billing
   const isOverLimit =
-    !isProPlan(activeOrganization.plan) &&
-    activeOrganization.totalPages >= activeOrganization.pagesLimit;
+    !isProPlan(organization.plan) &&
+    organization.totalPages >= organization.pagesLimit;
 
   return (
     <Dialog

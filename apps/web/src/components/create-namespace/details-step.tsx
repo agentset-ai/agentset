@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo } from "react";
-import { useOrganization } from "@/contexts/organization-context";
+import { useOrganization } from "@/hooks/use-organization";
 import { toSlug } from "@/lib/slug";
 import { trpcClient } from "@/trpc/react";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -49,11 +49,8 @@ export default function CreateNamespaceDetailsStep({
   onSubmit: (values: FormSchema) => void;
   defaultValues: Partial<FormSchema>;
 }) {
-  const { activeOrganization } = useOrganization();
-  const formSchema = useMemo(
-    () => createFormSchema(activeOrganization.id),
-    [activeOrganization.id],
-  );
+  const { id } = useOrganization();
+  const formSchema = useMemo(() => createFormSchema(id), [id]);
 
   const form = useForm({
     resolver: zodResolver(formSchema, undefined, { mode: "async" }),

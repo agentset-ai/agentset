@@ -1,4 +1,4 @@
-import { useOrganization } from "@/contexts/organization-context";
+import { useOrganization } from "@/hooks/use-organization";
 import { authClient } from "@/lib/auth-client";
 import { useTRPC } from "@/trpc/react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
@@ -11,7 +11,7 @@ export const RevokeInvitationButton = ({
 }: {
   invitationId: string;
 }) => {
-  const { activeOrganization } = useOrganization();
+  const { id } = useOrganization();
   const trpc = useTRPC();
   const queryClient = useQueryClient();
 
@@ -29,7 +29,7 @@ export const RevokeInvitationButton = ({
     },
     onSuccess: (data) => {
       const queryFilter = trpc.organization.members.queryFilter({
-        organizationId: activeOrganization.id,
+        organizationId: id,
       });
 
       queryClient.setQueryData(queryFilter.queryKey, (old) => {

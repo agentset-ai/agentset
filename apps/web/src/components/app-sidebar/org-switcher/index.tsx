@@ -3,7 +3,7 @@
 import type { RouterOutputs } from "@/trpc/react";
 import React, { useState } from "react";
 import Link from "next/link";
-import { useOrganization } from "@/contexts/organization-context";
+import { useOrganization } from "@/hooks/use-organization";
 import { authClient } from "@/lib/auth-client";
 import { useTRPC } from "@/trpc/react";
 import { useRouter } from "@bprogress/next/app";
@@ -26,13 +26,14 @@ import {
 } from "@agentset/ui";
 
 import CreateOrganizationDialog from "./create-org-dialog";
+import { OrganizationSwitcherSkeleton } from "./skeleton";
 
 type Organization = RouterOutputs["organization"]["all"][number];
 
 export function OrganizationSwitcher() {
   const { isMobile } = useSidebar();
   const router = useRouter();
-  const { activeOrganization } = useOrganization();
+  const activeOrganization = useOrganization();
 
   const trpc = useTRPC();
   const { data: organizations } = useQuery(
@@ -66,6 +67,16 @@ export function OrganizationSwitcher() {
     router.push(`/${organization.slug}`);
     await setActiveOrganization(organization);
   };
+
+  if (activeOrganization.isLoading) {
+    return (
+      <SidebarMenu>
+        <SidebarMenuItem>
+          <OrganizationSwitcherSkeleton />
+        </SidebarMenuItem>
+      </SidebarMenu>
+    );
+  }
 
   return (
     <SidebarMenu>

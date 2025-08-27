@@ -1,8 +1,8 @@
 "use client";
 
 import { CodeBlock } from "@/components/chat/code-block";
-import { useNamespace } from "@/contexts/namespace-context";
-import { useOrganization } from "@/contexts/organization-context";
+import { useNamespace } from "@/hooks/use-namespace";
+import { useOrganization } from "@/hooks/use-organization";
 import { prefixId } from "@/lib/api/ids";
 import { ArrowUpRightIcon, Code2Icon } from "lucide-react";
 
@@ -34,11 +34,11 @@ export default function ApiDialog({
     code: string;
   }[];
 }) {
-  const { activeNamespace } = useNamespace();
-  const { activeOrganization } = useOrganization();
+  const namespace = useNamespace();
+  const organization = useOrganization();
 
   const prepareExample = (example: string) => {
-    const id = prefixId(activeNamespace.id, "ns_");
+    const id = prefixId(namespace.id, "ns_");
     return example.replace("{{namespace}}", id).trim();
   };
 
@@ -68,7 +68,7 @@ export default function ApiDialog({
 
             <Button asChild size="sm">
               <a
-                href={`/${activeOrganization.slug}/settings/api-keys`}
+                href={`/${organization.slug}/settings/api-keys`}
                 target="_blank"
               >
                 <ArrowUpRightIcon className="size-4" />

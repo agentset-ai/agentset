@@ -1,8 +1,8 @@
 "use client";
 
 import { DeleteConfirmation } from "@/components/delete-confirmation";
-import { useNamespace } from "@/contexts/namespace-context";
-import { useOrganization } from "@/contexts/organization-context";
+import { useNamespace } from "@/hooks/use-namespace";
+import { useOrganization } from "@/hooks/use-organization";
 import { useTRPC } from "@/trpc/react";
 import { useRouter } from "@bprogress/next/app";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
@@ -11,8 +11,8 @@ import { toast } from "sonner";
 import { Button } from "@agentset/ui";
 
 export function DeleteNamespaceButton() {
-  const { activeNamespace } = useNamespace();
-  const { activeOrganization, isAdmin } = useOrganization();
+  const namespace = useNamespace();
+  const organization = useOrganization();
   const router = useRouter();
   const trpc = useTRPC();
   const queryClient = useQueryClient();
@@ -22,14 +22,14 @@ export function DeleteNamespaceButton() {
       onSuccess: () => {
         toast.success("Namespace deleted");
         const queryKey = trpc.namespace.getOrgNamespaces.queryKey({
-          orgId: activeOrganization.id,
+          slug: organization.slug,
         });
         queryClient.setQueryData(queryKey, (old) => {
           if (!old) return old;
-          return old.filter((namespace) => namespace.id !== activeNamespace.id);
+          return old.filter((ns) => ns.id !== namespace.id);
         });
         void queryClient.invalidateQueries({ queryKey });
-        router.push(`/${activeOrganization.slug}`);
+        router.push(`/${organization.slug}`);
       },
       onError: (error) => {
         toast.error(error.message || "Failed to delete namespace");
@@ -37,14 +37,14 @@ export function DeleteNamespaceButton() {
     }),
   );
 
-  if (!isAdmin) return null;
+  if (!organization.isAdmin) return null;
 
   return (
     <DeleteConfirmation
       title="Delete Namespace"
       description="Are you sure you want to delete this namespace? This action cannot be undone."
-      confirmText={activeNamespace.name}
-      onConfirm={() => deleteNamespace({ namespaceId: activeNamespace.id })}
+      confirmText={namespace.name}
+      onConfirm={() => deleteNamespace({ namespaceId: namespace.id })}
       trigger={
         <Button variant="destructive" isLoading={isPending}>
           Delete

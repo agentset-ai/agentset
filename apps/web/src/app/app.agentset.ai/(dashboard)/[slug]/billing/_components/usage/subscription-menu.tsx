@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { useOrganization } from "@/contexts/organization-context";
+import { useOrganization } from "@/hooks/use-organization";
 import { useTRPC } from "@/trpc/react";
 import { useMutation } from "@tanstack/react-query";
 import { CalendarSyncIcon, MoreVerticalIcon, XIcon } from "lucide-react";
@@ -18,7 +18,7 @@ import {
 
 export default function SubscriptionMenu() {
   const [isOpen, setIsOpen] = useState(false);
-  const { activeOrganization } = useOrganization();
+  const { id } = useOrganization();
   const router = useRouter();
   const trpc = useTRPC();
 
@@ -46,7 +46,7 @@ export default function SubscriptionMenu() {
     setIsOpen(false);
 
     const method = cancel ? cancelSubscription : manageSubscription;
-    const portalUrl = await method({ orgId: activeOrganization.id });
+    const portalUrl = await method({ orgId: id });
 
     router.push(portalUrl);
   };

@@ -70,7 +70,7 @@ export default function CreateNamespaceDialog({
 
         if (organization) {
           const queryKey = trpc.namespace.getOrgNamespaces.queryKey({
-            orgId: organization.id,
+            slug: organization.slug,
           });
           queryClient.setQueryData(queryKey, (old) => [data, ...(old ?? [])]);
           void queryClient.invalidateQueries({ queryKey });

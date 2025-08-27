@@ -3,7 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import CreateNamespaceDialog from "@/components/create-namespace";
-import { useOrganization } from "@/contexts/organization-context";
+import { useOrganization } from "@/hooks/use-organization";
 import { formatNumber } from "@/lib/utils";
 import { useTRPC } from "@/trpc/react";
 import { useQuery } from "@tanstack/react-query";
@@ -18,7 +18,7 @@ import {
 } from "@agentset/ui";
 
 export default function DashboardPage() {
-  const { activeOrganization } = useOrganization();
+  const organization = useOrganization();
   const [open, setOpen] = useState(false);
 
   const trpc = useTRPC();
@@ -28,9 +28,34 @@ export default function DashboardPage() {
     error,
   } = useQuery(
     trpc.namespace.getOrgNamespaces.queryOptions({
-      orgId: activeOrganization.id,
+      slug: organization.slug,
     }),
   );
+
+  if (organization.isLoading) {
+    return (
+      <div className="flex h-full flex-col space-y-6 px-6 py-8">
+        <div className="flex items-center justify-between">
+          <div>
+            <Skeleton className="mb-2 h-8 w-40" />
+            <Skeleton className="h-5 w-64" />
+          </div>
+          <Skeleton className="h-10 w-32" />
+        </div>
+        <Separator />
+        <div>
+          <div className="mb-5 flex justify-end">
+            <Skeleton className="h-9 w-40" />
+          </div>
+          <div className="grid grid-cols-1 gap-5 md:grid-cols-3">
+            {Array.from({ length: 6 }).map((_, index) => (
+              <Skeleton key={index} className="h-40 rounded-lg" />
+            ))}
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   const createButton = (
     <Button onClick={() => setOpen(true)}>
@@ -42,7 +67,7 @@ export default function DashboardPage() {
   return (
     <>
       <CreateNamespaceDialog
-        organization={activeOrganization}
+        organization={organization}
         open={open}
         setOpen={setOpen}
       />
@@ -54,15 +79,12 @@ export default function DashboardPage() {
         loadingState={
           <div>
             <div className="mb-5 flex justify-end">
-              <Skeleton className="bg-muted h-9 w-40 max-w-full animate-pulse rounded-md" />
+              <Skeleton className="h-9 w-40" />
             </div>
 
             <div className="grid grid-cols-1 gap-5 md:grid-cols-3">
               {Array.from({ length: 6 }).map((_, index) => (
-                <Skeleton
-                  key={index}
-                  className="bg-muted h-40 animate-pulse rounded-lg"
-                />
+                <Skeleton key={index} className="h-40" />
               ))}
             </div>
           </div>
@@ -88,7 +110,7 @@ export default function DashboardPage() {
                 return (
                   <Link
                     key={namespace.id}
-                    href={`/${activeOrganization.slug}/${namespace.slug}${didNotFinishOnboarding ? "/quick-start" : ""}`}
+                    href={`/${organization.slug}/${namespace.slug}${didNotFinishOnboarding ? "/quick-start" : ""}`}
                     className="border-border hover:bg-muted min-h-30 rounded-md border p-6 transition-colors"
                   >
                     <p className="font-medium">{namespace.name}</p>

@@ -7,7 +7,7 @@ import JobsPageClient from "./page.client";
 
 export default function DocumentsPage() {
   return (
-    <DashboardPageWrapper title="Documents">
+    <DashboardPageWrapper title="Documents" requireNamespace>
       <div className="mb-10 flex gap-2">
         <IngestModal />
 

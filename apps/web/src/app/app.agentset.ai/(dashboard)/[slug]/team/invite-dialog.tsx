@@ -2,7 +2,7 @@
 
 import type { Role } from "@/lib/auth-types";
 import { useState } from "react";
-import { useOrganization } from "@/contexts/organization-context";
+import { useOrganization } from "@/hooks/use-organization";
 import { authClient } from "@/lib/auth-client";
 import { useTRPC } from "@/trpc/react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
@@ -29,7 +29,7 @@ import {
 
 function InviteMemberDialog() {
   const [open, setOpen] = useState(false);
-  const { activeOrganization, isAdmin } = useOrganization();
+  const { id, isAdmin } = useOrganization();
 
   const [email, setEmail] = useState("");
   const [role, setRole] = useState("member");
@@ -41,7 +41,7 @@ function InviteMemberDialog() {
       const res = await authClient.organization.inviteMember({
         email: email,
         role: role as Role,
-        organizationId: activeOrganization.id,
+        organizationId: id,
       });
 
       if (!res.data) {
@@ -52,7 +52,7 @@ function InviteMemberDialog() {
     },
     onSuccess: (result) => {
       const queryFilter = trpc.organization.members.queryFilter({
-        organizationId: activeOrganization.id,
+        organizationId: id,
       });
 
       queryClient.setQueryData(queryFilter.queryKey, (old) => {

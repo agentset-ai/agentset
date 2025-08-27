@@ -4,7 +4,7 @@ import HostingPageClient from "./page.client";
 
 export default function HostingPage() {
   return (
-    <DashboardPageWrapper title="Hosting">
+    <DashboardPageWrapper title="Hosting" requireNamespace>
       <HostingPageClient />
     </DashboardPageWrapper>
   );

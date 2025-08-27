@@ -13,17 +13,24 @@ import { EmbeddingConfigSchema, VectorStoreSchema } from "@agentset/validation";
 
 const validateIsMember = async (
   ctx: ProtectedProcedureContext,
-  orgId: string,
+  orgId: string | { slug: string },
   roles?: string[],
 ) => {
   const member = await ctx.db.member.findFirst({
     where: {
       userId: ctx.session.user.id,
-      organizationId: orgId,
+      ...(typeof orgId === "string"
+        ? { organizationId: orgId }
+        : {
+            organization: {
+              slug: orgId.slug,
+            },
+          }),
     },
     select: {
       id: true,
       role: true,
+      organizationId: true,
     },
   });
 
@@ -34,21 +41,23 @@ const validateIsMember = async (
   if (roles && !roles.includes(member.role)) {
     throw new TRPCError({ code: "UNAUTHORIZED" });
   }
+
+  return member;
 };
 
 export const namespaceRouter = createTRPCRouter({
   getOrgNamespaces: protectedProcedure
     .input(
       z.object({
-        orgId: z.string(),
+        slug: z.string(),
       }),
     )
     .query(async ({ ctx, input }) => {
-      await validateIsMember(ctx, input.orgId);
+      const member = await validateIsMember(ctx, { slug: input.slug });
 
       const namespaces = await ctx.db.namespace.findMany({
         where: {
-          organizationId: input.orgId,
+          organizationId: member.organizationId,
           status: NamespaceStatus.ACTIVE,
         },
         orderBy: {

@@ -4,7 +4,7 @@ import BenchmarksPageClient from "./page.client";
 
 export default function BenchmarksPage() {
   return (
-    <DashboardPageWrapper title="Benchmarks">
+    <DashboardPageWrapper title="Benchmarks" requireNamespace>
       <BenchmarksPageClient />
     </DashboardPageWrapper>
   );

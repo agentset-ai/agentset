@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo } from "react";
-import { useOrganization } from "@/contexts/organization-context";
+import { useOrganization } from "@/hooks/use-organization";
 import { useSession } from "@/hooks/use-session";
 import { useTRPC } from "@/trpc/react";
 import { useQuery } from "@tanstack/react-query";
@@ -13,16 +13,13 @@ import { RemoveMemberButton } from "./remove-member";
 import { RevokeInvitationButton } from "./revoke-invitation";
 
 export default function TeamSettingsPage() {
-  const {
-    activeOrganization: { id: activeOrganizationId },
-    isAdmin,
-  } = useOrganization();
+  const organization = useOrganization();
   const { session } = useSession();
   const trpc = useTRPC();
 
-  const { data, isLoading } = useQuery(
+  const { data, isLoading: membersLoading } = useQuery(
     trpc.organization.members.queryOptions({
-      organizationId: activeOrganizationId,
+      organizationId: organization.id,
     }),
   );
 
@@ -47,7 +44,7 @@ export default function TeamSettingsPage() {
   return (
     <DataWrapper
       data={data}
-      isLoading={isLoading}
+      isLoading={membersLoading}
       loadingState={
         <div className="flex flex-col gap-6">
           <MemberCardSkeleton />
@@ -65,9 +62,9 @@ export default function TeamSettingsPage() {
               email={member.user.email}
               image={member.user.image}
               role={member.role}
-              showRole={isAdmin}
+              showRole={organization.isAdmin}
               actions={
-                isAdmin && member.role !== "owner" ? (
+                organization.isAdmin && member.role !== "owner" ? (
                   <RemoveMemberButton
                     memberId={member.id}
                     currentMemberId={currentMember?.id}
@@ -84,9 +81,9 @@ export default function TeamSettingsPage() {
               name={invitation.email}
               email={invitation.status}
               role={invitation.role}
-              showRole={isAdmin}
+              showRole={organization.isAdmin}
               actions={
-                isAdmin ? (
+                organization.isAdmin ? (
                   <>
                     <RevokeInvitationButton invitationId={invitation.id} />
 

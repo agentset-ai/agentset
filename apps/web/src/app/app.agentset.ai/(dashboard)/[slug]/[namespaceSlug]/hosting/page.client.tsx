@@ -1,6 +1,6 @@
 "use client";
 
-import { useNamespace } from "@/contexts/namespace-context";
+import { useNamespace } from "@/hooks/use-namespace";
 import { useTRPC } from "@/trpc/react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
@@ -12,12 +12,15 @@ import { EmptyState } from "./empty-state";
 import HostingForm from "./form";
 
 export default function HostingPage() {
-  const { activeNamespace } = useNamespace();
+  const namespace = useNamespace();
+
   const trpc = useTRPC();
 
   const queryClient = useQueryClient();
   const { data, isLoading } = useQuery(
-    trpc.hosting.get.queryOptions({ namespaceId: activeNamespace.id }),
+    trpc.hosting.get.queryOptions({
+      namespaceId: namespace.id,
+    }),
   );
 
   const { mutateAsync: updateHosting, isPending: isUpdating } = useMutation(
@@ -25,14 +28,22 @@ export default function HostingPage() {
       onSuccess: (result) => {
         toast.success("Hosting updated");
         queryClient.setQueryData(
-          trpc.hosting.get.queryKey({ namespaceId: activeNamespace.id }),
+          trpc.hosting.get.queryKey({
+            namespaceId: namespace.id,
+          }),
           (old) => {
-            return { ...(old ?? {}), ...result, domain: old?.domain || null };
+            return {
+              ...(old ?? {}),
+              ...result,
+              domain: old?.domain || null,
+            };
           },
         );
 
         queryClient.invalidateQueries(
-          trpc.hosting.get.queryOptions({ namespaceId: activeNamespace.id }),
+          trpc.hosting.get.queryOptions({
+            namespaceId: namespace.id,
+          }),
         );
       },
       onError: (error) => {
@@ -62,7 +73,7 @@ export default function HostingPage() {
         isPending={isUpdating}
         onSubmit={async (data) => {
           await updateHosting({
-            namespaceId: activeNamespace.id,
+            namespaceId: namespace.id,
             ...data,
           });
         }}

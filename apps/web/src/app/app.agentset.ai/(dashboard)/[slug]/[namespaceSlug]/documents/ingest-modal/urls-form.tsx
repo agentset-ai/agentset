@@ -1,4 +1,4 @@
-import { useNamespace } from "@/contexts/namespace-context";
+import { useNamespace } from "@/hooks/use-namespace";
 import { useTRPC } from "@/trpc/react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation } from "@tanstack/react-query";
@@ -32,7 +32,7 @@ const schema = z
   .extend(configSchema.shape);
 
 export default function UrlsForm({ onSuccess }: { onSuccess: () => void }) {
-  const { activeNamespace } = useNamespace();
+  const namespace = useNamespace();
   const trpc = useTRPC();
 
   const form = useForm({
@@ -50,7 +50,7 @@ export default function UrlsForm({ onSuccess }: { onSuccess: () => void }) {
 
   const handleUrlsSubmit = async (data: z.infer<typeof schema>) => {
     await mutateAsync({
-      namespaceId: activeNamespace.id,
+      namespaceId: namespace.id,
       name: data.name,
       payload: {
         type: "BATCH",

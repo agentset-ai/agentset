@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useNamespace } from "@/contexts/namespace-context";
+import { useNamespace } from "@/hooks/use-namespace";
 import { SHORT_DOMAIN } from "@/lib/constants";
 import { useTRPC } from "@/trpc/react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
@@ -37,10 +37,10 @@ const A_VALUE = "76.76.21.21";
 
 export function useDomainStatus() {
   const trpc = useTRPC();
-  const { activeNamespace } = useNamespace();
+  const namespace = useNamespace();
   const { data, isFetching, refetch } = useQuery(
     trpc.domain.checkStatus.queryOptions(
-      { namespaceId: activeNamespace.id },
+      { namespaceId: namespace.id },
       {
         refetchInterval: 20000,
       },
@@ -244,7 +244,7 @@ const DomainControls = ({
   onRemove: () => void;
 }) => {
   const { refetch, loading } = useDomainStatus();
-  const { activeNamespace } = useNamespace();
+  const namespace = useNamespace();
   const trpc = useTRPC();
   const queryClient = useQueryClient();
   const { mutate: removeDomain, isPending: isRemovingDomain } = useMutation(
@@ -253,7 +253,7 @@ const DomainControls = ({
         toast.success("Domain removed successfully");
         void queryClient.invalidateQueries(
           trpc.hosting.get.queryOptions({
-            namespaceId: activeNamespace.id,
+            namespaceId: namespace.id,
           }),
         );
         onRemove();
@@ -278,7 +278,7 @@ const DomainControls = ({
         size="icon"
         isLoading={isRemovingDomain}
         type="button"
-        onClick={() => removeDomain({ namespaceId: activeNamespace.id })}
+        onClick={() => removeDomain({ namespaceId: namespace.id })}
       >
         <TrashIcon className="h-4 w-4" />
       </Button>
@@ -296,7 +296,7 @@ export function CustomDomainConfigurator(props: { defaultDomain?: string }) {
   );
 
   const trpc = useTRPC();
-  const { activeNamespace } = useNamespace();
+  const namespace = useNamespace();
 
   const { mutate: addDomain, isPending } = useMutation(
     trpc.domain.add.mutationOptions({
@@ -312,7 +312,7 @@ export function CustomDomainConfigurator(props: { defaultDomain?: string }) {
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (!domainInput) return;
-    addDomain({ domain: domainInput, namespaceId: activeNamespace.id });
+    addDomain({ domain: domainInput, namespaceId: namespace.id });
   };
 
   return (

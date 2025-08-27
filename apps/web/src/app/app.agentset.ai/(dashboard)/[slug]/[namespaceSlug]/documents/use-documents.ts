@@ -1,6 +1,6 @@
 import { useState } from "react";
-import { useNamespace } from "@/contexts/namespace-context";
 import { useCursorPagination } from "@/hooks/use-cursor-pagination";
+import { useNamespace } from "@/hooks/use-namespace";
 import { capitalize } from "@/lib/string-utils";
 import { useTRPC } from "@/trpc/react";
 import { keepPreviousData, useQuery } from "@tanstack/react-query";
@@ -13,7 +13,7 @@ const statusLabels = Object.values(DocumentStatus).map((status) => ({
 }));
 
 export function useDocuments(jobId?: string, enabled = true) {
-  const { activeNamespace } = useNamespace();
+  const namespace = useNamespace();
   const trpc = useTRPC();
   const [statuses, _setStatuses] = useState<DocumentStatus[]>([]);
   const {
@@ -28,7 +28,7 @@ export function useDocuments(jobId?: string, enabled = true) {
   const { isLoading, data, refetch, isFetching } = useQuery(
     trpc.document.all.queryOptions(
       {
-        namespaceId: activeNamespace.id,
+        namespaceId: namespace.id,
         ingestJobId: jobId,
         statuses: statuses.length > 0 ? statuses.join(",") : undefined,
         cursor,

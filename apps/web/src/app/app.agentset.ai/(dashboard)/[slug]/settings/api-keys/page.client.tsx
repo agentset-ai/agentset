@@ -1,6 +1,6 @@
 "use client";
 
-import { useOrganization } from "@/contexts/organization-context";
+import { useOrganization } from "@/hooks/use-organization";
 import { useTRPC } from "@/trpc/react";
 import { useQuery } from "@tanstack/react-query";
 
@@ -10,19 +10,19 @@ import { columns } from "./columns";
 import CreateApiKey from "./create-api-key";
 
 export default function ApiKeysPage() {
-  const { activeOrganization, isAdmin } = useOrganization();
+  const organization = useOrganization();
 
-  if (!isAdmin) {
+  if (!organization.isAdmin) {
     return <div>You are not authorized to view this page</div>;
   }
 
   return (
     <>
       <div className="mb-5 flex justify-end">
-        <CreateApiKey orgId={activeOrganization.id} />
+        <CreateApiKey orgId={organization.id} />
       </div>
 
-      <ApiKeysList orgId={activeOrganization.id} />
+      <ApiKeysList orgId={organization.id} />
     </>
   );
 }
