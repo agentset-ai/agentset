@@ -1,4 +1,7 @@
+"use client";
+
 import Link from "next/link";
+import { useParams } from "next/navigation";
 import Chat from "@/components/chat";
 import DashboardPageWrapper from "@/components/dashboard-page-wrapper";
 
@@ -6,12 +9,8 @@ import { Tabs, TabsList, TabsTrigger } from "@agentset/ui";
 
 import ChatActions from "./chat-actions";
 
-export default async function PlaygroundPage({
-  params,
-}: {
-  params: Promise<{ slug: string; namespaceSlug: string }>;
-}) {
-  const { slug, namespaceSlug } = await params;
+export default function PlaygroundPage() {
+  const { slug, namespaceSlug } = useParams();
 
   return (
     <DashboardPageWrapper

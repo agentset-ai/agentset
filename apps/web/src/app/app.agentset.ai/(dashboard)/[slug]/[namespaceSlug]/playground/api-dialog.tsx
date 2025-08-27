@@ -42,6 +42,14 @@ export default function ApiDialog({
     return example.replace("{{namespace}}", id).trim();
   };
 
+  if (organization.isLoading || namespace.isLoading)
+    return (
+      <Button variant={variant} disabled>
+        <Code2Icon className="size-4" />
+        {label}
+      </Button>
+    );
+
   return (
     <Dialog>
       <DialogTrigger asChild>
