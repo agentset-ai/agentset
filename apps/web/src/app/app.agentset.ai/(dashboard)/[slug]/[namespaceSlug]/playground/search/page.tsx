@@ -1,16 +1,15 @@
+"use client";
+
 import Link from "next/link";
+import { useParams } from "next/navigation";
 import DashboardPageWrapper from "@/components/dashboard-page-wrapper";
 
 import { Tabs, TabsList, TabsTrigger } from "@agentset/ui";
 
 import SearchPageClient from "./page.client";
 
-export default async function SearchPage({
-  params,
-}: {
-  params: Promise<{ slug: string; namespaceSlug: string }>;
-}) {
-  const { slug, namespaceSlug } = await params;
+export default function SearchPage() {
+  const { slug, namespaceSlug } = useParams();
 
   return (
     <DashboardPageWrapper
