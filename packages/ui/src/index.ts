@@ -13,6 +13,7 @@ export * from "./components/button";
 export * from "./components/card";
 export * from "./components/checkbox";
 export * from "./components/collapsible";
+export * from "./components/client-only";
 export * from "./components/command";
 export * from "./components/copy-button";
 export * from "./components/cropper";

@@ -3,11 +3,20 @@ import { useSearchParams } from "next/navigation";
 import { logEvent } from "@/lib/analytics";
 import { authClient } from "@/lib/auth-client";
 import { useMutation } from "@tanstack/react-query";
+import { useIsClient } from "usehooks-ts";
 
 const useRedirectParam = () => {
   const params = useSearchParams();
+  const isClient = useIsClient();
+  if (!isClient) return "/";
+
   const redirectParam = params.get("r");
-  return redirectParam && redirectParam.startsWith("/") ? redirectParam : "/";
+  const value =
+    redirectParam && redirectParam.startsWith("/") ? redirectParam : "/";
+
+  console.log(value);
+
+  return value;
 };
 
 export const useMagicAuth = () => {
