@@ -1,6 +1,7 @@
 "use client";
 
 import { Fragment, useEffect } from "react";
+import { logEvent } from "@/lib/analytics";
 import { authClient } from "@/lib/auth-client";
 import { toSlug } from "@/lib/slug";
 import { useRouter } from "@bprogress/next/app";
@@ -72,6 +73,10 @@ export function CreateOrgForm({
         return response.data;
       },
       onSuccess: (data) => {
+        logEvent("organization_created", {
+          slug: data.slug,
+          name: data.name,
+        });
         router.push(`/${data.slug}`);
         onSuccess?.();
         form.reset();

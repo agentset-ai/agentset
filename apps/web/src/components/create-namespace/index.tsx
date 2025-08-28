@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import { logEvent } from "@/lib/analytics";
 import { toSlug } from "@/lib/slug";
 import { useTRPC } from "@/trpc/react";
 import { useRouter } from "@bprogress/next/app";
@@ -59,6 +60,22 @@ export default function CreateNamespaceDialog({
   const { isPending, mutateAsync: createNamespace } = useMutation(
     trpc.namespace.createNamespace.mutationOptions({
       onSuccess: (data) => {
+        logEvent("namespace_created", {
+          name: data.name,
+          slug: data.slug,
+          organizationId: data.organizationId,
+          embeddingModel: data.embeddingConfig
+            ? {
+                provider: data.embeddingConfig.provider,
+                model: data.embeddingConfig.model,
+              }
+            : null,
+          vectorStore: data.vectorStoreConfig
+            ? {
+                provider: data.vectorStoreConfig.provider,
+              }
+            : null,
+        });
         toast.success("Namespace created");
         setOpen(false);
 

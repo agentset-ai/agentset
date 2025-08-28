@@ -1,5 +1,6 @@
 import type { Row } from "@tanstack/react-table";
 import { useNamespace } from "@/hooks/use-namespace";
+import { logEvent } from "@/lib/analytics";
 import { prefixId } from "@/lib/api/ids";
 import { useTRPC } from "@/trpc/react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
@@ -25,6 +26,11 @@ export default function DocumentActions({ row }: { row: Row<DocumentCol> }) {
   const { isPending, mutate: deleteDocument } = useMutation(
     trpc.document.delete.mutationOptions({
       onSuccess: () => {
+        logEvent("document_deleted", {
+          documentId: row.original.id,
+          namespaceId: namespace.id,
+          status: row.original.status,
+        });
         toast.success("Document deleted successfully");
         void queryClient.invalidateQueries(
           trpc.document.all.queryFilter({

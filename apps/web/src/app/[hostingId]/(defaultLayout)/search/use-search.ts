@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useHosting } from "@/contexts/hosting-context";
+import { logEvent } from "@/lib/analytics";
 import { useQuery } from "@tanstack/react-query";
 
 import type { QueryVectorStoreResult } from "@agentset/engine";
@@ -51,11 +52,13 @@ export const useSearch = () => {
 
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+    logEvent("hosting_search", { query: inputQuery });
     setQuery(inputQuery);
   };
 
   const handleExampleClick = (example: string) => {
     setInputQuery(example);
+    logEvent("hosting_search_example");
     setQuery(example);
   };
 

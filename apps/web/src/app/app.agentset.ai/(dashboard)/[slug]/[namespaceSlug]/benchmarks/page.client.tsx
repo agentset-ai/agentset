@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { InfoTooltip } from "@/components/info-tooltip";
 import { useNamespace } from "@/hooks/use-namespace";
+import { logEvent } from "@/lib/analytics";
 import { useMutation } from "@tanstack/react-query";
 import { Loader2Icon } from "lucide-react";
 import { toast } from "sonner";
@@ -72,6 +73,15 @@ export default function BenchmarksPageClient() {
       }
 
       return json.data;
+    },
+    onSuccess: (data) => {
+      logEvent("benchmark_evaluated", {
+        namespaceId: namespace.id,
+        mode,
+        correctness: data.correctness.score,
+        faithfulness: data.faithfulness.faithful,
+        relevance: data.relevance.relevant,
+      });
     },
     onError: (error) => {
       toast.error("Failed to evaluate benchmark");

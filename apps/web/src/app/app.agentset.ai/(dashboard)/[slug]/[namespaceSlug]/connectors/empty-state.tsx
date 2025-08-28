@@ -1,5 +1,7 @@
 "use client";
 
+import { logEvent } from "@/lib/analytics";
+
 import {
   Button,
   DiscordIcon,
@@ -38,7 +40,13 @@ export default function EmptyState() {
           Import your data from your favorite tools
         </p>
 
-        <Button asChild className="mt-5">
+        <Button
+          asChild
+          className="mt-5"
+          onClick={() => {
+            logEvent("connectors_get_access_clicked");
+          }}
+        >
           <a href="mailto:support@agentset.ai" target="_blank">
             Get Access
           </a>

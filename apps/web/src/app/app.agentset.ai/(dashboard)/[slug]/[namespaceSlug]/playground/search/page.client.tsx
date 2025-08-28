@@ -3,6 +3,7 @@
 import { useState } from "react";
 import SearchChunk from "@/components/search-chunk";
 import { useNamespace } from "@/hooks/use-namespace";
+import { logEvent } from "@/lib/analytics";
 import { useTRPC } from "@/trpc/react";
 import { useQuery } from "@tanstack/react-query";
 import { SearchIcon } from "lucide-react";
@@ -32,6 +33,10 @@ export default function SearchPageClient() {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!query.trim()) return;
+    logEvent("playground_search_performed", {
+      namespaceId: namespace.id,
+      query,
+    });
     setSearchQuery(query);
   };
 

@@ -1,4 +1,5 @@
 import { useNamespace } from "@/hooks/use-namespace";
+import { logEvent } from "@/lib/analytics";
 import { useTRPC } from "@/trpc/react";
 
 import {
@@ -23,6 +24,9 @@ export function EmptyState() {
   const { mutate: enableHosting, isPending } = useMutation(
     trpc.hosting.enable.mutationOptions({
       onSuccess: (hosting) => {
+        logEvent("hosting_enabled", {
+          namespaceId: namespace.id,
+        });
         toast.success("Hosting enabled successfully");
         queryClient.setQueryData(
           trpc.hosting.get.queryKey({ namespaceId: namespace.id }),

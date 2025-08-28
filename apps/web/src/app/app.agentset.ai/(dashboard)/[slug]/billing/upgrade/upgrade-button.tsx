@@ -3,6 +3,7 @@
 import type { ComponentProps } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useOrganization } from "@/hooks/use-organization";
+import { logEvent } from "@/lib/analytics";
 import { capitalize } from "@/lib/string-utils";
 import { getBaseUrl } from "@/lib/utils";
 import { useTRPC } from "@/trpc/react";
@@ -31,7 +32,6 @@ export function UpgradePlanButton({
   const { mutateAsync, isPending } = useMutation(
     trpc.billing.upgrade.mutationOptions({
       onSuccess: async (data) => {
-        // TODO: log to analytics
         if (data.url) {
           router.push(data.url);
         } else if (data.sessionId) {
@@ -53,6 +53,16 @@ export function UpgradePlanButton({
   const isCurrentPlan = organization.plan === selectedPlan.name.toLowerCase();
 
   const onClick = async () => {
+    logEvent(
+      "billing_upgrade_clicked",
+      {
+        organizationId: organization.id,
+        plan,
+        period,
+      },
+      { sendInstantly: true },
+    );
+
     await mutateAsync({
       orgId: organization.id,
       plan: plan as any,

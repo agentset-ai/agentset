@@ -1,8 +1,6 @@
 "use client";
 
-import { useState } from "react";
-import { authClient } from "@/lib/auth-client";
-import { useMutation } from "@tanstack/react-query";
+import { useGithubAuth, useGoogleAuth, useMagicAuth } from "@/hooks/use-auth";
 import { CheckCircle2Icon } from "lucide-react";
 
 import {
@@ -22,37 +20,14 @@ export function LoginForm({
 }: React.ComponentPropsWithoutRef<"div"> & {
   redirectParam?: string;
 }) {
-  const [email, setEmail] = useState("");
-  const [sent, setSent] = useState(false);
+  const { email, setEmail, sent, magicLogin, isSendingMagicLink } =
+    useMagicAuth();
+  const { googleLogin, isLoggingInWithGoogle } = useGoogleAuth();
+  const { githubLogin, isLoggingInWithGithub } = useGithubAuth();
 
-  const redirect =
-    redirectParam && redirectParam.startsWith("/") ? redirectParam : "/";
-
-  const { mutateAsync: sendMagicLink, isPending: isSendingMagicLink } =
-    useMutation({
-      mutationFn: async ({ email }: { email: string }) => {
-        await authClient.signIn.magicLink({ email, callbackURL: redirect });
-      },
-      onSuccess: () => {
-        setSent(true);
-      },
-    });
-
-  const { mutateAsync: googleLogin, isPending: isLoggingInWithGoogle } =
-    useMutation({
-      mutationFn: () =>
-        authClient.signIn.social({ provider: "google", callbackURL: redirect }),
-    });
-
-  const { mutateAsync: githubLogin, isPending: isLoggingInWithGithub } =
-    useMutation({
-      mutationFn: () =>
-        authClient.signIn.social({ provider: "github", callbackURL: redirect }),
-    });
-
-  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    await sendMagicLink({ email: email.trim() });
+    magicLogin();
   };
 
   return (

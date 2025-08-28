@@ -2,6 +2,7 @@
 
 import { useMemo } from "react";
 import { useOrganization } from "@/hooks/use-organization";
+import { logEvent } from "@/lib/analytics";
 import { authClient } from "@/lib/auth-client";
 import { useTRPC } from "@/trpc/react";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -71,9 +72,16 @@ export default function SettingsPage() {
           name: data.name,
           slug: data.slug,
         },
+        fetchOptions: { throw: true },
       });
     },
     onSuccess: (data) => {
+      logEvent("organization_updated", {
+        id: organization.id,
+        nameChanged: organization.name !== data.name,
+        slugChanged: organization.slug !== data.slug,
+      });
+
       // Invalidate the organization query to refetch updated data
       queryClient.invalidateQueries(
         trpc.organization.getBySlug.queryFilter({

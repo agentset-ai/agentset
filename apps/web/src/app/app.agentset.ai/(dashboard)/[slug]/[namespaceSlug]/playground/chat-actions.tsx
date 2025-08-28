@@ -1,6 +1,7 @@
 "use client";
 
 import { useNamespaceChat } from "@/components/chat/use-chat";
+import { logEvent } from "@/lib/analytics";
 import {
   aiSdkExample,
   curlExample,
@@ -17,6 +18,7 @@ export default function ChatActions() {
   const { setMessages } = useNamespaceChat();
 
   const resetChat = () => {
+    logEvent("chat_reset", { type: "playground" });
     setMessages([]);
   };
 

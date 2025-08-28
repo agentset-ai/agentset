@@ -1,4 +1,5 @@
 import { useOrganization } from "@/hooks/use-organization";
+import { logEvent } from "@/lib/analytics";
 import { authClient } from "@/lib/auth-client";
 import { useTRPC } from "@/trpc/react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
@@ -17,15 +18,10 @@ export const RevokeInvitationButton = ({
 
   const { mutateAsync: revokeInvitation, isPending: isRevoking } = useMutation({
     mutationFn: async () => {
-      const data = await authClient.organization.cancelInvitation({
+      return authClient.organization.cancelInvitation({
         invitationId,
+        fetchOptions: { throw: true },
       });
-
-      if (data.error) {
-        throw new Error(data.error.message || "Failed to revoke invitation");
-      }
-
-      return data.data;
     },
     onSuccess: (data) => {
       const queryFilter = trpc.organization.members.queryFilter({
@@ -46,12 +42,20 @@ export const RevokeInvitationButton = ({
     },
   });
 
+  const handleRevokeInvitation = async () => {
+    logEvent("team_revoke_invitation", {
+      organizationId: id,
+      invitationId,
+    });
+    await revokeInvitation();
+  };
+
   return (
     <Button
       size="sm"
       variant="destructive"
       isLoading={isRevoking}
-      onClick={() => revokeInvitation()}
+      onClick={handleRevokeInvitation}
     >
       Revoke
     </Button>

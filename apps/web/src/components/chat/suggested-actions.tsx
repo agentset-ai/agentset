@@ -2,6 +2,7 @@
 
 import type { UseChatHelpers } from "@ai-sdk/react";
 import { memo } from "react";
+import { logEvent } from "@/lib/analytics";
 import { motion } from "framer-motion";
 
 import { Button } from "@agentset/ui";
@@ -32,6 +33,9 @@ function PureSuggestedActions({
           <Button
             variant="ghost"
             onClick={() => {
+              logEvent("chat_suggested_action_clicked", {
+                position: index,
+              });
               void append({
                 role: "user",
                 content: suggestedAction,

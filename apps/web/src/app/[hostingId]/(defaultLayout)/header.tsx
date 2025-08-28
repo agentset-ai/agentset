@@ -4,6 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useHostingChat } from "@/components/chat/use-hosting-chat";
 import { useHosting } from "@/contexts/hosting-context";
+import { logEvent } from "@/lib/analytics";
 import { HOSTING_PREFIX } from "@/lib/constants";
 import { PlusIcon } from "lucide-react";
 
@@ -27,6 +28,7 @@ export default function Header() {
   const baseUrl = isSubPath ? `${HOSTING_PREFIX}${slug}` : "";
 
   const resetChat = () => {
+    logEvent("chat_reset", { type: "hosted" });
     setMessages([]);
   };
 

@@ -1,4 +1,5 @@
 import { useNamespace } from "@/hooks/use-namespace";
+import { logEvent } from "@/lib/analytics";
 import { useTRPC } from "@/trpc/react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation } from "@tanstack/react-query";
@@ -38,7 +39,19 @@ export default function TextForm({ onSuccess }: { onSuccess: () => void }) {
 
   const { mutateAsync, isPending } = useMutation(
     trpc.ingestJob.ingest.mutationOptions({
-      onSuccess,
+      onSuccess: (doc) => {
+        logEvent("document_ingested", {
+          type: "text",
+          namespaceId: namespace.id,
+          chunkSize: doc.config?.chunkSize,
+          maxChunkSize: doc.config?.maxChunkSize,
+          chunkOverlap: doc.config?.chunkOverlap,
+          strategy: doc.config?.strategy,
+          chunkingStrategy: doc.config?.chunkingStrategy,
+          hasMetadata: !!doc.config?.metadata,
+        });
+        onSuccess();
+      },
     }),
   );
 

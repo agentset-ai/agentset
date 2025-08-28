@@ -1,6 +1,7 @@
 "use client";
 
 import { useNamespace } from "@/hooks/use-namespace";
+import { logEvent } from "@/lib/analytics";
 import { useTRPC } from "@/trpc/react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
@@ -26,6 +27,16 @@ export default function HostingPage() {
   const { mutateAsync: updateHosting, isPending: isUpdating } = useMutation(
     trpc.hosting.update.mutationOptions({
       onSuccess: (result) => {
+        logEvent("hosting_updated", {
+          namespaceId: namespace.id,
+          slug: result.slug,
+          protected: result.protected,
+          searchEnabled: result.searchEnabled,
+          hasCustomPrompt: !!result.systemPrompt,
+          hasWelcomeMessage: !!result.welcomeMessage,
+          exampleQuestionsCount: result.exampleQuestions?.length || 0,
+          exampleSearchQueriesCount: result.exampleSearchQueries?.length || 0,
+        });
         toast.success("Hosting updated");
         queryClient.setQueryData(
           trpc.hosting.get.queryKey({

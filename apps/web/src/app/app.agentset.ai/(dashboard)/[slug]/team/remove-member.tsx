@@ -1,4 +1,5 @@
 import { useOrganization } from "@/hooks/use-organization";
+import { logEvent } from "@/lib/analytics";
 import { authClient } from "@/lib/auth-client";
 import { useTRPC } from "@/trpc/react";
 import { useRouter } from "@bprogress/next/app";
@@ -22,16 +23,11 @@ export const RemoveMemberButton = ({
 
   const { mutateAsync: removeMember, isPending: isRemoving } = useMutation({
     mutationFn: async () => {
-      const data = await authClient.organization.removeMember({
+      return authClient.organization.removeMember({
         memberIdOrEmail: memberId,
         organizationId: id,
+        fetchOptions: { throw: true },
       });
-
-      if (data.error) {
-        throw new Error(data.error.message || "Failed to remove member");
-      }
-
-      return data;
     },
     onSuccess: () => {
       const queryFilter = trpc.organization.members.queryFilter({
@@ -59,12 +55,21 @@ export const RemoveMemberButton = ({
     },
   });
 
+  const handleRemoveMember = async () => {
+    logEvent("team_remove_member", {
+      organizationId: id,
+      memberId,
+      isCurrentMember,
+    });
+    await removeMember();
+  };
+
   return (
     <Button
       size="sm"
       variant="destructive"
       isLoading={isRemoving}
-      onClick={() => removeMember()}
+      onClick={handleRemoveMember}
     >
       {isCurrentMember ? "Leave" : "Remove"}
     </Button>

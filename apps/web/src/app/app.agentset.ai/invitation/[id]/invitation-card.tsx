@@ -2,6 +2,7 @@
 
 import type { Invitation } from "@/lib/auth-types";
 import { useState } from "react";
+import { logEvent } from "@/lib/analytics";
 import { authClient } from "@/lib/auth-client";
 import { useMutation } from "@tanstack/react-query";
 import { AlertCircleIcon, BuildingIcon, CheckIcon, XIcon } from "lucide-react";
@@ -31,18 +32,18 @@ const useAcceptInvitation = (
     isPending: isAcceptingInvitation,
     error: acceptInvitationError,
   } = useMutation({
-    mutationFn: async () => {
-      const result = await authClient.organization.acceptInvitation({
+    mutationFn: () =>
+      authClient.organization.acceptInvitation({
         invitationId: id,
-      });
-
-      if (result.error) {
-        throw new Error(result.error.message || "An error occurred");
-      }
-
-      return result.data;
-    },
+        fetchOptions: { throw: true },
+      }),
     onSuccess: (result) => {
+      logEvent("team_accept_invitation", {
+        invitationId: id,
+        organizationId: result.invitation.organizationId,
+        role: result.invitation.role,
+        email: result.invitation.email,
+      });
       onSuccess(result.invitation as Invitation);
     },
     onError: (error) => {
@@ -66,18 +67,18 @@ const useRejectInvitation = (
     isPending: isRejectingInvitation,
     error: rejectInvitationError,
   } = useMutation({
-    mutationFn: async () => {
-      const result = await authClient.organization.rejectInvitation({
+    mutationFn: () =>
+      authClient.organization.rejectInvitation({
         invitationId: id,
-      });
-
-      if (result.error) {
-        throw new Error(result.error.message || "An error occurred");
-      }
-
-      return result.data;
-    },
+        fetchOptions: { throw: true },
+      }),
     onSuccess: (result) => {
+      logEvent("team_reject_invitation", {
+        invitationId: id,
+        organizationId: result.invitation?.organizationId,
+        role: result.invitation?.role,
+        email: result.invitation?.email,
+      });
       onSuccess(result.invitation as Invitation);
     },
     onError: (error) => {

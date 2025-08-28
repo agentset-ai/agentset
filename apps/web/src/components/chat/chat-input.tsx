@@ -8,6 +8,7 @@ import { memo, useCallback, useEffect, useRef } from "react";
 import dynamic from "next/dynamic";
 import { useIsHosting } from "@/contexts/hosting-context";
 import { useScrollToBottom } from "@/hooks/use-scroll-to-bottom";
+import { logEvent } from "@/lib/analytics";
 import { AnimatePresence, motion } from "framer-motion";
 import { ArrowDownIcon, ArrowUpIcon } from "lucide-react";
 import { toast } from "sonner";
@@ -103,6 +104,12 @@ function PureMultimodalInput({
   };
 
   const submitForm = useCallback(() => {
+    logEvent("chat_message_sent", {
+      type: type,
+      messageLength: input.length,
+      hasExistingMessages: messages.length > 0,
+    });
+
     handleSubmit(undefined);
 
     setLocalStorageInput("");
@@ -111,7 +118,14 @@ function PureMultimodalInput({
     if (width && width > 768) {
       textareaRef.current?.focus();
     }
-  }, [handleSubmit, setLocalStorageInput, width]);
+  }, [
+    handleSubmit,
+    setLocalStorageInput,
+    width,
+    input.length,
+    messages.length,
+    type,
+  ]);
 
   const { isAtBottom, scrollToBottom } = useScrollToBottom();
 

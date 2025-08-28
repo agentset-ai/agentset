@@ -1,38 +1,20 @@
 "use client";
 
-import { useState } from "react";
-import { authClient } from "@/lib/auth-client";
-import { useMutation } from "@tanstack/react-query";
+import { useMagicAuth } from "@/hooks/use-auth";
 import { CheckCircle2Icon } from "lucide-react";
 
 import { Button, cn, Input, Label, Logo } from "@agentset/ui";
 
 export function LoginForm({
   className,
-  redirectParam,
   ...props
-}: React.ComponentPropsWithoutRef<"div"> & {
-  redirectParam?: string;
-}) {
-  const [email, setEmail] = useState("");
-  const [sent, setSent] = useState(false);
-
-  const redirect =
-    redirectParam && redirectParam.startsWith("/") ? redirectParam : "/";
-
-  const { mutateAsync: sendMagicLink, isPending: isSendingMagicLink } =
-    useMutation({
-      mutationFn: async ({ email }: { email: string }) => {
-        await authClient.signIn.magicLink({ email, callbackURL: redirect });
-      },
-      onSuccess: () => {
-        setSent(true);
-      },
-    });
+}: React.ComponentPropsWithoutRef<"div">) {
+  const { magicLogin, isSendingMagicLink, sent, email, setEmail } =
+    useMagicAuth();
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    await sendMagicLink({ email: email.trim() });
+    await magicLogin();
   };
 
   return (

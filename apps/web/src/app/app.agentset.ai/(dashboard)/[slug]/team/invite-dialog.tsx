@@ -3,6 +3,7 @@
 import type { Role } from "@/lib/auth-types";
 import { useState } from "react";
 import { useOrganization } from "@/hooks/use-organization";
+import { logEvent } from "@/lib/analytics";
 import { authClient } from "@/lib/auth-client";
 import { useTRPC } from "@/trpc/react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
@@ -38,17 +39,12 @@ function InviteMemberDialog() {
   const queryClient = useQueryClient();
   const { mutateAsync: invite, isPending } = useMutation({
     mutationFn: async ({ email, role }: { email: string; role: string }) => {
-      const res = await authClient.organization.inviteMember({
+      return authClient.organization.inviteMember({
         email: email,
         role: role as Role,
         organizationId: id,
+        fetchOptions: { throw: true },
       });
-
-      if (!res.data) {
-        throw new Error(res.error.message || "Failed to invite member");
-      }
-
-      return res.data;
     },
     onSuccess: (result) => {
       const queryFilter = trpc.organization.members.queryFilter({
@@ -71,6 +67,11 @@ function InviteMemberDialog() {
   });
 
   const handleInvite = () => {
+    logEvent("team_invite_member_clicked", {
+      organizationId: id,
+      email,
+      role,
+    });
     void toast.promise(invite({ email, role }), {
       loading: "Inviting member...",
       success: "Member invited successfully",

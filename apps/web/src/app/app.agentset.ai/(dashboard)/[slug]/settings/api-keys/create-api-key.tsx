@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { logEvent } from "@/lib/analytics";
 import { useTRPC } from "@/trpc/react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { PlusIcon } from "lucide-react";
@@ -33,6 +34,11 @@ export default function CreateApiKey({ orgId }: { orgId: string }) {
   const { isPending, mutateAsync, data } = useMutation(
     trpc.apiKey.createApiKey.mutationOptions({
       onSuccess: (newKey) => {
+        logEvent("api_key_created", {
+          orgId,
+          scope: newKey.scope,
+        });
+
         const queryFilter = trpc.apiKey.getApiKeys.queryFilter({ orgId });
 
         queryClient.setQueryData(queryFilter.queryKey, (old) => {
