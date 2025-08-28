@@ -23,6 +23,7 @@ export const identifyOrganization = ({ id, name, plan }: Organization) => {
     groupType: "organization",
     groupKey: id,
     properties: { name, plan },
+    distinctId: `api:${prefixId(id, "org_")}`,
   });
 };
 
@@ -67,5 +68,5 @@ export const logServerEvent = (
 
 export const flushServerEvents = () => {
   if (!posthog) return;
-  return waitUntil(posthog.flush().catch(() => {}));
+  return waitUntil(posthog.shutdown().catch((err) => console.error(err)));
 };
