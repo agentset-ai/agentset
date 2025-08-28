@@ -44,4 +44,5 @@ export const GET = withNamespaceApiHandler(
       headers,
     });
   },
+  { logging: { routeName: "GET /v1/namespace/[namespaceId]/documents" } },
 );

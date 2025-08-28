@@ -18,6 +18,7 @@ export const env = createEnv({
       .enum(["development", "preview", "production"])
       .optional()
       .default("development"),
+    NEXT_PUBLIC_POSTHOG_KEY: z.string().optional(),
   },
   server: {
     DATABASE_URL: z.url(),
@@ -56,9 +57,7 @@ export const env = createEnv({
     VERCEL_TEAM_ID: z.string(),
     VERCEL_API_TOKEN: z.string(),
   },
-  client: {
-    NEXT_PUBLIC_POSTHOG_KEY: z.string().optional(),
-  },
+  client: {},
   runtimeEnv: {
     NEXT_PUBLIC_APP_NAME: process.env.NEXT_PUBLIC_APP_NAME,
     NEXT_PUBLIC_APP_SHORT_DOMAIN: process.env.NEXT_PUBLIC_APP_SHORT_DOMAIN,

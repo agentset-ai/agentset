@@ -42,6 +42,11 @@ export const GET = withNamespaceApiHandler(
       headers,
     });
   },
+  {
+    logging: {
+      routeName: "GET /v1/namespace/[namespaceId]/documents/[documentId]",
+    },
+  },
 );
 
 export const DELETE = withNamespaceApiHandler(
@@ -95,5 +100,10 @@ export const DELETE = withNamespaceApiHandler(
       }),
       headers,
     });
+  },
+  {
+    logging: {
+      routeName: "DELETE /v1/namespace/[namespaceId]/documents/[documentId]",
+    },
   },
 );

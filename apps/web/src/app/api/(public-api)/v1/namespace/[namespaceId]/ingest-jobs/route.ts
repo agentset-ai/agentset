@@ -52,6 +52,7 @@ export const GET = withNamespaceApiHandler(
       headers,
     });
   },
+  { logging: { routeName: "GET /v1/namespace/[namespaceId]/ingest-jobs" } },
 );
 
 export const POST = withNamespaceApiHandler(
@@ -112,4 +113,5 @@ export const POST = withNamespaceApiHandler(
       throw error;
     }
   },
+  { logging: { routeName: "POST /v1/namespace/[namespaceId]/ingest-jobs" } },
 );

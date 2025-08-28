@@ -1,4 +1,9 @@
 import type { NextRequest } from "next/server";
+import {
+  flushServerEvents,
+  identifyOrganization,
+  logServerEvent,
+} from "@/lib/analytics-server";
 
 import type { Organization } from "@agentset/db";
 import { tryCatch } from "@agentset/utils";
@@ -24,7 +29,10 @@ interface Handler {
   (params: HandlerParams): Promise<Response>;
 }
 
-export const withApiHandler = (handler: Handler) => {
+export const withApiHandler = (
+  handler: Handler,
+  { logging }: { logging: false | { routeName: string } },
+) => {
   return async (
     req: NextRequest,
     { params }: { params: Promise<Record<string, string> | undefined> },
@@ -84,19 +92,38 @@ export const withApiHandler = (handler: Handler) => {
       }
 
       const tenantId = getTenantFromRequest(req);
+      const organization = {
+        id: orgApiKey.data.organizationId,
+        ...orgApiKey.data.organization,
+      };
 
-      return await handler({
+      const response = await handler({
         req,
         params: routeParams ?? {},
         searchParams,
-        organization: {
-          id: orgApiKey.data.organizationId,
-          ...orgApiKey.data.organization,
-        },
+        organization,
         apiScope: orgApiKey.data.scope,
         headers,
         tenantId,
       });
+
+      // log request
+      if (logging) {
+        identifyOrganization(organization);
+        logServerEvent(
+          "api_request",
+          {
+            request: req,
+            routeName: logging.routeName,
+            response,
+            organization,
+          },
+          { tenantId },
+        );
+        flushServerEvents();
+      }
+
+      return response;
     } catch (error) {
       console.error(error);
       return handleAndReturnErrorResponse(error, headers);

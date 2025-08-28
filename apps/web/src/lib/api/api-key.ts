@@ -14,6 +14,7 @@ export const getApiKeyInfo = (apiKey: string) => {
           organizationId: true,
           organization: {
             select: {
+              name: true,
               plan: true,
               apiRatelimit: true,
               searchLimit: true,

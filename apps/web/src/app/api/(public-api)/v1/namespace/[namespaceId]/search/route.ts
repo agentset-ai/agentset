@@ -99,4 +99,5 @@ export const POST = withNamespaceApiHandler(
       headers,
     });
   },
+  { logging: { routeName: "POST /v1/namespace/[namespaceId]/search" } },
 );

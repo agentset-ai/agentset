@@ -11,16 +11,19 @@ import { deleteNamespace } from "@/services/namespaces/delete";
 
 import { db, Prisma } from "@agentset/db";
 
-export const GET = withNamespaceApiHandler(async ({ namespace, headers }) => {
-  return makeApiSuccessResponse({
-    data: NamespaceSchema.parse({
-      ...namespace,
-      id: prefixId(namespace.id, "ns_"),
-      organizationId: prefixId(namespace.organizationId, "org_"),
-    }),
-    headers,
-  });
-});
+export const GET = withNamespaceApiHandler(
+  async ({ namespace, headers }) => {
+    return makeApiSuccessResponse({
+      data: NamespaceSchema.parse({
+        ...namespace,
+        id: prefixId(namespace.id, "ns_"),
+        organizationId: prefixId(namespace.organizationId, "org_"),
+      }),
+      headers,
+    });
+  },
+  { logging: { routeName: "GET /v1/namespace/[namespaceId]" } },
+);
 
 export const PATCH = withNamespaceApiHandler(
   async ({ namespace, headers, req }) => {
@@ -62,6 +65,7 @@ export const PATCH = withNamespaceApiHandler(
       throw error;
     }
   },
+  { logging: { routeName: "PATCH /v1/namespace/[namespaceId]" } },
 );
 
 export const PUT = PATCH;
@@ -81,4 +85,5 @@ export const DELETE = withNamespaceApiHandler(
       status: 204,
     });
   },
+  { logging: { routeName: "DELETE /v1/namespace/[namespaceId]" } },
 );

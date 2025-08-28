@@ -1,4 +1,9 @@
 import { unstable_cache } from "next/cache";
+import {
+  flushServerEvents,
+  identifyOrganization,
+  logServerEvent,
+} from "@/lib/analytics-server";
 
 import type { Namespace } from "@agentset/db";
 import { db, NamespaceStatus } from "@agentset/db";
@@ -35,28 +40,54 @@ const getNamespace = async (namespaceId: string, organizationId: string) => {
   )();
 };
 
-export const withNamespaceApiHandler = (handler: NamespaceHandler) => {
-  return withApiHandler(async (params) => {
-    const namespaceId = normalizeId(params.params.namespaceId ?? "", "ns_");
-    if (!namespaceId) {
-      throw new AgentsetApiError({
-        code: "bad_request",
-        message: "Invalid namespace ID.",
+export const withNamespaceApiHandler = (
+  handler: NamespaceHandler,
+  { logging }: { logging: false | { routeName: string } },
+) => {
+  return withApiHandler(
+    async (params) => {
+      const namespaceId = normalizeId(params.params.namespaceId ?? "", "ns_");
+      if (!namespaceId) {
+        throw new AgentsetApiError({
+          code: "bad_request",
+          message: "Invalid namespace ID.",
+        });
+      }
+
+      const namespace = await getNamespace(namespaceId, params.organization.id);
+
+      if (!namespace) {
+        throw new AgentsetApiError({
+          code: "unauthorized",
+          message: "Unauthorized: You don't have access to this namespace.",
+        });
+      }
+
+      const response = await handler({
+        ...params,
+        namespace,
       });
-    }
 
-    const namespace = await getNamespace(namespaceId, params.organization.id);
+      if (logging) {
+        identifyOrganization(params.organization);
 
-    if (!namespace) {
-      throw new AgentsetApiError({
-        code: "unauthorized",
-        message: "Unauthorized: You don't have access to this namespace.",
-      });
-    }
+        // log request
+        logServerEvent(
+          "api_request",
+          {
+            request: params.req,
+            routeName: logging.routeName,
+            response,
+            organization: params.organization,
+          },
+          { namespaceId: namespace.id, tenantId: params.tenantId },
+        );
 
-    return await handler({
-      ...params,
-      namespace,
-    });
-  });
+        flushServerEvents();
+      }
+
+      return response;
+    },
+    { logging: false },
+  );
 };
