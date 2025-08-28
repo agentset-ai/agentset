@@ -14,8 +14,6 @@ const useRedirectParam = () => {
   const value =
     redirectParam && redirectParam.startsWith("/") ? redirectParam : "/";
 
-  console.log(value);
-
   return value;
 };
 
