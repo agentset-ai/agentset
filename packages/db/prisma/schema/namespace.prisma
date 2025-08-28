@@ -38,6 +38,8 @@ model Namespace {
   updatedAt DateTime @updatedAt
 
   @@unique([organizationId, slug]) // A namespace must have a unique slug within an organization
+  @@index([status])
+  @@index([organizationId, status]) // For filtering active namespaces
   @@map("namespace")
 }
 

@@ -47,5 +47,6 @@ model IngestJob {
   @@index([status])
   @@index([tenantId, status])
   @@index([namespaceId, status])
+  @@index([namespaceId, tenantId, status]) // For triple-filter queries in API
   @@map("ingest_job")
 }

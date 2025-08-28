@@ -49,5 +49,10 @@ model Document {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
+  @@index([status]) // For direct tenant + status queries
+  @@index([tenantId, status]) // For direct tenant + status queries
+  @@index([ingestJobId, status]) // For filtered document queries
+  @@index([ingestJobId, tenantId]) // For tenant-specific queries  
+  @@index([ingestJobId, tenantId, status]) // For combined tenant + status filters
   @@map("document")
 }
