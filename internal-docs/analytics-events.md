@@ -217,6 +217,30 @@ Triggered when a new API key is successfully created.
 
 **Location:** `apps/web/src/app/app.agentset.ai/(dashboard)/[slug]/settings/api-keys/create-api-key.tsx`
 
+### `api_request`
+
+Triggered on the server when API requests are made to the public API endpoints. This event captures usage patterns and helps track API adoption.
+
+**Payload:**
+
+```typescript
+{
+  routeName: string;    // Descriptive route name (e.g., "GET /v1/namespace", "POST /v1/namespace/[namespaceId]/search")
+  pathname: string;     // Full request pathname
+  method: string;       // HTTP method (GET, POST, PATCH, DELETE, etc.)
+  statusCode: number;   // HTTP response status code
+  tenantId?: string;    // Tenant identifier (if applicable)
+  namespaceId?: string; // Namespace ID (for namespace-specific endpoints)
+}
+```
+
+**Locations:**
+
+- `apps/web/src/lib/api/handler/base.ts` (via `withApiHandler`)
+- `apps/web/src/lib/api/handler/namespace.ts` (via `withNamespaceApiHandler`)
+
+**Coverage:** All public API endpoints under `/api/(public-api)/v1/`
+
 ## Team Management Events
 
 ### `team_invite_member_clicked`
@@ -460,11 +484,33 @@ Triggered when hosting configuration for a namespace is updated.
 
 ### Implementation Principles
 
-1. **Client-Side Only**: All events are logged on the client side, never on the server
+1. **Hybrid Logging**: Events are logged both client-side and server-side depending on context
+   - **Client-Side**: User interface interactions, feature usage, and user-initiated actions
+   - **Server-Side**: API usage, system events, and programmatic interactions
 2. **Core Actions Only**: We log meaningful user actions, not every button click
 3. **Privacy Conscious**: We avoid logging sensitive data like email content, passwords, or document content
 4. **Structured Data**: All payloads use consistent TypeScript interfaces
 5. **Context Rich**: Events include relevant context for understanding user behavior
+
+### Client-Side vs Server-Side Logging
+
+#### Client-Side Events
+
+- **Location**: Browser/client applications
+- **Implementation**: Using `logEvent()` function from `@/lib/analytics`
+- **Purpose**: Track user interactions, feature adoption, and UI behavior
+- **Examples**: Button clicks, form submissions, navigation, feature usage
+- **User Context**: Associated with authenticated user sessions
+
+#### Server-Side Events
+
+- **Location**: API handlers and server functions
+- **Implementation**: Using `logServerEvent()` function from `@/lib/analytics-server`
+- **Purpose**: Track API usage, system performance, and programmatic interactions
+- **Examples**: API requests, system operations, background processes
+- **User Context**: Associated with API keys and organization identifiers
+
+Both logging approaches use PostHog as the analytics platform but serve different purposes in understanding user behavior and system usage.
 
 ### Event Naming Convention
 
@@ -486,13 +532,23 @@ Events follow a `{object}_{action}` pattern:
 
 ### Adding New Events
 
-When adding new events:
+#### Client-Side Events
 
 1. Import the `logEvent` function: `import { logEvent } from "@/lib/analytics";`
 2. Call it with a descriptive event name and relevant payload
 3. Update this documentation with the new event details
 4. Ensure the event is only triggered on successful actions (in `onSuccess` callbacks)
 
+#### Server-Side Events
+
+1. Import the server analytics functions: `import { logServerEvent, identifyOrganization, flushServerEvents } from "@/lib/analytics-server";`
+2. Use `withApiHandler` or `withNamespaceApiHandler` with logging enabled
+3. Events are automatically logged for API requests when logging is configured
+4. Custom server events can be logged using `logServerEvent()` directly
+
 ### Analytics Platform
 
-Events are sent to PostHog for analysis. The `logEvent` function is a wrapper around PostHog's `capture` method, defined in `apps/web/src/lib/analytics.ts`.
+Events are sent to PostHog for analysis:
+
+- **Client-side**: `logEvent` function wraps PostHog's client `capture` method (`apps/web/src/lib/analytics.ts`)
+- **Server-side**: `logServerEvent` function uses PostHog Node.js client (`apps/web/src/lib/analytics-server.ts`)
