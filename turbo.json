@@ -127,8 +127,7 @@
     "ASSETS_S3_BUCKET",
     "ASSETS_S3_URL",
     "TRIGGER_SECRET_KEY",
-    "NEXT_PUBLIC_POSTHOG_KEY",
-    "NEXT_PUBLIC_POSTHOG_HOST"
+    "NEXT_PUBLIC_POSTHOG_KEY"
   ],
   "globalPassThroughEnv": [
     "NODE_ENV",

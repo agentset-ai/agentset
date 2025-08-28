@@ -38,6 +38,20 @@ const config: NextConfig = {
     if (isServer) config.plugins = [...config.plugins, new PrismaPlugin()];
     return config;
   },
+
+  async rewrites() {
+    return [
+      // for posthog proxy
+      {
+        source: "/_proxy/posthog/ingest/static/:path*",
+        destination: "https://us-assets.i.posthog.com/static/:path*",
+      },
+      {
+        source: "/_proxy/posthog/ingest/:path*",
+        destination: "https://us.i.posthog.com/:path*",
+      },
+    ];
+  },
 };
 
 export default config;
