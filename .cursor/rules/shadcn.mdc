@@ -1,6 +1,6 @@
 ---
-description: 
-globs: apps/web/**/*.ts
+description: Shadcn UI Components
+globs: apps/web/**/*.ts,apps/web/**/*.tsx,packages/ui/**/*.ts,packages/ui/**/*.tsx
 alwaysApply: false
 ---
 
@@ -10,7 +10,7 @@ This project uses @shadcn/ui for UI components. These are beautifully designed, 
 
 ## Finding and Using Components
 
-Components are available in the `src/components/ui` directory, following the aliases configured in `components.json`
+Components are available in the `packages/ui/src/components/ui` directory, following the aliases configured in `packages/ui/components.json`
 
 ## Using Components
 
@@ -100,4 +100,4 @@ This project uses the "new-york" style variant with the "neutral" base color and
 
 ## Customizations
 
-- We currently have an `isLoading` prop on the `Button` component that is used to show a loading spinner.
+- We currently have an `isLoading` prop on the `Button` component, which is used to show a loading spinner.

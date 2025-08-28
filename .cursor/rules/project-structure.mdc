@@ -1,0 +1,187 @@
+---
+description: Project structure, monorepo management, and architectural patterns for the Agentset platform
+globs:
+alwaysApply: true
+---
+
+# Project Structure & Monorepo Guidelines
+
+## Overview
+
+Agentset is a **Turborepo monorepo** containing a Next.js web app and supporting packages. This is an **open-source RAG (Retrieval-Augmented Generation) platform** built with modern web technologies.
+
+## Monorepo Structure
+
+### Core Applications
+
+- `apps/web/` - Main Next.js application with App Router
+- `tooling/supavisor/` - Database tooling and setup
+
+### Internal Packages (Workspace Dependencies)
+
+- `packages/db/` - Database schema, Prisma client, and types
+- `packages/ui/` - Shared UI components (Shadcn-based)
+- `packages/engine/` - RAG engine with vector stores and embeddings
+- `packages/emails/` - Email templates and components (using react-email and resend)
+- `packages/jobs/` - Background job definitions (Trigger.dev)
+- `packages/storage/` - File storage utilities (S3)
+- `packages/stripe/` - Payment processing utilities
+- `packages/utils/` - Shared utility functions
+- `packages/validation/` - Shared Zod schemas
+- `tooling/` - Development and build tooling
+
+## Package Management
+
+### Use PNPM with Workspace Protocol
+
+- Use `pnpm` as the package manager (required by packageManager field)
+- Reference internal packages with `workspace:*` in package.json
+- Use catalog: references for shared external dependencies
+
+```json
+{
+  "dependencies": {
+    "@agentset/db": "workspace:*",
+    "@agentset/ui": "workspace:*",
+    "typescript": "catalog:"
+  }
+}
+```
+
+### Workspace Scripts
+
+- `pnpm dev` - Start all services in watch mode
+- `pnpm dev:web` - Start web app with dependencies
+- `pnpm build` - Build all packages
+- `pnpm lint` - Run linting across workspace
+- `pnpm typecheck` - Type check all packages
+
+## Directory Naming Conventions
+
+### Use Kebab-Case for Directories
+
+- Directory names should use lowercase with dashes: `auth-wizard/`, `api-client/`
+- File names should use kebab-case: `auth-provider.tsx`, `user-settings.ts`
+- Avoid camelCase or PascalCase for directories
+
+### Package Organization
+
+```
+packages/
+├── db/           # Database-related code
+├── ui/           # UI components
+├── engine/       # Core RAG functionality
+├── validation/   # Shared schemas
+└── utils/        # Utility functions
+```
+
+## Import Patterns
+
+### Use Package Aliases
+
+Import from packages using their configured aliases:
+
+```typescript
+// ✅ Correct - use package aliases
+import { Button } from "@agentset/ui"
+import { db } from "@agentset/db"
+import { env } from "@agentset/engine/env"
+
+// ❌ Avoid relative paths to packages
+import { Button } from "../../packages/ui/src/components/button"
+```
+
+### Barrel Exports
+
+Each package should export through `src/index.ts`:
+
+```typescript
+// packages/utils/src/index.ts
+export * from "./functions"
+export * from "./error"
+export * from "./fetch"
+```
+
+## Environment Management
+
+### Environment Configuration
+
+- Environment variables are validated using `@t3-oss/env-nextjs`
+- Each package can extend the environment schema
+- Main environment is defined in [apps/web/src/env.ts](mdc:apps/web/src/env.ts)
+
+```typescript
+// Extending environment in packages
+export const env = createEnv({
+  extends: [engineEnv, storageEnv, stripeEnv],
+  // ... configuration
+});
+```
+
+### Environment Files
+
+- `.env` - Main environment file at root
+- Use `dotenv -e ../../.env` in package scripts to access root env
+
+## Build and Development
+
+### Turborepo Configuration
+
+- Configured in [turbo.json](mdc:turbo.json) at root
+- Uses build cache and parallel execution
+- Each package defines its own build pipeline
+
+### Package Development
+
+- Each package should be independently buildable
+- Use `tsc` for building TypeScript packages
+- Web app uses Next.js build system
+
+## File Organization Principles
+
+### Group by Feature, Then by Type
+
+```
+src/
+├── app/                    # Next.js App Router pages
+├── components/            # Shared UI components
+├── lib/                   # Utilities and configurations
+├── hooks/                 # Custom React hooks
+├── types/                 # TypeScript type definitions
+└── services/              # External service integrations
+```
+
+### Co-locate Related Files
+
+- Keep component files, styles, and tests together
+- Place utility functions near their usage
+- Group related API routes in the same directory
+
+## Dependency Management
+
+### External Dependencies
+
+- Use `catalog:` for shared dependencies across packages
+- Avoid duplicate dependencies across packages
+- Pin AI SDK versions for consistency
+
+### Version Management
+
+- Keep related packages in sync (e.g., React ecosystem)
+- Use exact versions for critical dependencies
+- Document breaking changes in package versions
+
+## Package Boundaries
+
+### Clear Responsibilities
+
+- `@agentset/db` - All database operations and schemas
+- `@agentset/ui` - Reusable UI components only
+- `@agentset/engine` - RAG functionality, no UI code
+- `@agentset/validation` - Shared schemas, no business logic
+
+### Avoid Circular Dependencies
+
+- Packages should not depend on apps
+- Higher-level packages can depend on lower-level ones
+- Use dependency injection for complex relationships
