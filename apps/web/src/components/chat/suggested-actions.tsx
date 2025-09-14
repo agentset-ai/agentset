@@ -2,20 +2,21 @@
 
 import { memo } from "react";
 import { logEvent } from "@/lib/analytics";
-import { MyUseChat } from "@/types/ai";
+import { useChatMessageCount, useChatSendMessage } from "ai-sdk-zustand";
 import { motion } from "framer-motion";
 
 import { Button } from "@agentset/ui";
 
 interface SuggestedActionsProps {
-  sendMessage: MyUseChat["sendMessage"];
   exampleMessages: string[];
 }
 
-function PureSuggestedActions({
-  sendMessage,
-  exampleMessages,
-}: SuggestedActionsProps) {
+function PureSuggestedActions({ exampleMessages }: SuggestedActionsProps) {
+  const sendMessage = useChatSendMessage();
+  const totalMessages = useChatMessageCount();
+
+  if (totalMessages > 0) return null;
+
   return (
     <div
       data-testid="suggested-actions"
@@ -37,7 +38,13 @@ function PureSuggestedActions({
                 position: index,
               });
               void sendMessage({
-                text: suggestedAction,
+                role: "user",
+                parts: [
+                  {
+                    type: "text",
+                    text: suggestedAction,
+                  },
+                ],
               });
             }}
             className="h-auto w-full flex-1 items-start justify-start gap-1 rounded-xl border px-4 py-3.5 text-left text-sm sm:flex-col"

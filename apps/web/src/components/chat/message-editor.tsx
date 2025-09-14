@@ -1,24 +1,20 @@
 import type { Dispatch, SetStateAction } from "react";
 import { useEffect, useRef, useState } from "react";
 import { extractTextFromParts } from "@/lib/string-utils";
-import { MyUIMessage, MyUseChat } from "@/types/ai";
+import { MyUIMessage } from "@/types/ai";
+import { useChatProperty } from "ai-sdk-zustand";
 
 import { Button, Textarea } from "@agentset/ui";
 
 export type MessageEditorProps = {
   message: MyUIMessage;
   setMode: Dispatch<SetStateAction<"view" | "edit">>;
-  setMessages: MyUseChat["setMessages"];
-  regenerate: MyUseChat["regenerate"];
 };
 
-export function MessageEditor({
-  message,
-  setMode,
-  setMessages,
-  regenerate,
-}: MessageEditorProps) {
+export function MessageEditor({ message, setMode }: MessageEditorProps) {
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
+  const setMessages = useChatProperty((s) => s.setMessages);
+  const regenerate = useChatProperty((s) => s.regenerate);
 
   const [draftContent, setDraftContent] = useState<string>(
     extractTextFromParts(message.parts),

@@ -19,17 +19,7 @@ export default function Chat({
 }
 
 const PlaygroundChat = () => {
-  const [input, setInput] = useState("");
-  const {
-    id,
-    messages,
-    setMessages,
-    status,
-
-    sendMessage,
-    stop,
-    regenerate,
-  } = useNamespaceChat();
+  useNamespaceChat();
 
   return (
     <div
@@ -38,27 +28,10 @@ const PlaygroundChat = () => {
         "h-[calc(100dvh-calc(var(--spacing)*20))]",
       )}
     >
-      <Messages
-        chatId={id}
-        status={status}
-        messages={messages}
-        setMessages={setMessages}
-        regenerate={regenerate}
-        isReadonly={false}
-        isArtifactVisible={false}
-      />
+      <Messages isReadonly={false} isArtifactVisible={false} />
 
       <form className="bg-background mx-auto flex w-full gap-2 px-4 pb-4 md:max-w-3xl md:pb-6">
-        <MultimodalInput
-          input={input}
-          setInput={setInput}
-          sendMessage={sendMessage}
-          status={status}
-          stop={stop}
-          messages={messages}
-          setMessages={setMessages}
-          type="playground"
-        />
+        <MultimodalInput type="playground" />
       </form>
     </div>
   );
@@ -66,17 +39,7 @@ const PlaygroundChat = () => {
 
 const HostingChat = () => {
   const { exampleQuestions, welcomeMessage, logo } = useHosting();
-  const [input, setInput] = useState("");
-  const {
-    id,
-    messages,
-    setMessages,
-    status,
-
-    sendMessage,
-    stop,
-    regenerate,
-  } = useHostingChat();
+  useHostingChat();
 
   return (
     <div
@@ -86,11 +49,6 @@ const HostingChat = () => {
       )}
     >
       <Messages
-        chatId={id}
-        status={status}
-        messages={messages}
-        setMessages={setMessages}
-        regenerate={regenerate}
         isReadonly={false}
         isArtifactVisible={false}
         overviewMessage={welcomeMessage ?? undefined}
@@ -98,17 +56,7 @@ const HostingChat = () => {
       />
 
       <form className="bg-background mx-auto flex w-full gap-2 px-4 pb-4 md:max-w-3xl md:pb-6">
-        <MultimodalInput
-          input={input}
-          setInput={setInput}
-          sendMessage={sendMessage}
-          status={status}
-          stop={stop}
-          messages={messages}
-          setMessages={setMessages}
-          type="hosted"
-          exampleMessages={exampleQuestions}
-        />
+        <MultimodalInput type="hosted" exampleMessages={exampleQuestions} />
       </form>
     </div>
   );

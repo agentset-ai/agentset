@@ -1,23 +1,21 @@
 import { useNamespace } from "@/hooks/use-namespace";
 import { MyUIMessage } from "@/types/ai";
-import { useChat } from "@ai-sdk/react";
 import { DefaultChatTransport } from "ai";
+import { useChat } from "ai-sdk-zustand";
 import { toast } from "sonner";
-import { useShallow } from "zustand/react/shallow";
 
 import { useChatSettings } from "./chat-settings.store";
 
 export function useNamespaceChat() {
   const namespace = useNamespace();
-  const settings = useChatSettings(
-    useShallow((s) => s.getNamespace(namespace.id)),
-  );
+  const getNamespace = useChatSettings((s) => s.getNamespace);
 
   return useChat<MyUIMessage>({
-    id: "chat",
+    // storeId: `chat-${namespace.id}`,
     transport: new DefaultChatTransport({
       api: `/api/chat?namespaceId=${namespace.id}`,
       prepareSendMessagesRequest({ messages, body }) {
+        const settings = getNamespace(namespace.id);
         return {
           body: {
             messages,

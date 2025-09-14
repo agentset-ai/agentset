@@ -1,3 +1,4 @@
+import { useChatMessageCount } from "ai-sdk-zustand";
 import { motion } from "framer-motion";
 
 import { Logo } from "@agentset/ui";
@@ -9,6 +10,9 @@ export const Overview = ({
   message?: string;
   logo?: string;
 }) => {
+  const messagesLength = useChatMessageCount();
+  if (messagesLength > 0) return null;
+
   return (
     <motion.div
       key="overview"

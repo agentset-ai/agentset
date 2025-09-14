@@ -1,13 +1,17 @@
 "use client";
 
 import type React from "react";
-import type { Dispatch, SetStateAction } from "react";
-import { memo, useCallback, useEffect, useRef } from "react";
+import { memo, useCallback, useEffect, useRef, useState } from "react";
 import dynamic from "next/dynamic";
 import { useIsHosting } from "@/contexts/hosting-context";
 import { useScrollToBottom } from "@/hooks/use-scroll-to-bottom";
 import { logEvent } from "@/lib/analytics";
-import { MyUseChat } from "@/types/ai";
+import {
+  useChatMessageCount,
+  useChatProperty,
+  useChatSendMessage,
+  useChatStatus,
+} from "ai-sdk-zustand";
 import { AnimatePresence, motion } from "framer-motion";
 import { ArrowDownIcon, ArrowUpIcon } from "lucide-react";
 import { toast } from "sonner";
@@ -28,24 +32,10 @@ const ChatInputModes = dynamic(() => import("./chat-input-modes"), {
 });
 
 function PureMultimodalInput({
-  input,
-  setInput,
-  messages,
-  status,
-  stop,
-  setMessages,
-  sendMessage,
   className,
   type,
   exampleMessages,
 }: {
-  input: string;
-  setInput: Dispatch<SetStateAction<string>>;
-  status: MyUseChat["status"];
-  stop: () => void;
-  messages: MyUseChat["messages"];
-  setMessages: MyUseChat["setMessages"];
-  sendMessage: MyUseChat["sendMessage"];
   className?: string;
   type: "playground" | "hosted";
   exampleMessages?: string[];
@@ -53,6 +43,11 @@ function PureMultimodalInput({
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const { width } = useWindowSize();
   const isHosting = useIsHosting();
+  const [input, setInput] = useState("");
+
+  const totalMessages = useChatMessageCount();
+  const sendMessage = useChatSendMessage();
+  const status = useChatStatus();
 
   useEffect(() => {
     if (textareaRef.current) {
@@ -104,10 +99,18 @@ function PureMultimodalInput({
     logEvent("chat_message_sent", {
       type: type,
       messageLength: input.length,
-      hasExistingMessages: messages.length > 0,
+      hasExistingMessages: totalMessages > 0,
     });
 
-    sendMessage({ text: input });
+    sendMessage({
+      role: "user",
+      parts: [
+        {
+          type: "text",
+          text: input,
+        },
+      ],
+    });
 
     setLocalStorageInput("");
     setInput("");
@@ -122,7 +125,7 @@ function PureMultimodalInput({
     setLocalStorageInput,
     width,
     input.length,
-    messages.length,
+    totalMessages,
     type,
   ]);
 
@@ -137,7 +140,7 @@ function PureMultimodalInput({
   return (
     <div className="relative flex w-full flex-col gap-4">
       <AnimatePresence>
-        {!isAtBottom && (
+        {!isAtBottom && totalMessages > 0 && (
           <motion.div
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
@@ -161,14 +164,9 @@ function PureMultimodalInput({
         )}
       </AnimatePresence>
 
-      {messages.length === 0 &&
-        exampleMessages &&
-        exampleMessages.length > 0 && (
-          <SuggestedActions
-            sendMessage={sendMessage}
-            exampleMessages={exampleMessages}
-          />
-        )}
+      {exampleMessages && exampleMessages.length > 0 && (
+        <SuggestedActions exampleMessages={exampleMessages} />
+      )}
 
       <Textarea
         data-testid="multimodal-input"
@@ -207,7 +205,7 @@ function PureMultimodalInput({
 
       <div className="absolute right-0 bottom-0 flex w-fit flex-row justify-end p-2">
         {status === "submitted" ? (
-          <StopButton stop={stop} setMessages={setMessages} />
+          <StopButton />
         ) : (
           <SendButton input={input} submitForm={submitForm} />
         )}
@@ -216,27 +214,12 @@ function PureMultimodalInput({
   );
 }
 
-export const MultimodalInput = memo(
-  PureMultimodalInput,
-  (prevProps, nextProps) => {
-    if (prevProps.input !== nextProps.input) return false;
-    if (prevProps.status !== nextProps.status) return false;
+export const MultimodalInput = memo(PureMultimodalInput);
 
-    // cleared the chat
-    if (nextProps.messages.length === 0 && prevProps.messages.length > 0)
-      return false;
+function PureStopButton() {
+  const stop = useChatProperty((s) => s.stop);
+  const setMessages = useChatProperty((s) => s.setMessages);
 
-    return true;
-  },
-);
-
-function PureStopButton({
-  stop,
-  setMessages,
-}: {
-  stop: () => void;
-  setMessages: MyUseChat["setMessages"];
-}) {
   return (
     <Button
       data-testid="stop-button"

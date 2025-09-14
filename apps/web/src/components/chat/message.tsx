@@ -2,7 +2,12 @@
 
 import { memo, useState } from "react";
 import { sanitizeText } from "@/lib/string-utils";
-import { MyUIMessage, MyUseChat } from "@/types/ai";
+import { MyUIMessage } from "@/types/ai";
+import {
+  useChatMessageCount,
+  useChatProperty,
+  useChatStatus,
+} from "ai-sdk-zustand";
 import { AnimatePresence, motion } from "framer-motion";
 import { PencilIcon, SparklesIcon } from "lucide-react";
 
@@ -20,7 +25,7 @@ import { MessageActions } from "./message-actions";
 import { MessageEditor } from "./message-editor";
 import { MessageReasoning } from "./message-reasoning";
 
-const Annotations = ({
+const MessageStatus = ({
   message,
   isLoading,
 }: {
@@ -68,19 +73,13 @@ const Annotations = ({
 };
 
 const PurePreviewMessage = ({
-  chatId,
   message,
   isLoading,
-  setMessages,
-  regenerate,
   isReadonly,
   requiresScrollPadding,
 }: {
-  chatId: string;
   message: MyUIMessage;
   isLoading: boolean;
-  setMessages: MyUseChat["setMessages"];
-  regenerate: MyUseChat["regenerate"];
   isReadonly: boolean;
   requiresScrollPadding: boolean;
 }) => {
@@ -117,7 +116,7 @@ const PurePreviewMessage = ({
                 : "",
             )}
           >
-            <Annotations message={message} isLoading={isLoading} />
+            <MessageStatus message={message} isLoading={isLoading} />
 
             {message.parts.map((part, index) => {
               const { type } = part;
@@ -174,14 +173,7 @@ const PurePreviewMessage = ({
                   return (
                     <div key={key} className="flex flex-row items-start gap-2">
                       <div className="size-8" />
-
-                      <MessageEditor
-                        key={message.id}
-                        message={message}
-                        setMode={setMode}
-                        setMessages={setMessages}
-                        regenerate={regenerate}
-                      />
+                      <MessageEditor message={message} setMode={setMode} />
                     </div>
                   );
                 }
@@ -258,7 +250,6 @@ const PurePreviewMessage = ({
             {!isReadonly && (
               <MessageActions
                 key={`action-${message.id}`}
-                chatId={chatId}
                 message={message}
                 isLoading={isLoading}
               />
@@ -285,6 +276,16 @@ export const PreviewMessage = memo(
 
 export const ThinkingMessage = () => {
   const role = "assistant";
+  const status = useChatStatus();
+  const messagesLength = useChatMessageCount();
+  const isLastMessageFromUser = useChatProperty(
+    (s) => s.messages[s.messages.length - 1]!.role === "user",
+  );
+
+  const shouldShow =
+    status === "submitted" && messagesLength > 0 && isLastMessageFromUser;
+
+  if (!shouldShow) return null;
 
   return (
     <motion.div

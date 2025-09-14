@@ -11,11 +11,9 @@ import { Button, Tooltip, TooltipContent, TooltipTrigger } from "@agentset/ui";
 import MessageLogs from "./logs";
 
 export function PureMessageActions({
-  chatId: _chatId,
   message,
   isLoading,
 }: {
-  chatId: string;
   message: MyUIMessage;
   isLoading: boolean;
 }) {
