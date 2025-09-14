@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import { useHosting } from "@/contexts/hosting-context";
 
 import { cn } from "@agentset/ui";
@@ -18,17 +19,16 @@ export default function Chat({
 }
 
 const PlaygroundChat = () => {
+  const [input, setInput] = useState("");
   const {
     id,
     messages,
     setMessages,
     status,
-    input,
-    setInput,
-    handleSubmit,
-    append,
+
+    sendMessage,
     stop,
-    reload,
+    regenerate,
   } = useNamespaceChat();
 
   return (
@@ -43,7 +43,7 @@ const PlaygroundChat = () => {
         status={status}
         messages={messages}
         setMessages={setMessages}
-        reload={reload}
+        regenerate={regenerate}
         isReadonly={false}
         isArtifactVisible={false}
       />
@@ -52,12 +52,11 @@ const PlaygroundChat = () => {
         <MultimodalInput
           input={input}
           setInput={setInput}
-          handleSubmit={handleSubmit}
+          sendMessage={sendMessage}
           status={status}
           stop={stop}
           messages={messages}
           setMessages={setMessages}
-          append={append}
           type="playground"
         />
       </form>
@@ -67,17 +66,16 @@ const PlaygroundChat = () => {
 
 const HostingChat = () => {
   const { exampleQuestions, welcomeMessage, logo } = useHosting();
+  const [input, setInput] = useState("");
   const {
     id,
     messages,
     setMessages,
     status,
-    input,
-    setInput,
-    handleSubmit,
-    append,
+
+    sendMessage,
     stop,
-    reload,
+    regenerate,
   } = useHostingChat();
 
   return (
@@ -92,7 +90,7 @@ const HostingChat = () => {
         status={status}
         messages={messages}
         setMessages={setMessages}
-        reload={reload}
+        regenerate={regenerate}
         isReadonly={false}
         isArtifactVisible={false}
         overviewMessage={welcomeMessage ?? undefined}
@@ -103,12 +101,11 @@ const HostingChat = () => {
         <MultimodalInput
           input={input}
           setInput={setInput}
-          handleSubmit={handleSubmit}
+          sendMessage={sendMessage}
           status={status}
           stop={stop}
           messages={messages}
           setMessages={setMessages}
-          append={append}
           type="hosted"
           exampleMessages={exampleQuestions}
         />

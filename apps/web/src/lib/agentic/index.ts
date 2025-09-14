@@ -1,5 +1,11 @@
-import type { CoreMessage, JSONValue, LanguageModelV1 } from "ai";
-import { createDataStreamResponse, generateText, streamText } from "ai";
+import type { LanguageModel, ModelMessage } from "ai";
+import { MyUIMessage } from "@/types/ai";
+import {
+  createUIMessageStream,
+  createUIMessageStreamResponse,
+  generateText,
+  streamText,
+} from "ai";
 
 import type { QueryVectorStoreOptions } from "@agentset/engine";
 
@@ -9,11 +15,11 @@ import { agenticSearch } from "./search";
 import { formatSources } from "./utils";
 
 type AgenticPipelineOptions = {
-  model: LanguageModelV1;
+  model: LanguageModel;
   queryOptions?: Omit<QueryVectorStoreOptions, "query">;
   systemPrompt?: string;
   temperature?: number;
-  messagesWithoutQuery: CoreMessage[];
+  messagesWithoutQuery: ModelMessage[];
   lastMessage: string;
   afterQueries?: (totalQueries: number) => void;
   maxEvals?: number;
@@ -40,16 +46,16 @@ const agenticPipeline = (
     includeLogs?: boolean;
   },
 ) => {
-  const messages: CoreMessage[] = [
+  const messages: ModelMessage[] = [
     ...messagesWithoutQuery,
     { role: "user", content: lastMessage },
   ];
 
-  return createDataStreamResponse({
-    execute: async (dataStream) => {
-      dataStream.writeMessageAnnotation({
-        type: "status",
-        value: "generating-queries",
+  const stream = createUIMessageStream<MyUIMessage>({
+    execute: async ({ writer }) => {
+      writer.write({
+        type: "data-status",
+        data: { value: "generating-queries" },
       });
 
       // step 1. generate queries
@@ -62,10 +68,9 @@ const agenticPipeline = (
           maxEvals,
           tokenBudget,
           onQueries: (newQueries) => {
-            dataStream.writeMessageAnnotation({
-              type: "status",
-              value: "searching",
-              queries: newQueries,
+            writer.write({
+              type: "data-status",
+              data: { value: "searching", queries: newQueries },
             });
           },
         },
@@ -73,14 +78,14 @@ const agenticPipeline = (
 
       afterQueries?.(totalQueries);
 
-      dataStream.writeMessageAnnotation({
-        type: "status",
-        value: "generating-answer",
+      writer.write({
+        type: "data-status",
+        data: { value: "generating-answer" },
       });
 
       // TODO: shrink chunks and only select relevant ones to pass to the LLM
       const dedupedData = Object.values(chunks);
-      const newMessages: CoreMessage[] = [
+      const newMessages: ModelMessage[] = [
         ...messagesWithoutQuery,
         {
           role: "user",
@@ -102,22 +107,24 @@ const agenticPipeline = (
         },
       });
 
-      dataStream.writeMessageAnnotation({
-        type: "agentset_sources",
-        value: { results: dedupedData } as unknown as JSONValue,
-        ...(includeLogs && {
-          logs: Object.values(queryToResult) as unknown as JSONValue,
-        }),
+      writer.write({
+        type: "data-agentset-sources",
+        data: {
+          results: dedupedData,
+          ...(includeLogs && {
+            logs: Object.values(queryToResult),
+          }),
+        },
       });
-      messageStream.mergeIntoDataStream(dataStream);
+      writer.merge(messageStream.toUIMessageStream());
     },
     onError(error) {
       console.error(error);
       return "An error occurred";
     },
-
-    headers,
   });
+
+  return createUIMessageStreamResponse({ stream, headers });
 };
 
 export const generateAgenticResponse = async (
@@ -134,7 +141,7 @@ export const generateAgenticResponse = async (
     tokenBudget = 4096,
   }: AgenticPipelineOptions,
 ) => {
-  const messages: CoreMessage[] = [
+  const messages: ModelMessage[] = [
     ...messagesWithoutQuery,
     { role: "user", content: lastMessage },
   ];
@@ -152,7 +159,7 @@ export const generateAgenticResponse = async (
 
   // TODO: shrink chunks and only select relevant ones to pass to the LLM
   const dedupedData = Object.values(chunks);
-  const newMessages: CoreMessage[] = [
+  const newMessages: ModelMessage[] = [
     ...messagesWithoutQuery,
     {
       role: "user",

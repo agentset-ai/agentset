@@ -1,4 +1,4 @@
-import type { CoreMessage } from "ai";
+import type { ModelMessage } from "ai";
 import { generateAgenticResponse } from "@/lib/agentic";
 import { AgentsetApiError } from "@/lib/api/errors";
 import { withAuthApiHandler } from "@/lib/api/handler";
@@ -91,7 +91,7 @@ export const POST = withAuthApiHandler(
         });
       }
 
-      const newMessages: CoreMessage[] = [
+      const newMessages: ModelMessage[] = [
         {
           role: "user",
           content: NEW_MESSAGE_PROMPT.compile({

@@ -1,6 +1,7 @@
-import type { Message } from "ai";
 import { memo } from "react";
 import { useIsHosting } from "@/contexts/hosting-context";
+import { extractTextFromParts } from "@/lib/string-utils";
+import { MyUIMessage } from "@/types/ai";
 import { CopyIcon } from "lucide-react";
 import { toast } from "sonner";
 import { useCopyToClipboard } from "usehooks-ts";
@@ -15,7 +16,7 @@ export function PureMessageActions({
   isLoading,
 }: {
   chatId: string;
-  message: Message;
+  message: MyUIMessage;
   isLoading: boolean;
 }) {
   const [_, copyToClipboard] = useCopyToClipboard();
@@ -32,11 +33,7 @@ export function PureMessageActions({
             className="text-muted-foreground h-fit px-2 py-1"
             variant="outline"
             onClick={async () => {
-              const textFromParts = message.parts
-                ?.filter((part) => part.type === "text")
-                .map((part) => part.text)
-                .join("\n")
-                .trim();
+              const textFromParts = extractTextFromParts(message.parts);
 
               if (!textFromParts) {
                 toast.error("There's no text to copy!");

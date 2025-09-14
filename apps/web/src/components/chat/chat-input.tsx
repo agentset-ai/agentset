@@ -1,7 +1,5 @@
 "use client";
 
-import type { UseChatHelpers } from "@ai-sdk/react";
-import type { Message } from "ai";
 import type React from "react";
 import type { Dispatch, SetStateAction } from "react";
 import { memo, useCallback, useEffect, useRef } from "react";
@@ -9,6 +7,7 @@ import dynamic from "next/dynamic";
 import { useIsHosting } from "@/contexts/hosting-context";
 import { useScrollToBottom } from "@/hooks/use-scroll-to-bottom";
 import { logEvent } from "@/lib/analytics";
+import { MyUseChat } from "@/types/ai";
 import { AnimatePresence, motion } from "framer-motion";
 import { ArrowDownIcon, ArrowUpIcon } from "lucide-react";
 import { toast } from "sonner";
@@ -31,24 +30,22 @@ const ChatInputModes = dynamic(() => import("./chat-input-modes"), {
 function PureMultimodalInput({
   input,
   setInput,
-  append,
   messages,
   status,
   stop,
   setMessages,
-  handleSubmit,
+  sendMessage,
   className,
   type,
   exampleMessages,
 }: {
-  input: UseChatHelpers["input"];
-  setInput: UseChatHelpers["setInput"];
-  status: UseChatHelpers["status"];
+  input: string;
+  setInput: Dispatch<SetStateAction<string>>;
+  status: MyUseChat["status"];
   stop: () => void;
-  append: UseChatHelpers["append"];
-  messages: Array<Message>;
-  setMessages: Dispatch<SetStateAction<Array<Message>>>;
-  handleSubmit: UseChatHelpers["handleSubmit"];
+  messages: MyUseChat["messages"];
+  setMessages: MyUseChat["setMessages"];
+  sendMessage: MyUseChat["sendMessage"];
   className?: string;
   type: "playground" | "hosted";
   exampleMessages?: string[];
@@ -110,16 +107,18 @@ function PureMultimodalInput({
       hasExistingMessages: messages.length > 0,
     });
 
-    handleSubmit(undefined);
+    sendMessage({ text: input });
 
     setLocalStorageInput("");
+    setInput("");
     resetHeight();
 
     if (width && width > 768) {
       textareaRef.current?.focus();
     }
   }, [
-    handleSubmit,
+    sendMessage,
+    setInput,
     setLocalStorageInput,
     width,
     input.length,
@@ -165,7 +164,10 @@ function PureMultimodalInput({
       {messages.length === 0 &&
         exampleMessages &&
         exampleMessages.length > 0 && (
-          <SuggestedActions append={append} exampleMessages={exampleMessages} />
+          <SuggestedActions
+            sendMessage={sendMessage}
+            exampleMessages={exampleMessages}
+          />
         )}
 
       <Textarea
@@ -233,7 +235,7 @@ function PureStopButton({
   setMessages,
 }: {
   stop: () => void;
-  setMessages: Dispatch<SetStateAction<Array<Message>>>;
+  setMessages: MyUseChat["setMessages"];
 }) {
   return (
     <Button

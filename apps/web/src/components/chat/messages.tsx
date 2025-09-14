@@ -1,7 +1,6 @@
-import type { UseChatHelpers } from "@ai-sdk/react";
-import type { UIMessage } from "ai";
 import { memo } from "react";
 import { useMessages } from "@/hooks/use-messages";
+import { MyUseChat } from "@/types/ai";
 import equal from "fast-deep-equal";
 import { motion } from "framer-motion";
 
@@ -10,10 +9,10 @@ import { Overview } from "./overview";
 
 interface MessagesProps {
   chatId: string;
-  status: UseChatHelpers["status"];
-  messages: Array<UIMessage>;
-  setMessages: UseChatHelpers["setMessages"];
-  reload: UseChatHelpers["reload"];
+  status: MyUseChat["status"];
+  messages: MyUseChat["messages"];
+  setMessages: MyUseChat["setMessages"];
+  regenerate: MyUseChat["regenerate"];
   isReadonly: boolean;
   isArtifactVisible: boolean;
   overviewMessage?: string;
@@ -25,7 +24,7 @@ function PureMessages({
   status,
   messages,
   setMessages,
-  reload,
+  regenerate,
   isReadonly,
   overviewMessage,
   logo,
@@ -57,7 +56,7 @@ function PureMessages({
           message={message}
           isLoading={status === "streaming" && messages.length - 1 === index}
           setMessages={setMessages}
-          reload={reload}
+          regenerate={regenerate}
           isReadonly={isReadonly}
           requiresScrollPadding={
             hasSentMessage && index === messages.length - 1

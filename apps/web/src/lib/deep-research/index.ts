@@ -2,7 +2,7 @@
  * Deep Research Pipeline Implementation
  */
 
-import type { LanguageModelV1 } from "ai";
+import type { LanguageModel } from "ai";
 import {
   extractReasoningMiddleware,
   generateObject,
@@ -21,10 +21,10 @@ import { SearchResult, SearchResults } from "./classes";
 import { PROMPTS, RESEARCH_CONFIG } from "./config";
 
 type ModelConfig = {
-  planning: LanguageModelV1;
-  json: LanguageModelV1;
-  summary: LanguageModelV1;
-  answer: LanguageModelV1;
+  planning: LanguageModel;
+  json: LanguageModel;
+  summary: LanguageModel;
+  answer: LanguageModel;
 };
 
 /**
@@ -123,9 +123,7 @@ export class DeepResearchPipeline {
    * @returns List of search queries
    */
   private async generateResearchQueries(topic: string): Promise<string[]> {
-    const { object } = await generateObject<
-      z.infer<typeof this.researchPlanSchema>
-    >({
+    const { object } = await generateObject({
       model: this.modelConfig.json,
       schema: this.researchPlanSchema,
       system: this.prompts.planningPrompt,
@@ -317,9 +315,7 @@ export class DeepResearchPipeline {
     // );
     // console.log(`\x1b[36m📝 Evaluation:\n\n ${evaluation.text}\x1b[0m`);
 
-    const { object } = await generateObject<
-      z.infer<typeof this.researchPlanSchema>
-    >({
+    const { object } = await generateObject({
       model: this.modelConfig.json,
       system: this.prompts.evaluationParsingPrompt,
       prompt: `Evaluation to be parsed: ${evaluation.text}`,
@@ -376,9 +372,7 @@ export class DeepResearchPipeline {
 
     // console.log(`\x1b[36m📝 Filter response: ${filterResponse.text}\x1b[0m`);
 
-    const { object } = await generateObject<
-      z.infer<typeof this.sourceListSchema>
-    >({
+    const { object } = await generateObject({
       model: this.modelConfig.json,
       system: this.prompts.sourceParsingPrompt,
       prompt: `Filter response to be parsed: ${filterResponse.text}`,
@@ -538,7 +532,7 @@ export class DeepResearchPipeline {
     const formattedResults = results.toString();
 
     const enhancedModel = wrapLanguageModel({
-      model: this.modelConfig.answer,
+      model: this.modelConfig.answer as Exclude<LanguageModel, string>,
       middleware: extractReasoningMiddleware({ tagName: "think" }),
     });
 
@@ -546,7 +540,7 @@ export class DeepResearchPipeline {
       model: enhancedModel,
       system: this.prompts.answerPrompt,
       prompt: `Research Topic: ${topic}\n\nSearch Results:\n${formattedResults}`,
-      maxTokens: this.researchConfig.maxTokens,
+      maxOutputTokens: this.researchConfig.maxTokens,
     });
 
     return answer;

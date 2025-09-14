@@ -1,4 +1,4 @@
-import type { CoreMessage, LanguageModelV1 } from "ai";
+import type { LanguageModel, ModelMessage } from "ai";
 
 import type { Namespace } from "@agentset/db";
 import type {
@@ -29,8 +29,8 @@ export async function agenticSearch(
     tokenBudget = 4096,
     onQueries,
   }: {
-    model: LanguageModelV1;
-    messages: CoreMessage[];
+    model: LanguageModel;
+    messages: ModelMessage[];
     queryOptions?: Omit<QueryVectorStoreOptions, "query">;
     maxEvals?: number;
     tokenBudget?: number;

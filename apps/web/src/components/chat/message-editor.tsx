@@ -1,30 +1,28 @@
-"use client";
-
-// import { deleteTrailingMessages } from '@/app/(chat)/actions';
-import type { UseChatHelpers } from "@ai-sdk/react";
-import type { Message } from "ai";
 import type { Dispatch, SetStateAction } from "react";
 import { useEffect, useRef, useState } from "react";
-import { ChatRequestOptions } from "ai";
+import { extractTextFromParts } from "@/lib/string-utils";
+import { MyUIMessage, MyUseChat } from "@/types/ai";
 
 import { Button, Textarea } from "@agentset/ui";
 
 export type MessageEditorProps = {
-  message: Message;
+  message: MyUIMessage;
   setMode: Dispatch<SetStateAction<"view" | "edit">>;
-  setMessages: UseChatHelpers["setMessages"];
-  reload: UseChatHelpers["reload"];
+  setMessages: MyUseChat["setMessages"];
+  regenerate: MyUseChat["regenerate"];
 };
 
 export function MessageEditor({
   message,
   setMode,
   setMessages,
-  reload,
+  regenerate,
 }: MessageEditorProps) {
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
 
-  const [draftContent, setDraftContent] = useState<string>(message.content);
+  const [draftContent, setDraftContent] = useState<string>(
+    extractTextFromParts(message.parts),
+  );
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   useEffect(() => {
@@ -73,18 +71,12 @@ export function MessageEditor({
           onClick={async () => {
             setIsSubmitting(true);
 
-            // await deleteTrailingMessages({
-            //   id: message.id,
-            // });
-
-            // @ts-expect-error todo: support UIMessage in setMessages
             setMessages((messages) => {
               const index = messages.findIndex((m) => m.id === message.id);
 
               if (index !== -1) {
-                const updatedMessage = {
+                const updatedMessage: MyUIMessage = {
                   ...message,
-                  content: draftContent,
                   parts: [{ type: "text", text: draftContent }],
                 };
 
@@ -95,7 +87,7 @@ export function MessageEditor({
             });
 
             setMode("view");
-            void reload();
+            void regenerate();
           }}
         >
           {isSubmitting ? "Sending..." : "Send"}

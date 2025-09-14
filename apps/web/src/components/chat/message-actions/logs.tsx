@@ -1,8 +1,7 @@
-import type { Message } from "ai";
 import SearchChunk from "@/components/search-chunk";
+import { MyUIMessage } from "@/types/ai";
 import { LogsIcon } from "lucide-react";
 
-import type { QueryVectorStoreResult } from "@agentset/engine";
 import {
   Accordion,
   AccordionContent,
@@ -26,17 +25,16 @@ import {
 
 import { CodeBlock } from "../code-block";
 
-export default function MessageLogs({ message }: { message: Message }) {
-  const annotation = (
-    message.annotations as Record<string, unknown>[] | undefined
-  )?.find((a) => a.type === "agentset_sources") as
-    | {
-        value: QueryVectorStoreResult;
-        logs?: QueryVectorStoreResult[];
-      }
-    | undefined;
+export default function MessageLogs({ message }: { message: MyUIMessage }) {
+  const annotation = message.parts?.find(
+    (a) => a.type === "data-agentset-sources",
+  );
 
-  const sources = annotation?.logs ?? annotation?.value;
+  const sources = annotation
+    ? "query" in annotation.data
+      ? annotation.data
+      : annotation.data.logs
+    : null;
   const hasMultipleQueries = Array.isArray(sources);
 
   return (

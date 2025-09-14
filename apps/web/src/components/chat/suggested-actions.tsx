@@ -1,19 +1,19 @@
 "use client";
 
-import type { UseChatHelpers } from "@ai-sdk/react";
 import { memo } from "react";
 import { logEvent } from "@/lib/analytics";
+import { MyUseChat } from "@/types/ai";
 import { motion } from "framer-motion";
 
 import { Button } from "@agentset/ui";
 
 interface SuggestedActionsProps {
-  append: UseChatHelpers["append"];
+  sendMessage: MyUseChat["sendMessage"];
   exampleMessages: string[];
 }
 
 function PureSuggestedActions({
-  append,
+  sendMessage,
   exampleMessages,
 }: SuggestedActionsProps) {
   return (
@@ -36,9 +36,8 @@ function PureSuggestedActions({
               logEvent("chat_suggested_action_clicked", {
                 position: index,
               });
-              void append({
-                role: "user",
-                content: suggestedAction,
+              void sendMessage({
+                text: suggestedAction,
               });
             }}
             className="h-auto w-full flex-1 items-start justify-start gap-1 rounded-xl border px-4 py-3.5 text-left text-sm sm:flex-col"

@@ -1,3 +1,5 @@
+import { MyUIMessage } from "@/types/ai";
+
 import { toSlug } from "./slug";
 
 const tokenCharacters =
@@ -49,4 +51,12 @@ export function camelCaseToWords(str: string) {
 
 export function sanitizeText(text: string) {
   return text.replaceAll("<has_function_call>", "");
+}
+
+export function extractTextFromParts(parts: MyUIMessage["parts"]) {
+  return parts
+    .filter((part) => part.type === "text")
+    .map((part) => part.text)
+    .join("\n")
+    .trim();
 }

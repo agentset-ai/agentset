@@ -1,4 +1,4 @@
-import type { LanguageModelV1 } from "ai";
+import type { LanguageModel } from "ai";
 import { formatSources } from "@/lib/agentic/utils";
 import { generateText } from "ai";
 import { z } from "zod/v4";
@@ -18,7 +18,7 @@ const correctnessSchema = z.object({
 });
 
 export const correctnessEval = async (
-  model: LanguageModelV1,
+  model: LanguageModel,
   params: {
     query: string;
     generatedAnswer: string;
@@ -47,7 +47,7 @@ const faithfulnessSchema = z.object({
 });
 
 export const faithfulnessEval = async (
-  model: LanguageModelV1,
+  model: LanguageModel,
   params: {
     query: string;
     sources: QueryVectorStoreResult["results"];
@@ -70,7 +70,7 @@ const relevanceSchema = z.object({
 });
 
 export const relevanceEval = async (
-  model: LanguageModelV1,
+  model: LanguageModel,
   params: {
     query: string;
     generatedAnswer: string;

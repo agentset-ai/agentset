@@ -1,10 +1,8 @@
 "use client";
 
-import type { UseChatHelpers } from "@ai-sdk/react";
-import type { JSONValue, UIMessage } from "ai";
 import { memo, useState } from "react";
 import { sanitizeText } from "@/lib/string-utils";
-import equal from "fast-deep-equal";
+import { MyUIMessage, MyUseChat } from "@/types/ai";
 import { AnimatePresence, motion } from "framer-motion";
 import { PencilIcon, SparklesIcon } from "lucide-react";
 
@@ -22,34 +20,21 @@ import { MessageActions } from "./message-actions";
 import { MessageEditor } from "./message-editor";
 import { MessageReasoning } from "./message-reasoning";
 
-type StatusAnnotation = {
-  type: "status";
-  value: "generating-queries" | "searching" | "generating-answer";
-  queries?: {
-    type: "keyword" | "semantic";
-    query: string;
-  }[];
-};
-
 const Annotations = ({
-  annotations,
+  message,
   isLoading,
 }: {
-  annotations?: JSONValue[];
+  message: MyUIMessage;
   isLoading: boolean;
 }) => {
-  if (!annotations) return null;
-
   // get the last item with type status
-  const statuses = annotations.filter(
-    (a) => !!a && typeof a === "object" && "type" in a && a.type === "status",
-  ) as StatusAnnotation[];
+  const statuses = message.parts.filter((a) => a.type === "data-status");
 
   if (statuses.length === 0) return null;
 
-  const reversed = statuses.reverse();
+  const reversed = statuses.reverse().map((s) => s.data);
   // we reverse the statuses to get the latest queries
-  const queries = reversed.find((s) => !!s.queries)?.queries;
+  const queries = reversed.find((s) => s.value === "searching")?.queries;
 
   const queryString = queries
     ? queries.map((q, idx) => (
@@ -87,15 +72,15 @@ const PurePreviewMessage = ({
   message,
   isLoading,
   setMessages,
-  reload,
+  regenerate,
   isReadonly,
   requiresScrollPadding,
 }: {
   chatId: string;
-  message: UIMessage;
+  message: MyUIMessage;
   isLoading: boolean;
-  setMessages: UseChatHelpers["setMessages"];
-  reload: UseChatHelpers["reload"];
+  setMessages: MyUseChat["setMessages"];
+  regenerate: MyUseChat["regenerate"];
   isReadonly: boolean;
   requiresScrollPadding: boolean;
 }) => {
@@ -132,10 +117,7 @@ const PurePreviewMessage = ({
                 : "",
             )}
           >
-            <Annotations
-              annotations={message.annotations}
-              isLoading={isLoading}
-            />
+            <Annotations message={message} isLoading={isLoading} />
 
             {message.parts.map((part, index) => {
               const { type } = part;
@@ -146,7 +128,7 @@ const PurePreviewMessage = ({
                   <MessageReasoning
                     key={key}
                     isLoading={isLoading}
-                    reasoning={part.reasoning}
+                    reasoning={part.text}
                   />
                 );
               }
@@ -180,11 +162,7 @@ const PurePreviewMessage = ({
                             "bg-primary text-primary-foreground rounded-xl px-3 py-2",
                         )}
                       >
-                        <Markdown
-                          annotations={
-                            message.annotations as Record<string, unknown>[]
-                          }
-                        >
+                        <Markdown message={message}>
                           {sanitizeText(part.text)}
                         </Markdown>
                       </div>
@@ -202,7 +180,7 @@ const PurePreviewMessage = ({
                         message={message}
                         setMode={setMode}
                         setMessages={setMessages}
-                        reload={reload}
+                        regenerate={regenerate}
                       />
                     </div>
                   );
@@ -297,9 +275,7 @@ export const PreviewMessage = memo(
   (prevProps, nextProps) => {
     if (prevProps.isLoading !== nextProps.isLoading) return false;
     if (prevProps.message.id !== nextProps.message.id) return false;
-    if (!equal(prevProps.message.parts, nextProps.message.parts)) return false;
-    if (!equal(prevProps.message.annotations, nextProps.message.annotations))
-      return false;
+
     if (prevProps.requiresScrollPadding !== nextProps.requiresScrollPadding)
       return false;
 

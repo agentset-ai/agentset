@@ -1,4 +1,4 @@
-import type { CoreMessage, JSONValue } from "ai";
+import type { ModelMessage } from "ai";
 import agenticPipeline from "@/lib/agentic";
 import { AgentsetApiError } from "@/lib/api/errors";
 import { withAuthApiHandler } from "@/lib/api/handler";
@@ -10,8 +10,15 @@ import {
   CONDENSE_USER_PROMPT,
   NEW_MESSAGE_PROMPT,
 } from "@/lib/prompts";
+import { MyUIMessage } from "@/types/ai";
 import { waitUntil } from "@vercel/functions";
-import { createDataStreamResponse, generateText, streamText } from "ai";
+import {
+  convertToModelMessages,
+  createUIMessageStream,
+  createUIMessageStreamResponse,
+  generateText,
+  streamText,
+} from "ai";
 
 import { db } from "@agentset/db";
 import { queryVectorStore } from "@agentset/engine";
@@ -114,7 +121,7 @@ export const POST = withAuthApiHandler(
       const answer = await pipeline.runResearch(query);
       incrementUsage(namespace.id, 1);
 
-      return answer.toDataStreamResponse({ headers });
+      return answer.toUIMessageStreamResponse({ headers });
     }
 
     if (body.mode === "agentic") {
@@ -162,7 +169,7 @@ export const POST = withAuthApiHandler(
       });
     }
 
-    const newMessages: CoreMessage[] = [
+    const newMessages: ModelMessage[] = [
       ...messagesWithoutQuery,
       {
         role: "user",
@@ -178,8 +185,8 @@ export const POST = withAuthApiHandler(
     incrementUsage(namespace.id, 1);
 
     // add the sources to the stream
-    return createDataStreamResponse({
-      execute: (dataStream) => {
+    const stream = createUIMessageStream<MyUIMessage>({
+      execute: ({ writer }) => {
         const messageStream = streamText({
           model: languageModel,
           system: body.systemPrompt,
@@ -190,13 +197,14 @@ export const POST = withAuthApiHandler(
           },
         });
 
-        dataStream.writeMessageAnnotation({
-          type: "agentset_sources",
-          value: data as unknown as JSONValue,
+        writer.write({
+          type: "data-agentset-sources",
+          data,
         });
-        messageStream.mergeIntoDataStream(dataStream);
+        writer.merge(messageStream.toUIMessageStream());
       },
-      headers,
     });
+
+    return createUIMessageStreamResponse({ stream, headers });
   },
 );

@@ -1,4 +1,4 @@
-import type { CoreMessage, LanguageModelV1 } from "ai";
+import type { LanguageModel, ModelMessage } from "ai";
 import { generateText } from "ai";
 import { z } from "zod/v4";
 
@@ -6,7 +6,7 @@ import type { QueryVectorStoreResult } from "@agentset/engine";
 
 import { EVALUATE_QUERIES_PROMPT, GENERATE_QUERIES_PROMPT } from "./prompts";
 
-export const formatChatHistory = (messages: CoreMessage[]) => {
+export const formatChatHistory = (messages: ModelMessage[]) => {
   return messages.map((m) => `${m.role}: ${m.content as string}`).join("\n\n");
 };
 
@@ -28,8 +28,8 @@ const schema = z.object({
 export type Queries = z.infer<typeof schema>["queries"];
 
 export const generateQueries = async (
-  model: LanguageModelV1,
-  messages: CoreMessage[],
+  model: LanguageModel,
+  messages: ModelMessage[],
   oldQueries: Queries,
 ) => {
   const queriesResult = await generateText({
@@ -60,8 +60,8 @@ const evalSchema = z.object({
 });
 
 export const evaluateQueries = async (
-  model: LanguageModelV1,
-  messages: CoreMessage[],
+  model: LanguageModel,
+  messages: ModelMessage[],
   sources: QueryVectorStoreResult["results"],
 ) => {
   const evaluateQueriesResult = await generateText({
