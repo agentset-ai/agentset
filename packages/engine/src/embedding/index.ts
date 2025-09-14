@@ -1,10 +1,11 @@
+import { VoyageEmbeddingOptions } from "voyage-ai-provider";
+
 import type { Namespace } from "@agentset/db";
 
 import { env } from "../env";
 
 export const getNamespaceEmbeddingModel = async (
   namespace: Pick<Namespace, "embeddingConfig">,
-  type?: "document" | "query",
 ) => {
   const config = namespace.embeddingConfig;
 
@@ -48,9 +49,7 @@ export const getNamespaceEmbeddingModel = async (
 
       const { apiKey, model } = config;
       const voyage = createVoyage({ apiKey });
-      return voyage.textEmbeddingModel(model, {
-        inputType: type === "document" ? "document" : "query",
-      });
+      return voyage.textEmbeddingModel(model);
     }
 
     case "GOOGLE": {
@@ -68,4 +67,19 @@ export const getNamespaceEmbeddingModel = async (
       throw new Error(`Unknown vector store provider: ${_exhaustiveCheck}`);
     }
   }
+};
+
+export const getEmbeddingProviderOptions = (
+  namespace: Pick<Namespace, "embeddingConfig">,
+  type: "document" | "query",
+) => {
+  return {
+    providerOptions: {
+      ...(namespace.embeddingConfig?.provider === "VOYAGE" && {
+        voyage: {
+          inputType: type,
+        } satisfies VoyageEmbeddingOptions,
+      }),
+    },
+  };
 };

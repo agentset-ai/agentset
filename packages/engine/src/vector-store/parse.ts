@@ -6,7 +6,10 @@ import { MetadataMode } from "llamaindex";
 import type { Namespace } from "@agentset/db";
 import { filterFalsy } from "@agentset/utils";
 
-import { getNamespaceEmbeddingModel } from "../embedding";
+import {
+  getEmbeddingProviderOptions,
+  getNamespaceEmbeddingModel,
+} from "../embedding";
 import { CohereReranker } from "../rerank/cohere";
 import { getNamespaceVectorStore } from "./index";
 
@@ -59,13 +62,14 @@ export const queryVectorStore = async (
 ) => {
   // TODO: if the embedding model is managed, track the usage
   const [embeddingModel, vectorStore] = await Promise.all([
-    getNamespaceEmbeddingModel(namespace, "query"),
+    getNamespaceEmbeddingModel(namespace),
     getNamespaceVectorStore(namespace, options.tenantId),
   ]);
 
   const embedding = await embed({
     model: embeddingModel,
     value: options.query,
+    ...getEmbeddingProviderOptions(namespace, "query"),
   });
 
   // TODO: track usage

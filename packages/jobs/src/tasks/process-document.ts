@@ -4,6 +4,7 @@ import { embedMany } from "ai";
 import type { PartitionBatch, PartitionResult } from "@agentset/engine";
 import { DocumentStatus } from "@agentset/db";
 import {
+  getEmbeddingProviderOptions,
   getNamespaceEmbeddingModel,
   getNamespaceVectorStore,
   getPartitionDocumentBody,
@@ -140,7 +141,7 @@ export const processDocument = schemaTask({
 
     // Get embedding model and vector store
     const [embeddingModel, vectorStore] = await Promise.all([
-      getNamespaceEmbeddingModel(ingestJob.namespace, "document"),
+      getNamespaceEmbeddingModel(ingestJob.namespace),
       getNamespaceVectorStore(
         ingestJob.namespace,
         document.tenantId ?? undefined,
@@ -223,6 +224,7 @@ export const processDocument = schemaTask({
         model: embeddingModel,
         values: chunkBatch.map((chunk) => chunk.text),
         maxRetries: 5,
+        ...getEmbeddingProviderOptions(ingestJob.namespace, "document"),
       });
 
       const nodes = chunkBatch.map((chunk, idx) =>

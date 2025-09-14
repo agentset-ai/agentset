@@ -2,6 +2,7 @@ import { embed } from "ai";
 
 import type { Namespace } from "@agentset/db";
 import {
+  getEmbeddingProviderOptions,
   getNamespaceEmbeddingModel,
   getNamespaceVectorStore,
 } from "@agentset/engine";
@@ -30,40 +31,48 @@ export const validateVectorStoreConfig = async (
   vectorStoreConfig?: Namespace["vectorStoreConfig"],
   embeddingConfig?: Namespace["embeddingConfig"],
 ) => {
-  if (!vectorStoreConfig) {
+  // default vector store + embedding model will always work
+  if (!vectorStoreConfig && !embeddingConfig) {
     return {
       success: true as const,
     };
   }
 
-  const v = await getNamespaceVectorStore({
-    id: "",
-    vectorStoreConfig,
-    createdAt: new Date(),
-  });
+  let embeddingDimensions: number = 3072; // TODO: make this dynamic
+  if (embeddingConfig) {
+    embeddingDimensions = modelToDimensions[embeddingConfig.model];
+  }
 
-  try {
-    const dimensions = await v.getDimensions();
-    if (embeddingConfig) {
-      const embeddingDimensions = modelToDimensions[embeddingConfig.model];
-      if (dimensions !== embeddingDimensions) {
-        return {
-          success: false as const,
-          error: `Embedding dimensions mismatch: ${dimensions} !== ${embeddingDimensions}`,
-        };
-      }
+  // one of either vector store config or embedding config is provided
+  let vectorStoreDimensions: number = 3072; // TODO: make this dynamic
+  if (vectorStoreConfig) {
+    try {
+      const v = await getNamespaceVectorStore({
+        id: "",
+        vectorStoreConfig,
+        createdAt: new Date(),
+      });
+      const dimensions = await v.getDimensions();
+      vectorStoreDimensions = dimensions;
+    } catch {
+      return {
+        success: false as const,
+        error:
+          "Failed to validate vector store config, make sure the API key is valid",
+      };
     }
+  }
 
-    return {
-      success: true as const,
-    };
-  } catch {
+  if (vectorStoreDimensions !== embeddingDimensions) {
     return {
       success: false as const,
-      error:
-        "Failed to validate vector store config, make sure the API key is valid",
+      error: `Embedding dimensions mismatch: ${vectorStoreDimensions} !== ${embeddingDimensions}`,
     };
   }
+
+  return {
+    success: true as const,
+  };
 };
 
 export const validateEmbeddingModel = async (
@@ -81,6 +90,7 @@ export const validateEmbeddingModel = async (
     await embed({
       model,
       value: "Hello, world!",
+      ...getEmbeddingProviderOptions({ embeddingConfig }, "query"),
     });
 
     return {
