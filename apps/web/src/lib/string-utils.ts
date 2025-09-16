@@ -1,5 +1,5 @@
 import { MyUIMessage } from "@/types/ai";
-import { ModelMessage, UIMessage } from "ai";
+import { ModelMessage } from "ai";
 
 import { toSlug } from "./slug";
 
