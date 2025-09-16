@@ -16,6 +16,7 @@ model IngestJob {
   id String @id @default(cuid())
 
   tenantId    String?
+  externalId  String?
   namespaceId String
   namespace   Namespace @relation(fields: [namespaceId], references: [id], onDelete: Cascade)
 
@@ -44,9 +45,13 @@ model IngestJob {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
+  // externalId must be unique within a namespace
+  @@unique([namespaceId, externalId])
+  // filtering by status
   @@index([status])
-  @@index([tenantId, status])
   @@index([namespaceId, status])
-  @@index([namespaceId, tenantId, status]) // For triple-filter queries in API
+  @@index([namespaceId, tenantId, status])
+  // filtering by tenant
+  @@index([namespaceId, tenantId])
   @@map("ingest_job")
 }

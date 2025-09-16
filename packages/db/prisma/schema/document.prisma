@@ -33,6 +33,9 @@ model Document {
   completedAt     DateTime?
   failedAt        DateTime?
 
+  namespaceId String?
+  namespace   Namespace? @relation(fields: [namespaceId], references: [id], onDelete: Cascade)
+
   ingestJobId String
   ingestJob   IngestJob @relation(fields: [ingestJobId], references: [id], onDelete: Cascade)
 
@@ -49,10 +52,15 @@ model Document {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  @@index([status]) // For direct tenant + status queries
-  @@index([tenantId, status]) // For direct tenant + status queries
-  @@index([ingestJobId, status]) // For filtered document queries
-  @@index([ingestJobId, tenantId]) // For tenant-specific queries  
-  @@index([ingestJobId, tenantId, status]) // For combined tenant + status filters
+  // externalId must be unique within a namespace
+  @@unique([namespaceId, externalId])
+  // filtering by status
+  @@index([namespaceId, status])
+  @@index([ingestJobId, status])
+  @@index([ingestJobId, tenantId, status])
+  @@index([namespaceId, tenantId, status])
+  // filtering by tenant
+  @@index([ingestJobId, tenantId])
+  @@index([namespaceId, tenantId])
   @@map("document")
 }
