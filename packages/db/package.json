@@ -5,7 +5,8 @@
   "exports": {
     ".": "./src/index.ts",
     "./supabase-types": "./src/types/supabase.types.ts",
-    "./types": "./src/types/prisma.ts"
+    "./types": "./src/types/prisma.ts",
+    "./node": "./src/node.ts"
   },
   "scripts": {
     "postinstall": "pnpm db:generate",
@@ -38,7 +39,7 @@
     "eslint": "catalog:",
     "prettier": "catalog:",
     "prisma": "^6.16.1",
-    "prisma-json-types-generator": "^3.5.4",
+    "prisma-json-types-generator": "^3.6.1",
     "typescript": "catalog:"
   },
   "prettier": "@agentset/prettier-config"

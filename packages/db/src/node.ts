@@ -1,9 +1,10 @@
 import { neonConfig } from "@neondatabase/serverless";
 import { PrismaNeon } from "@prisma/adapter-neon";
 
-import { PrismaClient } from "../generated/client";
+import { PrismaClient } from "../generated-node/client";
+import { PrismaClient as OriginalClient } from "../generated/client";
 
-const createPrismaClient = () => {
+export const createClient = () => {
   // Supabase pooled connection string (must use Supavisor)
   const connectionString = process.env.DATABASE_URL ?? "";
 
@@ -21,19 +22,12 @@ const createPrismaClient = () => {
   neonConfig.webSocketConstructor = WebSocket;
 
   const adapter = new PrismaNeon({ connectionString });
+
   return new PrismaClient({
     adapter,
     log:
       process.env.NODE_ENV === "development"
         ? ["query", "error", "warn"]
         : ["error"],
-  });
+  }) as OriginalClient;
 };
-
-const globalForPrisma = globalThis as unknown as {
-  prisma: ReturnType<typeof createPrismaClient> | undefined;
-};
-
-export const db = globalForPrisma.prisma ?? createPrismaClient();
-
-if (process.env.NODE_ENV !== "production") globalForPrisma.prisma = db;

@@ -6,6 +6,14 @@ generator client {
     moduleFormat = "esm"
 }
 
+generator nodeClient {
+    provider     = "prisma-client" // ESM-first
+    engineType   = "client" // No rust engines
+    output       = "../../generated-node"
+    runtime      = "nodejs"
+    moduleFormat = "esm"
+}
+
 generator json {
     provider = "prisma-json-types-generator"
 }

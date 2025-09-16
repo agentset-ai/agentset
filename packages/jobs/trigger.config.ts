@@ -20,8 +20,8 @@ export default defineConfig({
     extensions: [
       prismaExtension({
         schema: "../../packages/db/prisma/schema/schema.prisma",
-        version: "6.12.0",
-        clientGenerator: "client",
+        version: "6.16.1",
+        clientGenerator: "nodeClient",
       }),
     ],
   },
