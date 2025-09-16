@@ -5,8 +5,7 @@
   "exports": {
     ".": "./src/index.ts",
     "./supabase-types": "./src/types/supabase.types.ts",
-    "./types": "./src/types/prisma.ts",
-    "./node": "./src/node.ts"
+    "./types": "./src/types/prisma.ts"
   },
   "scripts": {
     "postinstall": "pnpm db:generate",
@@ -24,8 +23,9 @@
   },
   "dependencies": {
     "@neondatabase/serverless": "^1.0.1",
-    "@prisma/adapter-neon": "^6.16.1",
-    "@prisma/client": "^6.16.1"
+    "@prisma/adapter-neon": "^6.16.2",
+    "@prisma/adapter-pg": "^6.16.2",
+    "@prisma/client": "^6.16.2"
   },
   "prisma": {
     "schema": "prisma/schema"
@@ -38,7 +38,7 @@
     "dotenv-cli": "^8.0.0",
     "eslint": "catalog:",
     "prettier": "catalog:",
-    "prisma": "^6.16.1",
+    "prisma": "^6.16.2",
     "prisma-json-types-generator": "^3.6.1",
     "typescript": "catalog:"
   },

@@ -1,5 +1,6 @@
 import { neonConfig } from "@neondatabase/serverless";
 import { PrismaNeon } from "@prisma/adapter-neon";
+import { PrismaPg } from "@prisma/adapter-pg";
 
 import { PrismaClient } from "../generated-node/client";
 import { PrismaClient as OriginalClient } from "../generated/client";
@@ -7,6 +8,17 @@ import { PrismaClient as OriginalClient } from "../generated/client";
 export const createClient = () => {
   // Supabase pooled connection string (must use Supavisor)
   const connectionString = process.env.DATABASE_URL ?? "";
+
+  if (typeof WebSocket === "undefined") {
+    const adapter = new PrismaPg({ connectionString });
+    return new PrismaClient({
+      adapter,
+      log:
+        process.env.NODE_ENV === "development"
+          ? ["query", "error", "warn"]
+          : ["error"],
+    }) as OriginalClient;
+  }
 
   if (connectionString.includes("@localhost")) {
     // Disable SSL for local connections

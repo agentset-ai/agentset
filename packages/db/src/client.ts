@@ -4,6 +4,15 @@ import { PrismaNeon } from "@prisma/adapter-neon";
 import { PrismaClient } from "../generated/client";
 
 const createPrismaClient = () => {
+  if (typeof WebSocket === "undefined") {
+    return new PrismaClient({
+      log:
+        process.env.NODE_ENV === "development"
+          ? ["query", "error", "warn"]
+          : ["error"],
+    });
+  }
+
   // Supabase pooled connection string (must use Supavisor)
   const connectionString = process.env.DATABASE_URL ?? "";
 
