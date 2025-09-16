@@ -7,12 +7,12 @@ export const getNamespaceLanguageModel = async (config?: LLMConfig) => {
     const { createAzure } = await import("@ai-sdk/azure");
 
     const defaultAzure = createAzure({
-      baseURL: env.DEFAULT_AZURE_BASE_URL,
+      resourceName: env.DEFAULT_AZURE_RESOURCE_NAME,
       apiKey: env.DEFAULT_AZURE_API_KEY,
-      apiVersion: env.DEFAULT_AZURE_GPT_4_1_VERSION,
+      apiVersion: "preview",
     });
 
-    return defaultAzure.languageModel(env.DEFAULT_AZURE_GPT_4_1_DEPLOYMENT);
+    return defaultAzure.languageModel(env.DEFAULT_AZURE_LLM_DEPLOYMENT);
   }
 
   switch (config.provider) {
@@ -27,8 +27,8 @@ export const getNamespaceLanguageModel = async (config?: LLMConfig) => {
     case "AZURE_OPENAI": {
       const { createAzure } = await import("@ai-sdk/azure");
 
-      const { apiKey, baseUrl, deployment, apiVersion } = config;
-      const azure = createAzure({ apiKey, baseURL: baseUrl, apiVersion });
+      const { apiKey, resourceName, deployment, apiVersion } = config;
+      const azure = createAzure({ resourceName, apiKey, apiVersion });
       return azure.languageModel(deployment);
     }
 

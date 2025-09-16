@@ -1,6 +1,6 @@
 import { DEFAULT_SYSTEM_PROMPT } from "@/lib/prompts";
 import { baseQueryVectorStoreSchema } from "@/schemas/api/query";
-import { modelMessageSchema } from "ai";
+import { messagesSchema } from "@/schemas/chat";
 import { z } from "zod/v4";
 
 export const chatSchema = baseQueryVectorStoreSchema
@@ -13,7 +13,7 @@ export const chatSchema = baseQueryVectorStoreSchema
       .describe(
         "The system prompt to use for the chat. Defaults to the default system prompt.",
       ),
-    messages: z.array(modelMessageSchema),
+    messages: messagesSchema,
     temperature: z.number().optional(),
     mode: z.enum(["normal", "agentic", "deepResearch"]).optional(),
   })

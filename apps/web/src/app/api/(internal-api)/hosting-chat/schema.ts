@@ -1,6 +1,6 @@
-import { modelMessageSchema } from "ai";
+import { messagesSchema } from "@/schemas/chat";
 import { z } from "zod/v4";
 
 export const hostingChatSchema = z.object({
-  messages: z.array(modelMessageSchema),
+  messages: messagesSchema,
 });

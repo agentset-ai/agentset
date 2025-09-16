@@ -78,6 +78,10 @@ export const useChatSettings = create<ChatSettings>()(
     }),
     {
       name: "chat-settings",
+      version: 1,
+      migrate(persistedState) {
+        return persistedState;
+      },
     },
   ),
 );

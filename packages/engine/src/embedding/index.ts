@@ -13,13 +13,13 @@ export const getNamespaceEmbeddingModel = async (
     const { createAzure } = await import("@ai-sdk/azure");
 
     const defaultAzure = createAzure({
-      baseURL: env.DEFAULT_AZURE_BASE_URL,
+      resourceName: env.DEFAULT_AZURE_RESOURCE_NAME,
       apiKey: env.DEFAULT_AZURE_API_KEY,
-      apiVersion: env.DEFAULT_AZURE_TEXT_3_LARGE_EMBEDDING_VERSION,
+      apiVersion: "preview",
     });
 
     return defaultAzure.textEmbeddingModel(
-      env.DEFAULT_AZURE_TEXT_3_LARGE_EMBEDDING_DEPLOYMENT,
+      env.DEFAULT_AZURE_EMBEDDING_DEPLOYMENT,
     );
   }
 
@@ -27,11 +27,11 @@ export const getNamespaceEmbeddingModel = async (
     case "AZURE_OPENAI": {
       const { createAzure } = await import("@ai-sdk/azure");
 
-      const { apiKey, baseUrl, deployment, apiVersion } = config;
+      const { apiKey, resourceName, deployment, apiVersion } = config;
       const azure = createAzure({
+        resourceName,
         apiKey,
         apiVersion,
-        baseURL: baseUrl,
       });
       return azure.textEmbeddingModel(deployment);
     }

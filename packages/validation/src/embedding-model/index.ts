@@ -18,7 +18,7 @@ export const EmbeddingConfigSchema = z
 
 export type EmbeddingConfig = z.infer<typeof EmbeddingConfigSchema>;
 
-export { AzureEmbeddingConfigSchema } from "./azure";
-export { GoogleEmbeddingConfigSchema } from "./google";
-export { OpenAIEmbeddingConfigSchema } from "./openai";
-export { VoyageEmbeddingConfigSchema } from "./voyage";
+export * from "./azure";
+export * from "./google";
+export * from "./openai";
+export * from "./voyage";

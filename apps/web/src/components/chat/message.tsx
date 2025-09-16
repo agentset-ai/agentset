@@ -1,13 +1,9 @@
 "use client";
 
-import { memo, useState } from "react";
+import { useState } from "react";
 import { sanitizeText } from "@/lib/string-utils";
 import { MyUIMessage } from "@/types/ai";
-import {
-  useChatMessageCount,
-  useChatProperty,
-  useChatStatus,
-} from "ai-sdk-zustand";
+import { useChatProperty, useChatStatus } from "ai-sdk-zustand";
 import { AnimatePresence, motion } from "framer-motion";
 import { PencilIcon, SparklesIcon } from "lucide-react";
 
@@ -33,31 +29,34 @@ const MessageStatus = ({
   isLoading: boolean;
 }) => {
   // get the last item with type status
-  const statuses = message.parts.filter((a) => a.type === "data-status");
+  const status = message.parts.find((a) => a.type === "data-status");
+  const queries = message.parts.find((a) => a.type === "data-queries");
 
-  if (statuses.length === 0) return null;
-
-  const reversed = statuses.reverse().map((s) => s.data);
-  // we reverse the statuses to get the latest queries
-  const queries = reversed.find((s) => s.value === "searching")?.queries;
+  if (!status)
+    return isLoading ? (
+      <ShinyText
+        className="w-fit font-medium"
+        shimmerWidth={40}
+        disabled={!isLoading}
+      >
+        Generating answer...
+      </ShinyText>
+    ) : null;
 
   const queryString = queries
-    ? queries.map((q, idx) => (
+    ? queries.data.map((q, idx) => (
         <i key={idx}>
-          {q.query}
-          {idx < queries.length - 1 && ", "}
+          {q}
+          {idx < queries.data.length - 1 && ", "}
         </i>
       ))
     : null;
-
-  // get the first item (latest) with type status
-  const status = reversed[0]!;
 
   // TODO: Searched for 1, 2, 3, +x other terms
   return (
     <ShinyText
       className="w-fit font-medium"
-      shimmerWidth={status.value === "searching" ? 40 : 100}
+      shimmerWidth={status.data === "searching" ? 40 : 100}
       disabled={!isLoading}
     >
       {isLoading
@@ -65,22 +64,20 @@ const MessageStatus = ({
             "generating-queries": "Generating queries...",
             searching: "Searching for ",
             "generating-answer": "Searched for ",
-          }[status.value]
+          }[status.data]
         : "Searched for "}
       {queryString}
     </ShinyText>
   );
 };
 
-const PurePreviewMessage = ({
+export const PreviewMessage = ({
   message,
   isLoading,
-  isReadonly,
   requiresScrollPadding,
 }: {
   message: MyUIMessage;
   isLoading: boolean;
-  isReadonly: boolean;
   requiresScrollPadding: boolean;
 }) => {
   const [mode, setMode] = useState<"view" | "edit">("view");
@@ -136,7 +133,7 @@ const PurePreviewMessage = ({
                 if (mode === "view") {
                   return (
                     <div key={key} className="flex flex-row items-start gap-2">
-                      {message.role === "user" && !isReadonly && (
+                      {message.role === "user" && (
                         <Tooltip>
                           <TooltipTrigger asChild>
                             <Button
@@ -247,13 +244,11 @@ const PurePreviewMessage = ({
               // }
             })}
 
-            {!isReadonly && (
-              <MessageActions
-                key={`action-${message.id}`}
-                message={message}
-                isLoading={isLoading}
-              />
-            )}
+            <MessageActions
+              key={`action-${message.id}`}
+              message={message}
+              isLoading={isLoading}
+            />
           </div>
         </div>
       </motion.div>
@@ -261,56 +256,27 @@ const PurePreviewMessage = ({
   );
 };
 
-export const PreviewMessage = memo(
-  PurePreviewMessage,
-  (prevProps, nextProps) => {
-    if (prevProps.isLoading !== nextProps.isLoading) return false;
-    if (prevProps.message.id !== nextProps.message.id) return false;
-
-    if (prevProps.requiresScrollPadding !== nextProps.requiresScrollPadding)
-      return false;
-
-    return true;
-  },
-);
-
 export const ThinkingMessage = () => {
-  const role = "assistant";
   const status = useChatStatus();
-  const messagesLength = useChatMessageCount();
   const isLastMessageFromUser = useChatProperty(
-    (s) => s.messages[s.messages.length - 1]!.role === "user",
+    (s) =>
+      s.messages.length > 0 &&
+      s.messages[s.messages.length - 1]!.role === "user",
   );
 
-  const shouldShow =
-    status === "submitted" && messagesLength > 0 && isLastMessageFromUser;
+  const shouldShow = status === "submitted" && isLastMessageFromUser;
 
   if (!shouldShow) return null;
 
   return (
-    <motion.div
-      data-testid="message-assistant-loading"
-      className="group/message mx-auto w-full max-w-3xl px-4"
-      initial={{ y: 5, opacity: 0 }}
-      animate={{ y: 0, opacity: 1, transition: { delay: 1 } }}
-      data-role={role}
-    >
-      <div
-        className={cn(
-          "flex w-full gap-4 rounded-xl group-data-[role=user]/message:ml-auto group-data-[role=user]/message:w-fit group-data-[role=user]/message:max-w-2xl group-data-[role=user]/message:px-3 group-data-[role=user]/message:py-2",
-          "group-data-[role=user]/message:bg-muted",
-        )}
-      >
-        <div className="ring-border flex size-8 shrink-0 items-center justify-center rounded-full ring-1">
-          <SparklesIcon className="size-3.5" />
-        </div>
-
-        <div className="flex w-full flex-col gap-2">
-          <div className="text-muted-foreground flex flex-col gap-4">
-            Hmm...
-          </div>
-        </div>
-      </div>
-    </motion.div>
+    <PreviewMessage
+      message={{
+        id: "1",
+        role: "assistant",
+        parts: [],
+      }}
+      isLoading={true}
+      requiresScrollPadding
+    />
   );
 };

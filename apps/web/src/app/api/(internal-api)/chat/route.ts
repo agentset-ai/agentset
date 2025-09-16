@@ -10,6 +10,7 @@ import {
   CONDENSE_USER_PROMPT,
   NEW_MESSAGE_PROMPT,
 } from "@/lib/prompts";
+import { extractTextFromParts } from "@/lib/string-utils";
 import { MyUIMessage } from "@/types/ai";
 import { waitUntil } from "@vercel/functions";
 import {
@@ -54,10 +55,11 @@ export const POST = withAuthApiHandler(
   async ({ req, namespace, tenantId, headers }) => {
     const body = await chatSchema.parseAsync(await parseRequestBody(req));
 
-    const messagesWithoutQuery = body.messages.slice(0, -1);
+    const messages = convertToModelMessages(body.messages);
+    const messagesWithoutQuery = messages.slice(0, -1);
     const lastMessage =
-      body.messages.length > 0
-        ? (body.messages[body.messages.length - 1]!.content as string)
+      messages.length > 0
+        ? extractTextFromParts(messages[messages.length - 1]!.content)
         : null;
 
     if (!lastMessage) {

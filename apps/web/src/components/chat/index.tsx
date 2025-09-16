@@ -1,6 +1,5 @@
 "use client";
 
-import { useState } from "react";
 import { useHosting } from "@/contexts/hosting-context";
 
 import { cn } from "@agentset/ui";
@@ -28,7 +27,7 @@ const PlaygroundChat = () => {
         "h-[calc(100dvh-calc(var(--spacing)*20))]",
       )}
     >
-      <Messages isReadonly={false} isArtifactVisible={false} />
+      <Messages />
 
       <form className="bg-background mx-auto flex w-full gap-2 px-4 pb-4 md:max-w-3xl md:pb-6">
         <MultimodalInput type="playground" />
@@ -49,8 +48,6 @@ const HostingChat = () => {
       )}
     >
       <Messages
-        isReadonly={false}
-        isArtifactVisible={false}
         overviewMessage={welcomeMessage ?? undefined}
         logo={logo ?? undefined}
       />

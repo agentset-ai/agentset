@@ -3,8 +3,6 @@
  * for Docker builds.
  */
 import type { NextConfig } from "next";
-// @ts-expect-error - no types
-import { PrismaPlugin } from "@prisma/nextjs-monorepo-workaround-plugin";
 
 import "./src/env";
 
@@ -33,11 +31,6 @@ const config: NextConfig = {
   /** We already do linting and typechecking as separate tasks in CI */
   eslint: { ignoreDuringBuilds: true },
   typescript: { ignoreBuildErrors: true },
-
-  webpack: (config, { isServer }) => {
-    if (isServer) config.plugins = [...config.plugins, new PrismaPlugin()];
-    return config;
-  },
 
   async rewrites() {
     return [

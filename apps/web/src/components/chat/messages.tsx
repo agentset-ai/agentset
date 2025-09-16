@@ -1,4 +1,3 @@
-import { memo } from "react";
 import { useMessages } from "@/hooks/use-messages";
 import { MyUIMessage } from "@/types/ai";
 import { useChatMessages, useChatStatus } from "ai-sdk-zustand";
@@ -8,13 +7,11 @@ import { PreviewMessage, ThinkingMessage } from "./message";
 import { Overview } from "./overview";
 
 interface MessagesProps {
-  isReadonly: boolean;
-  isArtifactVisible: boolean;
   overviewMessage?: string;
   logo?: string;
 }
 
-function PureMessages({ isReadonly, overviewMessage, logo }: MessagesProps) {
+export function Messages({ overviewMessage, logo }: MessagesProps) {
   const messages = useChatMessages<MyUIMessage>();
   const status = useChatStatus();
   const {
@@ -37,7 +34,6 @@ function PureMessages({ isReadonly, overviewMessage, logo }: MessagesProps) {
           key={message.id}
           message={message}
           isLoading={status === "streaming" && messages.length - 1 === index}
-          isReadonly={isReadonly}
           requiresScrollPadding={
             hasSentMessage && index === messages.length - 1
           }
@@ -55,5 +51,3 @@ function PureMessages({ isReadonly, overviewMessage, logo }: MessagesProps) {
     </div>
   );
 }
-
-export const Messages = memo(PureMessages);

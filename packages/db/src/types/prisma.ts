@@ -19,7 +19,7 @@ export type LLMConfig =
   | {
       provider: "AZURE_OPENAI";
       model: OpenAILanguageModel;
-      baseUrl: string;
+      resourceName: string;
       deployment: string;
       apiKey: string;
       apiVersion?: string;

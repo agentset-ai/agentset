@@ -3,6 +3,7 @@ import { MyUIMessage } from "@/types/ai";
 import {
   createUIMessageStream,
   createUIMessageStreamResponse,
+  generateId,
   generateText,
   streamText,
 } from "ai";
@@ -25,6 +26,9 @@ type AgenticPipelineOptions = {
   maxEvals?: number;
   tokenBudget?: number;
 };
+
+const STATUS_PART_ID = "agentset_status";
+const QUERIES_PART_ID = "agentset_queries";
 
 const agenticPipeline = (
   namespace: AgenticSearchNamespace,
@@ -54,8 +58,17 @@ const agenticPipeline = (
   const stream = createUIMessageStream<MyUIMessage>({
     execute: async ({ writer }) => {
       writer.write({
+        type: "start",
+        messageId: generateId(),
+      });
+      writer.write({
+        type: "start-step",
+      });
+
+      writer.write({
+        id: STATUS_PART_ID,
         type: "data-status",
-        data: { value: "generating-queries" },
+        data: "generating-queries",
       });
 
       // step 1. generate queries
@@ -69,8 +82,15 @@ const agenticPipeline = (
           tokenBudget,
           onQueries: (newQueries) => {
             writer.write({
+              id: STATUS_PART_ID,
               type: "data-status",
-              data: { value: "searching", queries: newQueries },
+              data: "searching",
+            });
+
+            writer.write({
+              id: QUERIES_PART_ID,
+              type: "data-queries",
+              data: newQueries.map((q) => q.query),
             });
           },
         },
@@ -79,12 +99,24 @@ const agenticPipeline = (
       afterQueries?.(totalQueries);
 
       writer.write({
+        id: STATUS_PART_ID,
         type: "data-status",
-        data: { value: "generating-answer" },
+        data: "generating-answer",
       });
 
       // TODO: shrink chunks and only select relevant ones to pass to the LLM
       const dedupedData = Object.values(chunks);
+      writer.write({
+        id: "SOURCES",
+        type: "data-agentset-sources",
+        data: {
+          results: dedupedData,
+          ...(includeLogs && {
+            logs: Object.values(queryToResult),
+          }),
+        },
+      });
+
       const newMessages: ModelMessage[] = [
         ...messagesWithoutQuery,
         {
@@ -102,21 +134,13 @@ const agenticPipeline = (
         system: systemPrompt,
         messages: newMessages,
         temperature,
-        onError: (error) => {
-          console.error(error);
-        },
       });
 
-      writer.write({
-        type: "data-agentset-sources",
-        data: {
-          results: dedupedData,
-          ...(includeLogs && {
-            logs: Object.values(queryToResult),
-          }),
-        },
-      });
-      writer.merge(messageStream.toUIMessageStream());
+      writer.merge(
+        messageStream.toUIMessageStream({
+          sendStart: false,
+        }),
+      );
     },
     onError(error) {
       console.error(error);

@@ -5,7 +5,9 @@ import { hostingAuth } from "@/lib/api/hosting-auth";
 import { parseRequestBody } from "@/lib/api/utils";
 import { getNamespaceLanguageModel } from "@/lib/llm";
 import { DEFAULT_SYSTEM_PROMPT } from "@/lib/prompts";
+import { extractTextFromParts } from "@/lib/string-utils";
 import { waitUntil } from "@vercel/functions";
+import { convertToModelMessages } from "ai";
 
 import { db } from "@agentset/db";
 
@@ -64,10 +66,12 @@ export const POST = withPublicApiHandler(
     const body = await hostingChatSchema.parseAsync(
       await parseRequestBody(req),
     );
-    const messagesWithoutQuery = body.messages.slice(0, -1);
+
+    const messages = convertToModelMessages(body.messages);
+    const messagesWithoutQuery = messages.slice(0, -1);
     const lastMessage =
-      body.messages.length > 0
-        ? (body.messages[body.messages.length - 1]!.content as string)
+      messages.length > 0
+        ? extractTextFromParts(messages[messages.length - 1]!.content)
         : null;
 
     if (!lastMessage) {

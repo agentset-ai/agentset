@@ -1,7 +1,9 @@
 generator client {
-    provider        = "prisma-client-js"
-    previewFeatures = ["driverAdapters"]
-    output          = "../../generated/client"
+    provider     = "prisma-client" // ESM-first
+    engineType   = "client" // No rust engines
+    output       = "../../generated"
+    runtime      = "vercel-edge"
+    moduleFormat = "esm"
 }
 
 generator json {
