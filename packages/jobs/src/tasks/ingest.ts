@@ -82,6 +82,7 @@ export const ingestJob = schemaTask({
       status: DocumentStatus.QUEUED,
       tenantId: ingestionJob.tenantId,
       ingestJobId: ingestionJob.id,
+      namespaceId: ingestionJob.namespace.id,
     } satisfies Partial<Prisma.DocumentCreateArgs["data"]>;
 
     let documents: Pick<Document, "id">[] = [];

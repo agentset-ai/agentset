@@ -28,10 +28,8 @@ export const documentsRouter = createTRPCRouter({
 
       const documents = await ctx.db.document.findMany({
         where: {
-          ingestJob: {
-            namespaceId: namespace.id,
-            ...(input.ingestJobId && { id: input.ingestJobId }),
-          },
+          namespaceId: namespace.id,
+          ...(input.ingestJobId && { ingestJobId: input.ingestJobId }),
           ...(input.statuses &&
             input.statuses.length > 0 && { status: { in: input.statuses } }),
         },
@@ -79,9 +77,7 @@ export const documentsRouter = createTRPCRouter({
       const document = await ctx.db.document.findUnique({
         where: {
           id: input.documentId,
-          ingestJob: {
-            namespaceId: namespace.id,
-          },
+          namespaceId: namespace.id,
         },
         select: { id: true, status: true },
       });

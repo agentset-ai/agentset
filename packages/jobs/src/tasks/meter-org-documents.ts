@@ -53,10 +53,8 @@ export const meterOrgDocuments = schemaTask({
     // Get all documents for the organization
     const documents = await db.document.findMany({
       where: {
-        ingestJob: {
-          namespace: {
-            organizationId,
-          },
+        namespace: {
+          organizationId,
         },
         status: {
           notIn: [DocumentStatus.DELETING, DocumentStatus.FAILED],

@@ -13,9 +13,8 @@ export const GET = withNamespaceApiHandler(
     const documents = await db.document.findMany({
       where: {
         tenantId,
-        ingestJob: {
-          namespaceId: namespace.id,
-        },
+        namespaceId: namespace.id,
+        ...(query.ingestJobId && { ingestJobId: query.ingestJobId }),
         ...(query.statuses &&
           query.statuses.length > 0 && { status: { in: query.statuses } }),
       },

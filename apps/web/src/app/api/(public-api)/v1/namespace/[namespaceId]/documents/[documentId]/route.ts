@@ -20,9 +20,7 @@ export const GET = withNamespaceApiHandler(
     const doc = await db.document.findUnique({
       where: {
         id: documentId,
-        ingestJob: {
-          namespaceId: namespace.id,
-        },
+        namespaceId: namespace.id,
       },
     });
 
@@ -63,9 +61,7 @@ export const DELETE = withNamespaceApiHandler(
     const document = await db.document.findUnique({
       where: {
         id: documentId,
-        ingestJob: {
-          namespaceId: namespace.id,
-        },
+        namespaceId: namespace.id,
       },
       select: {
         id: true,

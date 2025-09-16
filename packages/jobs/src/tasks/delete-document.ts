@@ -28,16 +28,12 @@ export const deleteDocument = schemaTask({
         tenantId: true,
         source: true,
         totalPages: true,
-        ingestJob: {
+        namespace: {
           select: {
-            namespace: {
-              select: {
-                id: true,
-                vectorStoreConfig: true,
-                keywordEnabled: true,
-                createdAt: true,
-              },
-            },
+            id: true,
+            vectorStoreConfig: true,
+            keywordEnabled: true,
+            createdAt: true,
           },
         },
       },
@@ -51,7 +47,7 @@ export const deleteDocument = schemaTask({
       };
     }
 
-    const namespace = document.ingestJob.namespace;
+    const namespace = document.namespace!;
 
     // Update status to deleting
     await db.document.update({
