@@ -57,7 +57,6 @@ export const uploadedImageSchema = z
   .transform((v) => v || null);
 
 export const publicHostedImageSchema = z
-  .string()
   .url()
   .trim()
   .refine((url) => url.startsWith("http://") || url.startsWith("https://"), {

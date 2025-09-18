@@ -92,13 +92,18 @@ export const ingestJob = schemaTask({
       ingestionJob.payload.type === "TEXT" ||
       ingestionJob.payload.type === "MANAGED_FILE"
     ) {
+      const commonDocumentData = {
+        name: ingestionJob.payload.fileName,
+        externalId: ingestionJob.payload.externalId,
+      };
+
       // Handle single document types
       if (ingestionJob.payload.type === "TEXT") {
         const { text } = ingestionJob.payload;
         const document = await db.document.create({
           data: {
             ...commonData,
-            name: ingestionJob.payload.fileName,
+            ...commonDocumentData,
             source: {
               type: "TEXT",
               text,
@@ -114,7 +119,7 @@ export const ingestJob = schemaTask({
         const document = await db.document.create({
           data: {
             ...commonData,
-            name: ingestionJob.payload.fileName,
+            ...commonDocumentData,
             source: {
               type: "FILE",
               fileUrl: fileUrl,
@@ -129,7 +134,7 @@ export const ingestJob = schemaTask({
         const document = await db.document.create({
           data: {
             ...commonData,
-            name: ingestionJob.payload.fileName,
+            ...commonDocumentData,
             source: {
               type: "MANAGED_FILE",
               key: key,
@@ -148,9 +153,10 @@ export const ingestJob = schemaTask({
         const fileBatch = batches[i]!;
         const batchResult = await db.document.createManyAndReturn({
           select: { id: true },
-          data: fileBatch.map(({ config, fileName, ...file }) => ({
+          data: fileBatch.map(({ config, fileName, externalId, ...file }) => ({
             ...commonData,
             name: fileName,
+            externalId,
             source: file,
             config,
           })),

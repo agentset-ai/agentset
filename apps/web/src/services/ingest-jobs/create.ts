@@ -17,30 +17,7 @@ export const createIngestJob = async ({
 }) => {
   let finalPayload: PrismaJson.IngestJobPayload | null = null;
 
-  if (data.payload.type === "TEXT") {
-    finalPayload = {
-      type: "TEXT",
-      text: data.payload.text,
-      ...(data.payload.fileName && { fileName: data.payload.fileName }),
-    };
-  } else if (data.payload.type === "FILE") {
-    finalPayload = {
-      type: "FILE",
-      fileUrl: data.payload.fileUrl,
-      ...(data.payload.fileName && { fileName: data.payload.fileName }),
-    };
-  } else if (data.payload.type === "MANAGED_FILE") {
-    const exists = await checkFileExists(data.payload.key);
-    if (!exists) {
-      throw new Error("FILE_NOT_FOUND");
-    }
-
-    finalPayload = {
-      type: "MANAGED_FILE",
-      key: data.payload.key,
-      ...(data.payload.fileName && { fileName: data.payload.fileName }),
-    };
-  } else if (data.payload.type === "BATCH") {
+  if (data.payload.type === "BATCH") {
     const finalItems: IngestJobBatchItem[] = [];
     for (const item of data.payload.items) {
       // deduplicate urls and files
@@ -76,6 +53,35 @@ export const createIngestJob = async ({
       type: "BATCH",
       items: finalItems,
     };
+  } else {
+    const commonPayload = {
+      ...(data.payload.fileName && { fileName: data.payload.fileName }),
+      ...(data.payload.externalId && { externalId: data.payload.externalId }),
+    };
+    if (data.payload.type === "TEXT") {
+      finalPayload = {
+        type: "TEXT",
+        text: data.payload.text,
+        ...commonPayload,
+      };
+    } else if (data.payload.type === "FILE") {
+      finalPayload = {
+        type: "FILE",
+        fileUrl: data.payload.fileUrl,
+        ...commonPayload,
+      };
+    } else if (data.payload.type === "MANAGED_FILE") {
+      const exists = await checkFileExists(data.payload.key);
+      if (!exists) {
+        throw new Error("FILE_NOT_FOUND");
+      }
+
+      finalPayload = {
+        type: "MANAGED_FILE",
+        key: data.payload.key,
+        ...commonPayload,
+      };
+    }
   }
 
   if (!finalPayload) {
@@ -90,6 +96,7 @@ export const createIngestJob = async ({
         status: IngestJobStatus.QUEUED,
         name: data.name,
         config: data.config,
+        externalId: data.externalId,
         payload: finalPayload,
       },
     }),

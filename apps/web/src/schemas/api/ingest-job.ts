@@ -10,8 +10,16 @@ import {
 import { paginationSchema } from "./pagination";
 
 export const IngestJobStatusSchema = z
-  .nativeEnum(IngestJobStatus)
+  .enum(IngestJobStatus)
   .describe("The status of the ingest job.");
+
+const externalIdSchema = z
+  .string()
+  .nullable()
+  .default(null)
+  .describe(
+    "A unique external ID of the ingest job. You can use this to identify the ingest job in your system.",
+  );
 
 export const IngestJobSchema = z
   .object({
@@ -23,6 +31,7 @@ export const IngestJobSchema = z
       .nullable()
       .default(null)
       .describe("The tenant ID of the ingest job."),
+    externalId: externalIdSchema,
     status: IngestJobStatusSchema,
     error: z
       .string()
@@ -85,11 +94,13 @@ export const IngestJobsQuerySchema = z.object({
     .describe("The sort order. Default is `desc`."),
 });
 
-export const getIngestionJobsSchema =
-  IngestJobsQuerySchema.merge(paginationSchema);
+export const getIngestionJobsSchema = IngestJobsQuerySchema.extend(
+  paginationSchema.shape,
+);
 
 export const createIngestJobSchema = z.object({
   name: ingestJobNameSchema,
   payload: ingestJobPayloadSchema,
   config: configSchema.optional(),
+  externalId: externalIdSchema,
 });

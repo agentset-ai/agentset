@@ -2,6 +2,7 @@ import { z } from "zod/v4";
 
 import { DocumentStatus } from "@agentset/db";
 import {
+  documentExternalIdSchema,
   documentPayloadSchema,
   documentPropertiesSchema,
 } from "@agentset/validation";
@@ -15,18 +16,14 @@ const nameSchema = z
   .describe("The name of the document.");
 
 export const DocumentStatusSchema = z
-  .nativeEnum(DocumentStatus)
+  .enum(DocumentStatus)
   .describe("The status of the document.");
 
 export const DocumentSchema = z
   .object({
     id: z.string().describe("The unique ID of the document."),
     ingestJobId: z.string().describe("The ingest job ID of the document."),
-    externalId: z
-      .string()
-      .nullable()
-      .default(null)
-      .describe("A unique external ID."),
+    externalId: documentExternalIdSchema,
     name: nameSchema,
     tenantId: z
       .string()
@@ -105,4 +102,6 @@ export const DocumentsQuerySchema = z.object({
     .describe("The ingest job ID to filter documents by."),
 });
 
-export const getDocumentsSchema = DocumentsQuerySchema.merge(paginationSchema);
+export const getDocumentsSchema = DocumentsQuerySchema.extend(
+  paginationSchema.shape,
+);
