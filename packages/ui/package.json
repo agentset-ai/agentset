@@ -19,13 +19,20 @@
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "cmdk": "1.1.1",
+    "embla-carousel-react": "^8.6.0",
+    "nanoid": "^5.1.5",
     "next-themes": "^0.4.4",
     "radix-ui": "^1.4.2",
     "react-dropzone": "^14.3.8",
-    "tailwind-merge": "^3.0.2"
+    "react-syntax-highlighter": "^15.6.6",
+    "streamdown": "^1.0.11",
+    "tailwind-merge": "^3.0.2",
+    "tokenlens": "^1.2.1",
+    "use-stick-to-bottom": "^1.1.1"
   },
   "peerDependencies": {
     "@tanstack/react-table": "^8.21.2",
+    "ai": "catalog:",
     "lucide-react": "^0.478.0",
     "react": "catalog:react19",
     "react-hook-form": "^7.62.0",
