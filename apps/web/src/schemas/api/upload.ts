@@ -22,6 +22,14 @@ export const batchUploadSchema = z.object({
 });
 
 export const UploadResultSchema = z.object({
-  url: z.url(),
-  key: z.string(),
+  url: z
+    .url()
+    .describe(
+      "Presigned URL for file upload. Make a `PUT` request to this URL with the file content and the `Content-Type` header.",
+    ),
+  key: z
+    .string()
+    .describe(
+      "Key of the file in the storage. You'll send this in the `MANAGED_FILE` payload when creating an ingest job.",
+    ),
 });
