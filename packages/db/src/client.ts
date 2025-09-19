@@ -1,6 +1,7 @@
 import { neonConfig } from "@neondatabase/serverless";
 import { PrismaNeon } from "@prisma/adapter-neon";
-import ws from "ws";
+
+// import ws from "ws";
 
 import { PrismaClient } from "../generated/client";
 
@@ -28,7 +29,7 @@ const createPrismaClient = () => {
   neonConfig.pipelineConnect = false;
 
   // So it can also work in Node.js
-  neonConfig.webSocketConstructor = ws;
+  neonConfig.webSocketConstructor = WebSocket;
 
   const adapter = new PrismaNeon({ connectionString });
   return new PrismaClient({
