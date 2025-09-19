@@ -49,7 +49,7 @@ Agentset is the open-source platform to build, evaluate, and ship production-rea
 - Production hosting with preview links and custom domains
 - API + typed SDKs, OpenAPI spec, and webhooks
 - Multi-tenant, RBAC, and billing built in
-- Built with Next.js, TypeScript, Prisma, Supabase, Upstash, and Stripe
+- Built with Next.js, TypeScript, Prisma, Supabase, Trigger.dev, and Stripe
 
 ## Getting Started
 
@@ -69,18 +69,20 @@ Docker Compose quickstart (example):
 # 1) Copy env and fill required values
 cp .env.example .env
 
-# 2) Start services
+# 2) Install dependencies
+pnpm install
+
+# 3) Start services
 docker compose up -d
 
-# 3) Run database migrations (from the repo root)
-pnpm install
+# 4) Run database migrations (from the repo root)
 pnpm db:deploy
 
-# 4) Start the app
-pnpm dev
+# 5) Start the app
+pnpm dev:web
 ```
 
-Dependencies you will need to configure for production: Supabase/Postgres, Upstash Redis + QStash, Stripe, Resend, and OAuth providers.
+Dependencies you will need to configure for production: Supabase/Postgres, Upstash Redis, Trigger.dev, Stripe, Resend, and OAuth providers.
 
 ## Quick Start (Local Development)
 
@@ -89,7 +91,7 @@ Dependencies you will need to configure for production: Supabase/Postgres, Upsta
 cp .env.example .env    # then edit .env
 pnpm install
 pnpm db:deploy          # set up database
-pnpm dev                # start all apps in watch mode
+pnpm dev:web            # start all apps in watch mode
 ```
 
 Useful scripts:
