@@ -45,10 +45,10 @@ Agentset is the open-source platform to build, evaluate, and ship production-rea
 - Turnkey RAG: ingestion, chunking, embeddings, and retrieval
 - Model agnostic: works with your choice of LLM, embeddings, and vector DB
 - Benchmarks and evals to track quality over time
-- Collaborative chat playground with message editing and citations
+- Chat playground with message editing and citations
 - Production hosting with preview links and custom domains
 - API + typed SDKs, OpenAPI spec, and webhooks
-- Multi-tenant, RBAC, and billing built in
+- Multi-tenancy, and billing built in
 - Built with Next.js, TypeScript, Prisma, Supabase, Trigger.dev, and Stripe
 
 ## Getting Started
@@ -72,13 +72,10 @@ cp .env.example .env
 # 2) Install dependencies
 pnpm install
 
-# 3) Start services
-docker compose up -d
-
-# 4) Run database migrations (from the repo root)
+# 3) Run database migrations (from the repo root)
 pnpm db:deploy
 
-# 5) Start the app
+# 4) Start the app
 pnpm dev:web
 ```
 
@@ -87,11 +84,17 @@ Dependencies you will need to configure for production: Supabase/Postgres, Upsta
 ## Quick Start (Local Development)
 
 ```bash
-# Requirements: Node >= 22, pnpm >= 9
-cp .env.example .env    # then edit .env
+# 1) Copy env and fill required values
+cp .env.example .env
+
+# 2) Install dependencies
 pnpm install
-pnpm db:deploy          # set up database
-pnpm dev:web            # start all apps in watch mode
+
+# 3) Run database migrations (from the repo root)
+pnpm db:deploy
+
+# 4) Start the app
+pnpm dev:web
 ```
 
 Useful scripts:
