@@ -19,31 +19,13 @@
 </p>
 
 <p align="center">
-  <!-- License -->
-  <a href="LICENSE.md">
-    <img src="https://img.shields.io/github/license/agentset-ai/agentset?label=license&logo=github" alt="License" />
-  </a>
-  <!-- Repo metadata -->
-  <a href="https://github.com/agentset-ai/agentset/issues">
-    <img src="https://img.shields.io/github/issues/agentset-ai/agentset" alt="Issues" />
-  </a>
-  <a href="https://github.com/agentset-ai/agentset/graphs/contributors">
-    <img src="https://img.shields.io/github/contributors/agentset-ai/agentset" alt="Contributors" />
-  </a>
-  <a href="https://github.com/agentset-ai/agentset/commits/main">
-    <img src="https://img.shields.io/github/last-commit/agentset-ai/agentset" alt="Last Commit" />
-  </a>
-  <a href="https://github.com/agentset-ai/agentset">
-    <img src="https://img.shields.io/github/commit-activity/m/agentset-ai/agentset?label=commit%20activity" alt="Commit activity" />
-  </a>
-  <!-- Community (second to last) -->
-  <a href="https://discord.gg/agentset">
-    <img src="https://img.shields.io/badge/discord-join-5865F2?logo=discord&logoColor=white" alt="Discord" />
-  </a>
-  <!-- Visit (last) -->
-  <a href="https://agentset.ai">
-    <img src="https://img.shields.io/badge/visit-agentset.ai-0A0A0A" alt="Visit agentset.ai" />
-  </a>
+  <a href="LICENSE.md"><img src="https://img.shields.io/github/license/agentset-ai/agentset?label=license&logo=github" alt="License" /></a>
+  <a href="https://github.com/agentset-ai/agentset/issues"><img src="https://img.shields.io/github/issues/agentset-ai/agentset" alt="Issues" /></a>
+  <a href="https://github.com/agentset-ai/agentset/graphs/contributors"><img src="https://img.shields.io/github/contributors/agentset-ai/agentset" alt="Contributors" /></a>
+  <a href="https://github.com/agentset-ai/agentset/commits/main"><img src="https://img.shields.io/github/last-commit/agentset-ai/agentset" alt="Last Commit" /></a>
+  <a href="https://github.com/agentset-ai/agentset"><img src="https://img.shields.io/github/commit-activity/m/agentset-ai/agentset?label=commit%20activity" alt="Commit activity" /></a>
+  <a href="https://discord.gg/agentset"><img src="https://img.shields.io/badge/discord-join-5865F2?logo=discord&logoColor=white" alt="Discord" /></a>
+  <!-- <a href="https://agentset.ai"><img src="https://img.shields.io/badge/visit-agentset.ai-0A0A0A" alt="Visit agentset.ai" /></a> -->
 </p>
 
 Agentset is the open-source platform to build, evaluate, and ship production-ready RAG and agentic applications. It provides end-to-end tooling: data connectors and ingestion, vector indexing, evaluation/benchmarks, a collaborative playground, hosting, billing, and a clean API with first-class developer experience.
@@ -51,7 +33,7 @@ Agentset is the open-source platform to build, evaluate, and ship production-rea
 <!-- Screenshot (scaled down) -->
 <br/>
 <p align="center">
-  <img src=".github/assets/screenshot.png" alt="Agentset screenshot" width="900" />
+  <img src=".github/assets/screenshot.png" alt="Agentset screenshot" width="600" />
   
 </p>
 
@@ -118,7 +100,7 @@ Useful scripts:
 If you find Agentset useful, please give the repo a star — it helps a lot!
 
 <br/>
-<img src=".github/assets/star-us.png" alt="Star Agentset on GitHub" width="300" />
+<img src=".github/assets/star-us.png" alt="Star Agentset on GitHub" width="200" />
 
 ## Contributing
 
