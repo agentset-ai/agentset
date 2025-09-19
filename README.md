@@ -31,13 +31,12 @@
   <!-- <a href="https://agentset.ai"><img src="https://img.shields.io/badge/visit-agentset.ai-0A0A0A" alt="Visit agentset.ai" /></a> -->
 </p>
 
-Agentset is the open-source platform to build, evaluate, and ship production-ready RAG and agentic applications. It provides end-to-end tooling: data connectors and ingestion, vector indexing, evaluation/benchmarks, a collaborative playground, hosting, billing, and a clean API with first-class developer experience.
+Agentset is the open-source platform to build, evaluate, and ship production-ready RAG and agentic applications. It provides end-to-end tooling: ingestion, vector indexing, evaluation/benchmarks, chat playground, hosting, and a clean API with first-class developer experience.
 
 <!-- Screenshot (scaled down) -->
 <br/>
 <p align="center">
   <img src=".github/assets/screenshot.png" alt="Agentset screenshot" width="600" />
-  
 </p>
 
 ## Features
@@ -47,9 +46,9 @@ Agentset is the open-source platform to build, evaluate, and ship production-rea
 - Benchmarks and evals to track quality over time
 - Chat playground with message editing and citations
 - Production hosting with preview links and custom domains
-- API + typed SDKs, OpenAPI spec, and webhooks
-- Multi-tenancy, and billing built in
-- Built with Next.js, TypeScript, Prisma, Supabase, Trigger.dev, and Stripe
+- API + typed SDKs, OpenAPI spec
+- Built-in multi-tenancy
+- Built with TypeScript, Next.js, AI SDK, Prisma, Supabase, and Trigger.dev
 
 ## Getting Started
 
@@ -61,25 +60,7 @@ The fastest way to get started with Agentset. Generous free tier with 1,000 page
 
 ### Self-host Agentset
 
-Follow the complete guide: https://docs.agentset.ai/self-hosting
-
-Docker Compose quickstart (example):
-
-```bash
-# 1) Copy env and fill required values
-cp .env.example .env
-
-# 2) Install dependencies
-pnpm install
-
-# 3) Run database migrations (from the repo root)
-pnpm db:deploy
-
-# 4) Start the app
-pnpm dev:web
-```
-
-Dependencies you will need to configure for production: Supabase/Postgres, Upstash Redis, Trigger.dev, Stripe, Resend, and OAuth providers.
+Follow our complete guide: https://docs.agentset.ai/self-hosting
 
 ## Quick Start (Local Development)
 
