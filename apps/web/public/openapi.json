@@ -1039,11 +1039,14 @@
             "in": "path",
             "name": "namespaceId",
             "schema": {
-              "description": "The id of the namespace to retrieve.",
+              "description": "The id of the namespace (prefixed with ns_)",
+              "examples": [
+                "ns_123"
+              ],
               "type": "string"
             },
             "required": true,
-            "description": "The id of the namespace to retrieve."
+            "description": "The id of the namespace (prefixed with ns_)"
           }
         ],
         "responses": {
@@ -1533,11 +1536,14 @@
             "in": "path",
             "name": "namespaceId",
             "schema": {
-              "description": "The id of the namespace to update.",
+              "description": "The id of the namespace (prefixed with ns_)",
+              "examples": [
+                "ns_123"
+              ],
               "type": "string"
             },
             "required": true,
-            "description": "The id of the namespace to update."
+            "description": "The id of the namespace (prefixed with ns_)"
           }
         ],
         "requestBody": {
@@ -2048,11 +2054,14 @@
             "in": "path",
             "name": "namespaceId",
             "schema": {
-              "description": "The id of the namespace to delete.",
+              "description": "The id of the namespace (prefixed with ns_)",
+              "examples": [
+                "ns_123"
+              ],
               "type": "string"
             },
             "required": true,
-            "description": "The id of the namespace to delete."
+            "description": "The id of the namespace (prefixed with ns_)"
           }
         ],
         "responses": {
@@ -2556,11 +2565,14 @@
             "in": "path",
             "name": "namespaceId",
             "schema": {
-              "description": "The id of the namespace to create the ingest job for.",
+              "description": "The id of the namespace (prefixed with ns_)",
+              "examples": [
+                "ns_123"
+              ],
               "type": "string"
             },
             "required": true,
-            "description": "The id of the namespace to create the ingest job for."
+            "description": "The id of the namespace (prefixed with ns_)"
           },
           {
             "in": "query",
@@ -3152,11 +3164,14 @@
             "in": "path",
             "name": "namespaceId",
             "schema": {
-              "description": "The id of the namespace to create the ingest job for.",
+              "description": "The id of the namespace (prefixed with ns_)",
+              "examples": [
+                "ns_123"
+              ],
               "type": "string"
             },
             "required": true,
-            "description": "The id of the namespace to create the ingest job for."
+            "description": "The id of the namespace (prefixed with ns_)"
           },
           {
             "in": "header",
@@ -4106,11 +4121,14 @@
             "in": "path",
             "name": "namespaceId",
             "schema": {
-              "description": "The id of the namespace to retrieve.",
+              "description": "The id of the namespace (prefixed with ns_)",
+              "examples": [
+                "ns_123"
+              ],
               "type": "string"
             },
             "required": true,
-            "description": "The id of the namespace to retrieve."
+            "description": "The id of the namespace (prefixed with ns_)"
           },
           {
             "in": "path",
@@ -4619,11 +4637,14 @@
             "in": "path",
             "name": "namespaceId",
             "schema": {
-              "description": "The id of the namespace to delete.",
+              "description": "The id of the namespace (prefixed with ns_)",
+              "examples": [
+                "ns_123"
+              ],
               "type": "string"
             },
             "required": true,
-            "description": "The id of the namespace to delete."
+            "description": "The id of the namespace (prefixed with ns_)"
           },
           {
             "in": "path",
@@ -5146,11 +5167,14 @@
             "in": "path",
             "name": "namespaceId",
             "schema": {
-              "description": "The id of the namespace to create the ingest job for.",
+              "description": "The id of the namespace (prefixed with ns_)",
+              "examples": [
+                "ns_123"
+              ],
               "type": "string"
             },
             "required": true,
-            "description": "The id of the namespace to create the ingest job for."
+            "description": "The id of the namespace (prefixed with ns_)"
           },
           {
             "in": "query",
@@ -5753,11 +5777,14 @@
             "in": "path",
             "name": "namespaceId",
             "schema": {
-              "description": "The id of the namespace to retrieve.",
+              "description": "The id of the namespace (prefixed with ns_)",
+              "examples": [
+                "ns_123"
+              ],
               "type": "string"
             },
             "required": true,
-            "description": "The id of the namespace to retrieve."
+            "description": "The id of the namespace (prefixed with ns_)"
           },
           {
             "in": "path",
@@ -6266,11 +6293,14 @@
             "in": "path",
             "name": "namespaceId",
             "schema": {
-              "description": "The id of the namespace to delete.",
+              "description": "The id of the namespace (prefixed with ns_)",
+              "examples": [
+                "ns_123"
+              ],
               "type": "string"
             },
             "required": true,
-            "description": "The id of the namespace to delete."
+            "description": "The id of the namespace (prefixed with ns_)"
           },
           {
             "in": "path",
@@ -6780,11 +6810,14 @@
             "in": "path",
             "name": "namespaceId",
             "schema": {
-              "description": "The id of the namespace to search.",
+              "description": "The id of the namespace (prefixed with ns_)",
+              "examples": [
+                "ns_123"
+              ],
               "type": "string"
             },
             "required": true,
-            "description": "The id of the namespace to search."
+            "description": "The id of the namespace (prefixed with ns_)"
           },
           {
             "in": "header",
@@ -7418,20 +7451,14 @@
             "in": "path",
             "name": "namespaceId",
             "schema": {
-              "description": "The namespace ID (prefixed with ns_)",
+              "description": "The id of the namespace (prefixed with ns_)",
+              "examples": [
+                "ns_123"
+              ],
               "type": "string"
             },
             "required": true,
-            "description": "The namespace ID (prefixed with ns_)"
-          },
-          {
-            "in": "header",
-            "name": "x-tenant-id",
-            "schema": {
-              "description": "The tenant id to use for the request. If not provided, the default tenant will be used.",
-              "type": "string"
-            },
-            "description": "The tenant id to use for the request. If not provided, the default tenant will be used."
+            "description": "The id of the namespace (prefixed with ns_)"
           }
         ],
         "requestBody": {
@@ -7464,7 +7491,7 @@
           }
         },
         "responses": {
-          "200": {
+          "201": {
             "description": "Presigned URL generated successfully",
             "content": {
               "application/json": {
@@ -7483,8 +7510,7 @@
                           "format": "uri"
                         },
                         "key": {
-                          "type": "string",
-                          "minLength": 1
+                          "type": "string"
                         }
                       },
                       "required": [
@@ -7966,20 +7992,14 @@
             "in": "path",
             "name": "namespaceId",
             "schema": {
-              "description": "The namespace ID (prefixed with ns_)",
+              "description": "The id of the namespace (prefixed with ns_)",
+              "examples": [
+                "ns_123"
+              ],
               "type": "string"
             },
             "required": true,
-            "description": "The namespace ID (prefixed with ns_)"
-          },
-          {
-            "in": "header",
-            "name": "x-tenant-id",
-            "schema": {
-              "description": "The tenant id to use for the request. If not provided, the default tenant will be used.",
-              "type": "string"
-            },
-            "description": "The tenant id to use for the request. If not provided, the default tenant will be used."
+            "description": "The id of the namespace (prefixed with ns_)"
           }
         ],
         "requestBody": {
@@ -8025,7 +8045,7 @@
           }
         },
         "responses": {
-          "200": {
+          "201": {
             "description": "Presigned URLs generated successfully",
             "content": {
               "application/json": {
@@ -8046,8 +8066,7 @@
                             "format": "uri"
                           },
                           "key": {
-                            "type": "string",
-                            "minLength": 1
+                            "type": "string"
                           }
                         },
                         "required": [
