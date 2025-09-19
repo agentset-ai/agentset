@@ -12,13 +12,13 @@ import {
 } from "lucide-react";
 
 import { FileMetadata, useFileUpload } from "../hooks/use-file-upload";
-import { Button } from "./button";
 import {
   Cropper,
   CropperCropArea,
   CropperDescription,
   CropperImage,
 } from "./cropper";
+import { Button } from "./ui/button";
 import {
   Dialog,
   DialogContent,
@@ -26,8 +26,8 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from "./dialog";
-import { Slider } from "./slider";
+} from "./ui/dialog";
+import { Slider } from "./ui/slider";
 
 // Define type for pixel crop area
 type Area = { x: number; y: number; width: number; height: number };

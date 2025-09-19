@@ -1,12 +1,10 @@
-import {
-  Avatar,
-  AvatarFallback,
-  AvatarImage,
-} from "@/components/ui/avatar";
-import { cn } from "@/lib/utils";
 import type { UIMessage } from "ai";
-import { cva, type VariantProps } from "class-variance-authority";
+import type { VariantProps } from "class-variance-authority";
 import type { ComponentProps, HTMLAttributes } from "react";
+import { cva } from "class-variance-authority";
+
+import { Avatar, AvatarFallback, AvatarImage } from "@agentset/ui/avatar";
+import { cn } from "@agentset/ui/utils";
 
 export type MessageProps = HTMLAttributes<HTMLDivElement> & {
   from: UIMessage["role"];
@@ -17,7 +15,7 @@ export const Message = ({ className, from, ...props }: MessageProps) => (
     className={cn(
       "group flex w-full items-end justify-end gap-2 py-4",
       from === "user" ? "is-user" : "is-assistant flex-row-reverse justify-end",
-      className
+      className,
     )}
     {...props}
   />
@@ -34,7 +32,7 @@ const messageContentVariants = cva(
           "group-[.is-assistant]:bg-secondary group-[.is-assistant]:text-foreground",
         ],
         flat: [
-          "group-[.is-user]:max-w-[80%] group-[.is-user]:bg-secondary group-[.is-user]:px-4 group-[.is-user]:py-3 group-[.is-user]:text-foreground",
+          "group-[.is-user]:bg-secondary group-[.is-user]:text-foreground group-[.is-user]:max-w-[80%] group-[.is-user]:px-4 group-[.is-user]:py-3",
           "group-[.is-assistant]:text-foreground",
         ],
       },
@@ -42,7 +40,7 @@ const messageContentVariants = cva(
     defaultVariants: {
       variant: "contained",
     },
-  }
+  },
 );
 
 export type MessageContentProps = HTMLAttributes<HTMLDivElement> &
@@ -73,7 +71,7 @@ export const MessageAvatar = ({
   className,
   ...props
 }: MessageAvatarProps) => (
-  <Avatar className={cn("size-8 ring-1 ring-border", className)} {...props}>
+  <Avatar className={cn("ring-border size-8 ring-1", className)} {...props}>
     <AvatarImage alt="" className="mt-0 mb-0" src={src} />
     <AvatarFallback>{name?.slice(0, 2) || "ME"}</AvatarFallback>
   </Avatar>

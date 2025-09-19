@@ -3,7 +3,12 @@
   "private": true,
   "type": "module",
   "exports": {
-    ".": "./src/index.ts"
+    ".": "./src/index.ts",
+    "./utils": "./src/lib/utils.ts",
+    "./hooks/*": "./src/hooks/*.ts",
+    "./components/*": "./src/components/*.tsx",
+    "./ai/*": "./src/components/ai-elements/*.tsx",
+    "./*": "./src/components/ui/*.tsx"
   },
   "scripts": {
     "build": "tsc",
@@ -43,6 +48,7 @@
     "@agentset/prettier-config": "workspace:*",
     "@agentset/tsconfig": "workspace:*",
     "@types/react": "catalog:react19",
+    "@types/react-syntax-highlighter": "^15.5.13",
     "eslint": "catalog:",
     "prettier": "catalog:",
     "typescript": "catalog:"

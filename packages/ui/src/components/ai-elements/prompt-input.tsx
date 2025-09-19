@@ -1,22 +1,27 @@
 "use client";
 
-import { Button } from "@/components/ui/button";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { Textarea } from "@/components/ui/textarea";
-import { cn } from "@/lib/utils";
 import type { ChatStatus, FileUIPart } from "ai";
+import type {
+  ChangeEventHandler,
+  ComponentProps,
+  FormEvent,
+  FormEventHandler,
+  HTMLAttributes,
+  KeyboardEventHandler,
+  RefObject,
+} from "react";
+import {
+  Children,
+  createContext,
+  Fragment,
+  useCallback,
+  useContext,
+  useEffect,
+  useLayoutEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import {
   ImageIcon,
   Loader2Icon,
@@ -27,25 +32,23 @@ import {
   XIcon,
 } from "lucide-react";
 import { nanoid } from "nanoid";
+
+import { Button } from "@agentset/ui/button";
 import {
-  type ChangeEventHandler,
-  Children,
-  type ComponentProps,
-  createContext,
-  type FormEvent,
-  type FormEventHandler,
-  Fragment,
-  type HTMLAttributes,
-  type KeyboardEventHandler,
-  type RefObject,
-  useCallback,
-  useContext,
-  useEffect,
-  useLayoutEffect,
-  useMemo,
-  useRef,
-  useState,
-} from "react";
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@agentset/ui/dropdown-menu";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@agentset/ui/select";
+import { Textarea } from "@agentset/ui/textarea";
+import { cn } from "@agentset/ui/utils";
 
 type AttachmentsContext = {
   files: (FileUIPart & { id: string })[];
@@ -63,7 +66,7 @@ export const usePromptInputAttachments = () => {
 
   if (!context) {
     throw new Error(
-      "usePromptInputAttachments must be used within a PromptInput"
+      "usePromptInputAttachments must be used within a PromptInput",
     );
   }
 
@@ -97,13 +100,13 @@ export function PromptInputAttachment({
           width={56}
         />
       ) : (
-        <div className="flex size-full items-center justify-center text-muted-foreground">
+        <div className="text-muted-foreground flex size-full items-center justify-center">
           <PaperclipIcon className="size-4" />
         </div>
       )}
       <Button
         aria-label="Remove attachment"
-        className="-right-1.5 -top-1.5 absolute h-6 w-6 rounded-full opacity-0 group-hover:opacity-100"
+        className="absolute -top-1.5 -right-1.5 h-6 w-6 rounded-full opacity-0 group-hover:opacity-100"
         onClick={() => attachments.remove(data.id)}
         size="icon"
         type="button"
@@ -149,7 +152,7 @@ export function PromptInputAttachments({
       aria-live="polite"
       className={cn(
         "overflow-hidden transition-[height] duration-200 ease-out",
-        className
+        className,
       )}
       style={{ height: attachments.files.length ? height : 0 }}
       {...props}
@@ -212,7 +215,7 @@ export type PromptInputProps = Omit<
   }) => void;
   onSubmit: (
     message: PromptInputMessage,
-    event: FormEvent<HTMLFormElement>
+    event: FormEvent<HTMLFormElement>,
   ) => void;
 };
 
@@ -256,7 +259,7 @@ export const PromptInput = ({
       }
       return true;
     },
-    [accept]
+    [accept],
   );
 
   const add = useCallback(
@@ -306,7 +309,7 @@ export const PromptInput = ({
         return prev.concat(next);
       });
     },
-    [matchesAccept, maxFiles, maxFileSize, onError]
+    [matchesAccept, maxFiles, maxFileSize, onError],
   );
 
   const remove = useCallback((id: string) => {
@@ -418,7 +421,7 @@ export const PromptInput = ({
       openFileDialog,
       fileInputRef: inputRef,
     }),
-    [items, add, remove, clear, openFileDialog]
+    [items, add, remove, clear, openFileDialog],
   );
 
   return (
@@ -434,8 +437,8 @@ export const PromptInput = ({
       />
       <form
         className={cn(
-          "w-full divide-y overflow-hidden rounded-xl border bg-background shadow-sm",
-          className
+          "bg-background w-full divide-y overflow-hidden rounded-xl border shadow-sm",
+          className,
         )}
         onSubmit={handleSubmit}
         {...props}
@@ -485,11 +488,11 @@ export const PromptInputTextarea = ({
   return (
     <Textarea
       className={cn(
-        "w-full resize-none rounded-none border-none p-3 shadow-none outline-none ring-0",
+        "w-full resize-none rounded-none border-none p-3 shadow-none ring-0 outline-none",
         "field-sizing-content bg-transparent dark:bg-transparent",
         "max-h-48 min-h-16",
         "focus-visible:ring-0",
-        className
+        className,
       )}
       name="message"
       onChange={(e) => {
@@ -524,7 +527,7 @@ export const PromptInputTools = ({
     className={cn(
       "flex items-center gap-1",
       "[&_button:first-child]:rounded-bl-xl",
-      className
+      className,
     )}
     {...props}
   />
@@ -547,7 +550,7 @@ export const PromptInputButton = ({
         "shrink-0 gap-1.5 rounded-lg",
         variant === "ghost" && "text-muted-foreground",
         newSize === "default" && "px-3",
-        className
+        className,
       )}
       size={newSize}
       type="button"
@@ -651,9 +654,9 @@ export const PromptInputModelSelectTrigger = ({
 }: PromptInputModelSelectTriggerProps) => (
   <SelectTrigger
     className={cn(
-      "border-none bg-transparent font-medium text-muted-foreground shadow-none transition-colors",
+      "text-muted-foreground border-none bg-transparent font-medium shadow-none transition-colors",
       'hover:bg-accent hover:text-foreground [&[aria-expanded="true"]]:bg-accent [&[aria-expanded="true"]]:text-foreground',
-      className
+      className,
     )}
     {...props}
   />

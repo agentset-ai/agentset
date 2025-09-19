@@ -1,7 +1,8 @@
 "use client";
 
-import { cn } from "@/lib/utils";
 import { Switch as SwitchPrimitive } from "radix-ui";
+
+import { cn } from "@agentset/ui/utils";
 
 const Switch = ({
   className,

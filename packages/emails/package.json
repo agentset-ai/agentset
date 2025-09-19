@@ -8,7 +8,7 @@
   "scripts": {
     "build": "tsc",
     "clean": "git clean -xdf .cache .turbo dist node_modules",
-    "dev": "email dev -p 3001 --dir ./src/templates",
+    "dev:emails": "email dev -p 3001 --dir ./src/templates",
     "export": "email export --dir ./src/templates",
     "format": "prettier --check . --ignore-path ../../.gitignore",
     "lint": "eslint",

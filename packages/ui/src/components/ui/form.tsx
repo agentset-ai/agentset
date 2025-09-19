@@ -3,7 +3,6 @@
 import type { Label as LabelPrimitive } from "radix-ui";
 import type { ControllerProps, FieldPath, FieldValues } from "react-hook-form";
 import { createContext, useContext, useId } from "react";
-import { cn } from "@/lib/utils";
 import { Slot as SlotPrimitive } from "radix-ui";
 import {
   Controller,
@@ -11,6 +10,8 @@ import {
   useFormContext,
   useFormState,
 } from "react-hook-form";
+
+import { cn } from "@agentset/ui/utils";
 
 import { Label } from "./label";
 

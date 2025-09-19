@@ -3,15 +3,16 @@
 import type { LucideIcon } from "lucide-react";
 import type { ComponentProps } from "react";
 import { createContext, memo, useContext } from "react";
-import { Badge } from "@/components/ui/badge";
+import { BrainIcon, ChevronDownIcon, DotIcon } from "lucide-react";
+import { useControllableState } from "radix-ui/internal";
+
+import { Badge } from "@agentset/ui/badge";
 import {
   Collapsible,
   CollapsibleContent,
   CollapsibleTrigger,
-} from "@/components/ui/collapsible";
-import { cn } from "@/lib/utils";
-import { BrainIcon, ChevronDownIcon, DotIcon } from "lucide-react";
-import { useControllableState } from "radix-ui/internal";
+} from "@agentset/ui/collapsible";
+import { cn } from "@agentset/ui/utils";
 
 type ChainOfThoughtContextValue = {
   isOpen: boolean;

@@ -1,7 +1,8 @@
 "use client";
 
-import { cn } from "@/lib/utils";
 import { Separator as SeparatorPrimitive } from "radix-ui";
+
+import { cn } from "@agentset/ui/utils";
 
 function Separator({
   className,

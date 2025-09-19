@@ -1,11 +1,12 @@
 "use client";
 
-import { Button } from "@/components/ui/button";
-import { cn } from "@/lib/utils";
 import type { UIMessage } from "ai";
-import { ChevronLeftIcon, ChevronRightIcon } from "lucide-react";
 import type { ComponentProps, HTMLAttributes, ReactElement } from "react";
 import { createContext, useContext, useEffect, useState } from "react";
+import { ChevronLeftIcon, ChevronRightIcon } from "lucide-react";
+
+import { Button } from "@agentset/ui/button";
+import { cn } from "@agentset/ui/utils";
 
 type BranchContextType = {
   currentBranch: number;
@@ -95,7 +96,7 @@ export const BranchMessages = ({ children, ...props }: BranchMessagesProps) => {
     <div
       className={cn(
         "grid gap-2 overflow-hidden [&>div]:pb-0",
-        index === currentBranch ? "block" : "hidden"
+        index === currentBranch ? "block" : "hidden",
       )}
       key={branch.key}
       {...props}
@@ -126,7 +127,7 @@ export const BranchSelector = ({
       className={cn(
         "flex items-center gap-2 self-end px-10",
         from === "assistant" ? "justify-start" : "justify-end",
-        className
+        className,
       )}
       {...props}
     />
@@ -146,10 +147,10 @@ export const BranchPrevious = ({
     <Button
       aria-label="Previous branch"
       className={cn(
-        "size-7 shrink-0 rounded-full text-muted-foreground transition-colors",
+        "text-muted-foreground size-7 shrink-0 rounded-full transition-colors",
         "hover:bg-accent hover:text-foreground",
         "disabled:pointer-events-none disabled:opacity-50",
-        className
+        className,
       )}
       disabled={totalBranches <= 1}
       onClick={goToPrevious}
@@ -176,10 +177,10 @@ export const BranchNext = ({
     <Button
       aria-label="Next branch"
       className={cn(
-        "size-7 shrink-0 rounded-full text-muted-foreground transition-colors",
+        "text-muted-foreground size-7 shrink-0 rounded-full transition-colors",
         "hover:bg-accent hover:text-foreground",
         "disabled:pointer-events-none disabled:opacity-50",
-        className
+        className,
       )}
       disabled={totalBranches <= 1}
       onClick={goToNext}
@@ -201,8 +202,8 @@ export const BranchPage = ({ className, ...props }: BranchPageProps) => {
   return (
     <span
       className={cn(
-        "font-medium text-muted-foreground text-xs tabular-nums",
-        className
+        "text-muted-foreground text-xs font-medium tabular-nums",
+        className,
       )}
       {...props}
     >

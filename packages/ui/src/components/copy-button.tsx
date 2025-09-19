@@ -4,8 +4,8 @@ import { useEffect, useState } from "react";
 import { CheckIcon, CopyIcon } from "lucide-react";
 
 import { cn } from "../lib/utils";
-import { Button } from "./button";
-import { Tooltip, TooltipContent, TooltipTrigger } from "./tooltip";
+import { Button } from "./ui/button";
+import { Tooltip, TooltipContent, TooltipTrigger } from "./ui/tooltip";
 
 interface CopyButtonProps {
   textToCopy: string;

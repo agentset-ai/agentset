@@ -1,23 +1,25 @@
 "use client";
 
-import { Button } from "@/components/ui/button";
+import type { LucideIcon } from "lucide-react";
+import type { ComponentProps, HTMLAttributes } from "react";
+import { XIcon } from "lucide-react";
+
+import { Button } from "@agentset/ui/button";
 import {
   Tooltip,
   TooltipContent,
   TooltipProvider,
   TooltipTrigger,
-} from "@/components/ui/tooltip";
-import { cn } from "@/lib/utils";
-import { type LucideIcon, XIcon } from "lucide-react";
-import type { ComponentProps, HTMLAttributes } from "react";
+} from "@agentset/ui/tooltip";
+import { cn } from "@agentset/ui/utils";
 
 export type ArtifactProps = HTMLAttributes<HTMLDivElement>;
 
 export const Artifact = ({ className, ...props }: ArtifactProps) => (
   <div
     className={cn(
-      "flex flex-col overflow-hidden rounded-lg border bg-background shadow-sm",
-      className
+      "bg-background flex flex-col overflow-hidden rounded-lg border shadow-sm",
+      className,
     )}
     {...props}
   />
@@ -31,8 +33,8 @@ export const ArtifactHeader = ({
 }: ArtifactHeaderProps) => (
   <div
     className={cn(
-      "flex items-center justify-between border-b bg-muted/50 px-4 py-3",
-      className
+      "bg-muted/50 flex items-center justify-between border-b px-4 py-3",
+      className,
     )}
     {...props}
   />
@@ -49,8 +51,8 @@ export const ArtifactClose = ({
 }: ArtifactCloseProps) => (
   <Button
     className={cn(
-      "size-8 p-0 text-muted-foreground hover:text-foreground",
-      className
+      "text-muted-foreground hover:text-foreground size-8 p-0",
+      className,
     )}
     size={size}
     type="button"
@@ -66,7 +68,7 @@ export type ArtifactTitleProps = HTMLAttributes<HTMLParagraphElement>;
 
 export const ArtifactTitle = ({ className, ...props }: ArtifactTitleProps) => (
   <p
-    className={cn("font-medium text-foreground text-sm", className)}
+    className={cn("text-foreground text-sm font-medium", className)}
     {...props}
   />
 );
@@ -108,8 +110,8 @@ export const ArtifactAction = ({
   const button = (
     <Button
       className={cn(
-        "size-8 p-0 text-muted-foreground hover:text-foreground",
-        className
+        "text-muted-foreground hover:text-foreground size-8 p-0",
+        className,
       )}
       size={size}
       type="button"
