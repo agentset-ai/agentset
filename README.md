@@ -24,7 +24,10 @@
   <a href="https://github.com/agentset-ai/agentset/graphs/contributors"><img src="https://img.shields.io/github/contributors/agentset-ai/agentset" alt="Contributors" /></a>
   <a href="https://github.com/agentset-ai/agentset/commits/main"><img src="https://img.shields.io/github/last-commit/agentset-ai/agentset" alt="Last Commit" /></a>
   <a href="https://github.com/agentset-ai/agentset"><img src="https://img.shields.io/github/commit-activity/m/agentset-ai/agentset?label=commit%20activity" alt="Commit activity" /></a>
-  <a href="https://discord.com/invite/XNcrk6bv"><img src="https://img.shields.io/discord/1356204157488332831?label=online&logo=discord&logoColor=white&color=5865F2&cacheSeconds=300" alt="Discord online" /></a>
+  <!-- Live online count badge (enable when widget is on)
+  <a href="https://discord.com/invite/XNcrk6bv"><img src="https://img.shields.io/discord/1356204157488332831?label=discord&logo=discord&logoColor=white&color=5865F2&cacheSeconds=300" alt="Discord online" /></a>
+  -->
+  <a href="https://discord.com/invite/XNcrk6bv"><img src="https://img.shields.io/badge/discord-join-5865F2?logo=discord&logoColor=white" alt="Join Discord" /></a>
   <!-- <a href="https://agentset.ai"><img src="https://img.shields.io/badge/visit-agentset.ai-0A0A0A" alt="Visit agentset.ai" /></a> -->
 </p>
 
