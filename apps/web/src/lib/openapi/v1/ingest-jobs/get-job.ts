@@ -4,6 +4,8 @@ import { IngestJobSchema } from "@/schemas/api/ingest-job";
 import { tenantHeaderSchema } from "@/schemas/api/tenant";
 import { z } from "zod/v4";
 
+import { namespaceIdSchema } from "../utils";
+
 export const getIngestJobInfo: ZodOpenApiOperationObject = {
   operationId: "getIngestJobInfo",
   "x-speakeasy-name-override": "get",
@@ -11,7 +13,7 @@ export const getIngestJobInfo: ZodOpenApiOperationObject = {
   description: "Retrieve the info for an ingest job.",
   requestParams: {
     path: z.object({
-      namespaceId: z.string().describe("The id of the namespace to retrieve."),
+      namespaceId: namespaceIdSchema,
       jobId: z.string().describe("The id of the ingest job to retrieve."),
     }),
     header: tenantHeaderSchema,

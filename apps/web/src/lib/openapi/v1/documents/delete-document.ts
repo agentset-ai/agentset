@@ -4,6 +4,8 @@ import { DocumentSchema } from "@/schemas/api/document";
 import { tenantHeaderSchema } from "@/schemas/api/tenant";
 import { z } from "zod/v4";
 
+import { namespaceIdSchema } from "../utils";
+
 export const deleteDocument: ZodOpenApiOperationObject = {
   operationId: "deleteDocument",
   "x-speakeasy-name-override": "delete",
@@ -12,7 +14,7 @@ export const deleteDocument: ZodOpenApiOperationObject = {
   description: "Delete a document for the authenticated organization.",
   requestParams: {
     path: z.object({
-      namespaceId: z.string().describe("The id of the namespace to delete."),
+      namespaceId: namespaceIdSchema,
       documentId: z.string().describe("The id of the document to delete."),
     }),
     header: tenantHeaderSchema,

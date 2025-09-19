@@ -3,6 +3,8 @@ import { openApiErrorResponses, successSchema } from "@/lib/openapi/responses";
 import { NamespaceSchema } from "@/schemas/api/namespace";
 import { z } from "zod/v4";
 
+import { namespaceIdSchema } from "../utils";
+
 export const getNamespace: ZodOpenApiOperationObject = {
   operationId: "getNamespace",
   "x-speakeasy-name-override": "get",
@@ -10,7 +12,7 @@ export const getNamespace: ZodOpenApiOperationObject = {
   description: "Retrieve the info for a namespace.",
   requestParams: {
     path: z.object({
-      namespaceId: z.string().describe("The id of the namespace to retrieve."),
+      namespaceId: namespaceIdSchema,
     }),
   },
   responses: {

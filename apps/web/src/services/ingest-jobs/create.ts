@@ -6,6 +6,8 @@ import { db, IngestJobStatus } from "@agentset/db";
 import { triggerIngestionJob } from "@agentset/jobs";
 import { checkFileExists } from "@agentset/storage";
 
+import { validateNamespaceFileKey } from "../uploads";
+
 export const createIngestJob = async ({
   namespaceId,
   tenantId,
@@ -30,8 +32,10 @@ export const createIngestJob = async ({
       ...(data.payload.fileName && { fileName: data.payload.fileName }),
     };
   } else if (data.payload.type === "MANAGED_FILE") {
-    const exists = await checkFileExists(data.payload.key);
-    if (!exists) {
+    if (
+      !validateNamespaceFileKey(namespaceId, data.payload.key) ||
+      !(await checkFileExists(data.payload.key))
+    ) {
       throw new Error("FILE_NOT_FOUND");
     }
 
@@ -63,11 +67,15 @@ export const createIngestJob = async ({
     const files = finalItems.filter((item) => item.type === "MANAGED_FILE");
     if (files.length > 0) {
       const results = await Promise.all(
-        files.map((file) => checkFileExists(file.key)),
+        files.map(
+          async (file) =>
+            validateNamespaceFileKey(namespaceId, file.key) &&
+            (await checkFileExists(file.key)),
+        ),
       );
 
-      const missingKeys = results.filter((result) => !result);
-      if (missingKeys.length > 0) {
+      const invalidKey = results.some((result) => !result);
+      if (invalidKey) {
         throw new Error("FILE_NOT_FOUND");
       }
     }

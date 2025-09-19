@@ -4,6 +4,8 @@ import { IngestJobSchema } from "@/schemas/api/ingest-job";
 import { tenantHeaderSchema } from "@/schemas/api/tenant";
 import { z } from "zod/v4";
 
+import { namespaceIdSchema } from "../utils";
+
 export const deleteIngestJob: ZodOpenApiOperationObject = {
   operationId: "deleteIngestJob",
   "x-speakeasy-name-override": "delete",
@@ -12,7 +14,7 @@ export const deleteIngestJob: ZodOpenApiOperationObject = {
   description: "Delete an ingest job for the authenticated organization.",
   requestParams: {
     path: z.object({
-      namespaceId: z.string().describe("The id of the namespace to delete."),
+      namespaceId: namespaceIdSchema,
       jobId: z.string().describe("The id of the ingest job to delete."),
     }),
     header: tenantHeaderSchema,

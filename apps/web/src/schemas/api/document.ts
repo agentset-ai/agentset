@@ -15,7 +15,7 @@ const nameSchema = z
   .describe("The name of the document.");
 
 export const DocumentStatusSchema = z
-  .nativeEnum(DocumentStatus)
+  .enum(DocumentStatus)
   .describe("The status of the document.");
 
 export const DocumentSchema = z
@@ -105,4 +105,6 @@ export const DocumentsQuerySchema = z.object({
     .describe("The ingest job ID to filter documents by."),
 });
 
-export const getDocumentsSchema = DocumentsQuerySchema.merge(paginationSchema);
+export const getDocumentsSchema = DocumentsQuerySchema.extend(
+  paginationSchema.shape,
+);

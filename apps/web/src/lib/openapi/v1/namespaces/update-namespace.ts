@@ -6,6 +6,8 @@ import {
 } from "@/schemas/api/namespace";
 import { z } from "zod/v4";
 
+import { namespaceIdSchema } from "../utils";
+
 export const updateNamespace: ZodOpenApiOperationObject = {
   operationId: "updateNamespace",
   "x-speakeasy-name-override": "update",
@@ -15,7 +17,7 @@ export const updateNamespace: ZodOpenApiOperationObject = {
     "Update a namespace for the authenticated organization. If there is no change, return it as it is.",
   requestParams: {
     path: z.object({
-      namespaceId: z.string().describe("The id of the namespace to update."),
+      namespaceId: namespaceIdSchema,
     }),
   },
   requestBody: {

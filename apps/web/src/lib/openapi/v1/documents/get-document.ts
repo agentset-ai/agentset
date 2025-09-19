@@ -4,6 +4,8 @@ import { DocumentSchema } from "@/schemas/api/document";
 import { tenantHeaderSchema } from "@/schemas/api/tenant";
 import { z } from "zod/v4";
 
+import { namespaceIdSchema } from "../utils";
+
 export const getDocument: ZodOpenApiOperationObject = {
   operationId: "getDocument",
   "x-speakeasy-name-override": "get",
@@ -11,7 +13,7 @@ export const getDocument: ZodOpenApiOperationObject = {
   description: "Retrieve the info for a document.",
   requestParams: {
     path: z.object({
-      namespaceId: z.string().describe("The id of the namespace to retrieve."),
+      namespaceId: namespaceIdSchema,
       documentId: z.string().describe("The id of the document to retrieve."),
     }),
     header: tenantHeaderSchema,

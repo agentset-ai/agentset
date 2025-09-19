@@ -7,6 +7,8 @@ import {
 import { tenantHeaderSchema } from "@/schemas/api/tenant";
 import { z } from "zod/v4";
 
+import { namespaceIdSchema } from "../utils";
+
 export const listIngestJobs: ZodOpenApiOperationObject = {
   operationId: "listIngestJobs",
   "x-speakeasy-name-override": "list",
@@ -28,9 +30,7 @@ export const listIngestJobs: ZodOpenApiOperationObject = {
     "Retrieve a paginated list of ingest jobs for the authenticated organization.",
   requestParams: {
     path: z.object({
-      namespaceId: z
-        .string()
-        .describe("The id of the namespace to create the ingest job for."),
+      namespaceId: namespaceIdSchema,
     }),
     query: getIngestionJobsSchema,
     header: tenantHeaderSchema,

@@ -47,7 +47,6 @@ export const uploadedImageSchema = z
   .union([
     base64ImageSchema,
     z
-      .string()
       .url()
       .trim()
       .refine((url) => url.startsWith(env.ASSETS_S3_URL), {
@@ -57,7 +56,6 @@ export const uploadedImageSchema = z
   .transform((v) => v || null);
 
 export const publicHostedImageSchema = z
-  .string()
   .url()
   .trim()
   .refine((url) => url.startsWith("http://") || url.startsWith("https://"), {

@@ -6,7 +6,7 @@ import { getNamespace } from "./get-namespace";
 import { listNamespaces } from "./list-namespaces";
 import { updateNamespace } from "./update-namespace";
 
-export const namespacePaths: ZodOpenApiPathsObject = {
+export const namespacesPaths: ZodOpenApiPathsObject = {
   "/v1/namespace": {
     get: listNamespaces,
     post: createNamespace,

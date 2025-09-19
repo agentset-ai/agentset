@@ -4,6 +4,8 @@ import { DocumentSchema, getDocumentsSchema } from "@/schemas/api/document";
 import { tenantHeaderSchema } from "@/schemas/api/tenant";
 import { z } from "zod/v4";
 
+import { namespaceIdSchema } from "../utils";
+
 export const listDocuments: ZodOpenApiOperationObject = {
   operationId: "listDocuments",
   "x-speakeasy-name-override": "list",
@@ -25,9 +27,7 @@ export const listDocuments: ZodOpenApiOperationObject = {
     "Retrieve a paginated list of documents for the authenticated organization.",
   requestParams: {
     path: z.object({
-      namespaceId: z
-        .string()
-        .describe("The id of the namespace to create the ingest job for."),
+      namespaceId: namespaceIdSchema,
     }),
     query: getDocumentsSchema,
     header: tenantHeaderSchema,

@@ -3,6 +3,8 @@ import { openApiErrorResponses, successSchema } from "@/lib/openapi/responses";
 import { NamespaceSchema } from "@/schemas/api/namespace";
 import { z } from "zod/v4";
 
+import { namespaceIdSchema } from "../utils";
+
 export const deleteNamespace: ZodOpenApiOperationObject = {
   operationId: "deleteNamespace",
   "x-speakeasy-name-override": "delete",
@@ -12,7 +14,7 @@ export const deleteNamespace: ZodOpenApiOperationObject = {
     "Delete a namespace for the authenticated organization. This will delete all the data associated with the namespace.",
   requestParams: {
     path: z.object({
-      namespaceId: z.string().describe("The id of the namespace to delete."),
+      namespaceId: namespaceIdSchema,
     }),
   },
   responses: {

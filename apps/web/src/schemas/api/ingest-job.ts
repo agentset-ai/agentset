@@ -10,7 +10,7 @@ import {
 import { paginationSchema } from "./pagination";
 
 export const IngestJobStatusSchema = z
-  .nativeEnum(IngestJobStatus)
+  .enum(IngestJobStatus)
   .describe("The status of the ingest job.");
 
 export const IngestJobSchema = z
@@ -85,8 +85,9 @@ export const IngestJobsQuerySchema = z.object({
     .describe("The sort order. Default is `desc`."),
 });
 
-export const getIngestionJobsSchema =
-  IngestJobsQuerySchema.merge(paginationSchema);
+export const getIngestionJobsSchema = IngestJobsQuerySchema.extend(
+  paginationSchema.shape,
+);
 
 export const createIngestJobSchema = z.object({
   name: ingestJobNameSchema,

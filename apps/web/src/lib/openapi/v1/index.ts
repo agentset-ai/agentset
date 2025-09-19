@@ -1,13 +1,15 @@
 import type { ZodOpenApiPathsObject } from "zod-openapi";
 
 import { documentsPaths } from "./documents";
-import { ingestJobsPaths } from "./ingest-job";
-import { namespacePaths } from "./namespace";
+import { ingestJobsPaths } from "./ingest-jobs";
+import { namespacesPaths } from "./namespaces";
 import { searchPaths } from "./search";
+import { uploadsPaths } from "./uploads";
 
 export const v1Paths: ZodOpenApiPathsObject = {
-  ...namespacePaths,
+  ...namespacesPaths,
   ...ingestJobsPaths,
   ...documentsPaths,
   ...searchPaths,
+  ...uploadsPaths,
 };

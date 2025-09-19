@@ -8,6 +8,8 @@ import { queryVectorStoreSchema } from "@/schemas/api/query";
 import { tenantHeaderSchema } from "@/schemas/api/tenant";
 import { z } from "zod/v4";
 
+import { namespaceIdSchema } from "./utils";
+
 export const search: ZodOpenApiOperationObject = {
   operationId: "search",
   "x-speakeasy-name-override": "search",
@@ -15,7 +17,7 @@ export const search: ZodOpenApiOperationObject = {
   description: "Search a namespace for a query.",
   requestParams: {
     path: z.object({
-      namespaceId: z.string().describe("The id of the namespace to search."),
+      namespaceId: namespaceIdSchema,
     }),
     header: tenantHeaderSchema,
   },
