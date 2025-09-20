@@ -22,7 +22,7 @@ const s3Client = new S3Client({
 });
 
 const DOWNLOAD_EXPIRATION = 60 * 60 * 24; // 24 hours
-const UPLOAD_EXPIRATION = 60 * 60 * 12; // 12 hours
+const UPLOAD_EXPIRATION = 60 * 60 * 1; // 1 hour
 
 export const presignUploadUrl = async ({
   key,
