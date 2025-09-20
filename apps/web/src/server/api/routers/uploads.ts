@@ -34,10 +34,7 @@ export const uploadsRouter = createTRPCRouter({
 
       if (!result.success) {
         throw new TRPCError({
-          code:
-            result.code === "bad_request"
-              ? "BAD_REQUEST"
-              : "INTERNAL_SERVER_ERROR",
+          code: "INTERNAL_SERVER_ERROR",
           message: result.error,
         });
       }
@@ -67,10 +64,7 @@ export const uploadsRouter = createTRPCRouter({
 
       if (!result.success) {
         throw new TRPCError({
-          code:
-            result.code === "bad_request"
-              ? "BAD_REQUEST"
-              : "INTERNAL_SERVER_ERROR",
+          code: "INTERNAL_SERVER_ERROR",
           message: result.error,
         });
       }

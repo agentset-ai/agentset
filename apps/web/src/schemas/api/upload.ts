@@ -1,24 +1,45 @@
+import {
+  isContentTypeSupported,
+  isFileExtensionSupported,
+} from "@/services/uploads";
 import { z } from "zod/v4";
 
 import { MAX_UPLOAD_SIZE } from "@agentset/storage/constants";
 
 export const uploadFileSchema = z.object({
-  fileName: z.string().min(1, "File name is required"),
-  contentType: z.string().min(1, "Content type is required"),
+  fileName: z
+    .string()
+    .min(1)
+    .trim()
+    .refine((fileName) => isFileExtensionSupported(fileName), {
+      error: "Invalid file extension",
+    })
+    .describe("File name")
+    .meta({
+      examples: ["document.pdf"],
+    }),
+  contentType: z
+    .string()
+    .trim()
+    .refine((contentType) => isContentTypeSupported(contentType), {
+      error: "Invalid content type",
+    })
+    .describe("Content type")
+    .meta({
+      examples: ["application/pdf"],
+    }),
   fileSize: z
     .number()
-    .min(1, "File size must be greater than 0")
-    .max(
-      MAX_UPLOAD_SIZE,
-      `File size must be less than ${MAX_UPLOAD_SIZE} bytes`,
-    ),
+    .min(1)
+    .max(MAX_UPLOAD_SIZE)
+    .describe("File size in bytes")
+    .meta({
+      examples: [1024],
+    }),
 });
 
 export const batchUploadSchema = z.object({
-  files: z
-    .array(uploadFileSchema)
-    .min(1, "At least one file is required")
-    .max(100, "Maximum 100 files allowed"),
+  files: z.array(uploadFileSchema).min(1).max(100),
 });
 
 export const UploadResultSchema = z.object({

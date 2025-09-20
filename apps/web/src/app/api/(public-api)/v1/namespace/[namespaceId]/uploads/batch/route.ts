@@ -19,7 +19,7 @@ export const POST = withNamespaceApiHandler(
 
     if (!result.success) {
       throw new AgentsetApiError({
-        code: result.code,
+        code: "internal_server_error",
         message: result.error,
       });
     }
