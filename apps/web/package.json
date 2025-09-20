@@ -15,7 +15,7 @@
     "start": "pnpm with-env next start",
     "typecheck": "tsc --noEmit",
     "with-env": "dotenv -e ../../.env --",
-    "generate-openapi": "tsx ./scripts/generate-openapi.ts"
+    "generate-openapi": "tsx --env-file=../../.env ./scripts/generate-openapi.ts"
   },
   "dependencies": {
     "@agentset/db": "workspace:*",

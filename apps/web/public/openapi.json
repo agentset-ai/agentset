@@ -7468,14 +7468,25 @@
                 "type": "object",
                 "properties": {
                   "fileName": {
+                    "description": "File name",
+                    "examples": [
+                      "document.pdf"
+                    ],
                     "type": "string",
                     "minLength": 1
                   },
                   "contentType": {
-                    "type": "string",
-                    "minLength": 1
+                    "description": "Content type",
+                    "examples": [
+                      "application/pdf"
+                    ],
+                    "type": "string"
                   },
                   "fileSize": {
+                    "description": "File size in bytes",
+                    "examples": [
+                      1024
+                    ],
                     "type": "number",
                     "minimum": 1,
                     "maximum": 209715200
@@ -7506,10 +7517,12 @@
                       "type": "object",
                       "properties": {
                         "url": {
+                          "description": "Presigned URL for file upload. Make a `PUT` request to this URL with the file content and the `Content-Type` header.",
                           "type": "string",
                           "format": "uri"
                         },
                         "key": {
+                          "description": "Key of the file in the storage. You'll send this in the `MANAGED_FILE` payload when creating an ingest job.",
                           "type": "string"
                         }
                       },
@@ -8016,14 +8029,25 @@
                       "type": "object",
                       "properties": {
                         "fileName": {
+                          "description": "File name",
+                          "examples": [
+                            "document.pdf"
+                          ],
                           "type": "string",
                           "minLength": 1
                         },
                         "contentType": {
-                          "type": "string",
-                          "minLength": 1
+                          "description": "Content type",
+                          "examples": [
+                            "application/pdf"
+                          ],
+                          "type": "string"
                         },
                         "fileSize": {
+                          "description": "File size in bytes",
+                          "examples": [
+                            1024
+                          ],
                           "type": "number",
                           "minimum": 1,
                           "maximum": 209715200
@@ -8062,10 +8086,12 @@
                         "type": "object",
                         "properties": {
                           "url": {
+                            "description": "Presigned URL for file upload. Make a `PUT` request to this URL with the file content and the `Content-Type` header.",
                             "type": "string",
                             "format": "uri"
                           },
                           "key": {
+                            "description": "Key of the file in the storage. You'll send this in the `MANAGED_FILE` payload when creating an ingest job.",
                             "type": "string"
                           }
                         },
