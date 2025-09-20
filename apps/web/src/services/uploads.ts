@@ -42,6 +42,7 @@ const SUPPORTED_MIME_TYPES = [
   "application/msword", // .doc
   "application/vnd.openxmlformats-officedocument.wordprocessingml.document", // .docx
   "message/rfc822", // .eml
+  "application/epub", // .epub
   "application/epub+zip", // .epub
   "image/heif",
   "image/heif-sequence",
