@@ -1,11 +1,11 @@
 import { useState } from "react";
 import { useCursorPagination } from "@/hooks/use-cursor-pagination";
 import { useNamespace } from "@/hooks/use-namespace";
-import { capitalize } from "@/lib/string-utils";
 import { useTRPC } from "@/trpc/react";
 import { keepPreviousData, useQuery } from "@tanstack/react-query";
 
 import { IngestJobStatus } from "@agentset/db";
+import { capitalize } from "@agentset/utils";
 
 const statusLabels = Object.values(IngestJobStatus).map((status) => ({
   label: capitalize(status.split("_").join(" ")) as string,

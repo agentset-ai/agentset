@@ -1,7 +1,8 @@
 import { env } from "@/env";
-import { toSlug, validSlugRegex } from "@/lib/slug";
 import { fileTypeFromBuffer } from "file-type";
 import { z } from "zod/v4";
+
+import { toSlug, validSlugRegex } from "@agentset/utils";
 
 const allowedImageTypes = [
   "image/png",

@@ -1,0 +1,1 @@
+export const INFINITY_NUMBER = 1000000000;

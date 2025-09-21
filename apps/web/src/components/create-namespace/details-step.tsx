@@ -2,7 +2,6 @@
 
 import { useEffect, useMemo } from "react";
 import { useOrganization } from "@/hooks/use-organization";
-import { toSlug } from "@/lib/slug";
 import { trpcClient } from "@/trpc/react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
@@ -19,6 +18,7 @@ import {
   FormMessage,
   Input,
 } from "@agentset/ui";
+import { toSlug } from "@agentset/utils";
 
 const createFormSchema = (orgId: string) =>
   z.object({

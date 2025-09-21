@@ -1,6 +1,5 @@
 "use client";
 
-import { capitalize } from "@/lib/string-utils";
 import { CreditCardIcon, LandmarkIcon } from "lucide-react";
 
 import type { Stripe } from "@agentset/stripe";
@@ -11,6 +10,7 @@ import {
   CardVisa,
   StripeLink,
 } from "@agentset/ui";
+import { capitalize } from "@agentset/utils";
 
 export const PaymentMethodTypesList = (paymentMethod?: Stripe.PaymentMethod) =>
   [

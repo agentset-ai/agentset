@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useMemo } from "react";
-import { camelCaseToWords, capitalize } from "@/lib/string-utils";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { z } from "zod/v4";
@@ -26,6 +25,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@agentset/ui";
+import { camelCaseToWords, capitalize } from "@agentset/utils";
 import { EmbeddingConfigSchema } from "@agentset/validation";
 
 import { embeddingModels } from "./models";

@@ -57,7 +57,6 @@
     "react-dom": "catalog:react19",
     "resend": "^4.1.2",
     "server-only": "^0.0.1",
-    "slugify": "^1.6.6",
     "streamdown": "^1.0.11",
     "superjson": "^2.2.1",
     "tw-animate-css": "^1.2.9",

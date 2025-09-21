@@ -3,7 +3,6 @@
 import { Fragment, useEffect } from "react";
 import { logEvent } from "@/lib/analytics";
 import { authClient } from "@/lib/auth-client";
-import { toSlug } from "@/lib/slug";
 import { useRouter } from "@bprogress/next/app";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation } from "@tanstack/react-query";
@@ -22,6 +21,7 @@ import {
   FormMessage,
   Input,
 } from "@agentset/ui";
+import { toSlug } from "@agentset/utils";
 
 const formSchema = z.object({
   name: z.string().min(1),

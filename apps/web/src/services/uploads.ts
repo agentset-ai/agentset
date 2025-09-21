@@ -1,10 +1,9 @@
 import { extname } from "node:path";
-import { filenamize } from "@/lib/string-utils";
 import { batchUploadSchema, uploadFileSchema } from "@/schemas/api/upload";
 import z from "zod/v4";
 
 import { presignUploadUrl } from "@agentset/storage";
-import { tryCatch } from "@agentset/utils";
+import { filenamize, tryCatch } from "@agentset/utils";
 
 const SUPPORTED_EXTENSIONS = [
   ".bmp",

@@ -195,9 +195,6 @@ importers:
       server-only:
         specifier: ^0.0.1
         version: 0.0.1
-      slugify:
-        specifier: ^1.6.6
-        version: 1.6.6
       streamdown:
         specifier: ^1.0.11
         version: 1.0.11(@types/react@19.1.11)(react@19.1.1)
@@ -655,6 +652,10 @@ importers:
         version: 5.9.2
 
   packages/utils:
+    dependencies:
+      slugify:
+        specifier: ^1.6.6
+        version: 1.6.6
     devDependencies:
       '@agentset/eslint-config':
         specifier: workspace:*

@@ -3,7 +3,7 @@ import { NextResponse } from "next/server";
 import { generateErrorMessage } from "zod-error";
 import { z, ZodError } from "zod/v4";
 
-import { capitalize } from "../string-utils";
+import { capitalize } from "@agentset/utils";
 
 export const ErrorCode = z.enum([
   "bad_request",

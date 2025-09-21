@@ -1,6 +1,6 @@
-import { toSlug, validSlugRegex } from "@/lib/slug";
 import { z } from "zod/v4";
 
+import { toSlug, validSlugRegex } from "@agentset/utils";
 import { EmbeddingConfigSchema, VectorStoreSchema } from "@agentset/validation";
 
 export const NamespaceSchema = z

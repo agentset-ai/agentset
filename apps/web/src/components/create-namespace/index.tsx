@@ -2,7 +2,6 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { logEvent } from "@/lib/analytics";
-import { toSlug } from "@/lib/slug";
 import { useTRPC } from "@/trpc/react";
 import { useRouter } from "@bprogress/next/app";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
@@ -16,6 +15,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@agentset/ui";
+import { toSlug } from "@agentset/utils";
 
 import CreateNamespaceDetailsStep from "./details-step";
 import CreateNamespaceEmbeddingStep from "./embedding-step";
