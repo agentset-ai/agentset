@@ -15,7 +15,7 @@ const uploadWithProgress = (
   return new Promise<string>((resolve, reject) => {
     const xhr = new XMLHttpRequest();
     xhr.open("PUT", url);
-    xhr.setRequestHeader("Content-Type", file.type);
+    // xhr.setRequestHeader("Content-Type", file.type);
 
     // Track upload progress
     xhr.upload.addEventListener("progress", (event) => {
