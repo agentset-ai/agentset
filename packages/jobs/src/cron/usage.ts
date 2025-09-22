@@ -116,25 +116,25 @@ export const usageCronJob = schedules.task({
           searchUsage > searchLimit || totalPages > pagesLimit,
       );
 
-      if (exceedingUsage.length > 0) {
-        // TODO: notify via email that they're exceeding the usage
-        await Promise.allSettled(
-          exceedingUsage.map(async (organization) => {
-            const { slug, plan, members, searchLimit, searchUsage } =
-              organization;
-            const emails = members.map((member) => member.user.email);
+      // if (exceedingUsage.length > 0) {
+      //   // TODO: notify via email that they're exceeding the usage
+      //   await Promise.allSettled(
+      //     exceedingUsage.map(async (organization) => {
+      //       const { slug, plan, members, searchLimit, searchUsage } =
+      //         organization;
+      //       const emails = members.map((member) => member.user.email);
 
-            await log({
-              message: `*${slug}* is over their *${capitalize(
-                plan,
-              )} Plan* usage limit. Usage: ${searchUsage}, Limit: ${searchLimit}, Email: ${emails.join(
-                ", ",
-              )}`,
-              type: plan === "free" ? "cron" : "alerts",
-            });
-          }),
-        );
-      }
+      //       await log({
+      //         message: `*${slug}* is over their *${capitalize(
+      //           plan,
+      //         )} Plan* usage limit. Usage: ${searchUsage}, Limit: ${searchLimit}, Email: ${emails.join(
+      //           ", ",
+      //         )}`,
+      //         type: plan === "free" ? "cron" : "alerts",
+      //       });
+      //     }),
+      //   );
+      // }
     }
   },
 });
