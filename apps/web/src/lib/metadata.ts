@@ -5,8 +5,8 @@ import { APP_DOMAIN } from "./constants";
 export function constructMetadata({
   title,
   fullTitle,
-  description = "Build your RAG application in seconds, fully performant and with agentic superpowers.",
-  image = "https://agentset.ai/screenshots/og.png",
+  description = "The open-source RAG platform: built-in citations, deep research, 22+ file formats, partitions, MCP server, and more.",
+  image = "https://agentset.ai/og/cover.png",
   video,
   // TOOD: add icons
   url,
@@ -28,6 +28,25 @@ export function constructMetadata({
   return {
     title: fullTitle || (title ? `${title} | Agentset` : "Agentset Console"),
     description,
+    icons: [
+      {
+        rel: "apple-touch-icon",
+        sizes: "32x32",
+        url: "/icons/apple-touch-icon.png",
+      },
+      {
+        rel: "icon",
+        type: "image/png",
+        sizes: "32x32",
+        url: "/icons/favicon-32x32.png",
+      },
+      {
+        rel: "icon",
+        type: "image/png",
+        sizes: "16x16",
+        url: "/icons/favicon-16x16.png",
+      },
+    ],
     openGraph: {
       title,
       description,
