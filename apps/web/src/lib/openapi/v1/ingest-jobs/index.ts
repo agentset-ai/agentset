@@ -4,7 +4,7 @@ import { createIngestJob } from "./create-job";
 import { deleteIngestJob } from "./delete-job";
 import { getIngestJobInfo } from "./get-job";
 import { listIngestJobs } from "./list-jobs";
-import { reingestIngestJob } from "./reingest-job";
+import { reIngestJob } from "./reingest-job";
 
 export const ingestJobsPaths: ZodOpenApiPathsObject = {
   "/v1/namespace/{namespaceId}/ingest-jobs": {
@@ -13,7 +13,9 @@ export const ingestJobsPaths: ZodOpenApiPathsObject = {
   },
   "/v1/namespace/{namespaceId}/ingest-jobs/{jobId}": {
     get: getIngestJobInfo,
-    post: reingestIngestJob,
     delete: deleteIngestJob,
+  },
+  "/v1/namespace/{namespaceId}/ingest-jobs/{jobId}/re-ingest": {
+    post: reIngestJob,
   },
 };

@@ -4618,12 +4618,12 @@
           }
         }
       },
-      "post": {
-        "operationId": "reingestIngestJob",
-        "x-speakeasy-name-override": "re-ingest",
+      "delete": {
+        "operationId": "deleteIngestJob",
+        "x-speakeasy-name-override": "delete",
         "x-speakeasy-max-method-params": 1,
-        "summary": "Re-ingest an ingest job",
-        "description": "Re-ingest an ingest job for the authenticated organization.",
+        "summary": "Delete an ingest job",
+        "description": "Delete an ingest job for the authenticated organization.",
         "tags": [
           "Ingest Jobs"
         ],
@@ -4650,11 +4650,11 @@
             "in": "path",
             "name": "jobId",
             "schema": {
-              "description": "The id of the ingest job to re-ingest.",
+              "description": "The id of the ingest job to delete.",
               "type": "string"
             },
             "required": true,
-            "description": "The id of the ingest job to re-ingest."
+            "description": "The id of the ingest job to delete."
           },
           {
             "in": "header",
@@ -4667,8 +4667,8 @@
           }
         ],
         "responses": {
-          "200": {
-            "description": "The re-ingested ingest job",
+          "204": {
+            "description": "The deleted ingest job",
             "content": {
               "application/json": {
                 "schema": {
@@ -4679,17 +4679,7 @@
                       "const": true
                     },
                     "data": {
-                      "type": "object",
-                      "properties": {
-                        "id": {
-                          "description": "The unique ID of the ingest job.",
-                          "type": "string"
-                        }
-                      },
-                      "required": [
-                        "id"
-                      ],
-                      "additionalProperties": false
+                      "$ref": "#/components/schemas/IngestJobSchema"
                     }
                   },
                   "required": [
@@ -5143,13 +5133,15 @@
             }
           }
         }
-      },
-      "delete": {
-        "operationId": "deleteIngestJob",
-        "x-speakeasy-name-override": "delete",
+      }
+    },
+    "/v1/namespace/{namespaceId}/ingest-jobs/{jobId}/re-ingest": {
+      "post": {
+        "operationId": "reIngestJob",
+        "x-speakeasy-name-override": "re-ingest",
         "x-speakeasy-max-method-params": 1,
-        "summary": "Delete an ingest job",
-        "description": "Delete an ingest job for the authenticated organization.",
+        "summary": "Re-ingest a job",
+        "description": "Re-ingest a job for the authenticated organization.",
         "tags": [
           "Ingest Jobs"
         ],
@@ -5176,11 +5168,11 @@
             "in": "path",
             "name": "jobId",
             "schema": {
-              "description": "The id of the ingest job to delete.",
+              "description": "The id of the job to re-ingest.",
               "type": "string"
             },
             "required": true,
-            "description": "The id of the ingest job to delete."
+            "description": "The id of the job to re-ingest."
           },
           {
             "in": "header",
@@ -5193,8 +5185,8 @@
           }
         ],
         "responses": {
-          "204": {
-            "description": "The deleted ingest job",
+          "200": {
+            "description": "The re-ingested job",
             "content": {
               "application/json": {
                 "schema": {
@@ -5205,7 +5197,17 @@
                       "const": true
                     },
                     "data": {
-                      "$ref": "#/components/schemas/IngestJobSchema"
+                      "type": "object",
+                      "properties": {
+                        "id": {
+                          "description": "The unique ID of the ingest job.",
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "id"
+                      ],
+                      "additionalProperties": false
                     }
                   },
                   "required": [
