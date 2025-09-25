@@ -11,6 +11,7 @@ import {
 export const getIngestJobInfo: ZodOpenApiOperationObject = {
   operationId: "getIngestJobInfo",
   "x-speakeasy-name-override": "get",
+  "x-speakeasy-group": "ingestJobs",
   summary: "Retrieve an ingest job",
   description: "Retrieve the info for an ingest job.",
   requestParams: {

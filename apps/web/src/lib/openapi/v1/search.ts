@@ -12,7 +12,8 @@ import { namespaceIdRequestParamSchema } from "./utils";
 
 export const search: ZodOpenApiOperationObject = {
   operationId: "search",
-  "x-speakeasy-name-override": "search",
+  "x-speakeasy-name-override": "execute",
+  "x-speakeasy-group": "search",
   summary: "Search a namespace",
   description: "Search a namespace for a query.",
   requestParams: {

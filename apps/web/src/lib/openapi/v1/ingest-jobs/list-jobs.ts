@@ -12,6 +12,7 @@ import { namespaceIdRequestParamSchema } from "../utils";
 export const listIngestJobs: ZodOpenApiOperationObject = {
   operationId: "listIngestJobs",
   "x-speakeasy-name-override": "list",
+  "x-speakeasy-group": "ingestJobs",
   "x-speakeasy-pagination": {
     type: "cursor",
     inputs: [

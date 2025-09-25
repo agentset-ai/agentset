@@ -10,7 +10,8 @@ import {
 
 export const reIngestJob: ZodOpenApiOperationObject = {
   operationId: "reIngestJob",
-  "x-speakeasy-name-override": "re-ingest",
+  "x-speakeasy-name-override": "reIngest",
+  "x-speakeasy-group": "ingestJobs",
   "x-speakeasy-max-method-params": 1,
   summary: "Re-ingest a job",
   description: "Re-ingest a job for the authenticated organization.",

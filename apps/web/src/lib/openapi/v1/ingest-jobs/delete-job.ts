@@ -11,6 +11,7 @@ import {
 export const deleteIngestJob: ZodOpenApiOperationObject = {
   operationId: "deleteIngestJob",
   "x-speakeasy-name-override": "delete",
+  "x-speakeasy-group": "ingestJobs",
   "x-speakeasy-max-method-params": 1,
   summary: "Delete an ingest job",
   description: "Delete an ingest job for the authenticated organization.",

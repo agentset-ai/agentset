@@ -11,6 +11,7 @@ import { namespaceIdRequestParamSchema } from "../utils";
 export const createIngestJob: ZodOpenApiOperationObject = {
   operationId: "createIngestJob",
   "x-speakeasy-name-override": "create",
+  "x-speakeasy-group": "ingestJobs",
   summary: "Create an ingest job",
   description: "Create an ingest job for the authenticated organization.",
   requestParams: {
