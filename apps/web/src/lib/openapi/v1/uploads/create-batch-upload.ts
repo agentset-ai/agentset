@@ -15,6 +15,7 @@ export const createBatchUpload: ZodOpenApiOperationObject = {
     path: namespaceIdRequestParamSchema,
   },
   requestBody: {
+    required: true,
     content: {
       "application/json": {
         schema: batchUploadSchema,

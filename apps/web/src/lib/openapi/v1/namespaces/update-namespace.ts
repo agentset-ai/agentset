@@ -18,6 +18,7 @@ export const updateNamespace: ZodOpenApiOperationObject = {
     path: namespaceIdRequestParamSchema,
   },
   requestBody: {
+    required: true,
     content: {
       "application/json": { schema: updateNamespaceSchema },
     },

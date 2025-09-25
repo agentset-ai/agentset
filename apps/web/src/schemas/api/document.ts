@@ -17,7 +17,7 @@ const nameSchema = z
 
 export const DocumentStatusSchema = z
   .enum(DocumentStatus)
-  .describe("The status of the document.");
+  .meta({ id: "document-status", description: "The status of the document." });
 
 export const DocumentSchema = z
   .object({
@@ -80,6 +80,7 @@ export const DocumentSchema = z
       .default(null),
   })
   .meta({
+    id: "document",
     title: "Document",
   });
 

@@ -12,9 +12,11 @@ export const EmbeddingConfigSchema = z
     VoyageEmbeddingConfigSchema,
     GoogleEmbeddingConfigSchema,
   ])
-  .describe(
-    "The embedding model config. If not provided, our managed embedding model will be used. Note: You can't change the embedding model config after the namespace is created.",
-  );
+  .meta({
+    id: "embedding-model-config",
+    description:
+      "The embedding model config. If not provided, our managed embedding model will be used. Note: You can't change the embedding model config after the namespace is created.",
+  });
 
 export type EmbeddingConfig = z.infer<typeof EmbeddingConfigSchema>;
 

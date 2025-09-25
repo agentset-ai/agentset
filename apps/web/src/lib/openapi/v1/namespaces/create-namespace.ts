@@ -12,6 +12,7 @@ export const createNamespace: ZodOpenApiOperationObject = {
   summary: "Create a namespace.",
   description: "Create a namespace for the authenticated organization.",
   requestBody: {
+    required: true,
     content: {
       "application/json": { schema: createNamespaceSchema },
     },

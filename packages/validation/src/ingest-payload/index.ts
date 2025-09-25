@@ -26,37 +26,43 @@ export const ingestJobNameSchema = z
 
 export const configSchema = z
   .object({
-    chunkSize: z.coerce.number().optional().describe("Soft chunk size."),
-    maxChunkSize: z.coerce.number().optional().describe("Hard chunk size."),
+    chunkSize: z.coerce.number().describe("Soft chunk size.").optional(),
+    maxChunkSize: z.coerce.number().describe("Hard chunk size.").optional(),
     chunkOverlap: z.coerce
       .number()
-      .optional()
-      .describe("Custom chunk overlap."),
+      .describe("Custom chunk overlap.")
+      .optional(),
     metadata: z
       .record(z.string(), z.union([z.string(), z.number(), z.boolean()]))
-      .optional()
       .describe(
         "Custom metadata to be added to the ingested documents. It cannot contain nested objects; only primitive types (string, number, boolean) are allowed.",
-      ),
+      )
+      .optional(),
     chunkingStrategy: z
       .enum(["basic", "by_title"])
-      .optional()
-      .describe("The chunking strategy to use. Defaults to `basic`."),
+      .meta({
+        id: "chunking-strategy",
+        description: "The chunking strategy to use. Defaults to `basic`.",
+      })
+      .optional(),
     strategy: z
       .enum(["auto", "fast", "hi_res", "ocr_only"])
-      .optional()
-      .describe("The strategy to use. Defaults to `auto`."),
+      .meta({
+        id: "strategy",
+        description: "The strategy to use. Defaults to `auto`.",
+      })
+      .optional(),
     // languages: z.array(z.string()).optional().describe("The languages to use."),
   })
-  .describe("The ingest job config.");
+  .meta({ id: "ingest-job-config", description: "The ingest job config." });
 
 export type IngestJobConfig = z.infer<typeof configSchema>;
 
 const fileNameSchema = z
   .string()
+  .describe("The name of the file.")
   .nullable()
-  .optional()
-  .describe("The name of the file.");
+  .optional();
 
 export const textPayloadSchema = z
   .object({
@@ -65,6 +71,7 @@ export const textPayloadSchema = z
     fileName: fileNameSchema,
   })
   .meta({
+    id: "text-payload",
     title: "Text Payload",
   });
 
@@ -75,6 +82,7 @@ export const filePayloadSchema = z
     fileName: fileNameSchema,
   })
   .meta({
+    id: "file-payload",
     title: "URL Payload",
   });
 
@@ -85,6 +93,7 @@ export const managedFilePayloadSchema = z
     fileName: fileNameSchema,
   })
   .meta({
+    id: "managed-file-payload",
     title: "Managed File Payload",
   });
 
@@ -99,10 +108,11 @@ export const batchPayloadSchema = z
           managedFilePayloadSchema.extend({ config: configSchema.optional() }),
         ]),
       )
-      .min(1)
-      .describe("The items to ingest."),
+      .describe("The items to ingest.")
+      .min(1),
   })
   .meta({
+    id: "batch-payload",
     title: "Batch Payload",
   });
 
@@ -113,7 +123,7 @@ export const ingestJobPayloadSchema = z
     managedFilePayloadSchema,
     batchPayloadSchema,
   ])
-  .describe("The ingest job payload.");
+  .meta({ id: "ingest-job-payload", description: "The ingest job payload." });
 
 export type IngestJobPayload = z.infer<typeof ingestJobPayloadSchema>;
 export type IngestJobBatchItem = z.infer<

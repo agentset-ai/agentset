@@ -20,6 +20,7 @@ export const search: ZodOpenApiOperationObject = {
     header: tenantHeaderSchema,
   },
   requestBody: {
+    required: true,
     content: {
       "application/json": {
         schema: queryVectorStoreSchema,

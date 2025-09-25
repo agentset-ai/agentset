@@ -12,7 +12,10 @@ import { paginationSchema } from "./pagination";
 
 export const IngestJobStatusSchema = z
   .enum(IngestJobStatus)
-  .describe("The status of the ingest job.");
+  .meta({
+    id: "ingest-job-status",
+    description: "The status of the ingest job.",
+  });
 
 export const IngestJobSchema = z
   .object({
@@ -64,6 +67,7 @@ export const IngestJobSchema = z
       .default(null),
   })
   .meta({
+    id: "ingest-job",
     title: "Ingest Job",
   });
 

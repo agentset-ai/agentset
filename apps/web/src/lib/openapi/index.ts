@@ -1,12 +1,4 @@
-import { DocumentSchema, DocumentStatusSchema } from "@/schemas/api/document";
-import {
-  IngestJobSchema,
-  IngestJobStatusSchema,
-} from "@/schemas/api/ingest-job";
-import { NamespaceSchema } from "@/schemas/api/namespace";
 import { createDocument } from "zod-openapi";
-
-import { EmbeddingConfigSchema, VectorStoreSchema } from "@agentset/validation";
 
 import { v1Paths } from "./v1";
 
@@ -36,15 +28,6 @@ export const document = createDocument({
     ...v1Paths,
   },
   components: {
-    schemas: {
-      EmbeddingConfigSchema,
-      VectorStoreSchema,
-      NamespaceSchema,
-      IngestJobSchema,
-      IngestJobStatusSchema,
-      DocumentSchema,
-      DocumentStatusSchema,
-    },
     securitySchemes: {
       token: {
         type: "http",

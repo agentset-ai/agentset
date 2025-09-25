@@ -14,6 +14,7 @@ export const createUpload: ZodOpenApiOperationObject = {
     path: namespaceIdRequestParamSchema,
   },
   requestBody: {
+    required: true,
     content: {
       "application/json": {
         schema: uploadFileSchema,

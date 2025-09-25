@@ -1,18 +1,30 @@
 import { z } from "zod/v4";
 
 export const paginationSchema = z.object({
-  cursor: z.string().optional().describe("The cursor to paginate by."),
+  cursor: z
+    .string()
+    .meta({
+      id: "pagination-cursor",
+      description: "The cursor to paginate by.",
+    })
+    .optional(),
   cursorDirection: z
     .enum(["forward", "backward"])
-    .default("forward")
-    .describe("The direction to paginate by."),
+    .meta({
+      id: "pagination-cursor-direction",
+      description: "The direction to paginate by.",
+    })
+    .default("forward"),
   perPage: z.coerce
     .number()
+    .meta({
+      id: "pagination-per-page",
+      description: "The number of records to return per page.",
+    })
     .min(1)
     .max(100)
     .optional()
-    .default(30)
-    .describe("The number of records to return per page."),
+    .default(30),
 });
 
 export const paginationResponseSchema = <T>(recordSchema: z.ZodSchema<T>) =>

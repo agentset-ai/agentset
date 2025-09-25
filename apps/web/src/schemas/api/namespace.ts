@@ -18,6 +18,7 @@ export const NamespaceSchema = z
     vectorStoreConfig: VectorStoreSchema.nullable().default(null),
   })
   .meta({
+    id: "namespace",
     title: "Namespace",
   });
 
