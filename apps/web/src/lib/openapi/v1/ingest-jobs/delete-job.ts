@@ -1,11 +1,11 @@
 import type { ZodOpenApiOperationObject } from "zod-openapi";
 import { openApiErrorResponses, successSchema } from "@/lib/openapi/responses";
 import { IngestJobSchema } from "@/schemas/api/ingest-job";
-import { tenantHeaderSchema } from "@/schemas/api/tenant";
 
 import {
-  jobIdRequestParamSchema,
-  namespaceIdRequestParamSchema,
+  jobIdPathSchema,
+  namespaceIdPathSchema,
+  tenantHeaderSchema,
 } from "../utils";
 
 export const deleteIngestJob: ZodOpenApiOperationObject = {
@@ -15,10 +15,7 @@ export const deleteIngestJob: ZodOpenApiOperationObject = {
   "x-speakeasy-max-method-params": 1,
   summary: "Delete an ingest job",
   description: "Delete an ingest job for the authenticated organization.",
-  requestParams: {
-    path: namespaceIdRequestParamSchema.extend(jobIdRequestParamSchema.shape),
-    header: tenantHeaderSchema,
-  },
+  parameters: [namespaceIdPathSchema, jobIdPathSchema, tenantHeaderSchema],
   responses: {
     "204": {
       description: "The deleted ingest job",

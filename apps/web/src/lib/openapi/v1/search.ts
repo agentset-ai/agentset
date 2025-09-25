@@ -5,10 +5,9 @@ import type {
 import { openApiErrorResponses, successSchema } from "@/lib/openapi/responses";
 import { NodeSchema } from "@/schemas/api/node";
 import { queryVectorStoreSchema } from "@/schemas/api/query";
-import { tenantHeaderSchema } from "@/schemas/api/tenant";
 import { z } from "zod/v4";
 
-import { namespaceIdRequestParamSchema } from "./utils";
+import { namespaceIdPathSchema, tenantHeaderSchema } from "./utils";
 
 export const search: ZodOpenApiOperationObject = {
   operationId: "search",
@@ -16,10 +15,7 @@ export const search: ZodOpenApiOperationObject = {
   "x-speakeasy-group": "search",
   summary: "Search a namespace",
   description: "Search a namespace for a query.",
-  requestParams: {
-    path: namespaceIdRequestParamSchema,
-    header: tenantHeaderSchema,
-  },
+  parameters: [namespaceIdPathSchema, tenantHeaderSchema],
   requestBody: {
     required: true,
     content: {

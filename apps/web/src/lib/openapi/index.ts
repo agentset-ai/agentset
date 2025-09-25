@@ -24,6 +24,17 @@ export const document = createDocument({
       description: "Production API",
     },
   ],
+  "x-speakeasy-globals": {
+    parameters: [
+      {
+        $ref: "#/components/parameters/NamespaceIdRef",
+      },
+
+      {
+        $ref: "#/components/parameters/TenantIdRef",
+      },
+    ],
+  },
   paths: {
     ...v1Paths,
   },

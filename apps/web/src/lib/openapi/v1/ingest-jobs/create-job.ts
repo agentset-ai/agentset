@@ -4,9 +4,8 @@ import {
   createIngestJobSchema,
   IngestJobSchema,
 } from "@/schemas/api/ingest-job";
-import { tenantHeaderSchema } from "@/schemas/api/tenant";
 
-import { namespaceIdRequestParamSchema } from "../utils";
+import { namespaceIdPathSchema, tenantHeaderSchema } from "../utils";
 
 export const createIngestJob: ZodOpenApiOperationObject = {
   operationId: "createIngestJob",
@@ -14,10 +13,7 @@ export const createIngestJob: ZodOpenApiOperationObject = {
   "x-speakeasy-group": "ingestJobs",
   summary: "Create an ingest job",
   description: "Create an ingest job for the authenticated organization.",
-  requestParams: {
-    path: namespaceIdRequestParamSchema,
-    header: tenantHeaderSchema,
-  },
+  parameters: [namespaceIdPathSchema, tenantHeaderSchema],
   requestBody: {
     required: true,
     content: {

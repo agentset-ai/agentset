@@ -1,10 +1,9 @@
 import type { ZodOpenApiOperationObject } from "zod-openapi";
 import { openApiErrorResponses, successSchema } from "@/lib/openapi/responses";
 import { DocumentSchema, getDocumentsSchema } from "@/schemas/api/document";
-import { tenantHeaderSchema } from "@/schemas/api/tenant";
 import { z } from "zod/v4";
 
-import { namespaceIdRequestParamSchema } from "../utils";
+import { namespaceIdPathSchema, tenantHeaderSchema } from "../utils";
 
 export const listDocuments: ZodOpenApiOperationObject = {
   operationId: "listDocuments",
@@ -25,10 +24,9 @@ export const listDocuments: ZodOpenApiOperationObject = {
   summary: "Retrieve a list of documents",
   description:
     "Retrieve a paginated list of documents for the authenticated organization.",
+  parameters: [namespaceIdPathSchema, tenantHeaderSchema],
   requestParams: {
-    path: namespaceIdRequestParamSchema,
     query: getDocumentsSchema,
-    header: tenantHeaderSchema,
   },
   responses: {
     "200": {
