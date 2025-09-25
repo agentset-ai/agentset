@@ -81,7 +81,6 @@ pnpm dev:web
 Useful scripts:
 
 - `pnpm db:studio` – open Prisma Studio
-- `pnpm generate-openapi` – regenerate OpenAPI spec
 - `pnpm dev:web` – run only the web app
 
 ## Star Us

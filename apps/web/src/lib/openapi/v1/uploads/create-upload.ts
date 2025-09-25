@@ -1,9 +1,8 @@
 import type { ZodOpenApiOperationObject } from "zod-openapi";
 import { openApiErrorResponses, successSchema } from "@/lib/openapi/responses";
 import { uploadFileSchema, UploadResultSchema } from "@/schemas/api/upload";
-import { z } from "zod/v4";
 
-import { namespaceIdSchema } from "../utils";
+import { namespaceIdRequestParamSchema } from "../utils";
 
 export const createUpload: ZodOpenApiOperationObject = {
   operationId: "createUpload",
@@ -12,9 +11,7 @@ export const createUpload: ZodOpenApiOperationObject = {
   description:
     "Generate a presigned URL for uploading a single file to the specified namespace.",
   requestParams: {
-    path: z.object({
-      namespaceId: namespaceIdSchema,
-    }),
+    path: namespaceIdRequestParamSchema,
   },
   requestBody: {
     content: {

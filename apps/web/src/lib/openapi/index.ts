@@ -8,7 +8,6 @@ import { createDocument } from "zod-openapi";
 
 import { EmbeddingConfigSchema, VectorStoreSchema } from "@agentset/validation";
 
-import { openApiErrorResponses } from "./responses";
 import { v1Paths } from "./v1";
 
 export const document = createDocument({
@@ -53,9 +52,6 @@ export const document = createDocument({
         scheme: "bearer",
         "x-speakeasy-example": "AGENTSET_API_KEY",
       },
-    },
-    responses: {
-      ...openApiErrorResponses,
     },
   },
 });

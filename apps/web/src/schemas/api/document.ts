@@ -6,6 +6,7 @@ import {
   documentPropertiesSchema,
 } from "@agentset/validation";
 
+import { csvToStringArray } from "../helpers";
 import { paginationSchema } from "./pagination";
 
 const nameSchema = z
@@ -84,25 +85,27 @@ export const DocumentSchema = z
 
 export const DocumentsQuerySchema = z.object({
   statuses: z
-    .string()
-    .transform((val) => val.split(","))
-    .pipe(z.array(DocumentStatusSchema))
-    .optional()
-    .describe("Comma separated list of statuses to filter by."),
+    .preprocess(csvToStringArray, z.array(DocumentStatusSchema))
+    .describe("Comma separated list of statuses to filter by.")
+    .meta({
+      style: "form",
+      explode: false,
+    })
+    .optional(),
   orderBy: z
     .enum(["createdAt"])
+    .describe("The field to order by. Default is `createdAt`.")
     .optional()
-    .default("createdAt")
-    .describe("The field to order by. Default is `createdAt`."),
+    .default("createdAt"),
   order: z
     .enum(["asc", "desc"])
+    .describe("The order to sort by. Default is `desc`.")
     .optional()
-    .default("desc")
-    .describe("The order to sort by. Default is `desc`."),
+    .default("desc"),
   ingestJobId: z
     .string()
-    .optional()
-    .describe("The ingest job ID to filter documents by."),
+    .describe("The ingest job ID to filter documents by.")
+    .optional(),
 });
 
 export const getDocumentsSchema = DocumentsQuerySchema.extend(

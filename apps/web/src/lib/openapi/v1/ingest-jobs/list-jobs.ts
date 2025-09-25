@@ -7,7 +7,7 @@ import {
 import { tenantHeaderSchema } from "@/schemas/api/tenant";
 import { z } from "zod/v4";
 
-import { namespaceIdSchema } from "../utils";
+import { namespaceIdRequestParamSchema } from "../utils";
 
 export const listIngestJobs: ZodOpenApiOperationObject = {
   operationId: "listIngestJobs",
@@ -29,9 +29,7 @@ export const listIngestJobs: ZodOpenApiOperationObject = {
   description:
     "Retrieve a paginated list of ingest jobs for the authenticated organization.",
   requestParams: {
-    path: z.object({
-      namespaceId: namespaceIdSchema,
-    }),
+    path: namespaceIdRequestParamSchema,
     query: getIngestionJobsSchema,
     header: tenantHeaderSchema,
   },

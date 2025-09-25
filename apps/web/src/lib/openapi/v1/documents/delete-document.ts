@@ -2,9 +2,11 @@ import type { ZodOpenApiOperationObject } from "zod-openapi";
 import { openApiErrorResponses, successSchema } from "@/lib/openapi/responses";
 import { DocumentSchema } from "@/schemas/api/document";
 import { tenantHeaderSchema } from "@/schemas/api/tenant";
-import { z } from "zod/v4";
 
-import { namespaceIdSchema } from "../utils";
+import {
+  documentIdRequestParamSchema,
+  namespaceIdRequestParamSchema,
+} from "../utils";
 
 export const deleteDocument: ZodOpenApiOperationObject = {
   operationId: "deleteDocument",
@@ -13,10 +15,9 @@ export const deleteDocument: ZodOpenApiOperationObject = {
   summary: "Delete a document",
   description: "Delete a document for the authenticated organization.",
   requestParams: {
-    path: z.object({
-      namespaceId: namespaceIdSchema,
-      documentId: z.string().describe("The id of the document to delete."),
-    }),
+    path: namespaceIdRequestParamSchema.extend(
+      documentIdRequestParamSchema.shape,
+    ),
     header: tenantHeaderSchema,
   },
   responses: {

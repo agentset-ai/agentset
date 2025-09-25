@@ -13,7 +13,6 @@
     "db:studio": "turbo -F @agentset/db db:studio",
     "db:migrate": "turbo -F @agentset/db db:migrate",
     "db:generate": "turbo -F @agentset/db db:generate",
-    "generate-openapi": "turbo -F @agentset/web generate-openapi",
     "dev:stripe": "stripe listen --forward-to localhost:3000/api/stripe/webhook --events checkout.session.completed,customer.subscription.updated,customer.subscription.deleted,invoice.payment_failed",
     "dev": "turbo watch dev --continue",
     "dev:supavisor": "turbo -F @agentset/supavisor dev",

@@ -5,9 +5,8 @@ import {
   IngestJobSchema,
 } from "@/schemas/api/ingest-job";
 import { tenantHeaderSchema } from "@/schemas/api/tenant";
-import { z } from "zod/v4";
 
-import { namespaceIdSchema } from "../utils";
+import { namespaceIdRequestParamSchema } from "../utils";
 
 export const createIngestJob: ZodOpenApiOperationObject = {
   operationId: "createIngestJob",
@@ -15,9 +14,7 @@ export const createIngestJob: ZodOpenApiOperationObject = {
   summary: "Create an ingest job",
   description: "Create an ingest job for the authenticated organization.",
   requestParams: {
-    path: z.object({
-      namespaceId: namespaceIdSchema,
-    }),
+    path: namespaceIdRequestParamSchema,
     header: tenantHeaderSchema,
   },
   requestBody: {

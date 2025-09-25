@@ -4,9 +4,8 @@ import {
   NamespaceSchema,
   updateNamespaceSchema,
 } from "@/schemas/api/namespace";
-import { z } from "zod/v4";
 
-import { namespaceIdSchema } from "../utils";
+import { namespaceIdRequestParamSchema } from "../utils";
 
 export const updateNamespace: ZodOpenApiOperationObject = {
   operationId: "updateNamespace",
@@ -16,9 +15,7 @@ export const updateNamespace: ZodOpenApiOperationObject = {
   description:
     "Update a namespace for the authenticated organization. If there is no change, return it as it is.",
   requestParams: {
-    path: z.object({
-      namespaceId: namespaceIdSchema,
-    }),
+    path: namespaceIdRequestParamSchema,
   },
   requestBody: {
     content: {

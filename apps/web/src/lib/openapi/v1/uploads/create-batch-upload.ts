@@ -3,7 +3,7 @@ import { openApiErrorResponses, successSchema } from "@/lib/openapi/responses";
 import { batchUploadSchema, UploadResultSchema } from "@/schemas/api/upload";
 import { z } from "zod/v4";
 
-import { namespaceIdSchema } from "../utils";
+import { namespaceIdRequestParamSchema } from "../utils";
 
 export const createBatchUpload: ZodOpenApiOperationObject = {
   operationId: "createBatchUpload",
@@ -12,9 +12,7 @@ export const createBatchUpload: ZodOpenApiOperationObject = {
   description:
     "Generate presigned URLs for uploading multiple files to the specified namespace.",
   requestParams: {
-    path: z.object({
-      namespaceId: namespaceIdSchema,
-    }),
+    path: namespaceIdRequestParamSchema,
   },
   requestBody: {
     content: {

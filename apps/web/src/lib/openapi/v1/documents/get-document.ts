@@ -2,9 +2,11 @@ import type { ZodOpenApiOperationObject } from "zod-openapi";
 import { openApiErrorResponses, successSchema } from "@/lib/openapi/responses";
 import { DocumentSchema } from "@/schemas/api/document";
 import { tenantHeaderSchema } from "@/schemas/api/tenant";
-import { z } from "zod/v4";
 
-import { namespaceIdSchema } from "../utils";
+import {
+  documentIdRequestParamSchema,
+  namespaceIdRequestParamSchema,
+} from "../utils";
 
 export const getDocument: ZodOpenApiOperationObject = {
   operationId: "getDocument",
@@ -12,10 +14,9 @@ export const getDocument: ZodOpenApiOperationObject = {
   summary: "Retrieve a document",
   description: "Retrieve the info for a document.",
   requestParams: {
-    path: z.object({
-      namespaceId: namespaceIdSchema,
-      documentId: z.string().describe("The id of the document to retrieve."),
-    }),
+    path: namespaceIdRequestParamSchema.extend(
+      documentIdRequestParamSchema.shape,
+    ),
     header: tenantHeaderSchema,
   },
   responses: {
