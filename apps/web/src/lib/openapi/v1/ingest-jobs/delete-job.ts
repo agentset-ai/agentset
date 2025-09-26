@@ -2,6 +2,7 @@ import type { ZodOpenApiOperationObject } from "zod-openapi";
 import { openApiErrorResponses, successSchema } from "@/lib/openapi/responses";
 import { IngestJobSchema } from "@/schemas/api/ingest-job";
 
+import { makeCodeSamples, ts } from "../code-samples";
 import {
   jobIdPathSchema,
   namespaceIdPathSchema,
@@ -29,4 +30,8 @@ export const deleteIngestJob: ZodOpenApiOperationObject = {
   },
   tags: ["Ingest Jobs"],
   security: [{ token: [] }],
+  ...makeCodeSamples(ts`
+await ns.ingestion.delete("job_123");
+console.log("Ingest job deleted successfully");
+`),
 };

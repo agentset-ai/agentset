@@ -3,6 +3,8 @@ import { openApiErrorResponses, successSchema } from "@/lib/openapi/responses";
 import { NamespaceSchema } from "@/schemas/api/namespace";
 import { z } from "zod/v4";
 
+import { makeCodeSamples, ts } from "../code-samples";
+
 export const listNamespaces: ZodOpenApiOperationObject = {
   operationId: "listNamespaces",
   "x-speakeasy-name-override": "list",
@@ -22,4 +24,11 @@ export const listNamespaces: ZodOpenApiOperationObject = {
   },
   tags: ["Namespaces"],
   security: [{ token: [] }],
+  ...makeCodeSamples(
+    ts`
+const namespaces = await agentset.namespaces.list();
+console.log(namespaces);
+`,
+    { isNs: false },
+  ),
 };

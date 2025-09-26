@@ -1,8 +1,9 @@
 import { NextResponse } from "next/server";
-import { document } from "@/lib/openapi";
+import { createOpenApiDocument } from "@/lib/openapi";
 
 export const dynamic = "force-static";
 
-export const GET = () => {
-  return NextResponse.json(document);
+export const GET = async () => {
+  const openapiDocument = await createOpenApiDocument();
+  return NextResponse.json(openapiDocument);
 };

@@ -5,6 +5,7 @@ import {
   updateNamespaceSchema,
 } from "@/schemas/api/namespace";
 
+import { makeCodeSamples, ts } from "../code-samples";
 import { namespaceIdPathSchema } from "../utils";
 
 export const updateNamespace: ZodOpenApiOperationObject = {
@@ -34,4 +35,14 @@ export const updateNamespace: ZodOpenApiOperationObject = {
   },
   tags: ["Namespaces"],
   security: [{ token: [] }],
+  ...makeCodeSamples(
+    ts`
+const updatedNamespace = await agentset.namespaces.update("ns_123", {
+  name: "Updated Knowledge Base",
+  slug: "updated-knowledge-base",
+});
+console.log(updatedNamespace);
+`,
+    { isNs: false },
+  ),
 };

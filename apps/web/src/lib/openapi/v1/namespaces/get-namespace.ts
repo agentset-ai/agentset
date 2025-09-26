@@ -2,6 +2,7 @@ import type { ZodOpenApiOperationObject } from "zod-openapi";
 import { openApiErrorResponses, successSchema } from "@/lib/openapi/responses";
 import { NamespaceSchema } from "@/schemas/api/namespace";
 
+import { makeCodeSamples, ts } from "../code-samples";
 import { namespaceIdPathSchema } from "../utils";
 
 export const getNamespace: ZodOpenApiOperationObject = {
@@ -23,4 +24,11 @@ export const getNamespace: ZodOpenApiOperationObject = {
   },
   tags: ["Namespaces"],
   security: [{ token: [] }],
+  ...makeCodeSamples(
+    ts`
+const namespace = await agentset.namespaces.get("ns_123");
+console.log(namespace);
+`,
+    { isNs: false },
+  ),
 };

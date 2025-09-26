@@ -2,6 +2,7 @@ import type { ZodOpenApiOperationObject } from "zod-openapi";
 import { openApiErrorResponses, successSchema } from "@/lib/openapi/responses";
 import { DocumentSchema } from "@/schemas/api/document";
 
+import { makeCodeSamples, ts } from "../code-samples";
 import {
   documentIdPathSchema,
   namespaceIdPathSchema,
@@ -27,4 +28,8 @@ export const getDocument: ZodOpenApiOperationObject = {
   },
   tags: ["Documents"],
   security: [{ token: [] }],
+  ...makeCodeSamples(ts`
+const document = await ns.documents.get("doc_123");
+console.log(document);
+`),
 };

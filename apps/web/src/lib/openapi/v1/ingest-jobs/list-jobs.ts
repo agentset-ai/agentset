@@ -6,6 +6,7 @@ import {
 } from "@/schemas/api/ingest-job";
 import { z } from "zod/v4";
 
+import { makeCodeSamples, ts } from "../code-samples";
 import { namespaceIdPathSchema, tenantHeaderSchema } from "../utils";
 
 export const listIngestJobs: ZodOpenApiOperationObject = {
@@ -47,4 +48,8 @@ export const listIngestJobs: ZodOpenApiOperationObject = {
   },
   tags: ["Ingest Jobs"],
   security: [{ token: [] }],
+  ...makeCodeSamples(ts`
+const jobs = await ns.ingestion.all();
+console.log(jobs);
+`),
 };

@@ -5,6 +5,7 @@ import {
   IngestJobSchema,
 } from "@/schemas/api/ingest-job";
 
+import { makeCodeSamples, ts } from "../code-samples";
 import { namespaceIdPathSchema, tenantHeaderSchema } from "../utils";
 
 export const createIngestJob: ZodOpenApiOperationObject = {
@@ -33,4 +34,18 @@ export const createIngestJob: ZodOpenApiOperationObject = {
   },
   tags: ["Ingest Jobs"],
   security: [{ token: [] }],
+  ...makeCodeSamples(ts`
+const job = await ns.ingestion.create({
+  payload: {
+    type: "TEXT",
+    text: "This is some content to ingest into the knowledge base.",
+  },
+  config: {
+    metadata: {
+      foo: "bar",
+    },
+  },
+});
+console.log(job);
+`),
 };

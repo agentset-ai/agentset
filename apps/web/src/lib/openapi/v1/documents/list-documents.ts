@@ -3,6 +3,7 @@ import { openApiErrorResponses, successSchema } from "@/lib/openapi/responses";
 import { DocumentSchema, getDocumentsSchema } from "@/schemas/api/document";
 import { z } from "zod/v4";
 
+import { makeCodeSamples, ts } from "../code-samples";
 import { namespaceIdPathSchema, tenantHeaderSchema } from "../utils";
 
 export const listDocuments: ZodOpenApiOperationObject = {
@@ -43,4 +44,8 @@ export const listDocuments: ZodOpenApiOperationObject = {
   },
   tags: ["Documents"],
   security: [{ token: [] }],
+  ...makeCodeSamples(ts`
+const docs = await ns.documents.all();
+console.log(docs);
+`),
 };

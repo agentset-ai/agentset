@@ -7,6 +7,7 @@ import { NodeSchema } from "@/schemas/api/node";
 import { queryVectorStoreSchema } from "@/schemas/api/query";
 import { z } from "zod/v4";
 
+import { makeCodeSamples, ts } from "./code-samples";
 import { namespaceIdPathSchema, tenantHeaderSchema } from "./utils";
 
 export const search: ZodOpenApiOperationObject = {
@@ -37,6 +38,14 @@ export const search: ZodOpenApiOperationObject = {
   },
   tags: ["Search"],
   security: [{ token: [] }],
+  ...makeCodeSamples(ts`
+const results = await ns.search("What is machine learning?", {
+  topK: 20,
+  rerank: true,
+  rerankLimit: 10,
+});
+console.log(results);
+`),
 };
 
 export const searchPaths: ZodOpenApiPathsObject = {

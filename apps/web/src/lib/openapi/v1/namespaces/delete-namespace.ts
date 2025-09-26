@@ -2,6 +2,7 @@ import type { ZodOpenApiOperationObject } from "zod-openapi";
 import { openApiErrorResponses, successSchema } from "@/lib/openapi/responses";
 import { NamespaceSchema } from "@/schemas/api/namespace";
 
+import { makeCodeSamples, ts } from "../code-samples";
 import { namespaceIdPathSchema } from "../utils";
 
 export const deleteNamespace: ZodOpenApiOperationObject = {
@@ -25,4 +26,11 @@ export const deleteNamespace: ZodOpenApiOperationObject = {
   },
   tags: ["Namespaces"],
   security: [{ token: [] }],
+  ...makeCodeSamples(
+    ts`
+await agentset.namespaces.delete("ns_123");
+console.log("Namespace deleted successfully");
+`,
+    { isNs: false },
+  ),
 };

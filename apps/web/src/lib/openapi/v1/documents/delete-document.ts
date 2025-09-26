@@ -2,6 +2,7 @@ import type { ZodOpenApiOperationObject } from "zod-openapi";
 import { openApiErrorResponses, successSchema } from "@/lib/openapi/responses";
 import { DocumentSchema } from "@/schemas/api/document";
 
+import { makeCodeSamples, ts } from "../code-samples";
 import {
   documentIdPathSchema,
   namespaceIdPathSchema,
@@ -28,4 +29,8 @@ export const deleteDocument: ZodOpenApiOperationObject = {
   },
   tags: ["Documents"],
   security: [{ token: [] }],
+  ...makeCodeSamples(ts`
+await ns.documents.delete("doc_123");
+console.log("Document deleted successfully");
+`),
 };

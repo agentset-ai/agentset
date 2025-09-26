@@ -5,6 +5,8 @@ import {
   NamespaceSchema,
 } from "@/schemas/api/namespace";
 
+import { makeCodeSamples, ts } from "../code-samples";
+
 export const createNamespace: ZodOpenApiOperationObject = {
   operationId: "createNamespace",
   "x-speakeasy-name-override": "create",
@@ -30,4 +32,14 @@ export const createNamespace: ZodOpenApiOperationObject = {
   },
   tags: ["Namespaces"],
   security: [{ token: [] }],
+  ...makeCodeSamples(
+    ts`
+const namespace = await agentset.namespaces.create({
+  name: "my-knowledge-base",
+  slug: "my-knowledge-base",
+});
+console.log(namespace);
+`,
+    { isNs: false },
+  ),
 };
