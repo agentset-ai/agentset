@@ -1,5 +1,5 @@
 import type { ZodOpenApiOperationObject } from "zod-openapi";
-import { openApiErrorResponses, successSchema } from "@/lib/openapi/responses";
+import { openApiErrorResponses, successSchema } from "@/openapi/responses";
 import {
   NamespaceSchema,
   updateNamespaceSchema,
@@ -37,9 +37,8 @@ export const updateNamespace: ZodOpenApiOperationObject = {
   security: [{ token: [] }],
   ...makeCodeSamples(
     ts`
-const updatedNamespace = await agentset.namespaces.update("ns_123", {
+const updatedNamespace = await agentset.namespaces.update("ns_xxx", {
   name: "Updated Knowledge Base",
-  slug: "updated-knowledge-base",
 });
 console.log(updatedNamespace);
 `,

@@ -2,7 +2,7 @@ import type {
   ZodOpenApiOperationObject,
   ZodOpenApiPathsObject,
 } from "zod-openapi";
-import { openApiErrorResponses, successSchema } from "@/lib/openapi/responses";
+import { openApiErrorResponses, successSchema } from "@/openapi/responses";
 import { NodeSchema } from "@/schemas/api/node";
 import { queryVectorStoreSchema } from "@/schemas/api/query";
 import { z } from "zod/v4";

@@ -1,5 +1,5 @@
 import type { ZodOpenApiOperationObject } from "zod-openapi";
-import { openApiErrorResponses, successSchema } from "@/lib/openapi/responses";
+import { openApiErrorResponses, successSchema } from "@/openapi/responses";
 import { uploadFileSchema, UploadResultSchema } from "@/schemas/api/upload";
 
 import { makeCodeSamples, ts } from "../code-samples";
@@ -41,7 +41,7 @@ const result = await ns.uploads.upload({
 console.log("Uploaded successfully: ", result.key);
 
 // OR get the pre-signed URL manually
-const file = fs.readFileSync("./example.md")
+const file = fs.readFileSync("./example.md");
 const result = await ns.uploads.create({
   fileName: "example.md",
   fileSize: file.length,

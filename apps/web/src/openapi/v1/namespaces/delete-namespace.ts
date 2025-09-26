@@ -1,5 +1,5 @@
 import type { ZodOpenApiOperationObject } from "zod-openapi";
-import { openApiErrorResponses, successSchema } from "@/lib/openapi/responses";
+import { openApiErrorResponses, successSchema } from "@/openapi/responses";
 import { NamespaceSchema } from "@/schemas/api/namespace";
 
 import { makeCodeSamples, ts } from "../code-samples";
@@ -28,7 +28,7 @@ export const deleteNamespace: ZodOpenApiOperationObject = {
   security: [{ token: [] }],
   ...makeCodeSamples(
     ts`
-await agentset.namespaces.delete("ns_123");
+await agentset.namespaces.delete("ns_xxx");
 console.log("Namespace deleted successfully");
 `,
     { isNs: false },

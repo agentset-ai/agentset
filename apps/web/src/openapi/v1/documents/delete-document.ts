@@ -1,5 +1,5 @@
 import type { ZodOpenApiOperationObject } from "zod-openapi";
-import { openApiErrorResponses, successSchema } from "@/lib/openapi/responses";
+import { openApiErrorResponses, successSchema } from "@/openapi/responses";
 import { DocumentSchema } from "@/schemas/api/document";
 
 import { makeCodeSamples, ts } from "../code-samples";

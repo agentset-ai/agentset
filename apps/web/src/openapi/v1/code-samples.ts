@@ -11,9 +11,9 @@ export const makeCodeSamples = (
 ) => {
   const fullCode = `
 import { Agentset } from "agentset";
-${code.includes("fs.readFileSync") ? "import fs from 'fs';\n" : ""}
-const agentset = new Agentset({ apiKey: 'xxx' });
-${isNs ? "const ns = agentset.namespace('test');\n" : ""}
+${code.includes("fs.") ? "import fs from 'fs';\n" : ""}
+const agentset = new Agentset({ apiKey: 'agentset_xxx' });
+${isNs ? "const ns = agentset.namespace('ns_xxx');\n" : ""}
 ${code}
 `;
 

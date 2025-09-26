@@ -1,5 +1,5 @@
 import type { ZodOpenApiOperationObject } from "zod-openapi";
-import { openApiErrorResponses, successSchema } from "@/lib/openapi/responses";
+import { openApiErrorResponses, successSchema } from "@/openapi/responses";
 import {
   createNamespaceSchema,
   NamespaceSchema,
@@ -35,8 +35,10 @@ export const createNamespace: ZodOpenApiOperationObject = {
   ...makeCodeSamples(
     ts`
 const namespace = await agentset.namespaces.create({
-  name: "my-knowledge-base",
+  name: "My Knowledge Base",
   slug: "my-knowledge-base",
+  // embeddingConfig: {...},
+  // vectorStoreConfig: {...},
 });
 console.log(namespace);
 `,

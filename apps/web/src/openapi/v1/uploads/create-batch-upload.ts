@@ -1,5 +1,5 @@
 import type { ZodOpenApiOperationObject } from "zod-openapi";
-import { openApiErrorResponses, successSchema } from "@/lib/openapi/responses";
+import { openApiErrorResponses, successSchema } from "@/openapi/responses";
 import { batchUploadSchema, UploadResultSchema } from "@/schemas/api/upload";
 import { z } from "zod/v4";
 
@@ -48,8 +48,8 @@ const results = await ns.uploads.uploadBatch([
 console.log("Uploaded successfully: ", results.map((result) => result.key));
 
 // OR get the pre-signed URLs manually
-const file1 = fs.readFileSync("./example-1.md")
-const file2 = fs.readFileSync("./example-2.md")
+const file1 = fs.readFileSync("./example-1.md");
+const file2 = fs.readFileSync("./example-2.md");
 
 const results = await ns.uploads.createBatch({
   files: [
