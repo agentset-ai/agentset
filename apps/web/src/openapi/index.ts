@@ -29,7 +29,6 @@ export const createOpenApiDocument = async () => {
         {
           $ref: "#/components/parameters/NamespaceIdRef",
         },
-
         {
           $ref: "#/components/parameters/TenantIdRef",
         },

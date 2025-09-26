@@ -10,19 +10,18 @@ export const tenantHeaderSchema = z
       in: "header",
       name: "x-tenant-id",
       id: "TenantIdRef",
-      "x-speakeasy-globals-hidden": true,
     },
   });
 
 export const namespaceIdPathSchema = z.string().meta({
   examples: ["ns_123"],
+  description: "The id of the namespace (prefixed with ns_)",
   param: {
     in: "path",
     name: "namespaceId",
     id: "NamespaceIdRef",
     "x-speakeasy-globals-hidden": true,
   },
-  // description: "The id of the namespace (prefixed with ns_)",
 });
 
 export const documentIdPathSchema = z.string().meta({
@@ -32,12 +31,12 @@ export const documentIdPathSchema = z.string().meta({
     name: "documentId",
     id: "DocumentIdRef",
   },
-  // description: "The id of the document (prefixed with doc_)",
+  description: "The id of the document (prefixed with doc_)",
 });
 
 export const jobIdPathSchema = z.string().meta({
   examples: ["job_123"],
-  // description: "The id of the job (prefixed with job_)",
+  description: "The id of the job (prefixed with job_)",
   param: {
     in: "path",
     name: "jobId",
