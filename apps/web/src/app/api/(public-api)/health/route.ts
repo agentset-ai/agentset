@@ -2,7 +2,6 @@ import { NextResponse } from "next/server";
 
 import { db } from "@agentset/db";
 
-export const runtime = "edge";
 export const preferredRegion = "iad1"; // closest region to the DB
 
 export const GET = async () => {
