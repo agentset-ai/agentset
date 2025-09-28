@@ -49,6 +49,7 @@ model IngestJob {
   @@unique([namespaceId, externalId])
   // filtering by status
   @@index([status])
+  @@index([namespaceId])
   @@index([namespaceId, status])
   @@index([namespaceId, tenantId, status])
   // filtering by tenant

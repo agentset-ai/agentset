@@ -54,6 +54,8 @@ model Document {
 
   // externalId must be unique within a namespace
   @@unique([namespaceId, externalId])
+  // indexing by namespaceId
+  @@index([namespaceId])
   // filtering by status
   @@index([namespaceId, status])
   @@index([ingestJobId, status])
