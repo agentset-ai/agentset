@@ -47,12 +47,9 @@ model IngestJob {
 
   // externalId must be unique within a namespace
   @@unique([namespaceId, externalId])
-  // filtering by status
-  @@index([status])
-  @@index([namespaceId])
-  @@index([namespaceId, status])
-  @@index([namespaceId, tenantId, status])
-  // filtering by tenant
-  @@index([namespaceId, tenantId])
+  // ---- Namespace-centric (primary path) ----
+  @@index([namespaceId, createdAt(sort: Desc), id(sort: Desc)])
+  @@index([namespaceId, status, createdAt(sort: Desc), id(sort: Desc)])
+  @@index([namespaceId, tenantId, createdAt(sort: Desc), id(sort: Desc)])
   @@map("ingest_job")
 }
