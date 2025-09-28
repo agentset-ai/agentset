@@ -9,8 +9,6 @@ export function useCursorPagination() {
 
   const handleNext = ({ nextCursor }: { nextCursor?: string | null }) => {
     if (nextCursor) {
-      setCursorDirection("forward");
-
       setCursor(nextCursor);
       setCursors((prev) => [...prev, nextCursor]);
     }
@@ -19,9 +17,8 @@ export function useCursorPagination() {
   const handlePrevious = () => {
     const previousCursor = cursors[cursors.length - 1];
     if (previousCursor) {
-      setCursorDirection("backward");
       setCursor(previousCursor);
-      setCursors((prev) => prev.slice(0, -1));
+      setCursors((prev) => prev.filter((c) => c !== previousCursor));
     } else {
       setCursor(null);
     }
