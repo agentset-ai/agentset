@@ -15,18 +15,19 @@ export function useCursorPagination() {
   };
 
   const handlePrevious = () => {
-    const previousCursor = cursors[cursors.length - 1];
+    // get the cursor before the current cursor
+    const previousCursor = cursors[cursors.length - 2];
     if (previousCursor) {
       setCursor(previousCursor);
       setCursors((prev) => prev.filter((c) => c !== previousCursor));
     } else {
       setCursor(null);
+      setCursors([]);
     }
   };
 
   const reset = () => {
     setCursor(null);
-    setCursorDirection("forward");
     setCursors([]);
   };
 
