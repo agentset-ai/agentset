@@ -4,19 +4,29 @@ export const makeApiSuccessResponse = ({
   data,
   status = 200,
   headers,
-  nextCursor,
+  pagination,
 }: {
   data: unknown;
   status?: number;
   headers?: Record<string, string>;
-  nextCursor?: string | null;
+  pagination?: {
+    nextCursor?: string | null;
+    prevCursor?: string | null;
+    hasMore?: boolean;
+  };
 }) => {
   return NextResponse.json(
     {
       success: true,
       data,
-      ...(typeof nextCursor !== "undefined"
-        ? { pagination: { nextCursor } }
+      ...(pagination
+        ? {
+            pagination: {
+              nextCursor: pagination.nextCursor,
+              prevCursor: pagination.prevCursor,
+              hasMore: pagination.hasMore,
+            },
+          }
         : {}),
     },
     { status, headers },

@@ -26,18 +26,23 @@ export const documentsRouter = createTRPCRouter({
         throw new TRPCError({ code: "NOT_FOUND" });
       }
 
+      const { where, ...paginationArgs } = getPaginationArgs(
+        input,
+        {
+          orderBy: input.orderBy,
+          order: input.order,
+        },
+        "doc_",
+      );
+
       const documents = await ctx.db.document.findMany({
         where: {
           namespaceId: namespace.id,
           ...(input.ingestJobId && { ingestJobId: input.ingestJobId }),
           ...(input.statuses &&
             input.statuses.length > 0 && { status: { in: input.statuses } }),
+          ...where,
         },
-        orderBy: [
-          {
-            [input.orderBy]: input.order,
-          },
-        ],
         select: {
           id: true,
           name: true,
@@ -53,7 +58,7 @@ export const documentsRouter = createTRPCRouter({
           error: true,
           status: true,
         },
-        ...getPaginationArgs(input, "doc_"),
+        ...paginationArgs,
       });
 
       return paginateResults(input, documents);

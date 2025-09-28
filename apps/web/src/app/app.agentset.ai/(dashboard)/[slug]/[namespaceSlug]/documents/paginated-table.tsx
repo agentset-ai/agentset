@@ -6,7 +6,11 @@ interface PaginatedTableProps<T> {
   columns: ColumnDef<T>[];
   data?: {
     records: T[];
-    nextCursor?: string | null;
+    pagination: {
+      hasMore?: boolean;
+      nextCursor?: string | null;
+      prevCursor?: string | null;
+    };
   };
   meta?: TableMeta<T>;
   isLoading: boolean;
@@ -44,8 +48,8 @@ export function PaginatedTable<T>({
 
         <Button
           variant="outline"
-          onClick={() => onNext?.({ nextCursor: data?.nextCursor })}
-          disabled={!data?.nextCursor}
+          onClick={() => onNext?.({ nextCursor: data?.pagination.nextCursor })}
+          disabled={!data?.pagination.nextCursor}
         >
           Next Page
         </Button>

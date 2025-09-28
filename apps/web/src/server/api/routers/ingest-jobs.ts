@@ -27,6 +27,15 @@ export const ingestJobRouter = createTRPCRouter({
         throw new TRPCError({ code: "NOT_FOUND" });
       }
 
+      const { where, ...paginationArgs } = getPaginationArgs(
+        input,
+        {
+          orderBy: input.orderBy,
+          order: input.order,
+        },
+        "job_",
+      );
+
       const ingestJobs = await ctx.db.ingestJob.findMany({
         where: {
           namespaceId: input.namespaceId,
@@ -34,6 +43,7 @@ export const ingestJobRouter = createTRPCRouter({
             input.statuses.length > 0 && {
               status: { in: input.statuses },
             }),
+          ...where,
         },
         select: {
           id: true,
@@ -46,12 +56,7 @@ export const ingestJobRouter = createTRPCRouter({
           queuedAt: true,
           createdAt: true,
         },
-        orderBy: [
-          {
-            [input.orderBy]: input.order,
-          },
-        ],
-        ...getPaginationArgs(input),
+        ...paginationArgs,
       });
 
       return paginateResults(input, ingestJobs);

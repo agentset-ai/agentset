@@ -59,6 +59,8 @@ export const successSchema = <T>(
     ...(hasPagination && {
       pagination: z.object({
         nextCursor: z.string().nullable(),
+        prevCursor: z.string().nullable(),
+        hasMore: z.boolean(),
       }),
     }),
   });
