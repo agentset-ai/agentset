@@ -1,5 +1,5 @@
+import { jsonToNode, ObjectType } from "@llamaindex/core/schema";
 import { nodeToMetadata } from "@llamaindex/core/vector-store";
-import { jsonToNode, ObjectType } from "llamaindex";
 
 import type { PartitionBatch } from "./partition";
 

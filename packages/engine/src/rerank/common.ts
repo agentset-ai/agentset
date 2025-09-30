@@ -1,4 +1,4 @@
-import type { BaseNode, Metadata } from "llamaindex";
+import type { BaseNode, Metadata } from "@llamaindex/core/schema";
 
 export interface RerankOptions {
   limit: number;

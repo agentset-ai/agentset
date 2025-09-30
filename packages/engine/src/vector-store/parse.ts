@@ -1,7 +1,7 @@
-import type { BaseNode, Metadata } from "llamaindex";
+import type { BaseNode, Metadata } from "@llamaindex/core/schema";
+import { MetadataMode } from "@llamaindex/core/schema";
 import { metadataDictToNode } from "@llamaindex/core/vector-store";
 import { embed } from "ai";
-import { MetadataMode } from "llamaindex";
 
 import type { Namespace } from "@agentset/db";
 import { filterFalsy } from "@agentset/utils";

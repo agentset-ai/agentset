@@ -8,8 +8,8 @@ import {
   odata,
   SearchClient,
 } from "@azure/search-documents";
+import { TextNode } from "@llamaindex/core/schema";
 import { metadataDictToNode } from "@llamaindex/core/vector-store";
-import { TextNode } from "llamaindex";
 
 import { env } from "../env";
 import { formatResults } from "../vector-store/parse";
