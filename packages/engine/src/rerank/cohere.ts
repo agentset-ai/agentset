@@ -1,5 +1,5 @@
+import { MetadataMode } from "@llamaindex/core/schema";
 import { CohereClientV2 } from "cohere-ai";
-import { MetadataMode } from "llamaindex";
 
 import { tryCatch } from "@agentset/utils";
 
@@ -33,7 +33,6 @@ export class CohereReranker extends BaseReranker {
         query: options.query,
         topN: options.limit,
         model: "rerank-v3.5",
-        returnDocuments: false,
       }),
     );
 
