@@ -5,8 +5,11 @@ import { createTRPCRouter, protectedProcedure } from "@/server/api/trpc";
 import { TRPCError } from "@trpc/server";
 import { z } from "zod/v4";
 
-import { KeywordStore } from "@agentset/engine";
-import { queryVectorStore } from "@agentset/engine/vector-store/parse";
+import {
+  KeywordStore,
+  queryVectorStore,
+  QueryVectorStoreResult,
+} from "@agentset/engine";
 
 import { getNamespaceByUser } from "../auth";
 
@@ -81,7 +84,7 @@ export const searchRouter = createTRPCRouter({
         });
       }
 
-      let results;
+      let results: QueryVectorStoreResult["results"] | undefined = [];
       let queryPerformed = input.query;
 
       if (input.mode === "semantic") {
@@ -109,7 +112,8 @@ export const searchRouter = createTRPCRouter({
           minScore: input.minScore,
           includeMetadata: input.includeMetadata,
           includeRelationships: input.includeRelationships,
-          filter: input.filter,
+          // TODO: convert pinecone filter to azure filter
+          // filter: input.filter,
         });
 
         results = keywordResult.results;
