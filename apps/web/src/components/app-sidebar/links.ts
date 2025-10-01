@@ -97,7 +97,7 @@ export const namespaceItems: SidebarItemType[] = [
         exact: true,
       },
       {
-        title: "Chunk Explorer",
+        title: "Search",
         url: createNamespaceUrl("/playground/search"),
       },
     ],

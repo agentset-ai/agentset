@@ -6,7 +6,7 @@ import { useNamespace } from "@/hooks/use-namespace";
 import { logEvent } from "@/lib/analytics";
 import { useTRPC } from "@/trpc/react";
 import { useQuery } from "@tanstack/react-query";
-import { FilterIcon, SearchIcon, SettingsIcon } from "lucide-react";
+import { SearchIcon } from "lucide-react";
 
 import {
   Badge,
@@ -15,9 +15,6 @@ import {
   CardContent,
   CardHeader,
   CardTitle,
-  Collapsible,
-  CollapsibleContent,
-  CollapsibleTrigger,
   EmptyState,
   Input,
   Label,
@@ -37,8 +34,6 @@ interface ChunkExplorerFilters {
   minScore?: number;
   rerank: boolean;
   rerankLimit?: number;
-  includeMetadata: boolean;
-  includeRelationships: boolean;
   filter?: Record<string, any>;
 }
 
@@ -46,14 +41,11 @@ export default function ChunkExplorerPageClient() {
   const namespace = useNamespace();
   const [query, setQuery] = useState("");
   const [searchQuery, setSearchQuery] = useState("");
-  const [showFilters, setShowFilters] = useState(false);
-  const [filters, setFilters] = useState<ChunkExplorerFilters>({
-    mode: "semantic",
-    topK: 20,
-    rerank: true,
-    includeMetadata: true,
-    includeRelationships: false,
-  });
+  const [mode, setMode] = useState<"semantic" | "keyword">("semantic");
+  const [topK, setTopK] = useState(20);
+  const [rerank, setRerank] = useState(true);
+  const [rerankLimit, setRerankLimit] = useState(20);
+  const [minScore, setMinScore] = useState(0);
   const trpc = useTRPC();
 
   const { data, isLoading, isFetching, error } = useQuery(
@@ -61,7 +53,11 @@ export default function ChunkExplorerPageClient() {
       {
         namespaceId: namespace.id,
         query: searchQuery,
-        ...filters,
+        mode,
+        topK,
+        rerank,
+        rerankLimit,
+        minScore,
       },
       {
         enabled: searchQuery.length > 0,
@@ -74,17 +70,16 @@ export default function ChunkExplorerPageClient() {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!query.trim()) return;
-    logEvent("playground_chunk_exploration", {
+    logEvent("playground_search", {
       namespaceId: namespace.id,
       query,
-      mode: filters.mode,
-      topK: filters.topK,
+      mode,
+      topK,
+      rerank,
+      rerankLimit,
+      minScore,
     });
     setSearchQuery(query);
-  };
-
-  const handleFilterChange = (key: keyof ChunkExplorerFilters, value: any) => {
-    setFilters((prev) => ({ ...prev, [key]: value }));
   };
 
   return (
@@ -112,38 +107,33 @@ export default function ChunkExplorerPageClient() {
 
             {/* Quick Filters */}
             <div className="flex items-center gap-4">
-              <div className="flex items-center gap-2">
-                <Label htmlFor="mode" className="text-sm">
-                  Mode:
-                </Label>
-                <Select
-                  value={filters.mode}
-                  onValueChange={(value: "semantic" | "keyword") =>
-                    handleFilterChange("mode", value)
-                  }
-                >
-                  <SelectTrigger className="w-32">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="semantic">Semantic</SelectItem>
-                    <SelectItem
-                      value="keyword"
-                      disabled={!namespace.keywordEnabled}
-                    >
-                      Keyword {!namespace.keywordEnabled && "(Disabled)"}
-                    </SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
+              {namespace.keywordEnabled && (
+                <div className="flex items-center gap-2">
+                  <Label htmlFor="mode" className="text-sm">
+                    Mode:
+                  </Label>
+                  <Select
+                    value={mode}
+                    onValueChange={(value: "semantic" | "keyword") =>
+                      setMode(value)
+                    }
+                  >
+                    <SelectTrigger className="w-32">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="semantic">Semantic</SelectItem>
+                      <SelectItem value="keyword">Keyword</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              )}
 
               <div className="flex items-center gap-2">
                 <Label className="text-sm">Results:</Label>
                 <Select
-                  value={filters.topK.toString()}
-                  onValueChange={(value) =>
-                    handleFilterChange("topK", parseInt(value))
-                  }
+                  value={topK.toString()}
+                  onValueChange={(value) => setTopK(parseInt(value))}
                 >
                   <SelectTrigger className="w-20">
                     <SelectValue />
@@ -157,110 +147,60 @@ export default function ChunkExplorerPageClient() {
                 </Select>
               </div>
 
-              <Button
-                type="button"
-                variant="outline"
-                size="sm"
-                onClick={() => setShowFilters(!showFilters)}
-                className="flex items-center gap-2"
-              >
-                <FilterIcon className="size-4" />
-                Advanced Filters
-                {showFilters && (
-                  <Badge variant="secondary" className="ml-1">
-                    ON
-                  </Badge>
-                )}
-              </Button>
+              <div className="flex items-center space-x-2">
+                <Switch
+                  id="rerank"
+                  checked={rerank}
+                  onCheckedChange={(checked) => setRerank(checked)}
+                />
+                <Label htmlFor="rerank" className="text-sm">
+                  Rerank
+                </Label>
+              </div>
+
+              {rerank && (
+                <div className="flex items-center gap-2">
+                  <Label className="text-sm">Rerank Limit:</Label>
+                  <Select
+                    value={(rerankLimit || topK).toString()}
+                    onValueChange={(value) => setRerankLimit(parseInt(value))}
+                  >
+                    <SelectTrigger className="w-20">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {Array.from({ length: Math.min(topK, 10) }, (_, i) => {
+                        const value = Math.ceil((topK * (i + 1)) / 10);
+                        return (
+                          <SelectItem key={value} value={value.toString()}>
+                            {value}
+                          </SelectItem>
+                        );
+                      })}
+                    </SelectContent>
+                  </Select>
+                </div>
+              )}
             </div>
 
-            {/* Advanced Filters */}
-            <Collapsible open={showFilters}>
-              <CollapsibleContent className="space-y-4 border-t pt-4">
-                <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-                  <div className="space-y-2">
-                    <Label className="text-sm">
-                      Minimum Score: {filters.minScore?.toFixed(2) || "None"}
-                    </Label>
-                    <Slider
-                      value={[filters.minScore || 0]}
-                      onValueChange={([value]) =>
-                        handleFilterChange(
-                          "minScore",
-                          value && value > 0 ? value : undefined,
-                        )
-                      }
-                      max={1}
-                      min={0}
-                      step={0.01}
-                      className="w-full"
-                    />
-                  </div>
-
-                  {filters.mode === "semantic" && (
-                    <>
-                      <div className="space-y-2">
-                        <Label className="text-sm">
-                          Rerank Limit: {filters.rerankLimit || filters.topK}
-                        </Label>
-                        <Slider
-                          value={[filters.rerankLimit || filters.topK]}
-                          onValueChange={([value]) =>
-                            handleFilterChange("rerankLimit", value)
-                          }
-                          max={filters.topK}
-                          min={1}
-                          step={1}
-                          disabled={!filters.rerank}
-                          className="w-full"
-                        />
-                      </div>
-                    </>
-                  )}
-
-                  <div className="flex items-center space-x-2">
-                    <Switch
-                      id="rerank"
-                      checked={filters.rerank}
-                      onCheckedChange={(checked) =>
-                        handleFilterChange("rerank", checked)
-                      }
-                      disabled={filters.mode === "keyword"}
-                    />
-                    <Label htmlFor="rerank" className="text-sm">
-                      Enable Reranking{" "}
-                      {filters.mode === "keyword" && "(Semantic only)"}
-                    </Label>
-                  </div>
-
-                  <div className="flex items-center space-x-2">
-                    <Switch
-                      id="metadata"
-                      checked={filters.includeMetadata}
-                      onCheckedChange={(checked) =>
-                        handleFilterChange("includeMetadata", checked)
-                      }
-                    />
-                    <Label htmlFor="metadata" className="text-sm">
-                      Include Metadata
-                    </Label>
-                  </div>
-
-                  <div className="flex items-center space-x-2">
-                    <Switch
-                      id="relationships"
-                      checked={filters.includeRelationships}
-                      onCheckedChange={(checked) =>
-                        handleFilterChange("includeRelationships", checked)
-                      }
-                    />
-                    <Label htmlFor="relationships" className="text-sm">
-                      Include Relationships
-                    </Label>
-                  </div>
-                </div>
-              </CollapsibleContent>
-            </Collapsible>
+            {/* Filters */}
+            <div className="space-y-4 border-t pt-4">
+              <div className="space-y-2">
+                <Label className="text-sm">
+                  Minimum Score: {minScore?.toFixed(2) || "None"}
+                </Label>
+                <Slider
+                  value={[minScore || 0]}
+                  onValueChange={([value]) =>
+                    setMinScore(value && value > 0 ? value : 0)
+                  }
+                  max={1}
+                  min={0}
+                  step={0.01}
+                  className="w-full"
+                />
+              </div>
+            </div>
           </form>
         </CardContent>
       </Card>
@@ -293,41 +233,32 @@ export default function ChunkExplorerPageClient() {
           </Card>
         ) : data ? (
           <div className="space-y-4">
-            {/* Results Header */}
-            <Card>
-              <CardHeader>
-                <div className="flex items-center justify-between">
-                  <CardTitle className="text-lg">
-                    Chunk Explorer Results
-                  </CardTitle>
-                  <div className="flex items-center gap-2">
-                    <Badge variant="outline">{data.mode}</Badge>
-                    <Badge variant="secondary">
-                      {data.totalResults} chunks found
-                    </Badge>
-                  </div>
-                </div>
-                <div className="text-muted-foreground space-y-1 text-sm">
-                  <p>
-                    <strong>Query:</strong> {data.query}
-                  </p>
-                  <div className="flex flex-wrap gap-2">
-                    <span>Top K: {data.parameters.topK}</span>
-                    {data.parameters.minScore && (
-                      <span>
-                        Min Score: {data.parameters.minScore.toFixed(2)}
-                      </span>
-                    )}
-                    {data.parameters.rerank && (
-                      <span>
-                        Reranked:{" "}
-                        {data.parameters.rerankLimit || data.parameters.topK}
-                      </span>
-                    )}
-                  </div>
-                </div>
-              </CardHeader>
-            </Card>
+            <div className="flex items-center justify-between">
+              <CardTitle className="text-lg">Search Results</CardTitle>
+              <div className="flex items-center gap-2">
+                <Badge variant="outline">{data.mode}</Badge>
+                <Badge variant="secondary">
+                  {data.totalResults} chunks found
+                </Badge>
+              </div>
+            </div>
+            <div className="text-muted-foreground space-y-1 text-sm">
+              <p>
+                <strong>Query:</strong> {data.query}
+              </p>
+              <div className="flex flex-wrap gap-2">
+                <span>Top K: {data.parameters.topK}</span>
+                {data.parameters.minScore && (
+                  <span>Min Score: {data.parameters.minScore.toFixed(2)}</span>
+                )}
+                {data.parameters.rerank && (
+                  <span>
+                    Reranked:{" "}
+                    {data.parameters.rerankLimit || data.parameters.topK}
+                  </span>
+                )}
+              </div>
+            </div>
 
             {/* Chunks */}
             <div className="space-y-4">
@@ -358,7 +289,7 @@ export default function ChunkExplorerPageClient() {
           </div>
         ) : (
           <EmptyState
-            title="Chunk Explorer"
+            title="Search"
             description="Enter a search query to explore chunks in your namespace with advanced filtering options"
             icon={SearchIcon}
           />
