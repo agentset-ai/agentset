@@ -2,56 +2,62 @@
  * Run `build` or `dev` with `SKIP_ENV_VALIDATION` to skip env validation. This is especially useful
  * for Docker builds.
  */
+import { fileURLToPath } from "node:url";
 import type { NextConfig } from "next";
 // @ts-expect-error - no types
 import { PrismaPlugin } from "@prisma/nextjs-monorepo-workaround-plugin";
 
-import "./src/env";
+const makeConfig = async (): Promise<NextConfig> => {
+  const { createJiti } = await import("jiti");
+  await createJiti(fileURLToPath(import.meta.url)).import("./src/env.ts");
 
-const config: NextConfig = {
-  images: {
-    remotePatterns: [
-      {
-        hostname: "assets.agentset.ai",
-      },
+  return {
+    poweredByHeader: false,
+
+    images: {
+      remotePatterns: [
+        {
+          hostname: "assets.agentset.ai",
+        },
+      ],
+    },
+
+    /** Enables hot reloading for local packages without a build step */
+    transpilePackages: [
+      "@agentset/db",
+      "@agentset/emails",
+      "@agentset/engine",
+      "@agentset/jobs",
+      "@agentset/storage",
+      "@agentset/stripe",
+      "@agentset/ui",
+      "@agentset/utils",
+      "@agentset/validation",
     ],
-  },
 
-  /** Enables hot reloading for local packages without a build step */
-  transpilePackages: [
-    "@agentset/db",
-    "@agentset/emails",
-    "@agentset/engine",
-    "@agentset/jobs",
-    "@agentset/storage",
-    "@agentset/stripe",
-    "@agentset/ui",
-    "@agentset/utils",
-    "@agentset/validation",
-  ],
+    /** We already do linting and typechecking as separate tasks in CI */
+    eslint: { ignoreDuringBuilds: true },
+    typescript: { ignoreBuildErrors: true },
 
-  /** We already do linting and typechecking as separate tasks in CI */
-  eslint: { ignoreDuringBuilds: true },
-  typescript: { ignoreBuildErrors: true },
+    webpack: (config, { isServer }) => {
+      if (isServer) config.plugins = [...config.plugins, new PrismaPlugin()];
+      return config;
+    },
 
-  webpack: (config, { isServer }) => {
-    if (isServer) config.plugins = [...config.plugins, new PrismaPlugin()];
-    return config;
-  },
-
-  async rewrites() {
-    return [
-      // for posthog proxy
-      {
-        source: "/_proxy/posthog/ingest/static/:path*",
-        destination: "https://us-assets.i.posthog.com/static/:path*",
-      },
-      {
-        source: "/_proxy/posthog/ingest/:path*",
-        destination: "https://us.i.posthog.com/:path*",
-      },
-    ];
-  },
+    async rewrites() {
+      return [
+        // for posthog proxy
+        {
+          source: "/_proxy/posthog/ingest/static/:path*",
+          destination: "https://us-assets.i.posthog.com/static/:path*",
+        },
+        {
+          source: "/_proxy/posthog/ingest/:path*",
+          destination: "https://us.i.posthog.com/:path*",
+        },
+      ];
+    },
+  };
 };
 
-export default config;
+export default makeConfig();
