@@ -17,17 +17,18 @@ import {
 const roles = [
   {
     label: "Member",
-    description: "Can view and comment.",
+    description:
+      "Cannot delete or modify resources. Cannot manage organization settings.",
     value: "member",
   },
   {
     label: "Admin",
-    description: "Can view, comment and manage billing.",
+    description: "Can view and manage everything. Cannot remove owners.",
     value: "admin",
   },
   {
     label: "Owner",
-    description: "Admin-level access to all resources.",
+    description: "Can view and manage everything.",
     value: "owner",
   },
 ];
