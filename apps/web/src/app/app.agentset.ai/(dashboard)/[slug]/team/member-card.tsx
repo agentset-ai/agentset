@@ -31,7 +31,7 @@ export const MemberCard = ({
   actions?: React.ReactNode;
 }) => {
   const [role, setRole] = useState(initialRole);
-  const { id: organizationId } = useOrganization();
+  const { id: organizationId, currentMemberId } = useOrganization();
   const queryClient = useQueryClient();
   const trpc = useTRPC();
 
@@ -66,7 +66,11 @@ export const MemberCard = ({
       },
     });
 
-  const isRoleDisabled = !showRole || isUpdatingRole || type === "invitation";
+  const isRoleDisabled =
+    !showRole ||
+    isUpdatingRole ||
+    type === "invitation" ||
+    (type === "member" && id === currentMemberId);
 
   return (
     <div className="flex items-center justify-between space-x-4">
