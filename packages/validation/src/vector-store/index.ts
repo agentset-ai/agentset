@@ -1,9 +1,13 @@
 import { z } from "zod/v4";
 
 import { PineconeVectorStoreConfigSchema } from "./pinecone";
+import { TurbopufferVectorStoreConfigSchema } from "./turbopuffer";
 
 export const VectorStoreSchema = z
-  .discriminatedUnion("provider", [PineconeVectorStoreConfigSchema])
+  .discriminatedUnion("provider", [
+    PineconeVectorStoreConfigSchema,
+    TurbopufferVectorStoreConfigSchema,
+  ])
   .meta({
     id: "vector-store-config",
     description:
