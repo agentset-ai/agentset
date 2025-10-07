@@ -45,16 +45,13 @@ export class Pinecone implements VectorStore<PineconeVectorFilter> {
       includeMetadata: true,
     });
 
-    let results = result.matches.map((match) => ({
-      id: match.id,
-      score: match.score,
-      metadata: match.metadata ?? {},
-    }));
+    let results = result.matches;
 
     // Filter by minimum score if provided
-    if (params.minScore !== undefined) {
+    if (typeof params.minScore === "number") {
       results = results.filter(
-        (match) => match.score && match.score >= params.minScore!,
+        (match) =>
+          typeof match.score === "number" && match.score >= params.minScore!,
       );
     }
 

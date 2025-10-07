@@ -55,15 +55,17 @@ export class Turbopuffer implements VectorStore<TurbopufferVectorFilter> {
     });
 
     let results = result.rows ?? [];
-    if (params.minScore !== undefined) {
+    if (typeof params.minScore === "number") {
       results = results.filter(
-        (match) => match.$dist && match.$dist >= params.minScore!,
+        (match) =>
+          typeof match.$dist === "number" &&
+          1 - match.$dist >= params.minScore!,
       );
     }
 
     // Parse metadata to nodes
     return filterFalsy(
-      results.map(({ id, $dist: score, text, ...metadata }) => {
+      results.map(({ id, $dist: distance, text, ...metadata }) => {
         const nodeContent = metadata?._node_content;
         if (!nodeContent) return null;
 
@@ -76,7 +78,7 @@ export class Turbopuffer implements VectorStore<TurbopufferVectorFilter> {
 
         return {
           id: id.toString(),
-          score,
+          score: typeof distance === "number" ? 1 - distance : undefined,
           text: text as string,
           metadata: params.includeMetadata ? node.metadata : undefined,
           relationships: params.includeRelationships
@@ -111,7 +113,7 @@ export class Turbopuffer implements VectorStore<TurbopufferVectorFilter> {
 
   async deleteByIds(ids: string[]) {
     const result = await this.client.write({
-      deletes: ids.map((id) => Number(id)),
+      deletes: ids.map((id) => id),
     });
 
     return { deleted: result.rows_deleted || result.rows_affected };
