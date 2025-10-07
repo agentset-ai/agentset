@@ -155,32 +155,18 @@ export const processDocument = schemaTask({
 
     // Clean up existing chunks if requested
     if (shouldCleanup) {
-      // Get vector store chunk IDs to delete
-      let paginationToken: string | undefined;
-      const chunkIds: string[] = [];
-
-      do {
-        const chunks = await vectorStore.list({
-          prefix: `${document.id}#`,
-          paginationToken,
-        });
-
-        chunks.vectors?.forEach((chunk) => {
-          if (chunk.id) {
-            chunkIds.push(chunk.id);
-          }
-        });
-
-        paginationToken = chunks.pagination?.next;
-      } while (paginationToken);
-
-      // Delete vector store chunks
-      if (chunkIds.length > 0) {
-        const batches = chunkArray(chunkIds, BATCH_SIZE);
-        for (const batch of batches) {
-          await vectorStore.delete(batch);
-        }
-      }
+      await vectorStore.deleteByFilter({
+        $or: [
+          {
+            id: {
+              $contains: `${document.id}#`,
+            },
+          },
+          {
+            documentId: document.id,
+          },
+        ],
+      });
 
       // Clean up keyword store if enabled
       if (ingestJob.namespace.keywordEnabled) {
@@ -227,19 +213,18 @@ export const processDocument = schemaTask({
         ...getEmbeddingProviderOptions(ingestJob.namespace, "document"),
       });
 
-      const nodes = chunkBatch.map((chunk, idx) =>
-        makeChunk({
-          documentId: document.id,
-          chunk,
-          embedding: results.embeddings[idx]!,
-        }),
-      );
+      const chunks = chunkBatch.map((chunk, idx) => ({
+        documentId: document.id,
+        chunk,
+        embedding: results.embeddings[idx]!,
+      }));
 
       // Upsert to vector store
-      await vectorStore.upsert(nodes);
+      await vectorStore.upsert({ chunks });
 
       // Store in keyword store if enabled
       if (ingestJob.namespace.keywordEnabled) {
+        const nodes = chunks.map((chunk) => makeChunk(chunk));
         await keywordStore.upsert(
           nodes.map((node, idx) => ({
             id: node.id,
