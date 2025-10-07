@@ -5,6 +5,7 @@ import {
   OpenAIIcon,
   PineconeIcon,
   QdrantIcon,
+  TurbopufferIcon,
   UpstashIcon,
 } from "@agentset/ui";
 import {
@@ -12,6 +13,7 @@ import {
   GoogleEmbeddingConfigSchema,
   OpenAIEmbeddingConfigSchema,
   PineconeVectorStoreConfigSchema,
+  TurbopufferVectorStoreConfigSchema,
   VoyageEmbeddingConfigSchema,
 } from "@agentset/validation";
 
@@ -42,6 +44,10 @@ export const vectorStores = [
   {
     value: PineconeVectorStoreConfigSchema.shape.provider.value,
     icon: PineconeIcon,
+  },
+  {
+    value: TurbopufferVectorStoreConfigSchema.shape.provider.value,
+    icon: TurbopufferIcon,
   },
   {
     value: "upstash",

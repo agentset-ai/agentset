@@ -1,5 +1,3 @@
-"use client";
-
 import { useEffect, useMemo } from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
@@ -33,6 +31,8 @@ import { embeddingModels } from "./models";
 const formSchema = z.object({
   embeddingModel: EmbeddingConfigSchema.optional(),
 });
+
+const defaultEmbeddingModel = "OpenAI / text-embedding-3-large";
 
 export default function CreateNamespaceEmbeddingStep({
   onSubmit,
@@ -210,7 +210,7 @@ export default function CreateNamespaceEmbeddingStep({
 
                 <SelectContent>
                   <SelectItem value="default">
-                    OpenAI / text-embedding-3-large
+                    {defaultEmbeddingModel}
                   </SelectItem>
                 </SelectContent>
               </Select>

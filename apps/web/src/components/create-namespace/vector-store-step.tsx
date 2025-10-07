@@ -1,5 +1,3 @@
-"use client";
-
 import { useEffect, useMemo } from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
@@ -33,6 +31,8 @@ import { vectorStores } from "./models";
 const formSchema = z.object({
   vectorStore: VectorStoreSchema.optional(),
 });
+
+const defaultVectorStore = "Pinecone";
 
 export default function CreateNamespaceVectorStoreStep({
   onSubmit,
@@ -168,7 +168,7 @@ export default function CreateNamespaceVectorStoreStep({
                 </SelectTrigger>
 
                 <SelectContent>
-                  <SelectItem value="default">Pinecone</SelectItem>
+                  <SelectItem value="default">{defaultVectorStore}</SelectItem>
                 </SelectContent>
               </Select>
             </div>

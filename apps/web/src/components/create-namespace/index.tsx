@@ -1,5 +1,3 @@
-"use client";
-
 import { useEffect, useMemo, useState } from "react";
 import { logEvent } from "@/lib/analytics";
 import { useTRPC } from "@/trpc/react";

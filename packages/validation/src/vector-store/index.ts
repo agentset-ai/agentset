@@ -17,3 +17,4 @@ export const VectorStoreSchema = z
 export type VectorStoreConfig = z.infer<typeof VectorStoreSchema>;
 
 export { PineconeVectorStoreConfigSchema } from "./pinecone";
+export { TurbopufferVectorStoreConfigSchema } from "./turbopuffer";
