@@ -12,7 +12,9 @@
     "dev": "tsc",
     "format": "prettier --check . --ignore-path ../../.gitignore",
     "lint": "eslint",
-    "typecheck": "tsc --noEmit --emitDeclarationOnly false"
+    "typecheck": "tsc --noEmit --emitDeclarationOnly false",
+    "test": "vitest run",
+    "test:watch": "vitest"
   },
   "dependencies": {
     "@agentset/db": "workspace:*",
@@ -26,6 +28,7 @@
     "@llamaindex/core": "^0.5.8",
     "@pinecone-database/pinecone": "5.1.1",
     "@t3-oss/env-nextjs": "catalog:",
+    "@turbopuffer/turbopuffer": "^1.2.0",
     "cohere-ai": "^7.16.0",
     "llamaindex": "^0.9.11",
     "voyage-ai-provider": "^2.0.0",
@@ -37,7 +40,8 @@
     "@agentset/tsconfig": "workspace:*",
     "eslint": "catalog:",
     "prettier": "catalog:",
-    "typescript": "catalog:"
+    "typescript": "catalog:",
+    "vitest": "catalog:"
   },
   "prettier": "@agentset/prettier-config"
 }

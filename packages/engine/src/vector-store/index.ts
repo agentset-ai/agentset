@@ -7,12 +7,11 @@ export const getNamespaceVectorStore = async (
   tenant?: string,
 ) => {
   const config = namespace.vectorStoreConfig;
-
-  const tenantId = `agentset:${namespace.id}${tenant ? `:${tenant}` : ""}`;
+  const vectorStoreNamespace = `agentset:${namespace.id}${tenant ? `:${tenant}` : ""}`;
 
   // TODO: handle different embedding models
   if (!config) {
-    const { Pinecone } = await import("./pinecone");
+    const { Pinecone } = await import("./pinecone/index");
     const shouldUseSecondary =
       namespace.createdAt &&
       (typeof namespace.createdAt === "string"
@@ -29,21 +28,31 @@ export const getNamespaceVectorStore = async (
       indexHost: shouldUseSecondary
         ? env.SECONDARY_PINECONE_HOST!
         : env.DEFAULT_PINECONE_HOST,
-      namespace: tenantId,
+      namespace: vectorStoreNamespace,
     });
   }
 
   switch (config.provider) {
     case "PINECONE": {
-      const { Pinecone } = await import("./pinecone");
+      const { Pinecone } = await import("./pinecone/index");
       const { apiKey, indexHost } = config;
-      return new Pinecone({ apiKey, indexHost, namespace: tenantId });
+      return new Pinecone({
+        apiKey,
+        indexHost,
+        namespace: vectorStoreNamespace,
+      });
+    }
+
+    case "TURBOPUFFER": {
+      const { Turbopuffer } = await import("./turbopuffer/index");
+      const { apiKey } = config;
+      return new Turbopuffer({ apiKey, namespace: vectorStoreNamespace });
     }
 
     default: {
       // This exhaustive check ensures TypeScript will error if a new provider
       // is added without handling it in the switch statement
-      const _exhaustiveCheck: never = config.provider;
+      const _exhaustiveCheck: never = config;
       throw new Error(`Unknown vector store provider: ${_exhaustiveCheck}`);
     }
   }

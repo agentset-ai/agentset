@@ -73,7 +73,7 @@ export const queryVectorStore = async (
   });
 
   // TODO: track usage
-  let { matches } = await vectorStore.query({
+  let results = await vectorStore.query({
     vector: embedding.embedding,
     topK: options.topK,
     filter: options.filter,
@@ -81,13 +81,13 @@ export const queryVectorStore = async (
   });
 
   if (options.minScore !== undefined) {
-    matches = matches.filter(
+    results = results.filter(
       (match) => match.score && match.score >= options.minScore!,
     );
   }
 
   const parsedResults = filterFalsy(
-    matches.map((match) => {
+    results.map((match) => {
       const nodeContent = match.metadata?._node_content;
       if (!nodeContent) return null;
 
@@ -104,7 +104,7 @@ export const queryVectorStore = async (
     }),
   );
 
-  if (matches.length > 0 && parsedResults.length === 0) {
+  if (results.length > 0 && parsedResults.length === 0) {
     return null;
   }
 
