@@ -1,11 +1,12 @@
 import type { Namespace } from "@agentset/db";
 
 import { env } from "../env";
+import { VectorStore } from "./common/vector-store";
 
 export const getNamespaceVectorStore = async (
   namespace: Pick<Namespace, "vectorStoreConfig" | "id" | "createdAt">,
   tenant?: string,
-) => {
+): Promise<VectorStore> => {
   const config = namespace.vectorStoreConfig;
   const vectorStoreNamespace = `agentset:${namespace.id}${tenant ? `:${tenant}` : ""}`;
 
@@ -29,7 +30,7 @@ export const getNamespaceVectorStore = async (
         ? env.SECONDARY_PINECONE_HOST!
         : env.DEFAULT_PINECONE_HOST,
       namespace: vectorStoreNamespace,
-    });
+    }) as VectorStore;
   }
 
   switch (config.provider) {
@@ -40,7 +41,7 @@ export const getNamespaceVectorStore = async (
         apiKey,
         indexHost,
         namespace: vectorStoreNamespace,
-      });
+      }) as VectorStore;
     }
 
     case "TURBOPUFFER": {
@@ -57,5 +58,3 @@ export const getNamespaceVectorStore = async (
     }
   }
 };
-
-export { queryVectorStore } from "./parse";

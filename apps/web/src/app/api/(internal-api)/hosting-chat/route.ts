@@ -10,6 +10,11 @@ import { waitUntil } from "@vercel/functions";
 import { convertToModelMessages } from "ai";
 
 import { db } from "@agentset/db";
+import {
+  getNamespaceEmbeddingModel,
+  getNamespaceVectorStore,
+  KeywordStore,
+} from "@agentset/engine";
 
 import { hostingChatSchema } from "./schema";
 
@@ -100,15 +105,25 @@ export const POST = withPublicApiHandler(
     await hostingAuth(req, hosting);
 
     // TODO: pass namespace config
-    const languageModel = await getNamespaceLanguageModel();
+    const [languageModel, vectorStore, embeddingModel] = await Promise.all([
+      getNamespaceLanguageModel(),
+      getNamespaceVectorStore(hosting.namespace),
+      getNamespaceEmbeddingModel(hosting.namespace, "query"),
+    ]);
 
-    const result = agenticPipeline(hosting.namespace, {
-      model: languageModel,
+    const keywordStore = hosting.namespace.keywordEnabled
+      ? new KeywordStore(hosting.namespace.id)
+      : undefined;
+
+    const result = agenticPipeline({
       // TODO: get from hosting
+      model: languageModel,
+      keywordStore,
       queryOptions: {
+        embeddingModel,
+        vectorStore,
         topK: 50,
-        rerankLimit: 15,
-        rerank: true,
+        rerank: { limit: 15 },
         includeMetadata: true,
       },
       systemPrompt: hosting.systemPrompt ?? DEFAULT_SYSTEM_PROMPT.compile(),

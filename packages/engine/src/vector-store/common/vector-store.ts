@@ -1,4 +1,6 @@
-import { PartitionBatch } from "../partition";
+import type { NodeRelationship, RelatedNodeType } from "llamaindex";
+
+import { PartitionBatch } from "../../partition";
 import { VectorFilter } from "./filter";
 
 export type VectorStoreMetadata = Record<
@@ -7,11 +9,13 @@ export type VectorStoreMetadata = Record<
 >;
 
 export interface VectorStoreQueryOptions<Filter = VectorFilter> {
+  id?: string;
   vector: number[];
   topK: number;
   filter?: Filter;
   includeMetadata?: boolean;
-  id?: string;
+  includeRelationships?: boolean;
+  minScore?: number;
 }
 
 export interface VectorStoreUpsertOptions {
@@ -22,11 +26,18 @@ export interface VectorStoreUpsertOptions {
   }[];
 }
 
-export type VectorStoreQueryResponse = {
+export type VectorStoreResult = {
   id: string;
-  score?: number;
+  text: string;
   metadata?: VectorStoreMetadata;
-}[];
+  relationships?: Partial<
+    Record<NodeRelationship, RelatedNodeType<VectorStoreMetadata>>
+  >;
+  score?: number;
+  rerankScore?: number;
+};
+
+export type VectorStoreQueryResponse = VectorStoreResult[];
 
 export interface VectorStoreListOptions {
   prefix?: string;

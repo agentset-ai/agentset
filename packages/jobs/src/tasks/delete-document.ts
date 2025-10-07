@@ -65,16 +65,7 @@ export const deleteDocument = schemaTask({
     );
 
     const deletedChunks = await vectorStore.deleteByFilter({
-      $or: [
-        {
-          id: {
-            $contains: `${document.id}#`,
-          },
-        },
-        {
-          documentId: document.id,
-        },
-      ],
+      documentId: document.id,
     });
 
     // Clean up keyword store if enabled

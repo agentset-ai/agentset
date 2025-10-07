@@ -22,7 +22,12 @@ import {
 } from "ai";
 
 import { db } from "@agentset/db";
-import { queryVectorStore } from "@agentset/engine";
+import {
+  getNamespaceEmbeddingModel,
+  getNamespaceVectorStore,
+  KeywordStore,
+  queryVectorStore,
+} from "@agentset/engine";
 
 import { chatSchema } from "./schema";
 
@@ -70,7 +75,11 @@ export const POST = withAuthApiHandler(
     }
 
     // TODO: pass namespace config
-    const languageModel = await getNamespaceLanguageModel();
+    const [languageModel, vectorStore, embeddingModel] = await Promise.all([
+      getNamespaceLanguageModel(),
+      getNamespaceVectorStore(namespace, tenantId),
+      getNamespaceEmbeddingModel(namespace, "query"),
+    ]);
 
     let query: string;
     if (messagesWithoutQuery.length === 0 || body.mode === "agentic") {
@@ -100,7 +109,7 @@ export const POST = withAuthApiHandler(
     }
 
     if (body.mode === "deepResearch") {
-      const pipeline = new DeepResearchPipeline(namespace, {
+      const pipeline = new DeepResearchPipeline({
         modelConfig: {
           json: languageModel,
           planning: languageModel,
@@ -108,14 +117,18 @@ export const POST = withAuthApiHandler(
           answer: languageModel,
         },
         queryOptions: {
-          tenantId,
+          embeddingModel,
+          vectorStore,
           topK: body.topK,
           minScore: body.minScore,
           filter: body.filter,
           includeMetadata: body.includeMetadata,
           includeRelationships: body.includeRelationships,
-          rerankLimit: body.rerankLimit,
-          rerank: body.rerank,
+          rerank: body.rerank
+            ? body.rerankLimit
+              ? { limit: body.rerankLimit }
+              : true
+            : false,
         },
         // maxQueries
       });
@@ -127,17 +140,26 @@ export const POST = withAuthApiHandler(
     }
 
     if (body.mode === "agentic") {
-      const result = agenticPipeline(namespace, {
+      const keywordStore = namespace.keywordEnabled
+        ? new KeywordStore(namespace.id, tenantId)
+        : undefined;
+
+      const result = agenticPipeline({
         model: languageModel,
+        keywordStore,
         queryOptions: {
-          tenantId,
+          embeddingModel,
+          vectorStore,
           topK: body.topK,
           minScore: body.minScore,
           filter: body.filter,
           includeMetadata: body.includeMetadata,
           includeRelationships: body.includeRelationships,
-          rerankLimit: body.rerankLimit,
-          rerank: body.rerank,
+          rerank: body.rerank
+            ? body.rerankLimit
+              ? { limit: body.rerankLimit }
+              : true
+            : false,
         },
         systemPrompt: body.systemPrompt,
         temperature: body.temperature,
@@ -152,16 +174,20 @@ export const POST = withAuthApiHandler(
     }
 
     // TODO: track the usage
-    const data = await queryVectorStore(namespace, {
+    const data = await queryVectorStore({
+      embeddingModel,
+      vectorStore,
       query,
-      tenantId,
       topK: body.topK,
       minScore: body.minScore,
       filter: body.filter,
       includeMetadata: body.includeMetadata,
       includeRelationships: body.includeRelationships,
-      rerankLimit: body.rerankLimit,
-      rerank: body.rerank,
+      rerank: body.rerank
+        ? body.rerankLimit
+          ? { limit: body.rerankLimit }
+          : true
+        : false,
     });
 
     if (!data) {

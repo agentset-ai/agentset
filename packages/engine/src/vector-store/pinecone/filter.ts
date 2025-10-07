@@ -7,8 +7,8 @@ import type {
   OperatorValueMap,
   QueryOperator,
   VectorFilter,
-} from "../filter";
-import { BaseFilterTranslator } from "../filter";
+} from "../common/filter";
+import { BaseFilterTranslator } from "../common/filter";
 
 type InitialOperatorValueMap = Omit<
   OperatorValueMap,

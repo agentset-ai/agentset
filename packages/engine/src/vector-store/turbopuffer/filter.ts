@@ -6,8 +6,8 @@ import type {
   OperatorSupport,
   OperatorValueMap,
   VectorFilter,
-} from "../filter";
-import { BaseFilterTranslator } from "../filter";
+} from "../common/filter";
+import { BaseFilterTranslator } from "../common/filter";
 
 type FilterOperator = Extract<Filter[1], string>;
 type FilterConnective = Extract<Filter, [string, any[]]>[0];

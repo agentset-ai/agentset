@@ -8,6 +8,11 @@ import { parseRequestBody } from "@/lib/api/utils";
 import { getNamespaceLanguageModel } from "@/lib/llm";
 
 import { db } from "@agentset/db";
+import {
+  getNamespaceEmbeddingModel,
+  getNamespaceVectorStore,
+  KeywordStore,
+} from "@agentset/engine";
 
 import { hostingSearchSchema } from "./schema";
 
@@ -68,15 +73,24 @@ export const POST = withPublicApiHandler(
     }
 
     // TODO: pass namespace config
-    const languageModel = await getNamespaceLanguageModel();
+    const [languageModel, vectorStore, embeddingModel] = await Promise.all([
+      getNamespaceLanguageModel(),
+      getNamespaceVectorStore(hosting.namespace),
+      getNamespaceEmbeddingModel(hosting.namespace, "query"),
+    ]);
 
-    const result = await agenticSearch(hosting.namespace, {
-      model: languageModel,
+    const keywordStore = hosting.namespace.keywordEnabled
+      ? new KeywordStore(hosting.namespace.id)
+      : undefined;
+
+    const result = await agenticSearch({
       // TODO: get from hosting
+      model: languageModel,
       queryOptions: {
+        embeddingModel,
+        vectorStore,
         topK: 50,
-        rerankLimit: 15,
-        rerank: true,
+        rerank: { limit: 15 },
         includeMetadata: true,
       },
       messages: [

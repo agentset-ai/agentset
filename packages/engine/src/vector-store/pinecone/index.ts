@@ -1,12 +1,17 @@
+import { metadataDictToNode } from "@llamaindex/core/vector-store";
 import { Index, Pinecone as PineconeClient } from "@pinecone-database/pinecone";
+import { BaseNode, MetadataMode } from "llamaindex";
+
+import { filterFalsy } from "@agentset/utils";
 
 import { makeChunk } from "../../chunk";
 import {
   VectorStore,
+  VectorStoreMetadata,
   VectorStoreQueryOptions,
   VectorStoreQueryResponse,
   VectorStoreUpsertOptions,
-} from "../vector-store";
+} from "../common/vector-store";
 import { PineconeFilterTranslator, PineconeVectorFilter } from "./filter";
 
 export class Pinecone implements VectorStore<PineconeVectorFilter> {
@@ -27,18 +32,6 @@ export class Pinecone implements VectorStore<PineconeVectorFilter> {
       .namespace(namespace);
   }
 
-  // async list(
-  //   params: VectorStoreListOptions = {},
-  // ): Promise<VectorStoreListResponse> {
-  //   const data = await this.client.listPaginated(params);
-  //   return {
-  //     results: data.vectors?.map((vector) => ({ id: vector.id! })) ?? [],
-  //     pagination: {
-  //       nextCursor: data.pagination?.next,
-  //     },
-  //   };
-  // }
-
   async query(
     params: VectorStoreQueryOptions<PineconeVectorFilter>,
   ): Promise<VectorStoreQueryResponse> {
@@ -49,14 +42,46 @@ export class Pinecone implements VectorStore<PineconeVectorFilter> {
       topK: params.topK,
       filter: translatedFilter ?? undefined,
       vector: params.vector,
-      includeMetadata: params.includeMetadata,
+      includeMetadata: true,
     });
 
-    return result.matches.map((match) => ({
+    let results = result.matches.map((match) => ({
       id: match.id,
       score: match.score,
       metadata: match.metadata ?? {},
     }));
+
+    // Filter by minimum score if provided
+    if (params.minScore !== undefined) {
+      results = results.filter(
+        (match) => match.score && match.score >= params.minScore!,
+      );
+    }
+
+    // Parse metadata to nodes
+    return filterFalsy(
+      results.map((match) => {
+        const nodeContent = match.metadata?._node_content;
+        if (!nodeContent) return null;
+
+        let node: BaseNode<VectorStoreMetadata>;
+        try {
+          node = metadataDictToNode(match.metadata!);
+        } catch (e) {
+          return null;
+        }
+
+        return {
+          id: match.id,
+          score: match.score,
+          text: node.getContent(MetadataMode.NONE),
+          metadata: params.includeMetadata ? node.metadata : undefined,
+          relationships: params.includeRelationships
+            ? node.relationships
+            : undefined,
+        };
+      }),
+    );
   }
 
   async upsert({ chunks }: VectorStoreUpsertOptions) {

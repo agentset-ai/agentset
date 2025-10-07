@@ -1,4 +1,8 @@
+import { metadataDictToNode } from "@llamaindex/core/vector-store";
 import { Turbopuffer as TurbopufferClient } from "@turbopuffer/turbopuffer";
+import { BaseNode } from "llamaindex";
+
+import { filterFalsy } from "@agentset/utils";
 
 import { makeChunk } from "../../chunk";
 import {
@@ -7,7 +11,7 @@ import {
   VectorStoreQueryOptions,
   VectorStoreQueryResponse,
   VectorStoreUpsertOptions,
-} from "../vector-store";
+} from "../common/vector-store";
 import { TurbopufferFilterTranslator, TurbopufferVectorFilter } from "./filter";
 
 const schema = {
@@ -50,11 +54,35 @@ export class Turbopuffer implements VectorStore<TurbopufferVectorFilter> {
       consistency: { level: "strong" },
     });
 
-    return (result.rows ?? []).map(
-      ({ id, $dist, vector: _vector, ...metadata }) => ({
-        id: id.toString(),
-        score: $dist,
-        metadata: metadata as VectorStoreMetadata,
+    let results = result.rows ?? [];
+    if (params.minScore !== undefined) {
+      results = results.filter(
+        (match) => match.$dist && match.$dist >= params.minScore!,
+      );
+    }
+
+    // Parse metadata to nodes
+    return filterFalsy(
+      results.map(({ id, $dist: score, text, ...metadata }) => {
+        const nodeContent = metadata?._node_content;
+        if (!nodeContent) return null;
+
+        let node: BaseNode<VectorStoreMetadata>;
+        try {
+          node = metadataDictToNode(metadata!);
+        } catch (e) {
+          return null;
+        }
+
+        return {
+          id: id.toString(),
+          score,
+          text: text as string,
+          metadata: params.includeMetadata ? node.metadata : undefined,
+          relationships: params.includeRelationships
+            ? node.relationships
+            : undefined,
+        };
       }),
     );
   }

@@ -2,7 +2,6 @@ import { embed } from "ai";
 
 import type { Namespace } from "@agentset/db";
 import {
-  getEmbeddingProviderOptions,
   getNamespaceEmbeddingModel,
   getNamespaceVectorStore,
 } from "@agentset/engine";
@@ -53,7 +52,8 @@ export const validateVectorStoreConfig = async (
         createdAt: new Date(),
       });
       const dimensions = await v.getDimensions();
-      vectorStoreDimensions = dimensions;
+      vectorStoreDimensions =
+        dimensions === "ANY" ? embeddingDimensions : dimensions;
     } catch {
       return {
         success: false as const,
@@ -84,13 +84,12 @@ export const validateEmbeddingModel = async (
     };
   }
 
-  const model = await getNamespaceEmbeddingModel({ embeddingConfig });
+  const model = await getNamespaceEmbeddingModel({ embeddingConfig }, "query");
 
   try {
     await embed({
       model,
       value: "Hello, world!",
-      ...getEmbeddingProviderOptions({ embeddingConfig }, "query"),
     });
 
     return {

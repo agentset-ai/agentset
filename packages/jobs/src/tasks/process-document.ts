@@ -4,7 +4,6 @@ import { embedMany } from "ai";
 import type { PartitionBatch, PartitionResult } from "@agentset/engine";
 import { DocumentStatus } from "@agentset/db";
 import {
-  getEmbeddingProviderOptions,
   getNamespaceEmbeddingModel,
   getNamespaceVectorStore,
   getPartitionDocumentBody,
@@ -83,15 +82,13 @@ export const processDocument = schemaTask({
     const token = await wait.createToken({ timeout: "2h" });
 
     // Get partition document body
-    const partitionBody = await getPartitionDocumentBody(
+    const partitionBody = await getPartitionDocumentBody({
       document,
-      ingestJob,
-      ingestJob.namespace,
-      {
-        triggerTokenId: token.id,
-        triggerAccessToken: token.publicAccessToken,
-      },
-    );
+      ingestJobConfig: ingestJob.config,
+      namespaceId: ingestJob.namespace.id,
+      triggerTokenId: token.id,
+      triggerAccessToken: token.publicAccessToken,
+    });
 
     // Partition the document
     const response = await fetch(env.PARTITION_API_URL, {
@@ -141,35 +138,25 @@ export const processDocument = schemaTask({
 
     // Get embedding model and vector store
     const [embeddingModel, vectorStore] = await Promise.all([
-      getNamespaceEmbeddingModel(ingestJob.namespace),
+      getNamespaceEmbeddingModel(ingestJob.namespace, "document"),
       getNamespaceVectorStore(
         ingestJob.namespace,
         document.tenantId ?? undefined,
       ),
     ]);
 
-    const keywordStore = new KeywordStore(
-      ingestJob.namespace.id,
-      document.tenantId ?? undefined,
-    );
+    const keywordStore = ingestJob.namespace.keywordEnabled
+      ? new KeywordStore(ingestJob.namespace.id, document.tenantId ?? undefined)
+      : null;
 
     // Clean up existing chunks if requested
     if (shouldCleanup) {
       await vectorStore.deleteByFilter({
-        $or: [
-          {
-            id: {
-              $contains: `${document.id}#`,
-            },
-          },
-          {
-            documentId: document.id,
-          },
-        ],
+        documentId: document.id,
       });
 
       // Clean up keyword store if enabled
-      if (ingestJob.namespace.keywordEnabled) {
+      if (keywordStore) {
         let page = 1;
         let hasNextPage = true;
         const keywordChunkIds: string[] = [];
@@ -210,7 +197,6 @@ export const processDocument = schemaTask({
         model: embeddingModel,
         values: chunkBatch.map((chunk) => chunk.text),
         maxRetries: 5,
-        ...getEmbeddingProviderOptions(ingestJob.namespace, "document"),
       });
 
       const chunks = chunkBatch.map((chunk, idx) => ({
@@ -223,7 +209,7 @@ export const processDocument = schemaTask({
       await vectorStore.upsert({ chunks });
 
       // Store in keyword store if enabled
-      if (ingestJob.namespace.keywordEnabled) {
+      if (keywordStore) {
         const nodes = chunks.map((chunk) => makeChunk(chunk));
         await keywordStore.upsert(
           nodes.map((node, idx) => ({
