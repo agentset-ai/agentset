@@ -13,13 +13,15 @@ import {
 import { TurbopufferFilterTranslator, TurbopufferVectorFilter } from "./filter";
 
 const schema = {
-  id: {
-    type: "string",
-    filterable: true,
-  },
+  id: { type: "string" },
   text: {
     type: "string",
     full_text_search: true, // sets filterable: false, and enables FTS with default settings
+  },
+  _node_content: {
+    type: "string",
+    // disables filtering to save costs
+    filterable: false,
   },
 };
 
@@ -32,9 +34,11 @@ export class Turbopuffer implements VectorStore<TurbopufferVectorFilter> {
     apiKey,
     namespaceId,
     tenantId,
+    region,
   }: {
     apiKey: string;
     namespaceId: string;
+    region: string;
     tenantId?: string;
   }) {
     // note that Turbopuffer uses allows `[A-Za-z0-9-_.]{1,128}`
@@ -44,7 +48,7 @@ export class Turbopuffer implements VectorStore<TurbopufferVectorFilter> {
 
     this.client = new TurbopufferClient({
       apiKey,
-      region: "aws-us-east-1",
+      region,
     }).namespace(namespace);
   }
 
@@ -56,44 +60,62 @@ export class Turbopuffer implements VectorStore<TurbopufferVectorFilter> {
       ...(params.id ? { id: params.id } : {}),
     });
 
-    const result = await this.client.query({
-      rank_by: ["vector", "ANN", params.vector],
-      top_k: params.topK,
-      filters: filter,
-      include_attributes: true,
-
-      distance_metric: "cosine_distance",
-      consistency: { level: "strong" },
-    });
-
-    let results = result.rows ?? [];
-    if (typeof params.minScore === "number") {
-      results = results.filter(
-        (match) =>
-          typeof match.$dist === "number" &&
-          1 - match.$dist >= params.minScore!,
+    try {
+      const result = await this.client.query(
+        {
+          rank_by: ["vector", "ANN", params.vector],
+          top_k: params.topK,
+          filters: filter,
+          include_attributes: params.includeMetadata
+            ? undefined
+            : ["id", "text"],
+          exclude_attributes: params.includeMetadata ? ["vector"] : undefined,
+          distance_metric: "cosine_distance",
+          // consistency: { level: "strong" },
+        },
+        {},
       );
-    }
 
-    // Parse metadata to nodes
-    return filterFalsy(
-      results.map(
-        ({ id, $dist: distance, text, vector: _vector, ...metadata }) => {
+      let results = result.rows ?? [];
+      if (typeof params.minScore === "number") {
+        results = results.filter(
+          (match) =>
+            typeof match.$dist === "number" &&
+            1 - match.$dist >= params.minScore!,
+        );
+      }
+
+      // Parse metadata to nodes
+      return filterFalsy(
+        results.map(({ id, $dist: distance, text, ...metadata }) => {
           const node = metadataToChunk(metadata as VectorStoreMetadata);
-          if (!node) return null;
+          const finalMetadata = params.includeMetadata
+            ? node
+              ? node.metadata
+              : metadata
+            : undefined;
+          const finalRelationships =
+            params.includeRelationships && node
+              ? node.relationships
+              : undefined;
 
           return {
             id: id.toString(),
-            score: typeof distance === "number" ? 1 - distance : undefined,
+            // $dist is the cosine distance between 0 and 2, lower is better
+            // we convert it to a number between 0 and 1
+            score:
+              typeof distance === "number" ? (2 - distance) / 2 : undefined,
             text: text as string,
-            metadata: params.includeMetadata ? node.metadata : undefined,
-            relationships: params.includeRelationships
-              ? node.relationships
-              : undefined,
+            metadata: finalMetadata,
+            relationships: finalRelationships,
           };
-        },
-      ),
-    );
+        }),
+      );
+    } catch (e) {
+      // if the namespace is not found, return an empty array
+      if (e instanceof TurbopufferClient.NotFoundError) return [];
+      throw e;
+    }
   }
 
   async upsert({ chunks }: VectorStoreUpsertOptions) {

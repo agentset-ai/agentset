@@ -14,11 +14,13 @@ export type VectorStoreMetadata = Record<
 export interface VectorStoreQueryOptions<Filter = VectorFilter> {
   id?: string;
   vector: number[];
+  text?: string;
   topK: number;
   filter?: Filter;
   includeMetadata?: boolean;
   includeRelationships?: boolean;
   minScore?: number;
+  mode?: "semantic" | "keyword" | "hybrid";
 }
 
 export interface VectorStoreUpsertOptions {

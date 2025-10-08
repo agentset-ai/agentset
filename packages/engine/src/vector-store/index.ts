@@ -57,6 +57,10 @@ export const getNamespaceVectorStore = async (
           config.provider === "MANAGED_TURBOPUFFER"
             ? env.DEFAULT_TURBOPUFFER_API_KEY
             : config.apiKey,
+        region:
+          config.provider === "MANAGED_TURBOPUFFER"
+            ? "aws-us-east-1"
+            : config.region,
         ...commonConfig,
       });
     }
