@@ -88,20 +88,26 @@ export class Turbopuffer implements VectorStore<TurbopufferVectorFilter> {
       makeChunk(chunk, { removeTextFromMetadata: true }),
     );
 
-    await this.client.write({
-      upsert_rows: nodes.map((chunk) => ({
-        id: chunk.id,
-        vector: chunk.vector,
-        text: chunk.text,
-        ...chunk.metadata,
-      })),
-      ...(!this.didSendSchema
-        ? { distance_metric: "cosine_distance", schema }
-        : {}),
-    });
+    const shouldSendSchema = !this.didSendSchema;
+    if (shouldSendSchema) this.didSendSchema = true;
 
-    if (!this.didSendSchema) {
-      this.didSendSchema = true;
+    try {
+      await this.client.write({
+        upsert_rows: nodes.map((chunk) => ({
+          id: chunk.id,
+          vector: chunk.vector,
+          text: chunk.text,
+          ...chunk.metadata,
+        })),
+        ...(shouldSendSchema
+          ? { distance_metric: "cosine_distance", schema }
+          : {}),
+      });
+    } catch (e) {
+      // if schema was sent, but failed, set didSendSchema to false
+      if (shouldSendSchema) this.didSendSchema = false;
+      // rethrow the error
+      throw e;
     }
   }
 
