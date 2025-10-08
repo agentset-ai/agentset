@@ -1,105 +1,88 @@
+import { AzureOpenAIProviderSettings } from "@ai-sdk/azure";
 import { EmbeddingModel } from "ai";
-import { VoyageEmbeddingOptions } from "voyage-ai-provider";
 
 import type { Namespace } from "@agentset/db";
 
 import { env } from "../env";
-
-const getEmbeddingProviderOptions = (
-  namespace: Pick<Namespace, "embeddingConfig">,
-  type: "document" | "query",
-) => {
-  return {
-    ...(namespace.embeddingConfig?.provider === "VOYAGE" && {
-      voyage: {
-        inputType: type,
-      } satisfies VoyageEmbeddingOptions,
-    }),
-  };
-};
+import { WrapEmbeddingModel } from "./wrap-model";
 
 export const getNamespaceEmbeddingModel = async (
   namespace: Pick<Namespace, "embeddingConfig">,
   type: "document" | "query" = "query",
-): Promise<
-  EmbeddingModel & {
-    providerOptions?: ReturnType<typeof getEmbeddingProviderOptions>;
-  }
-> => {
-  const config = namespace.embeddingConfig;
-  let model: EmbeddingModel;
+): Promise<EmbeddingModel> => {
+  let config = structuredClone(namespace.embeddingConfig);
 
+  // NOTE: this technically should never happen because we should always have a embedding config
   if (!config) {
-    const { createAzure } = await import("@ai-sdk/azure");
+    config = {
+      provider: "MANAGED_OPENAI",
+      model: "text-embedding-3-large",
+    };
+  }
 
-    const defaultAzure = createAzure({
-      resourceName: env.DEFAULT_AZURE_RESOURCE_NAME,
-      apiKey: env.DEFAULT_AZURE_API_KEY,
-      apiVersion: "preview",
-    });
+  let model: EmbeddingModel;
+  switch (config.provider) {
+    case "MANAGED_OPENAI":
+    case "AZURE_OPENAI": {
+      const { createAzure } = await import("@ai-sdk/azure");
 
-    model = defaultAzure.textEmbeddingModel(
-      env.DEFAULT_AZURE_EMBEDDING_DEPLOYMENT,
-    );
-  } else {
-    switch (config.provider) {
-      case "AZURE_OPENAI": {
-        const { createAzure } = await import("@ai-sdk/azure");
+      const settings: AzureOpenAIProviderSettings =
+        config.provider === "MANAGED_OPENAI"
+          ? {
+              resourceName: env.DEFAULT_AZURE_RESOURCE_NAME,
+              apiKey: env.DEFAULT_AZURE_API_KEY,
+              apiVersion: "preview",
+            }
+          : {
+              resourceName: config.resourceName,
+              apiKey: config.apiKey,
+              apiVersion: config.apiVersion,
+            };
 
-        const { apiKey, resourceName, deployment, apiVersion } = config;
-        const azure = createAzure({
-          resourceName,
-          apiKey,
-          apiVersion,
-        });
-        model = azure.textEmbeddingModel(deployment);
-        break;
-      }
+      const azure = createAzure(settings);
+      model = azure.textEmbeddingModel(
+        config.provider === "MANAGED_OPENAI"
+          ? env.DEFAULT_AZURE_EMBEDDING_DEPLOYMENT
+          : config.deployment,
+      );
 
-      case "OPENAI": {
-        const { createOpenAI } = await import("@ai-sdk/openai");
+      break;
+    }
 
-        const { apiKey, model: modelName } = config;
-        const openai = createOpenAI({ apiKey });
-        model = openai.textEmbeddingModel(modelName);
-        break;
-      }
+    case "OPENAI": {
+      const { createOpenAI } = await import("@ai-sdk/openai");
 
-      case "VOYAGE": {
-        const { createVoyage } = await import("voyage-ai-provider");
+      const { apiKey, model: modelName } = config;
+      const openai = createOpenAI({ apiKey });
+      model = openai.textEmbeddingModel(modelName);
+      break;
+    }
 
-        const { apiKey, model: modelName } = config;
-        const voyage = createVoyage({ apiKey });
-        model = voyage.textEmbeddingModel(modelName);
-        break;
-      }
+    case "VOYAGE": {
+      const { createVoyage } = await import("voyage-ai-provider");
 
-      case "GOOGLE": {
-        const { createGoogleGenerativeAI } = await import("@ai-sdk/google");
+      const { apiKey, model: modelName } = config;
+      const voyage = createVoyage({ apiKey });
+      model = voyage.textEmbeddingModel(modelName);
+      break;
+    }
 
-        const { apiKey, model: modelName } = config;
-        const google = createGoogleGenerativeAI({ apiKey });
-        model = google.textEmbeddingModel(modelName);
-        break;
-      }
+    case "GOOGLE": {
+      const { createGoogleGenerativeAI } = await import("@ai-sdk/google");
 
-      default: {
-        // This exhaustive check ensures TypeScript will error if a new provider
-        // is added without handling it in the switch statement
-        const _exhaustiveCheck: never = config;
-        throw new Error(`Unknown vector store provider: ${_exhaustiveCheck}`);
-      }
+      const { apiKey, model: modelName } = config;
+      const google = createGoogleGenerativeAI({ apiKey });
+      model = google.textEmbeddingModel(modelName);
+      break;
+    }
+
+    default: {
+      // This exhaustive check ensures TypeScript will error if a new provider
+      // is added without handling it in the switch statement
+      const _exhaustiveCheck: never = config;
+      throw new Error(`Unknown vector store provider: ${_exhaustiveCheck}`);
     }
   }
 
-  model.doEmbed = (options) =>
-    model.doEmbed({
-      ...options,
-      providerOptions: {
-        ...options.providerOptions,
-        ...getEmbeddingProviderOptions(namespace, type),
-      },
-    });
-
-  return model;
+  return new WrapEmbeddingModel(model, type);
 };

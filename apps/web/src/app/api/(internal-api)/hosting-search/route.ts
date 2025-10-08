@@ -47,7 +47,6 @@ export const POST = withPublicApiHandler(
         namespace: {
           select: {
             id: true,
-            createdAt: true,
             vectorStoreConfig: true,
             embeddingConfig: true,
             keywordEnabled: true,

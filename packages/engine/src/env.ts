@@ -6,8 +6,10 @@ export const env = createEnv({
     DEFAULT_PINECONE_API_KEY: z.string(),
     DEFAULT_PINECONE_HOST: z.url(),
 
-    SECONDARY_PINECONE_API_KEY: z.string().optional(),
-    SECONDARY_PINECONE_HOST: z.url().optional(),
+    SECONDARY_PINECONE_API_KEY: z.string(),
+    SECONDARY_PINECONE_HOST: z.url(),
+
+    DEFAULT_TURBOPUFFER_API_KEY: z.string(),
 
     AZURE_SEARCH_URL: z.url(),
     AZURE_SEARCH_INDEX: z.string(),
@@ -30,6 +32,8 @@ export const env = createEnv({
 
     SECONDARY_PINECONE_API_KEY: process.env.SECONDARY_PINECONE_API_KEY,
     SECONDARY_PINECONE_HOST: process.env.SECONDARY_PINECONE_HOST,
+
+    DEFAULT_TURBOPUFFER_API_KEY: process.env.DEFAULT_TURBOPUFFER_API_KEY,
 
     AZURE_SEARCH_URL: process.env.AZURE_SEARCH_URL,
     AZURE_SEARCH_INDEX: process.env.AZURE_SEARCH_INDEX,

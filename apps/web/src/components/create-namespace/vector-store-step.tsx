@@ -13,7 +13,6 @@ import {
   FormLabel,
   FormMessage,
   Input,
-  Label,
   Logo,
   RadioButton,
   RadioGroup,
@@ -24,15 +23,24 @@ import {
   SelectValue,
 } from "@agentset/ui";
 import { camelCaseToWords, capitalize } from "@agentset/utils";
-import { VectorStoreSchema } from "@agentset/validation";
+import {
+  CreateVectorStoreConfig,
+  createVectorStoreSchema,
+} from "@agentset/validation";
 
 import { vectorStores } from "./models";
 
 const formSchema = z.object({
-  vectorStore: VectorStoreSchema.optional(),
+  vectorStore: createVectorStoreSchema,
 });
 
-const defaultVectorStore = "Pinecone";
+const options = createVectorStoreSchema.options.map(
+  (o) => o.shape.provider.value,
+);
+
+const managedOptions = options.filter((o) =>
+  o.startsWith("MANAGED_"),
+) as Extract<(typeof options)[number], `MANAGED_${string}`>[];
 
 export default function CreateNamespaceVectorStoreStep({
   onSubmit,
@@ -45,28 +53,31 @@ export default function CreateNamespaceVectorStoreStep({
 }) {
   const form = useForm({
     resolver: zodResolver(formSchema, undefined),
+    defaultValues: {
+      vectorStore: {
+        provider: "MANAGED_PINECONE",
+      },
+    },
   });
 
-  // when the provider changes, set the model to the default model for the provider
-  const currentVectorProvider = form.watch("vectorStore")?.provider;
+  const currentVectorProvider = form.watch("vectorStore").provider;
+  const isCurrentVectorProviderManaged = managedOptions.includes(
+    currentVectorProvider as (typeof managedOptions)[number],
+  );
 
   useEffect(() => {
-    if (currentVectorProvider) {
-      // reset other fields in the embeddingModel object
-      form.reset({
-        vectorStore: {
-          provider: currentVectorProvider,
-        } as z.infer<typeof VectorStoreSchema>,
-      });
-    } else {
-      form.setValue("vectorStore", undefined);
-    }
-    // eslint-disable-next-line react-compiler/react-compiler
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    // reset other fields in the vectorStore object
+    form.reset({
+      vectorStore: {
+        provider: currentVectorProvider,
+      } as CreateVectorStoreConfig,
+    });
   }, [currentVectorProvider]);
 
   const currentVectorStoreOptions = useMemo(() => {
-    const shape = VectorStoreSchema.options.find(
+    if (currentVectorProvider.startsWith("MANAGED_")) return [];
+
+    const shape = createVectorStoreSchema.options.find(
       (o) => o.shape.provider.value === currentVectorProvider,
     )?.shape;
 
@@ -97,17 +108,21 @@ export default function CreateNamespaceVectorStoreStep({
                   <RadioGroup
                     onValueChange={(newValue) => {
                       if (newValue === "agentset") {
-                        form.setValue("vectorStore", undefined);
+                        field.onChange("MANAGED_PINECONE");
                       } else {
                         field.onChange(newValue);
                       }
                     }}
-                    defaultValue={field.value ?? "agentset"}
+                    defaultValue={
+                      field.value.startsWith("MANAGED_")
+                        ? "agentset"
+                        : field.value
+                    }
                     className="grid grid-cols-3 gap-4"
                   >
                     <RadioButton
                       value="agentset"
-                      label="Agentset"
+                      label="Managed"
                       icon={Logo}
                       note="Default"
                     />
@@ -131,14 +146,14 @@ export default function CreateNamespaceVectorStoreStep({
             )}
           />
 
-          {/* render other fields based on the provider dynamically */}
-          {currentVectorProvider ? (
+          {/* if the vector store is not managed, render the fields, otherwise show the managed options */}
+          {!isCurrentVectorProviderManaged ? (
             currentVectorStoreOptions.map((key) => (
               <FormField
                 key={key.name}
                 control={form.control}
                 name={
-                  `vectorStore.${key.name}` as `vectorStore.${keyof z.infer<typeof VectorStoreSchema>}`
+                  `vectorStore.${key.name}` as `vectorStore.${keyof CreateVectorStoreConfig}`
                 }
                 render={({ field }) => (
                   <FormItem>
@@ -159,19 +174,31 @@ export default function CreateNamespaceVectorStoreStep({
               />
             ))
           ) : (
-            <div className="flex flex-col gap-2">
-              <Label data-slot="form-label">Vector Store</Label>
+            <FormField
+              control={form.control}
+              name={"vectorStore.provider"}
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Vector Store</FormLabel>
 
-              <Select disabled value="default">
-                <SelectTrigger className="w-xs">
-                  <SelectValue placeholder="Select a vector store" />
-                </SelectTrigger>
+                  <FormControl>
+                    <Select value={field.value} onValueChange={field.onChange}>
+                      <SelectTrigger className="w-xs">
+                        <SelectValue placeholder="Select a vector store" />
+                      </SelectTrigger>
 
-                <SelectContent>
-                  <SelectItem value="default">{defaultVectorStore}</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
+                      <SelectContent>
+                        {managedOptions.map((option) => (
+                          <SelectItem key={option} value={option}>
+                            {capitalize(option.replace("MANAGED_", ""))}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </FormControl>
+                </FormItem>
+              )}
+            />
           )}
         </div>
 

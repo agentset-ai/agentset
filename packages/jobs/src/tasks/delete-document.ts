@@ -33,7 +33,6 @@ export const deleteDocument = schemaTask({
             id: true,
             vectorStoreConfig: true,
             keywordEnabled: true,
-            createdAt: true,
           },
         },
       },

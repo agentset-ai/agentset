@@ -48,7 +48,6 @@ export const reIngestJob = schemaTask({
             keywordEnabled: true,
             embeddingConfig: true,
             vectorStoreConfig: true,
-            createdAt: true,
             organization: {
               select: {
                 id: true,

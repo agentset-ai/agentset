@@ -5,7 +5,7 @@ export const TurbopufferIcon = (props: React.SVGProps<SVGSVGElement>) => (
     fill="none"
     {...props}
   >
-    <g clip-path="url(#clip0_678_1937)">
+    <g clipPath="url(#clip0_678_1937)">
       <path
         fillRule="evenodd"
         clipRule="evenodd"

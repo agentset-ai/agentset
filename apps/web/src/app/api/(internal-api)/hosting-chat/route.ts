@@ -52,7 +52,6 @@ const getHosting = async (namespaceId: string) => {
       namespace: {
         select: {
           id: true,
-          createdAt: true,
           vectorStoreConfig: true,
           embeddingConfig: true,
           keywordEnabled: true,
