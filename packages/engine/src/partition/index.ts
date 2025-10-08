@@ -81,18 +81,19 @@ export type PartitionBatch = {
   class_name: string;
 }[];
 
-export const getPartitionDocumentBody = async (
-  document: Pick<Document, "id" | "name" | "source" | "config" | "tenantId">,
-  ingestJob: Pick<IngestJob, "config">,
-  namespace: Pick<Namespace, "id">,
-  {
-    triggerTokenId,
-    triggerAccessToken,
-  }: {
-    triggerTokenId: string;
-    triggerAccessToken: string;
-  },
-) => {
+export const getPartitionDocumentBody = async ({
+  document,
+  ingestJobConfig: _ingestJobConfig,
+  namespaceId,
+  triggerTokenId,
+  triggerAccessToken,
+}: {
+  document: Pick<Document, "id" | "name" | "source" | "config" | "tenantId">;
+  ingestJobConfig: IngestJob["config"];
+  namespaceId: string;
+  triggerTokenId: string;
+  triggerAccessToken: string;
+}) => {
   const body: Partial<PartitionBody> = {
     // notify_id: `partition-${uuidv4()}`,
     trigger_token_id: triggerTokenId,
@@ -126,7 +127,7 @@ export const getPartitionDocumentBody = async (
   }
 
   const { metadata: ingestJobMetadata, ...ingestJobConfig } =
-    ingestJob.config ?? {};
+    _ingestJobConfig ?? {};
   const { metadata: documentMetadata, ...documentConfig } =
     document.config ?? {};
 
@@ -134,7 +135,7 @@ export const getPartitionDocumentBody = async (
     ...(ingestJobMetadata ?? {}),
     ...(documentMetadata ?? {}), // document metadata overrides ingest job metadata
     ...(document.tenantId && { tenantId: document.tenantId }),
-    namespaceId: namespace.id,
+    namespaceId,
     documentId: document.id,
   };
 

@@ -57,6 +57,7 @@ export const organizationsRouter = createTRPCRouter({
             },
             take: 1,
             select: {
+              id: true,
               role: true,
             },
           },
@@ -71,7 +72,12 @@ export const organizationsRouter = createTRPCRouter({
       const isAdmin =
         members[0]?.role === "admin" || members[0]?.role === "owner";
 
-      return { ...org, isAdmin };
+      return {
+        ...org,
+        isAdmin,
+        isOwner: members[0]?.role === "owner",
+        currentMemberId: members[0]?.id,
+      };
     }),
   members: protectedProcedure
     .input(

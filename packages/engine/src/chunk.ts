@@ -3,23 +3,29 @@ import { nodeToMetadata } from "@llamaindex/core/vector-store";
 
 import type { PartitionBatch } from "./partition";
 
-export const makeChunk = ({
-  documentId,
-  embedding,
-  chunk,
-}: {
-  documentId: string;
-  embedding: number[];
-  chunk: PartitionBatch[number];
-}) => {
+export const makeChunk = (
+  {
+    documentId,
+    embedding,
+    chunk,
+  }: {
+    documentId: string;
+    embedding: number[];
+    chunk: PartitionBatch[number];
+  },
+  { removeTextFromMetadata = false }: { removeTextFromMetadata?: boolean } = {},
+) => {
   const node = chunkResultToLlamaIndex(chunk);
 
   return {
     id: `${documentId}#${chunk.id_}`,
     vector: embedding,
-    metadata: nodeToMetadata(node),
+    text: chunk.text,
+    metadata: nodeToMetadata(node, removeTextFromMetadata),
   };
 };
+
+export type Chunk = ReturnType<typeof makeChunk>;
 
 const objectTypeMap = {
   "1": ObjectType.TEXT,

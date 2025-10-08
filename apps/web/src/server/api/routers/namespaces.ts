@@ -1,4 +1,5 @@
 import type { ProtectedProcedureContext } from "@/server/api/trpc";
+import { createNamespaceSchema } from "@/schemas/api/namespace";
 import { createTRPCRouter, protectedProcedure } from "@/server/api/trpc";
 import { deleteNamespace } from "@/services/namespaces/delete";
 import {
@@ -9,7 +10,6 @@ import { TRPCError } from "@trpc/server";
 import { z } from "zod/v4";
 
 import { NamespaceStatus } from "@agentset/db";
-import { EmbeddingConfigSchema, VectorStoreSchema } from "@agentset/validation";
 
 const validateIsMember = async (
   ctx: ProtectedProcedureContext,
@@ -142,13 +142,11 @@ export const namespaceRouter = createTRPCRouter({
     }),
   createNamespace: protectedProcedure
     .input(
-      z.object({
-        orgId: z.string(),
-        name: z.string(),
-        slug: z.string(),
-        embeddingConfig: EmbeddingConfigSchema.optional(),
-        vectorStoreConfig: VectorStoreSchema.optional(),
-      }),
+      createNamespaceSchema.extend(
+        z.object({
+          orgId: z.string(),
+        }).shape,
+      ),
     )
     .mutation(async ({ ctx, input }) => {
       await validateIsMember(ctx, input.orgId, ["admin", "owner"]);
