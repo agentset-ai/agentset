@@ -1,10 +1,8 @@
-import { BaseNode } from "@llamaindex/core/schema";
-import { metadataDictToNode } from "@llamaindex/core/vector-store";
 import { Turbopuffer as TurbopufferClient } from "@turbopuffer/turbopuffer";
 
 import { filterFalsy } from "@agentset/utils";
 
-import { makeChunk } from "../../chunk";
+import { makeChunk, metadataToChunk } from "../../chunk";
 import {
   VectorStore,
   VectorStoreMetadata,
@@ -50,6 +48,7 @@ export class Turbopuffer implements VectorStore<TurbopufferVectorFilter> {
       top_k: params.topK,
       filters: filter,
       include_attributes: true,
+
       distance_metric: "cosine_distance",
       consistency: { level: "strong" },
     });
@@ -65,27 +64,22 @@ export class Turbopuffer implements VectorStore<TurbopufferVectorFilter> {
 
     // Parse metadata to nodes
     return filterFalsy(
-      results.map(({ id, $dist: distance, text, ...metadata }) => {
-        const nodeContent = metadata?._node_content;
-        if (!nodeContent) return null;
+      results.map(
+        ({ id, $dist: distance, text, vector: _vector, ...metadata }) => {
+          const node = metadataToChunk(metadata as VectorStoreMetadata);
+          if (!node) return null;
 
-        let node: BaseNode<VectorStoreMetadata>;
-        try {
-          node = metadataDictToNode(metadata!);
-        } catch (e) {
-          return null;
-        }
-
-        return {
-          id: id.toString(),
-          score: typeof distance === "number" ? 1 - distance : undefined,
-          text: text as string,
-          metadata: params.includeMetadata ? node.metadata : undefined,
-          relationships: params.includeRelationships
-            ? node.relationships
-            : undefined,
-        };
-      }),
+          return {
+            id: id.toString(),
+            score: typeof distance === "number" ? 1 - distance : undefined,
+            text: text as string,
+            metadata: params.includeMetadata ? node.metadata : undefined,
+            relationships: params.includeRelationships
+              ? node.relationships
+              : undefined,
+          };
+        },
+      ),
     );
   }
 

@@ -1,7 +1,8 @@
 import { describe, expect, it } from "vitest";
 
 import type { PartitionBatch } from "../src/partition";
-import { makeChunk } from "../src/chunk";
+import type { VectorStoreMetadata } from "../src/vector-store/common/vector-store";
+import { makeChunk, metadataToChunk } from "../src/chunk";
 
 describe("makeChunk", () => {
   const mockDocumentId = "doc-123";
@@ -457,6 +458,273 @@ describe("makeChunk", () => {
       expect(Array.isArray(result.vector)).toBe(true);
       expect(typeof result.text).toBe("string");
       expect(typeof result.metadata).toBe("object");
+    });
+  });
+});
+
+describe("metadataToChunk", () => {
+  describe("null/undefined handling", () => {
+    it("should return null when metadata is undefined", () => {
+      const result = metadataToChunk(undefined);
+      expect(result).toBeNull();
+    });
+
+    it("should return null when metadata is empty object", () => {
+      const result = metadataToChunk({});
+      expect(result).toBeNull();
+    });
+
+    it("should return null when metadata has no _node_content field", () => {
+      const metadata: VectorStoreMetadata = {
+        filename: "test.txt",
+        filetype: "text/plain",
+      };
+      const result = metadataToChunk(metadata);
+      expect(result).toBeNull();
+    });
+
+    it("should return null when _node_content is empty string", () => {
+      const metadata: VectorStoreMetadata = {
+        _node_content: "",
+      };
+      const result = metadataToChunk(metadata);
+      expect(result).toBeNull();
+    });
+  });
+
+  describe("valid metadata handling", () => {
+    it("should process valid metadata with _node_content", () => {
+      const nodeContent = JSON.stringify({
+        id_: "test-node-1",
+        text: "Test content",
+        metadata: {
+          filename: "test.txt",
+        },
+        type: "TEXT",
+      });
+
+      const metadata: VectorStoreMetadata = {
+        _node_content: nodeContent,
+        _node_type: "TextNode",
+      };
+
+      const result = metadataToChunk(metadata);
+      expect(result).toBeDefined();
+    });
+
+    it("should process metadata with node text", () => {
+      const nodeContent = JSON.stringify({
+        id_: "node-123",
+        text: "Sample text content",
+        metadata: {
+          source: "document.pdf",
+          page: 1,
+        },
+        type: "TEXT",
+      });
+
+      const metadata: VectorStoreMetadata = {
+        _node_content: nodeContent,
+        text: "Sample text content",
+      };
+
+      const result = metadataToChunk(metadata);
+      expect(result).toBeDefined();
+    });
+
+    it("should process metadata with relationships", () => {
+      const nodeContent = JSON.stringify({
+        id_: "node-456",
+        text: "Content with relationships",
+        metadata: {},
+        type: "TEXT",
+        relationships: {
+          SOURCE: {
+            nodeId: "source-node",
+            type: "DOCUMENT",
+          },
+        },
+      });
+
+      const metadata: VectorStoreMetadata = {
+        _node_content: nodeContent,
+        _node_type: "TextNode",
+      };
+
+      const result = metadataToChunk(metadata);
+      expect(result).toBeDefined();
+    });
+
+    it("should process metadata with custom fields", () => {
+      const nodeContent = JSON.stringify({
+        id_: "node-789",
+        text: "Content with custom metadata",
+        metadata: {
+          custom_field_1: "value1",
+          custom_field_2: 42,
+          tags: ["tag1", "tag2"],
+        },
+        type: "TEXT",
+      });
+
+      const metadata: VectorStoreMetadata = {
+        _node_content: nodeContent,
+        _node_type: "TextNode",
+        custom_field_1: "value1",
+        custom_field_2: 42,
+      };
+
+      const result = metadataToChunk(metadata);
+      expect(result).toBeDefined();
+    });
+  });
+
+  describe("error handling", () => {
+    it("should return null when _node_content is invalid JSON", () => {
+      const metadata: VectorStoreMetadata = {
+        _node_content: "invalid-json-{",
+      };
+
+      const result = metadataToChunk(metadata);
+      expect(result).toBeNull();
+    });
+
+    it("should return null when _node_content has malformed structure", () => {
+      const metadata: VectorStoreMetadata = {
+        _node_content: JSON.stringify({ incomplete: "data" }),
+      };
+
+      const result = metadataToChunk(metadata);
+      expect(result).toBeNull();
+    });
+
+    it("should return null when metadataDictToNode throws error", () => {
+      const metadata: VectorStoreMetadata = {
+        _node_content: JSON.stringify({
+          id_: null,
+          text: null,
+        }),
+      };
+
+      const result = metadataToChunk(metadata);
+      expect(result).toBeNull();
+    });
+  });
+
+  describe("edge cases", () => {
+    it("should handle metadata with numeric _node_content", () => {
+      const metadata: VectorStoreMetadata = {
+        _node_content: 12345,
+      };
+
+      const result = metadataToChunk(metadata);
+      expect(result).toBeNull();
+    });
+
+    it("should handle metadata with boolean _node_content", () => {
+      const metadata: VectorStoreMetadata = {
+        _node_content: true,
+      };
+
+      const result = metadataToChunk(metadata);
+      expect(result).toBeNull();
+    });
+
+    it("should handle metadata with array _node_content", () => {
+      const metadata: VectorStoreMetadata = {
+        _node_content: ["array", "values"],
+      };
+
+      const result = metadataToChunk(metadata);
+      expect(result).toBeNull();
+    });
+
+    it("should handle very large _node_content", () => {
+      const largeText = "x".repeat(100000);
+      const nodeContent = JSON.stringify({
+        id_: "large-node",
+        text: largeText,
+        metadata: {},
+        type: "TEXT",
+      });
+
+      const metadata: VectorStoreMetadata = {
+        _node_content: nodeContent,
+      };
+
+      const result = metadataToChunk(metadata);
+      expect(result).toBeDefined();
+    });
+
+    it("should handle special characters in _node_content", () => {
+      const nodeContent = JSON.stringify({
+        id_: "special-node",
+        text: "Special: 你好 🚀 \n\t\r \\",
+        metadata: {
+          emoji: "🎉",
+        },
+        type: "TEXT",
+      });
+
+      const metadata: VectorStoreMetadata = {
+        _node_content: nodeContent,
+      };
+
+      const result = metadataToChunk(metadata);
+      expect(result).toBeDefined();
+    });
+  });
+
+  describe("different node types", () => {
+    it("should handle TEXT node type", () => {
+      const nodeContent = JSON.stringify({
+        id_: "text-node",
+        text: "Text node content",
+        metadata: {},
+        type: "TEXT",
+      });
+
+      const metadata: VectorStoreMetadata = {
+        _node_content: nodeContent,
+        _node_type: "TextNode",
+      };
+
+      const result = metadataToChunk(metadata);
+      expect(result).toBeDefined();
+    });
+
+    it("should handle DOCUMENT node type", () => {
+      const nodeContent = JSON.stringify({
+        id_: "doc-node",
+        text: "Document content",
+        metadata: {},
+        type: "DOCUMENT",
+      });
+
+      const metadata: VectorStoreMetadata = {
+        _node_content: nodeContent,
+        _node_type: "Document",
+      };
+
+      const result = metadataToChunk(metadata);
+      expect(result).toBeDefined();
+    });
+
+    it("should handle INDEX node type", () => {
+      const nodeContent = JSON.stringify({
+        id_: "index-node",
+        text: "Index summary",
+        metadata: {},
+        type: "INDEX",
+      });
+
+      const metadata: VectorStoreMetadata = {
+        _node_content: nodeContent,
+        _node_type: "IndexNode",
+      };
+
+      const result = metadataToChunk(metadata);
+      expect(result).toBeDefined();
     });
   });
 });

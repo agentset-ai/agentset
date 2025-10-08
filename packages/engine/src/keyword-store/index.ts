@@ -9,8 +9,8 @@ import {
   SearchClient,
 } from "@azure/search-documents";
 import { MetadataMode, TextNode } from "@llamaindex/core/schema";
-import { metadataDictToNode } from "@llamaindex/core/vector-store";
 
+import { metadataToChunk } from "../chunk";
 import { env } from "../env";
 import { VectorStoreResult } from "../vector-store/common/vector-store";
 
@@ -138,9 +138,9 @@ export class KeywordStore {
           metadata[key] = document[key];
         });
 
-        const node = metadata._node_content
-          ? metadataDictToNode(metadata)
-          : new TextNode({ id_: id, text: document.text, metadata });
+        const node =
+          metadataToChunk(metadata) ||
+          new TextNode({ id_: id, text: document.text, metadata });
 
         return {
           id,

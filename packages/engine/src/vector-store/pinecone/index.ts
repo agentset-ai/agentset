@@ -1,13 +1,11 @@
-import { BaseNode, MetadataMode } from "@llamaindex/core/schema";
-import { metadataDictToNode } from "@llamaindex/core/vector-store";
+import { MetadataMode } from "@llamaindex/core/schema";
 import { Index, Pinecone as PineconeClient } from "@pinecone-database/pinecone";
 
 import { filterFalsy } from "@agentset/utils";
 
-import { makeChunk } from "../../chunk";
+import { makeChunk, metadataToChunk } from "../../chunk";
 import {
   VectorStore,
-  VectorStoreMetadata,
   VectorStoreQueryOptions,
   VectorStoreQueryResponse,
   VectorStoreUpsertOptions,
@@ -58,15 +56,8 @@ export class Pinecone implements VectorStore<PineconeVectorFilter> {
     // Parse metadata to nodes
     return filterFalsy(
       results.map((match) => {
-        const nodeContent = match.metadata?._node_content;
-        if (!nodeContent) return null;
-
-        let node: BaseNode<VectorStoreMetadata>;
-        try {
-          node = metadataDictToNode(match.metadata!);
-        } catch (e) {
-          return null;
-        }
+        const node = metadataToChunk(match.metadata);
+        if (!node) return null;
 
         return {
           id: match.id,

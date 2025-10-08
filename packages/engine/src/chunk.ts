@@ -1,7 +1,11 @@
 import { jsonToNode, ObjectType } from "@llamaindex/core/schema";
-import { nodeToMetadata } from "@llamaindex/core/vector-store";
+import {
+  metadataDictToNode,
+  nodeToMetadata,
+} from "@llamaindex/core/vector-store";
 
 import type { PartitionBatch } from "./partition";
+import { VectorStoreMetadata } from "./vector-store/common/vector-store";
 
 export const makeChunk = (
   {
@@ -23,6 +27,18 @@ export const makeChunk = (
     text: chunk.text,
     metadata: nodeToMetadata(node, removeTextFromMetadata),
   };
+};
+
+export const metadataToChunk = (metadata?: VectorStoreMetadata) => {
+  const nodeContent = metadata?._node_content;
+  if (!nodeContent) return null;
+
+  try {
+    const node = metadataDictToNode(metadata);
+    return metadataDictToNode(node);
+  } catch (e) {
+    return null;
+  }
 };
 
 export type Chunk = ReturnType<typeof makeChunk>;
