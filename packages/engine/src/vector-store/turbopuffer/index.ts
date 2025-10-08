@@ -135,6 +135,6 @@ export class Turbopuffer implements VectorStore<TurbopufferVectorFilter> {
 
   async getDimensions() {
     const response = await this.client.metadata();
-    return (response as unknown as { dimensions: number }).dimensions;
+    return (response as unknown as { dimensions?: number }).dimensions || "ANY";
   }
 }
