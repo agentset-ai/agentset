@@ -28,7 +28,20 @@ export class Turbopuffer implements VectorStore<TurbopufferVectorFilter> {
   private readonly filterTranslator = new TurbopufferFilterTranslator();
   private didSendSchema = false;
 
-  constructor({ apiKey, namespace }: { apiKey: string; namespace: string }) {
+  constructor({
+    apiKey,
+    namespaceId,
+    tenantId,
+  }: {
+    apiKey: string;
+    namespaceId: string;
+    tenantId?: string;
+  }) {
+    // note that Turbopuffer uses allows `[A-Za-z0-9-_.]{1,128}`
+    // @see https://turbopuffer.com/docs/write
+    // our max size will be as_ (3) + namespaceId (25) + _ (1) + tenantId (64) = 93
+    const namespace = `as_${namespaceId}${tenantId ? `_${tenantId}` : ""}`;
+
     this.client = new TurbopufferClient({
       apiKey,
       region: "aws-us-east-1",

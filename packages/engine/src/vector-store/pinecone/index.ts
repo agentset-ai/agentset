@@ -19,12 +19,15 @@ export class Pinecone implements VectorStore<PineconeVectorFilter> {
   constructor({
     apiKey,
     indexHost,
-    namespace,
+    namespaceId,
+    tenantId,
   }: {
     apiKey: string;
     indexHost: string;
-    namespace: string;
+    namespaceId: string;
+    tenantId?: string;
   }) {
+    const namespace = `agentset:${namespaceId}${tenantId ? `:${tenantId}` : ""}`;
     this.client = new PineconeClient({ apiKey })
       .index("", indexHost)
       .namespace(namespace);

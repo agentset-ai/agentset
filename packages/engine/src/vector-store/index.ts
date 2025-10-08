@@ -7,8 +7,11 @@ export const getNamespaceVectorStore = async (
   namespace: Pick<Namespace, "vectorStoreConfig" | "id">,
   tenant?: string,
 ): Promise<VectorStore> => {
-  let config = structuredClone(namespace.vectorStoreConfig);
-  const vectorStoreNamespace = `agentset:${namespace.id}${tenant ? `:${tenant}` : ""}`;
+  let config = namespace.vectorStoreConfig;
+  const commonConfig = {
+    namespaceId: namespace.id,
+    tenantId: tenant,
+  };
 
   // TODO: handle different embedding models
   // NOTE: this technically should never happen because we should always have a vector store config
@@ -41,7 +44,7 @@ export const getNamespaceVectorStore = async (
       return new Pinecone({
         apiKey,
         indexHost,
-        namespace: vectorStoreNamespace,
+        ...commonConfig,
       }) as VectorStore;
     }
 
@@ -54,7 +57,7 @@ export const getNamespaceVectorStore = async (
           config.provider === "MANAGED_TURBOPUFFER"
             ? env.DEFAULT_TURBOPUFFER_API_KEY
             : config.apiKey,
-        namespace: vectorStoreNamespace,
+        ...commonConfig,
       });
     }
 
