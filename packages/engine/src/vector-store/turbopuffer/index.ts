@@ -52,6 +52,37 @@ export class Turbopuffer implements VectorStore<TurbopufferVectorFilter> {
     }).namespace(namespace);
   }
 
+  // ===============================================
+  // Rank Fusion
+  // ===============================================
+  // There are many ways to fuse the results, see https://github.com/AmenRa/ranx?tab=readme-ov-file#fusion-algorithms
+  // That's why it's not built into turbopuffer (yet), as you may otherwise not be
+  // able to express the fusing you need.
+  private reciprocalRankFusion(
+    resultLists: TurbopufferClient.Row[][],
+    k: number,
+  ): TurbopufferClient.Row[] {
+    const scores: { [key: string]: number } = {};
+    const allResults: { [key: string]: TurbopufferClient.Row } = {};
+    for (const results of resultLists) {
+      for (let rank = 1; rank <= results.length; rank++) {
+        const item = results[rank - 1]!;
+        scores[item.id] = (scores[item.id] || 0) + 1.0 / (k + rank);
+        allResults[item.id] = item;
+      }
+    }
+
+    return Object.entries(scores)
+      .sort(([, a], [, b]) => b - a)
+      .map(([docId]) => allResults[docId]!);
+  }
+
+  // $dist is the cosine distance between 0 and 2, lower is better
+  // we convert it to a number between 0 and 1
+  private normalizeDistance(distance: number) {
+    return (2 - distance) / 2;
+  }
+
   async query(
     params: VectorStoreQueryOptions<TurbopufferVectorFilter>,
   ): Promise<VectorStoreQueryResponse> {
@@ -61,27 +92,62 @@ export class Turbopuffer implements VectorStore<TurbopufferVectorFilter> {
     });
 
     try {
-      const result = await this.client.query(
-        {
-          rank_by: ["vector", "ANN", params.vector],
-          top_k: params.topK,
-          filters: filter,
-          include_attributes: params.includeMetadata
-            ? undefined
-            : ["id", "text"],
-          exclude_attributes: params.includeMetadata ? ["vector"] : undefined,
-          distance_metric: "cosine_distance",
-          // consistency: { level: "strong" },
-        },
-        {},
-      );
+      let results: TurbopufferClient.Row[] = [];
+      const commonQueryParams: TurbopufferClient.NamespaceQueryParams = {
+        top_k: params.topK,
+        filters: filter,
+        include_attributes: params.includeMetadata ? undefined : ["id", "text"],
+        exclude_attributes: params.includeMetadata ? ["vector"] : undefined,
+      };
 
-      let results = result.rows ?? [];
-      if (typeof params.minScore === "number") {
+      if (params.mode.type === "semantic" || params.mode.type === "keyword") {
+        const result = await this.client.query({
+          ...commonQueryParams,
+          ...(params.mode.type === "semantic"
+            ? {
+                rank_by: ["vector", "ANN", params.mode.vector],
+                distance_metric: "cosine_distance",
+              }
+            : { rank_by: ["text", "BM25", params.mode.text] }),
+        });
+        results = result.rows ?? [];
+      } else {
+        // hybrid mode
+        // we need to implement RRF (Reciprocal Rank Fusion)
+        // @see https://turbopuffer.com/docs/hybrid
+        const result = await this.client.multiQuery({
+          queries: [
+            {
+              ...commonQueryParams,
+              rank_by: ["vector", "ANN", params.mode.vector],
+              distance_metric: "cosine_distance",
+            },
+            {
+              ...commonQueryParams,
+              rank_by: ["text", "BM25", params.mode.text],
+            },
+          ],
+        });
+
+        results = this.reciprocalRankFusion(
+          [
+            result.results[0]?.rows ?? [], // vector
+            result.results[1]?.rows ?? [], // text
+          ],
+          params.topK,
+        );
+      }
+
+      // Filter by minimum score only for semantic mode
+      // because otherwise the scores will not be between 0 and 1
+      if (
+        params.mode.type === "semantic" &&
+        typeof params.minScore === "number"
+      ) {
         results = results.filter(
           (match) =>
             typeof match.$dist === "number" &&
-            1 - match.$dist >= params.minScore!,
+            this.normalizeDistance(match.$dist!) >= params.minScore!,
         );
       }
 
@@ -101,10 +167,10 @@ export class Turbopuffer implements VectorStore<TurbopufferVectorFilter> {
 
           return {
             id: id.toString(),
-            // $dist is the cosine distance between 0 and 2, lower is better
-            // we convert it to a number between 0 and 1
             score:
-              typeof distance === "number" ? (2 - distance) / 2 : undefined,
+              typeof distance === "number"
+                ? this.normalizeDistance(distance)
+                : undefined,
             text: text as string,
             metadata: finalMetadata,
             relationships: finalRelationships,

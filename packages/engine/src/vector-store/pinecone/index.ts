@@ -36,13 +36,17 @@ export class Pinecone implements VectorStore<PineconeVectorFilter> {
   async query(
     params: VectorStoreQueryOptions<PineconeVectorFilter>,
   ): Promise<VectorStoreQueryResponse> {
-    const translatedFilter = this.filterTranslator.translate(params.filter);
+    const mode = params.mode;
+    if (mode.type !== "semantic") {
+      throw new Error("Pinecone does not support hybrid mode");
+    }
 
+    const translatedFilter = this.filterTranslator.translate(params.filter);
     const result = await this.client.query({
       ...(params.id && { id: params.id }),
       topK: params.topK,
       filter: translatedFilter ?? undefined,
-      vector: params.vector,
+      vector: mode.vector,
       includeMetadata: true,
     });
 

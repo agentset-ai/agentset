@@ -18,12 +18,6 @@ export const queryVectorStore = async ({
   vectorStore,
   ...options
 }: QueryVectorStoreOptions) => {
-  // TODO: if the embedding model is managed, track the usage
-  // const [embeddingModel, vectorStore] = await Promise.all([
-  //   getNamespaceEmbeddingModel(namespace),
-  //   getNamespaceVectorStore(namespace, options.tenantId),
-  // ]);
-
   const embedding = await embed({
     model: embeddingModel,
     value: options.query,
@@ -31,7 +25,10 @@ export const queryVectorStore = async ({
 
   // TODO: track usage
   const results = await vectorStore.query({
-    vector: embedding.embedding,
+    mode: {
+      type: "semantic",
+      vector: embedding.embedding,
+    },
     topK: options.topK,
     filter: options.filter,
     minScore: options.minScore,
