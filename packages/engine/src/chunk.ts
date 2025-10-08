@@ -35,8 +35,8 @@ export const metadataToChunk = (metadata?: VectorStoreMetadata) => {
 
   try {
     const node = metadataDictToNode(metadata);
-    return metadataDictToNode(node);
-  } catch (e) {
+    return node;
+  } catch {
     return null;
   }
 };
