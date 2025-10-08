@@ -9,6 +9,7 @@ import {
   MessagesSquareIcon,
   ReceiptIcon,
   RocketIcon,
+  SearchIcon,
   SettingsIcon,
   UnplugIcon,
   UsersIcon,
@@ -88,8 +89,18 @@ export const namespaceItems: SidebarItemType[] = [
   },
   {
     title: "Playground",
-    url: createNamespaceUrl("/playground"),
     icon: MessagesSquareIcon,
+    items: [
+      {
+        title: "Chat",
+        url: createNamespaceUrl("/playground"),
+        exact: true,
+      },
+      {
+        title: "Search",
+        url: createNamespaceUrl("/playground/search"),
+      },
+    ],
   },
   {
     title: "Hosting",
