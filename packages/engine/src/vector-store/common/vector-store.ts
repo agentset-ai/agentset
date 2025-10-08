@@ -1,4 +1,7 @@
-import type { NodeRelationship, RelatedNodeType } from "llamaindex";
+import type {
+  NodeRelationship,
+  RelatedNodeType,
+} from "@llamaindex/core/schema";
 
 import { PartitionBatch } from "../../partition";
 import { VectorFilter } from "./filter";

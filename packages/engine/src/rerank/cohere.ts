@@ -28,7 +28,6 @@ export class CohereReranker extends Reranker {
         query: options.query,
         topN: options.limit,
         model: "rerank-v3.5",
-        returnDocuments: false,
       }),
     );
 
