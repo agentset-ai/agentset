@@ -39,7 +39,7 @@ export class Pinecone implements VectorStore<PineconeVectorFilter> {
     const translatedFilter = this.filterTranslator.translate(params.filter);
 
     const result = await this.client.query({
-      id: params.id,
+      ...(params.id && { id: params.id }),
       topK: params.topK,
       filter: translatedFilter ?? undefined,
       vector: params.vector,
@@ -99,9 +99,7 @@ export class Pinecone implements VectorStore<PineconeVectorFilter> {
 
   async deleteByFilter(filter: PineconeVectorFilter) {
     const translatedFilter = this.filterTranslator.translate(filter);
-    await this.client.deleteMany({
-      filter: translatedFilter ?? undefined,
-    });
+    await this.client.deleteMany((translatedFilter as any) ?? undefined);
     return { deleted: undefined };
   }
 
