@@ -1,6 +1,6 @@
+import { BaseNode, MetadataMode } from "@llamaindex/core/schema";
 import { metadataDictToNode } from "@llamaindex/core/vector-store";
 import { Index, Pinecone as PineconeClient } from "@pinecone-database/pinecone";
-import { BaseNode, MetadataMode } from "llamaindex";
 
 import { filterFalsy } from "@agentset/utils";
 

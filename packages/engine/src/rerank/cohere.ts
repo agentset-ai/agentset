@@ -1,4 +1,3 @@
-import { MetadataMode } from "@llamaindex/core/schema";
 import { CohereClientV2 } from "cohere-ai";
 
 import { tryCatch } from "@agentset/utils";

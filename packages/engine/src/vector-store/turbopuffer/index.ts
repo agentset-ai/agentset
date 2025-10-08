@@ -1,6 +1,6 @@
+import { BaseNode } from "@llamaindex/core/schema";
 import { metadataDictToNode } from "@llamaindex/core/vector-store";
 import { Turbopuffer as TurbopufferClient } from "@turbopuffer/turbopuffer";
-import { BaseNode } from "llamaindex";
 
 import { filterFalsy } from "@agentset/utils";
 
