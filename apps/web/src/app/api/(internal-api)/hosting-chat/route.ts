@@ -122,7 +122,7 @@ export const POST = withPublicApiHandler(
         embeddingModel,
         vectorStore,
         topK: 50,
-        rerank: { limit: 15 },
+        rerank: { model: "cohere", limit: 15 },
         includeMetadata: true,
       },
       systemPrompt: hosting.systemPrompt ?? DEFAULT_SYSTEM_PROMPT.compile(),

@@ -31,6 +31,7 @@
     "@turbopuffer/turbopuffer": "^1.2.0",
     "cohere-ai": "^7.19.0",
     "voyage-ai-provider": "^2.0.0",
+    "zeroentropy": "0.1.0-alpha.6",
     "zod": "catalog:"
   },
   "devDependencies": {

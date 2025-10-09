@@ -22,6 +22,7 @@ export const env = createEnv({
     DEFAULT_AZURE_LLM_DEPLOYMENT: z.string(),
 
     DEFAULT_COHERE_API_KEY: z.string(),
+    DEFAULT_ZEROENTROPY_API_KEY: z.string(),
 
     PARTITION_API_KEY: z.string(),
     PARTITION_API_URL: z.url(),
@@ -46,6 +47,7 @@ export const env = createEnv({
     DEFAULT_AZURE_LLM_DEPLOYMENT: process.env.DEFAULT_AZURE_LLM_DEPLOYMENT,
 
     DEFAULT_COHERE_API_KEY: process.env.DEFAULT_COHERE_API_KEY,
+    DEFAULT_ZEROENTROPY_API_KEY: process.env.DEFAULT_ZEROENTROPY_API_KEY,
 
     PARTITION_API_KEY: process.env.PARTITION_API_KEY,
     PARTITION_API_URL: process.env.PARTITION_API_URL,
