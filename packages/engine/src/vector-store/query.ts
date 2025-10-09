@@ -3,10 +3,7 @@ import { embed, EmbeddingModel } from "ai";
 import { CohereReranker } from "../rerank/cohere";
 import { VectorStore, VectorStoreQueryOptions } from "./common/vector-store";
 
-export type QueryVectorStoreOptions = Omit<
-  VectorStoreQueryOptions,
-  "vector"
-> & {
+export type QueryVectorStoreOptions = Omit<VectorStoreQueryOptions, "mode"> & {
   query: string;
   embeddingModel: EmbeddingModel;
   vectorStore: VectorStore;
