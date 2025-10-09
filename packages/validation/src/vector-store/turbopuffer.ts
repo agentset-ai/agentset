@@ -1,6 +1,7 @@
 import { z } from "zod/v4";
 
 const turboPufferRegions = [
+  "gcp-us-central1",
   "gcp-us-west1",
   "gcp-us-east4",
   "gcp-northamerica-northeast2",
