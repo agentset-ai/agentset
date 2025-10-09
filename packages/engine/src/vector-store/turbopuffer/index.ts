@@ -26,7 +26,9 @@ const schema = {
 };
 
 export class Turbopuffer implements VectorStore<TurbopufferVectorFilter> {
+  private readonly _client: TurbopufferClient;
   private readonly client: TurbopufferClient.Namespace;
+
   private readonly filterTranslator = new TurbopufferFilterTranslator();
   private didSendSchema = false;
 
@@ -46,10 +48,8 @@ export class Turbopuffer implements VectorStore<TurbopufferVectorFilter> {
     // our max size will be as_ (3) + namespaceId (25) + _ (1) + tenantId (64) = 93
     const namespace = `as_${namespaceId}${tenantId ? `_${tenantId}` : ""}`;
 
-    this.client = new TurbopufferClient({
-      apiKey,
-      region,
-    }).namespace(namespace);
+    this._client = new TurbopufferClient({ apiKey, region });
+    this.client = this._client.namespace(namespace);
   }
 
   // ===============================================
@@ -235,7 +235,18 @@ export class Turbopuffer implements VectorStore<TurbopufferVectorFilter> {
   }
 
   async getDimensions() {
-    const response = await this.client.metadata();
-    return (response as unknown as { dimensions?: number }).dimensions || "ANY";
+    const test = this._client.namespace("_agentset_test");
+    // try creating a test row and deleting it to validate api key
+    await test.write({
+      upsert_rows: [
+        {
+          id: 1,
+          vector: [1, 2, 3],
+        },
+      ],
+    });
+    await test.deleteAll();
+
+    return "ANY" as const;
   }
 }

@@ -36,20 +36,21 @@ export const validateVectorStoreConfig = async (
   // one of either vector store config or embedding config is provided
   // TODO: make this dynamic
   let vectorStoreDimensions: number;
-  try {
-    const v = await getNamespaceVectorStore({
-      id: "",
-      vectorStoreConfig,
-    });
-    const dimensions = await v.getDimensions();
-    vectorStoreDimensions =
-      dimensions === "ANY" ? embeddingDimensions : dimensions;
-  } catch {
-    return {
-      success: false as const,
-      error:
-        "Failed to validate vector store config, make sure the API key is valid",
-    };
+  if (vectorStoreConfig.provider === "MANAGED_TURBOPUFFER") {
+    vectorStoreDimensions = embeddingDimensions;
+  } else {
+    try {
+      const v = await getNamespaceVectorStore({ id: "", vectorStoreConfig });
+      const dimensions = await v.getDimensions();
+      vectorStoreDimensions =
+        dimensions === "ANY" ? embeddingDimensions : dimensions;
+    } catch {
+      return {
+        success: false as const,
+        error:
+          "Failed to validate vector store config, make sure the API key is valid",
+      };
+    }
   }
 
   if (vectorStoreDimensions !== embeddingDimensions) {
