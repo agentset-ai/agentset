@@ -139,14 +139,11 @@ export const processDocument = schemaTask({
     // Get embedding model and vector store
     const [embeddingModel, vectorStore] = await Promise.all([
       getNamespaceEmbeddingModel(ingestJob.namespace, "document"),
-      getNamespaceVectorStore(
-        ingestJob.namespace,
-        document.tenantId ?? undefined,
-      ),
+      getNamespaceVectorStore(ingestJob.namespace, document.tenantId),
     ]);
 
     const keywordStore = ingestJob.namespace.keywordEnabled
-      ? new KeywordStore(ingestJob.namespace.id, document.tenantId ?? undefined)
+      ? new KeywordStore(ingestJob.namespace.id, document.tenantId)
       : null;
 
     // Clean up existing chunks if requested

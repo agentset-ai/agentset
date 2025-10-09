@@ -5,12 +5,12 @@ import { VectorStore } from "./common/vector-store";
 
 export const getNamespaceVectorStore = async (
   namespace: Pick<Namespace, "vectorStoreConfig" | "id">,
-  tenant?: string,
+  tenant?: string | null,
 ): Promise<VectorStore> => {
   let config = namespace.vectorStoreConfig;
   const commonConfig = {
     namespaceId: namespace.id,
-    tenantId: tenant,
+    tenantId: tenant ?? undefined,
   };
 
   // TODO: handle different embedding models

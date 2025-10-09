@@ -60,7 +60,7 @@ export const deleteDocument = schemaTask({
     // Get vector store and clean up chunks
     const vectorStore = await getNamespaceVectorStore(
       namespace,
-      document.tenantId ?? undefined,
+      document.tenantId,
     );
 
     const deletedChunks = await vectorStore.deleteByFilter({
@@ -69,10 +69,7 @@ export const deleteDocument = schemaTask({
 
     // Clean up keyword store if enabled
     if (namespace.keywordEnabled) {
-      const keywordStore = new KeywordStore(
-        namespace.id,
-        document.tenantId ?? undefined,
-      );
+      const keywordStore = new KeywordStore(namespace.id, document.tenantId);
 
       let page = 1;
       let hasNextPage = true;

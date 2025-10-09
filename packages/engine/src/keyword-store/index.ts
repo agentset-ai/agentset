@@ -50,7 +50,7 @@ const safeParse = (json: string) => {
 export class KeywordStore {
   constructor(
     private readonly namespaceId: string,
-    private readonly tenantId?: string,
+    private readonly tenantId?: string | null,
   ) {}
 
   private async asyncIterableToArray<T extends object>(

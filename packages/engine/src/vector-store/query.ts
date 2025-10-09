@@ -23,8 +23,9 @@ export const queryVectorStore = async ({
   // TODO: track usage
   const results = await vectorStore.query({
     mode: {
-      type: "semantic",
+      type: "hybrid",
       vector: embedding.embedding,
+      text: options.query,
     },
     topK: options.topK,
     filter: options.filter,

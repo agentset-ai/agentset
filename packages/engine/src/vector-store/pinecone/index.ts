@@ -37,8 +37,9 @@ export class Pinecone implements VectorStore<PineconeVectorFilter> {
     params: VectorStoreQueryOptions<PineconeVectorFilter>,
   ): Promise<VectorStoreQueryResponse> {
     const mode = params.mode;
-    if (mode.type !== "semantic") {
-      throw new Error("Pinecone does not support hybrid mode");
+    // TODO: implement real keyword + hybrid search for pinecone
+    if (mode.type === "keyword") {
+      throw new Error("Pinecone does not support keyword mode");
     }
 
     const translatedFilter = this.filterTranslator.translate(params.filter);
