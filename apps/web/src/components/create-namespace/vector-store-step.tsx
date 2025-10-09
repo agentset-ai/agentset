@@ -86,11 +86,15 @@ export default function CreateNamespaceVectorStoreStep({
     return Object.keys(shape)
       .filter((key) => key !== "provider")
       .map((key) => {
-        const field = shape[key as keyof typeof shape];
+        const field = shape[key as keyof typeof shape] as z.ZodType;
 
         return {
           name: key,
           isOptional: field.safeParse(undefined).success,
+          options:
+            field.type === "enum"
+              ? ((field as z.ZodEnum).options as string[])
+              : undefined,
         };
       });
   }, [currentVectorProvider]);
@@ -164,9 +168,31 @@ export default function CreateNamespaceVectorStoreStep({
                       )}
                     </FormLabel>
 
-                    <FormControl>
-                      <Input {...field} />
-                    </FormControl>
+                    {key.options ? (
+                      <FormControl>
+                        <Select
+                          value={field.value}
+                          defaultValue={field.value}
+                          onValueChange={field.onChange}
+                        >
+                          <SelectTrigger className="w-xs">
+                            <SelectValue placeholder="Select an option" />
+                          </SelectTrigger>
+
+                          <SelectContent>
+                            {key.options.map((option) => (
+                              <SelectItem key={option} value={option}>
+                                {option}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </FormControl>
+                    ) : (
+                      <FormControl>
+                        <Input {...field} />
+                      </FormControl>
+                    )}
 
                     <FormMessage />
                   </FormItem>
