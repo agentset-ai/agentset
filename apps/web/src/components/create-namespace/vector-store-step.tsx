@@ -92,8 +92,8 @@ export default function CreateNamespaceVectorStoreStep({
           name: key,
           isOptional: field.safeParse(undefined).success,
           options:
-            field.type === "enum"
-              ? ((field as z.ZodEnum).options as string[])
+            field instanceof z.ZodEnum
+              ? (field.options as string[])
               : undefined,
         };
       });
