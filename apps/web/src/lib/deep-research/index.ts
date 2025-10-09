@@ -34,8 +34,7 @@ type ModelConfig = {
  * to final report synthesis.
  */
 export class DeepResearchPipeline {
-  private namespace: Namespace;
-  private queryOptions?: Omit<QueryVectorStoreOptions, "query">;
+  private queryOptions: Omit<QueryVectorStoreOptions, "query">;
 
   private modelConfig: ModelConfig;
   private researchConfig: typeof RESEARCH_CONFIG;
@@ -53,25 +52,21 @@ export class DeepResearchPipeline {
     sources: z.array(z.number()).describe("List of source indices to keep"),
   });
 
-  constructor(
-    namespace: Namespace,
-    {
-      researchConfig = RESEARCH_CONFIG,
-      prompts = PROMPTS,
-      modelConfig,
-      queryOptions,
-      ...options
-    }: {
-      modelConfig: ModelConfig;
-      queryOptions?: Omit<QueryVectorStoreOptions, "query">;
-      researchConfig?: typeof RESEARCH_CONFIG;
-      prompts?: typeof PROMPTS;
-      maxQueries?: number;
-      maxSources?: number;
-      maxCompletionTokens?: number;
-    },
-  ) {
-    this.namespace = namespace;
+  constructor({
+    researchConfig = RESEARCH_CONFIG,
+    prompts = PROMPTS,
+    modelConfig,
+    queryOptions,
+    ...options
+  }: {
+    modelConfig: ModelConfig;
+    queryOptions: Omit<QueryVectorStoreOptions, "query">;
+    researchConfig?: typeof RESEARCH_CONFIG;
+    prompts?: typeof PROMPTS;
+    maxQueries?: number;
+    maxSources?: number;
+    maxCompletionTokens?: number;
+  }) {
     this.modelConfig = modelConfig;
     this.queryOptions = queryOptions;
     this.researchConfig = researchConfig;
@@ -153,9 +148,9 @@ export class DeepResearchPipeline {
       );
     }
 
-    const searchResults = await queryVectorStore(this.namespace, {
-      ...(this.queryOptions ?? { topK: 10 }),
+    const searchResults = await queryVectorStore({
       query,
+      ...this.queryOptions,
     });
     const results = (searchResults?.results ?? []).map((result) => {
       return new SearchResult({

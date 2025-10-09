@@ -1,20 +1,16 @@
-import type { BaseNode, Metadata } from "llamaindex";
+import { VectorStoreResult } from "../vector-store/common/vector-store";
 
 export interface RerankOptions {
   limit: number;
   query: string;
 }
 
-export interface BaseRerankDocument {
-  node: BaseNode<Metadata>;
-}
-
-export type RerankResult<T extends BaseRerankDocument> = T & {
+export type RerankResult<T extends VectorStoreResult> = T & {
   rerankScore?: number;
 };
 
-export abstract class BaseReranker {
-  abstract rerank<T extends BaseRerankDocument>(
+export abstract class Reranker {
+  abstract rerank<T extends VectorStoreResult>(
     results: T[],
     options: RerankOptions,
   ): Promise<RerankResult<T>[]>;

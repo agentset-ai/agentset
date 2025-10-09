@@ -1,5 +1,3 @@
-"use client";
-
 import { useEffect, useMemo, useState } from "react";
 import { logEvent } from "@/lib/analytics";
 import { useTRPC } from "@/trpc/react";
@@ -7,7 +5,10 @@ import { useRouter } from "@bprogress/next/app";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 
-import type { EmbeddingConfig, VectorStoreConfig } from "@agentset/validation";
+import type {
+  CreateVectorStoreConfig,
+  EmbeddingConfig,
+} from "@agentset/validation";
 import {
   Dialog,
   DialogContent,
@@ -37,6 +38,7 @@ export default function CreateNamespaceDialog({
   const [step, setStep] = useState<"details" | "embeddings" | "vector-store">(
     "details",
   );
+  const [embeddingModel, setEmbeddingModel] = useState<EmbeddingConfig>();
 
   const defaultName = useMemo(() => {
     return organization?.name
@@ -45,17 +47,12 @@ export default function CreateNamespaceDialog({
   }, [organization]);
   const defaultSlug = useMemo(() => toSlug(defaultName), [defaultName]);
 
-  const [name, setName] = useState(defaultName);
-  const [slug, setSlug] = useState(defaultSlug);
-
   useEffect(() => {
     setName(defaultName);
     setSlug(toSlug(defaultName));
   }, [defaultName]);
-
-  const [embeddingModel, setEmbeddingModel] = useState<
-    EmbeddingConfig | undefined
-  >(undefined);
+  const [name, setName] = useState(defaultName);
+  const [slug, setSlug] = useState(defaultSlug);
 
   const { isPending, mutateAsync: createNamespace } = useMutation(
     trpc.namespace.createNamespace.mutationOptions({
@@ -100,7 +97,7 @@ export default function CreateNamespaceDialog({
     }),
   );
 
-  const onSubmit = async (vectorStore?: VectorStoreConfig) => {
+  const onSubmit = async (vectorStore?: CreateVectorStoreConfig) => {
     if (!organization) return;
 
     await createNamespace({

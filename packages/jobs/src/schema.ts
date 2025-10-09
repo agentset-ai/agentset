@@ -30,7 +30,6 @@ export const triggerDocumentJobBodySchema = z.object({
       keywordEnabled: z.boolean(),
       embeddingConfig: EmbeddingConfigSchema.nullable(),
       vectorStoreConfig: VectorStoreSchema.nullable(),
-      createdAt: z.date(),
       organization: z.object({
         plan: z.string(),
         stripeId: z.string().optional().nullable(),

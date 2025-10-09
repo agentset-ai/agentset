@@ -7,7 +7,12 @@ import { waitUntil } from "@vercel/functions";
 
 import type { QueryVectorStoreResult } from "@agentset/engine";
 import { db } from "@agentset/db";
-import { KeywordStore, queryVectorStore } from "@agentset/engine";
+import {
+  getNamespaceEmbeddingModel,
+  getNamespaceVectorStore,
+  KeywordStore,
+  queryVectorStore,
+} from "@agentset/engine";
 import { INFINITY_NUMBER } from "@agentset/utils";
 
 // export const runtime = "edge";
@@ -43,21 +48,30 @@ export const POST = withNamespaceApiHandler(
       });
     }
 
+    const [embeddingModel, vectorStore] = await Promise.all([
+      getNamespaceEmbeddingModel(namespace, "query"),
+      getNamespaceVectorStore(namespace, tenantId),
+    ]);
+
     let results: QueryVectorStoreResult["results"] | undefined = [];
 
     // TODO: track the usage
     if (body.mode === "semantic") {
       results = (
-        await queryVectorStore(namespace, {
+        await queryVectorStore({
+          embeddingModel,
+          vectorStore,
           query: body.query,
-          tenantId,
           topK: body.topK,
           minScore: body.minScore,
           filter: body.filter,
           includeMetadata: body.includeMetadata,
           includeRelationships: body.includeRelationships,
-          rerankLimit: body.rerankLimit,
-          rerank: body.rerank,
+          rerank: body.rerank
+            ? body.rerankLimit
+              ? { limit: body.rerankLimit }
+              : true
+            : false,
         })
       )?.results;
     } else if (body.mode === "keyword") {

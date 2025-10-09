@@ -8,16 +8,16 @@ import {
   streamText,
 } from "ai";
 
-import type { QueryVectorStoreOptions } from "@agentset/engine";
+import type { KeywordStore, QueryVectorStoreOptions } from "@agentset/engine";
 
-import type { AgenticSearchNamespace } from "./search";
 import { NEW_MESSAGE_PROMPT } from "../prompts";
 import { agenticSearch } from "./search";
 import { formatSources } from "./utils";
 
 type AgenticPipelineOptions = {
   model: LanguageModel;
-  queryOptions?: Omit<QueryVectorStoreOptions, "query">;
+  keywordStore?: KeywordStore;
+  queryOptions: Omit<QueryVectorStoreOptions, "query">;
   systemPrompt?: string;
   temperature?: number;
   messagesWithoutQuery: ModelMessage[];
@@ -30,26 +30,24 @@ type AgenticPipelineOptions = {
 const STATUS_PART_ID = "agentset_status";
 const QUERIES_PART_ID = "agentset_queries";
 
-const agenticPipeline = (
-  namespace: AgenticSearchNamespace,
-  {
-    model,
-    queryOptions,
-    headers,
-    systemPrompt,
-    temperature,
-    messagesWithoutQuery,
-    lastMessage,
-    afterQueries,
-    maxEvals = 3,
-    tokenBudget = 4096,
-    includeLogs = true,
-  }: AgenticPipelineOptions & {
-    headers?: HeadersInit;
-    afterQueries?: (totalQueries: number) => void;
-    includeLogs?: boolean;
-  },
-) => {
+const agenticPipeline = ({
+  model,
+  queryOptions,
+  keywordStore,
+  headers,
+  systemPrompt,
+  temperature,
+  messagesWithoutQuery,
+  lastMessage,
+  afterQueries,
+  maxEvals = 3,
+  tokenBudget = 4096,
+  includeLogs = true,
+}: AgenticPipelineOptions & {
+  headers?: HeadersInit;
+  afterQueries?: (totalQueries: number) => void;
+  includeLogs?: boolean;
+}) => {
   const messages: ModelMessage[] = [
     ...messagesWithoutQuery,
     { role: "user", content: lastMessage },
@@ -72,29 +70,27 @@ const agenticPipeline = (
       });
 
       // step 1. generate queries
-      const { chunks, queryToResult, totalQueries } = await agenticSearch(
-        namespace,
-        {
-          model,
-          messages,
-          queryOptions,
-          maxEvals,
-          tokenBudget,
-          onQueries: (newQueries) => {
-            writer.write({
-              id: STATUS_PART_ID,
-              type: "data-status",
-              data: "searching",
-            });
+      const { chunks, queryToResult, totalQueries } = await agenticSearch({
+        model,
+        keywordStore,
+        messages,
+        queryOptions,
+        maxEvals,
+        tokenBudget,
+        onQueries: (newQueries) => {
+          writer.write({
+            id: STATUS_PART_ID,
+            type: "data-status",
+            data: "searching",
+          });
 
-            writer.write({
-              id: QUERIES_PART_ID,
-              type: "data-queries",
-              data: newQueries.map((q) => q.query),
-            });
-          },
+          writer.write({
+            id: QUERIES_PART_ID,
+            type: "data-queries",
+            data: newQueries.map((q) => q.query),
+          });
         },
-      );
+      });
 
       afterQueries?.(totalQueries);
 
@@ -151,27 +147,24 @@ const agenticPipeline = (
   return createUIMessageStreamResponse({ stream, headers });
 };
 
-export const generateAgenticResponse = async (
-  namespace: AgenticSearchNamespace,
-  {
-    model,
-    queryOptions,
-    systemPrompt,
-    temperature,
-    messagesWithoutQuery,
-    lastMessage,
-    afterQueries,
-    maxEvals = 3,
-    tokenBudget = 4096,
-  }: AgenticPipelineOptions,
-) => {
+export const generateAgenticResponse = async ({
+  model,
+  queryOptions,
+  systemPrompt,
+  temperature,
+  messagesWithoutQuery,
+  lastMessage,
+  afterQueries,
+  maxEvals = 3,
+  tokenBudget = 4096,
+}: AgenticPipelineOptions) => {
   const messages: ModelMessage[] = [
     ...messagesWithoutQuery,
     { role: "user", content: lastMessage },
   ];
 
   // step 1. generate queries
-  const { chunks, totalQueries } = await agenticSearch(namespace, {
+  const { chunks, totalQueries } = await agenticSearch({
     model,
     messages,
     queryOptions,

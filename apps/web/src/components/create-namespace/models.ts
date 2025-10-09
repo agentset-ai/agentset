@@ -1,3 +1,5 @@
+import z from "zod/v4";
+
 import {
   AnthropicIcon,
   GoogleIcon,
@@ -5,17 +7,25 @@ import {
   OpenAIIcon,
   PineconeIcon,
   QdrantIcon,
+  TurbopufferIcon,
   UpstashIcon,
 } from "@agentset/ui";
 import {
   AzureEmbeddingConfigSchema,
+  createVectorStoreSchema,
+  EmbeddingConfigSchema,
   GoogleEmbeddingConfigSchema,
   OpenAIEmbeddingConfigSchema,
   PineconeVectorStoreConfigSchema,
+  TurbopufferVectorStoreConfigSchema,
   VoyageEmbeddingConfigSchema,
 } from "@agentset/validation";
 
-export const embeddingModels = [
+export const embeddingModels: {
+  value: z.infer<typeof EmbeddingConfigSchema>["provider"] | string;
+  models: z.infer<typeof EmbeddingConfigSchema>["model"][];
+  icon: React.ComponentType;
+}[] = [
   {
     value: AzureEmbeddingConfigSchema.shape.provider.value,
     models: AzureEmbeddingConfigSchema.shape.model.options,
@@ -38,19 +48,27 @@ export const embeddingModels = [
   },
 ];
 
-export const vectorStores = [
+export const vectorStores: {
+  value: z.infer<typeof createVectorStoreSchema>["provider"] | string;
+  icon: React.ComponentType;
+  comingSoon?: boolean;
+}[] = [
   {
     value: PineconeVectorStoreConfigSchema.shape.provider.value,
     icon: PineconeIcon,
   },
   {
+    value: TurbopufferVectorStoreConfigSchema.shape.provider.value,
+    icon: TurbopufferIcon,
+  },
+  {
     value: "upstash",
-    comingSoon: true,
     icon: UpstashIcon,
+    comingSoon: true,
   },
   {
     value: "qdrant",
-    comingSoon: true,
     icon: QdrantIcon,
+    comingSoon: true,
   },
 ];
