@@ -14,7 +14,7 @@ export const { POST, GET } = toNextJsHandler((_req) => {
 
   const searchParams = req.nextUrl.searchParams;
   const callbackURL = searchParams.get("callbackURL");
-  const isHosting = callbackURL?.startsWith(HOSTING_PREFIX);
+  const isHosting = callbackURL?.startsWith(HOSTING_PREFIX) ?? false;
 
-  return makeAuth(baseUrl, isHosting).handler(req);
+  return makeAuth({ baseUrl, isHosting }).handler(req);
 });
