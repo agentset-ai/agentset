@@ -1,4 +1,4 @@
-import type { NextRequest } from "next/server";
+import type { NextFetchEvent, NextRequest } from "next/server";
 import { NextResponse } from "next/server";
 import { parse } from "@/lib/middleware/utils";
 import { getSessionCookie } from "better-auth/cookies";
@@ -9,11 +9,14 @@ import { HOSTING_PREFIX } from "../constants";
 import { getMiddlewareSession } from "./get-session";
 import HostingMiddleware from "./hosting";
 
-export default async function AppMiddleware(req: NextRequest) {
+export default async function AppMiddleware(
+  req: NextRequest,
+  event: NextFetchEvent,
+) {
   const { path, fullPath } = parse(req);
 
   if (path.startsWith(HOSTING_PREFIX)) {
-    return HostingMiddleware(req, "path");
+    return HostingMiddleware(req, event, "path");
   }
 
   const sessionCookie = getSessionCookie(req);

@@ -1,6 +1,7 @@
-import type { NextRequest } from "next/server";
+import type { NextFetchEvent, NextRequest } from "next/server";
 import { NextResponse } from "next/server";
 import { parse } from "@/lib/middleware/utils";
+import { getCache } from "@vercel/functions";
 import { getSessionCookie } from "better-auth/cookies";
 
 import type { Prisma } from "@agentset/db";
@@ -9,18 +10,63 @@ import { db } from "@agentset/db";
 import { HOSTING_PREFIX } from "../constants";
 import { getMiddlewareSession } from "./get-session";
 
+const getHosting = async (where: Prisma.HostingWhereInput) => {
+  return db.hosting.findFirst({
+    where,
+    select: {
+      id: true,
+      slug: true,
+      protected: true,
+      allowedEmailDomains: true,
+      allowedEmails: true,
+      namespaceId: true,
+    },
+  });
+};
+
+type Hosting = Awaited<ReturnType<typeof getHosting>>;
+
+const getCachedHosting = async (
+  filter: { key: string; where: Prisma.HostingWhereInput },
+  event: NextFetchEvent,
+) => {
+  let hosting: Hosting = null;
+  const cache = getCache();
+  const cachedHosting = await cache.get(filter.key);
+
+  if (cachedHosting) return cachedHosting as unknown as Hosting;
+
+  hosting = await getHosting(filter.where);
+
+  // cache the hosting in background
+  if (hosting) {
+    event.waitUntil(
+      cache.set(filter.key, hosting, {
+        ttl: 3600, // 1 hour
+        tags: [`hosting:${hosting.id}`],
+      }),
+    );
+  }
+
+  return hosting;
+};
+
 export default async function HostingMiddleware(
   req: NextRequest,
+  event: NextFetchEvent,
   mode: "domain" | "path" = "domain",
 ) {
   const { domain, path, fullPath: _fullPath } = parse(req);
 
-  let filter: Prisma.HostingWhereInput = {};
+  let filter: { key: string; where: Prisma.HostingWhereInput };
   let fullPath = _fullPath;
   if (mode === "domain") {
     filter = {
-      domain: {
-        slug: domain,
+      key: `domain:${domain}`,
+      where: {
+        domain: {
+          slug: domain,
+        },
       },
     };
   } else {
@@ -31,21 +77,14 @@ export default async function HostingMiddleware(
     if (fullPath === "") fullPath = "/";
 
     filter = {
-      slug,
+      key: `slug:${slug}`,
+      where: {
+        slug,
+      },
     };
   }
 
-  const hosting = await db.hosting.findFirst({
-    where: filter,
-    select: {
-      id: true,
-      slug: true,
-      protected: true,
-      allowedEmailDomains: true,
-      allowedEmails: true,
-      namespaceId: true,
-    },
-  });
+  const hosting = await getCachedHosting(filter, event);
 
   // 404
   if (!hosting) {
