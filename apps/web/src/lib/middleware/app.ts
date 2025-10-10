@@ -1,6 +1,7 @@
 import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
 import { parse } from "@/lib/middleware/utils";
+import { getSessionCookie } from "better-auth/cookies";
 
 import { db } from "@agentset/db";
 
@@ -15,16 +16,29 @@ export default async function AppMiddleware(req: NextRequest) {
     return HostingMiddleware(req, "path");
   }
 
-  const session = await getMiddlewareSession(req);
+  const sessionCookie = getSessionCookie(req);
 
-  // if the user is logged in, and is trying to access the login page, redirect to dashboard
-  if (session) {
+  // if the user is not logged in, and is trying to access a dashboard page, redirect to login
+  if (
+    !sessionCookie &&
+    !(path.startsWith("/login") || path.startsWith("/invitation"))
+  ) {
+    return NextResponse.redirect(new URL("/login", req.url));
+  }
+
+  if (sessionCookie) {
+    // if the user is logged in, and is trying to access the login page, redirect to dashboard
     if (path.startsWith("/login")) {
       return NextResponse.redirect(new URL("/", req.url));
     }
 
     // redirect to the default org
     if (path === "/") {
+      const session = await getMiddlewareSession(req);
+      if (!session) {
+        return NextResponse.redirect(new URL("/login", req.url));
+      }
+
       const org = await db.organization.findFirst({
         where: session.session.activeOrganizationId
           ? {
@@ -45,18 +59,6 @@ export default async function AppMiddleware(req: NextRequest) {
       if (org) return NextResponse.redirect(new URL(`/${org.slug}`, req.url));
       return NextResponse.redirect(new URL("/create-organization", req.url));
     }
-  }
-
-  // if the user is not logged in, and is trying to access a dashboard page, redirect to login
-  if (
-    !session &&
-    !(path.startsWith("/login") || path.startsWith("/invitation"))
-  ) {
-    return NextResponse.redirect(new URL("/login", req.url), {
-      headers: {
-        "Set-Cookie": "",
-      },
-    });
   }
 
   // otherwise, rewrite the path to /app

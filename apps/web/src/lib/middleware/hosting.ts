@@ -1,6 +1,7 @@
 import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
 import { parse } from "@/lib/middleware/utils";
+import { getSessionCookie } from "better-auth/cookies";
 
 import type { Prisma } from "@agentset/db";
 import { db } from "@agentset/db";
@@ -51,27 +52,27 @@ export default async function HostingMiddleware(
     return NextResponse.error();
   }
 
+  const sessionCookie = getSessionCookie(req);
+
   if (fullPath === "/login") {
-    const homeUrl = new URL(
-      mode === "domain" ? "/" : `${HOSTING_PREFIX}${hosting.slug}`,
-      req.url,
-    );
-
-    // if the domain is not protected and the path is /login, redirect to /
-    if (!hosting.protected) return NextResponse.redirect(homeUrl);
-
-    const session = await getMiddlewareSession(req);
-    if (session) {
+    // if the domain is not protected, or there is a session cookie
+    // AND the path is /login, redirect to /
+    if (!hosting.protected || sessionCookie) {
+      const homeUrl = new URL(
+        mode === "domain" ? "/" : `${HOSTING_PREFIX}${hosting.slug}`,
+        req.url,
+      );
       return NextResponse.redirect(homeUrl);
     }
 
+    // otherwise, rewrite to the login page
     return NextResponse.rewrite(new URL(`/${hosting.id}${fullPath}`, req.url));
   }
 
   if (hosting.protected) {
-    const session = await getMiddlewareSession(req);
+    const session = sessionCookie ? await getMiddlewareSession(req) : null;
 
-    // if not session, redirect to login
+    // if the hosting is protected and there is no session, redirect to login
     if (!session) {
       const loginUrl = new URL(
         `/login${mode === "path" ? `?r=${encodeURIComponent(`${HOSTING_PREFIX}${hosting.slug}`)}` : ""}`,
@@ -80,12 +81,14 @@ export default async function HostingMiddleware(
       return NextResponse.redirect(loginUrl);
     }
 
-    // if user is not allowed to access this domain, error
+    // check if the user is allowed to access this domain
     const email = session.user.email;
     const emailDomain = email.split("@")[1] ?? "";
     const allowedEmailDomains = hosting.allowedEmailDomains;
     const allowedEmails = hosting.allowedEmails;
 
+    // if the user is not allowed to access this domain, check if they're a member in the organization as a last resort
+    // if they're not a member, redirect to not-allowed
     if (
       !allowedEmails.includes(email) &&
       !allowedEmailDomains.includes(emailDomain)

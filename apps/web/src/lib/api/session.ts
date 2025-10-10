@@ -5,7 +5,7 @@ import { db } from "@agentset/db";
 
 import type { Session } from "../auth-types";
 import { AgentsetApiError } from "../api/errors";
-import { getMiddlewareSession } from "../middleware/get-session";
+import { auth } from "../auth";
 
 type AuthenticateSessionResult<T extends string | undefined> = T extends string
   ? {
@@ -18,7 +18,9 @@ export const authenticateRequestSession = async <T extends string | undefined>(
   request: NextRequest,
   namespaceId?: T,
 ): Promise<AuthenticateSessionResult<T>> => {
-  const session = await getMiddlewareSession(request);
+  const session = await auth.api.getSession({
+    headers: request.headers,
+  });
 
   if (!session) {
     throw new AgentsetApiError({

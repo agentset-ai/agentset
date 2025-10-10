@@ -3,7 +3,7 @@ import type { NextRequest } from "next/server";
 import type { Hosting } from "@agentset/db";
 import { db } from "@agentset/db";
 
-import { getMiddlewareSession } from "../middleware/get-session";
+import { auth } from "../auth";
 import { AgentsetApiError } from "./errors";
 
 export const hostingAuth = async (
@@ -15,7 +15,9 @@ export const hostingAuth = async (
 ) => {
   if (!hosting.protected) return true;
 
-  const session = await getMiddlewareSession(req);
+  const session = await auth.api.getSession({
+    headers: req.headers,
+  });
 
   if (!session) {
     throw new AgentsetApiError({
