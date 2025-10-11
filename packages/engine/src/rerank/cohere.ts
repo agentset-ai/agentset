@@ -6,7 +6,10 @@ import { Reranker, RerankOptions } from "./common";
 export class CohereReranker implements Reranker {
   private readonly client: CohereClientV2;
 
-  constructor({ apiKey }: { apiKey: string }) {
+  constructor(
+    private readonly model: string,
+    { apiKey }: { apiKey: string },
+  ) {
     this.client = new CohereClientV2({ token: apiKey });
   }
 
@@ -18,7 +21,7 @@ export class CohereReranker implements Reranker {
       documents: results.map((doc) => doc.text),
       query: options.query,
       topN: options.limit,
-      model: "rerank-v3.5",
+      model: this.model,
     });
 
     // TODO: track usage with rerankResults.meta

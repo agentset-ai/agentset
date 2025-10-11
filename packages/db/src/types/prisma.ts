@@ -8,23 +8,6 @@ import type {
   VectorStoreConfig,
 } from "@agentset/validation";
 
-type OpenAILanguageModel = "gpt-4o" | "gpt-4o-mini";
-
-export type LLMConfig =
-  | {
-      provider: "OPENAI";
-      model: OpenAILanguageModel;
-      apiKey: string;
-    }
-  | {
-      provider: "AZURE_OPENAI";
-      model: OpenAILanguageModel;
-      resourceName: string;
-      deployment: string;
-      apiKey: string;
-      apiVersion?: string;
-    };
-
 declare global {
   export namespace PrismaJson {
     type ConnectionConfig = {
@@ -50,7 +33,6 @@ declare global {
     };
 
     type NamespaceEmbeddingConfig = EmbeddingConfig;
-    type NamespaceLLMConfig = LLMConfig;
     type DocumentProperties = _DocumentProperties;
 
     type DocumentSource = _DocumentPayload;

@@ -6,7 +6,10 @@ import { Reranker, RerankOptions } from "./common";
 export class ZeroentropyReranker implements Reranker {
   private readonly client: ZeroEntropy;
 
-  constructor({ apiKey }: { apiKey: string }) {
+  constructor(
+    private readonly model: string,
+    { apiKey }: { apiKey: string },
+  ) {
     this.client = new ZeroEntropy({ apiKey });
   }
 
@@ -15,7 +18,7 @@ export class ZeroentropyReranker implements Reranker {
     options: RerankOptions,
   ): Promise<{ index: number; rerankScore?: number }[]> {
     const rerankResults = await this.client.models.rerank({
-      model: "zerank-1",
+      model: this.model,
       documents: results.map((doc) => doc.text),
       query: options.query,
       top_n: options.limit,

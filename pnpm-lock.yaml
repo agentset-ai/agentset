@@ -372,6 +372,9 @@ importers:
       '@agentset/utils':
         specifier: workspace:*
         version: link:../utils
+      '@agentset/validation':
+        specifier: workspace:*
+        version: link:../validation
       '@ai-sdk/anthropic':
         specifier: ^2.0.17
         version: 2.0.17(zod@4.1.8)

@@ -4,7 +4,6 @@ import { AgentsetApiError } from "@/lib/api/errors";
 import { withAuthApiHandler } from "@/lib/api/handler";
 import { makeApiSuccessResponse } from "@/lib/api/response";
 import { parseRequestBody } from "@/lib/api/utils";
-import { getNamespaceLanguageModel } from "@/lib/llm";
 import { NEW_MESSAGE_PROMPT } from "@/lib/prompts";
 import { waitUntil } from "@vercel/functions";
 import { generateText } from "ai";
@@ -13,6 +12,7 @@ import type { QueryVectorStoreResult } from "@agentset/engine";
 import { db } from "@agentset/db";
 import {
   getNamespaceEmbeddingModel,
+  getNamespaceLanguageModel,
   getNamespaceVectorStore,
   queryVectorStore,
 } from "@agentset/engine";
@@ -58,7 +58,7 @@ export const POST = withAuthApiHandler(
 
     // TODO: pass namespace config
     const [languageModel, vectorStore, embeddingModel] = await Promise.all([
-      getNamespaceLanguageModel(),
+      getNamespaceLanguageModel("openai:gpt-4.1"),
       getNamespaceVectorStore(namespace, tenantId),
       getNamespaceEmbeddingModel(namespace, "query"),
     ]);
@@ -82,7 +82,7 @@ export const POST = withAuthApiHandler(
           includeMetadata: body.includeMetadata,
           includeRelationships: body.includeRelationships,
           rerank: body.rerank
-            ? { model: "cohere", limit: body.rerankLimit }
+            ? { model: "cohere:rerank-v3.5", limit: body.rerankLimit }
             : false,
         },
         messagesWithoutQuery: [],
@@ -102,7 +102,7 @@ export const POST = withAuthApiHandler(
         includeMetadata: body.includeMetadata,
         includeRelationships: body.includeRelationships,
         rerank: body.rerank
-          ? { model: "cohere", limit: body.rerankLimit }
+          ? { model: "cohere:rerank-v3.5", limit: body.rerankLimit }
           : false,
       });
 

@@ -3,7 +3,6 @@ import { AgentsetApiError } from "@/lib/api/errors";
 import { withPublicApiHandler } from "@/lib/api/handler/public";
 import { hostingAuth } from "@/lib/api/hosting-auth";
 import { parseRequestBody } from "@/lib/api/utils";
-import { getNamespaceLanguageModel } from "@/lib/llm";
 import { DEFAULT_SYSTEM_PROMPT } from "@/lib/prompts";
 import { extractTextFromParts } from "@/lib/string-utils";
 import { waitUntil } from "@vercel/functions";
@@ -12,6 +11,7 @@ import { convertToModelMessages } from "ai";
 import { db } from "@agentset/db";
 import {
   getNamespaceEmbeddingModel,
+  getNamespaceLanguageModel,
   getNamespaceVectorStore,
   KeywordStore,
 } from "@agentset/engine";
@@ -105,7 +105,7 @@ export const POST = withPublicApiHandler(
 
     // TODO: pass namespace config
     const [languageModel, vectorStore, embeddingModel] = await Promise.all([
-      getNamespaceLanguageModel(),
+      getNamespaceLanguageModel("openai:gpt-4.1"),
       getNamespaceVectorStore(hosting.namespace),
       getNamespaceEmbeddingModel(hosting.namespace, "query"),
     ]);
@@ -122,7 +122,7 @@ export const POST = withPublicApiHandler(
         embeddingModel,
         vectorStore,
         topK: 50,
-        rerank: { model: "cohere", limit: 15 },
+        rerank: { model: "cohere:rerank-v3.5", limit: 15 },
         includeMetadata: true,
       },
       systemPrompt: hosting.systemPrompt ?? DEFAULT_SYSTEM_PROMPT.compile(),

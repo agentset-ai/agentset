@@ -20,6 +20,7 @@
     "@agentset/db": "workspace:*",
     "@agentset/storage": "workspace:*",
     "@agentset/utils": "workspace:*",
+    "@agentset/validation": "workspace:*",
     "@ai-sdk/anthropic": "^2.0.17",
     "@ai-sdk/azure": "^2.0.30",
     "@ai-sdk/google": "^2.0.14",

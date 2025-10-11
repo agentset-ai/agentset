@@ -1,19 +1,23 @@
+import { parseRerankingModelName, RerankingModel } from "@agentset/validation";
+
 import { env } from "../env";
 import { VectorStoreResult } from "../vector-store/common/vector-store";
 import { Reranker, RerankOptions } from "./common";
 
-export type RerankingModel = "cohere" | "zeroentropy";
+export const getRerankingModel = async (_model: RerankingModel) => {
+  const { provider, model: modelName } = parseRerankingModelName(_model);
 
-export const getRerankingModel = async (model: RerankingModel) => {
-  switch (model) {
+  switch (provider) {
     case "cohere": {
-      const Cohere = await import("./cohere");
-      return new Cohere.CohereReranker({ apiKey: env.DEFAULT_COHERE_API_KEY });
+      const { CohereReranker } = await import("./cohere");
+      return new CohereReranker(modelName, {
+        apiKey: env.DEFAULT_COHERE_API_KEY,
+      });
     }
 
     case "zeroentropy": {
-      const Zeroentropy = await import("./zeroentropy");
-      return new Zeroentropy.ZeroentropyReranker({
+      const { ZeroentropyReranker } = await import("./zeroentropy");
+      return new ZeroentropyReranker(modelName, {
         apiKey: env.DEFAULT_ZEROENTROPY_API_KEY,
       });
     }
@@ -21,8 +25,8 @@ export const getRerankingModel = async (model: RerankingModel) => {
     default: {
       // This exhaustive check ensures TypeScript will error if a new provider
       // is added without handling it in the switch statement
-      const _exhaustiveCheck: never = model;
-      throw new Error(`Unknown vector store provider: ${_exhaustiveCheck}`);
+      const _exhaustiveCheck: never = provider;
+      throw new Error(`Unknown reranking provider: ${_exhaustiveCheck}`);
     }
   }
 };

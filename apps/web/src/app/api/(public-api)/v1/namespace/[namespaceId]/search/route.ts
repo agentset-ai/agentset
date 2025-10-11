@@ -68,7 +68,7 @@ export const POST = withNamespaceApiHandler(
           includeMetadata: body.includeMetadata,
           includeRelationships: body.includeRelationships,
           rerank: body.rerank
-            ? { model: "cohere", limit: body.rerankLimit }
+            ? { model: "cohere:rerank-v3.5", limit: body.rerankLimit }
             : false,
         })
       )?.results;

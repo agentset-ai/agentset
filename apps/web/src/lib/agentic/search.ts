@@ -77,7 +77,7 @@ export async function agenticSearch({
 
           const queryResult = await queryVectorStore({
             query: query.query,
-            rerank: { model: "cohere", limit: 15 },
+            rerank: { model: "cohere:rerank-v3.5", limit: 15 },
             includeMetadata: true,
             ...queryOptions,
           });
