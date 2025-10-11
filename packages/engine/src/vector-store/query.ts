@@ -9,7 +9,7 @@ export type QueryVectorStoreOptions = Omit<VectorStoreQueryOptions, "mode"> & {
   query: string;
   embeddingModel: EmbeddingModel;
   vectorStore: VectorStore;
-  rerank?: false | { model: RerankingModel; limit?: number };
+  rerank?: false | { model?: RerankingModel; limit?: number };
 };
 
 export const queryVectorStore = async ({

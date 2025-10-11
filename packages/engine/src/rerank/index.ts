@@ -1,11 +1,17 @@
-import { parseRerankingModelName, RerankingModel } from "@agentset/validation";
+import {
+  DEFAULT_RERANKER,
+  parseRerankingModelName,
+  RerankingModel,
+} from "@agentset/validation";
 
 import { env } from "../env";
 import { VectorStoreResult } from "../vector-store/common/vector-store";
 import { Reranker, RerankOptions } from "./common";
 
-export const getRerankingModel = async (_model: RerankingModel) => {
-  const { provider, model: modelName } = parseRerankingModelName(_model);
+export const getRerankingModel = async (_model?: RerankingModel) => {
+  const { provider, model: modelName } = parseRerankingModelName(
+    _model ?? DEFAULT_RERANKER,
+  );
 
   switch (provider) {
     case "cohere": {

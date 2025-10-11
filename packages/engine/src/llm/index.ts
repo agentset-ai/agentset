@@ -1,7 +1,7 @@
 import { createAzure } from "@ai-sdk/azure";
 import { LanguageModel } from "ai";
 
-import { LLM } from "@agentset/validation";
+import { DEFAULT_LLM, LLM } from "@agentset/validation";
 
 import { env } from "../env";
 
@@ -18,6 +18,6 @@ const modelToId: Record<LLM, string> = {
   "openai:gpt-5-nano": "gpt-5-nano",
 };
 
-export const getNamespaceLanguageModel = (model: LLM): LanguageModel => {
-  return azure.languageModel(modelToId[model]);
+export const getNamespaceLanguageModel = (model?: LLM): LanguageModel => {
+  return azure.languageModel(modelToId[model ?? DEFAULT_LLM]);
 };

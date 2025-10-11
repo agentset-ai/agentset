@@ -5,6 +5,8 @@ import type {
   IngestJobConfig as _IngestJobConfig,
   IngestJobPayload as _IngestJobPayload,
   EmbeddingConfig,
+  LLM,
+  RerankingModel,
   VectorStoreConfig,
 } from "@agentset/validation";
 
@@ -34,6 +36,9 @@ declare global {
 
     type NamespaceEmbeddingConfig = EmbeddingConfig;
     type DocumentProperties = _DocumentProperties;
+
+    type HostingRerankConfig = { model: RerankingModel };
+    type HostingLLMConfig = { model: LLM };
 
     type DocumentSource = _DocumentPayload;
     type DocumentConfig = _IngestJobConfig;
