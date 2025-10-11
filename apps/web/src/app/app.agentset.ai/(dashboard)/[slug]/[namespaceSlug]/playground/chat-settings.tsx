@@ -1,5 +1,7 @@
 import { useState } from "react";
 import { useChatSettings } from "@/components/chat/chat-settings.store";
+import { LLMSelector } from "@/components/llm-selector";
+import { RerankerSelector } from "@/components/reranker-selector";
 import { useNamespace } from "@/hooks/use-namespace";
 import { DEFAULT_SYSTEM_PROMPT } from "@/lib/prompts";
 import { Settings2Icon } from "lucide-react";
@@ -16,19 +18,9 @@ import {
   DialogTrigger,
   Input,
   Label,
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
   Textarea,
 } from "@agentset/ui";
-import {
-  LLM,
-  LLM_MODELS,
-  RERANKER_MODELS,
-  RerankingModel,
-} from "@agentset/validation";
+import { LLM, RerankingModel } from "@agentset/validation";
 
 const defaultPrompt = DEFAULT_SYSTEM_PROMPT.compile().trim();
 
@@ -140,50 +132,15 @@ export default function ChatSettings() {
 
           <div className="grid gap-2">
             <Label>LLM Model</Label>
-            <Select
-              value={llmModel}
-              onValueChange={(value) => setLlmModel(value as LLM)}
-            >
-              <SelectTrigger>
-                <SelectValue placeholder="Select LLM model" />
-              </SelectTrigger>
-              <SelectContent>
-                {Object.entries(LLM_MODELS).flatMap(([provider, models]) =>
-                  models.map((m) => (
-                    <SelectItem
-                      key={`${provider}:${m.model}`}
-                      value={`${provider}:${m.model}`}
-                    >
-                      {m.name}
-                    </SelectItem>
-                  )),
-                )}
-              </SelectContent>
-            </Select>
+            <LLMSelector value={llmModel} onValueChange={setLlmModel} />
           </div>
 
           <div className="grid gap-2">
             <Label>Re-ranker Model</Label>
-            <Select
+            <RerankerSelector
               value={rerankModel}
-              onValueChange={(value) => setRerankModel(value as RerankingModel)}
-            >
-              <SelectTrigger>
-                <SelectValue placeholder="Select re-ranker model" />
-              </SelectTrigger>
-              <SelectContent>
-                {Object.entries(RERANKER_MODELS).flatMap(([provider, models]) =>
-                  models.map((m) => (
-                    <SelectItem
-                      key={`${provider}:${m.model}`}
-                      value={`${provider}:${m.model}`}
-                    >
-                      {m.name}
-                    </SelectItem>
-                  )),
-                )}
-              </SelectContent>
-            </Select>
+              onValueChange={setRerankModel}
+            />
           </div>
 
           <DialogFooter className="mt-5 flex justify-between">

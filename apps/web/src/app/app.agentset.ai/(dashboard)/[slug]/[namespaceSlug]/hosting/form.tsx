@@ -1,4 +1,6 @@
 import ListInput from "@/components/list-input";
+import { LLMSelector } from "@/components/llm-selector";
+import { RerankerSelector } from "@/components/reranker-selector";
 import SortableList from "@/components/sortable-list";
 import { APP_DOMAIN, HOSTING_PREFIX } from "@/lib/constants";
 import { DEFAULT_SYSTEM_PROMPT } from "@/lib/prompts";
@@ -19,11 +21,6 @@ import {
   FormLabel,
   FormMessage,
   Input,
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
   Separator,
   Switch,
   Textarea,
@@ -31,12 +28,8 @@ import {
 import {
   DEFAULT_LLM,
   DEFAULT_RERANKER,
-  LLM,
-  LLM_MODELS,
   llmSchema,
-  RERANKER_MODELS,
   rerankerSchema,
-  RerankingModel,
 } from "@agentset/validation";
 
 // Separate type for API submission
@@ -373,29 +366,12 @@ export default function HostingForm({
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>LLM Model</FormLabel>
-                    <Select
-                      value={field.value}
-                      onValueChange={(value) => field.onChange(value)}
-                    >
-                      <FormControl>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Select LLM model" />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        {Object.entries(LLM_MODELS).flatMap(
-                          ([provider, models]) =>
-                            models.map((m) => (
-                              <SelectItem
-                                key={`${provider}:${m.model}`}
-                                value={`${provider}:${m.model}`}
-                              >
-                                {m.name}
-                              </SelectItem>
-                            )),
-                        )}
-                      </SelectContent>
-                    </Select>
+                    <FormControl>
+                      <LLMSelector
+                        value={field.value}
+                        onValueChange={field.onChange}
+                      />
+                    </FormControl>
                     <FormDescription>
                       Choose the language model for chat responses.
                     </FormDescription>
@@ -410,29 +386,12 @@ export default function HostingForm({
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Re-ranker Model</FormLabel>
-                    <Select
-                      value={field.value}
-                      onValueChange={(value) => field.onChange(value)}
-                    >
-                      <FormControl>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Select re-ranker model" />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        {Object.entries(RERANKER_MODELS).flatMap(
-                          ([provider, models]) =>
-                            models.map((m) => (
-                              <SelectItem
-                                key={`${provider}:${m.model}`}
-                                value={`${provider}:${m.model}`}
-                              >
-                                {m.name}
-                              </SelectItem>
-                            )),
-                        )}
-                      </SelectContent>
-                    </Select>
+                    <FormControl>
+                      <RerankerSelector
+                        value={field.value}
+                        onValueChange={field.onChange}
+                      />
+                    </FormControl>
                     <FormDescription>
                       Choose the re-ranker model for search results.
                     </FormDescription>
