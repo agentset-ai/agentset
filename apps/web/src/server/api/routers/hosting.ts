@@ -5,7 +5,7 @@ import { DEFAULT_SYSTEM_PROMPT } from "@/lib/prompts";
 import { slugSchema, uploadedImageSchema } from "@/schemas/api/misc";
 import { createTRPCRouter, protectedProcedure } from "@/server/api/trpc";
 import { TRPCError } from "@trpc/server";
-import { waitUntil } from "@vercel/functions";
+import { getCache, waitUntil } from "@vercel/functions";
 import { nanoid } from "nanoid";
 import { z } from "zod/v4";
 
@@ -158,6 +158,9 @@ export const hostingRouter = createTRPCRouter({
             searchEnabled: input.searchEnabled,
           },
         });
+
+        // expire cache
+        await getCache().expireTag(`hosting:${hosting.id}`);
 
         // Delete old logo if it exists
         if ((newLogo || newLogo === null) && hosting.logo) {

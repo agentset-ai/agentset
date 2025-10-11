@@ -1,4 +1,4 @@
-import type { NextRequest } from "next/server";
+import type { NextFetchEvent, NextRequest } from "next/server";
 
 import { API_HOSTNAMES, APP_HOSTNAMES } from "./lib/constants";
 import ApiMiddleware from "./lib/middleware/api";
@@ -20,12 +20,12 @@ export const config = {
   ],
 };
 
-export function middleware(request: NextRequest) {
+export function middleware(request: NextRequest, event: NextFetchEvent) {
   const { domain } = parse(request);
 
   // for App
   if (APP_HOSTNAMES.has(domain)) {
-    return AppMiddleware(request);
+    return AppMiddleware(request, event);
   }
 
   // for API
@@ -34,5 +34,5 @@ export function middleware(request: NextRequest) {
   }
 
   // for Custom Domain
-  return HostingMiddleware(request);
+  return HostingMiddleware(request, event);
 }
