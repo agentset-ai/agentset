@@ -16,21 +16,38 @@ import {
   DialogTrigger,
   Input,
   Label,
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
   Textarea,
 } from "@agentset/ui";
+import {
+  LLM,
+  LLM_MODELS,
+  RERANKER_MODELS,
+  RerankingModel,
+} from "@agentset/validation";
 
 const defaultPrompt = DEFAULT_SYSTEM_PROMPT.compile().trim();
 
 export default function ChatSettings() {
   const namespace = useNamespace();
   const [open, setOpen] = useState(false);
-  const store = useChatSettings();
-  const currentState = store.getNamespace(namespace.id);
+
+  const getNamespaceSettings = useChatSettings((s) => s.getNamespace);
+  const setNamespaceSettings = useChatSettings((s) => s.setAll);
+  const resetNamespaceSettings = useChatSettings((s) => s.reset);
+
+  const currentState = getNamespaceSettings(namespace.id);
 
   const [topK, setTopK] = useState(currentState.topK);
   const [rerankLimit, setRerankLimit] = useState(currentState.rerankLimit);
   const [systemPrompt, setSystemPrompt] = useState(currentState.systemPrompt);
   const [temperature, setTemperature] = useState(currentState.temperature);
+  const [rerankModel, setRerankModel] = useState(currentState.rerankModel);
+  const [llmModel, setLlmModel] = useState(currentState.llmModel);
 
   const handleSave = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -40,33 +57,26 @@ export default function ChatSettings() {
       return;
     }
 
-    if (topK !== currentState.topK) {
-      store.setTopK(namespace.id, topK);
-    }
-    if (rerankLimit !== currentState.rerankLimit) {
-      store.setRerankLimit(namespace.id, rerankLimit);
-    }
-
-    if (systemPrompt !== currentState.systemPrompt) {
-      store.setSystemPrompt(
-        namespace.id,
-        systemPrompt && systemPrompt !== "" ? systemPrompt : null,
-      );
-    }
-
-    if (temperature !== currentState.temperature) {
-      store.setTemperature(namespace.id, temperature);
-    }
+    setNamespaceSettings(namespace.id, {
+      topK,
+      rerankLimit,
+      systemPrompt: systemPrompt && systemPrompt !== "" ? systemPrompt : null,
+      temperature,
+      rerankModel,
+      llmModel,
+    });
 
     setOpen(false);
   };
 
   const handleReset = () => {
-    const newState = store.reset(namespace.id);
+    const newState = resetNamespaceSettings(namespace.id);
     setTopK(newState.topK);
     setRerankLimit(newState.rerankLimit);
     setSystemPrompt(newState.systemPrompt);
     setTemperature(newState.temperature);
+    setRerankModel(newState.rerankModel);
+    setLlmModel(newState.llmModel);
   };
 
   return (
@@ -126,6 +136,54 @@ export default function ChatSettings() {
               step={0.1}
               onChange={(e) => setTemperature(Number(e.target.value))}
             />
+          </div>
+
+          <div className="grid gap-2">
+            <Label>LLM Model</Label>
+            <Select
+              value={llmModel}
+              onValueChange={(value) => setLlmModel(value as LLM)}
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Select LLM model" />
+              </SelectTrigger>
+              <SelectContent>
+                {Object.entries(LLM_MODELS).flatMap(([provider, models]) =>
+                  models.map((m) => (
+                    <SelectItem
+                      key={`${provider}:${m.model}`}
+                      value={`${provider}:${m.model}`}
+                    >
+                      {m.name}
+                    </SelectItem>
+                  )),
+                )}
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div className="grid gap-2">
+            <Label>Re-ranker Model</Label>
+            <Select
+              value={rerankModel}
+              onValueChange={(value) => setRerankModel(value as RerankingModel)}
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Select re-ranker model" />
+              </SelectTrigger>
+              <SelectContent>
+                {Object.entries(RERANKER_MODELS).flatMap(([provider, models]) =>
+                  models.map((m) => (
+                    <SelectItem
+                      key={`${provider}:${m.model}`}
+                      value={`${provider}:${m.model}`}
+                    >
+                      {m.name}
+                    </SelectItem>
+                  )),
+                )}
+              </SelectContent>
+            </Select>
           </div>
 
           <DialogFooter className="mt-5 flex justify-between">

@@ -23,6 +23,8 @@ export function useNamespaceChat() {
             topK: settings.topK,
             rerank: true,
             rerankLimit: settings.rerankLimit,
+            rerankModel: settings.rerankModel,
+            llmModel: settings.llmModel,
             temperature: settings.temperature,
             includeMetadata: true,
             mode: settings.mode ?? "normal",

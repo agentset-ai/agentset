@@ -19,10 +19,25 @@ import {
   FormLabel,
   FormMessage,
   Input,
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
   Separator,
   Switch,
   Textarea,
 } from "@agentset/ui";
+import {
+  DEFAULT_LLM,
+  DEFAULT_RERANKER,
+  LLM,
+  LLM_MODELS,
+  llmSchema,
+  RERANKER_MODELS,
+  rerankerSchema,
+  RerankingModel,
+} from "@agentset/validation";
 
 // Separate type for API submission
 type FormSubmissionData = {
@@ -38,6 +53,8 @@ type FormSubmissionData = {
   welcomeMessage: string;
   citationMetadataPath?: string;
   searchEnabled: boolean;
+  rerankConfig?: PrismaJson.HostingRerankConfig | null;
+  llmConfig?: PrismaJson.HostingLLMConfig | null;
 };
 
 export const schema = z.object({
@@ -57,6 +74,8 @@ export const schema = z.object({
   welcomeMessage: z.string(),
   citationMetadataPath: z.string().optional(),
   searchEnabled: z.boolean(),
+  rerankModel: rerankerSchema,
+  llmModel: llmSchema,
 });
 
 type FormValues = z.infer<typeof schema>;
@@ -84,6 +103,8 @@ export default function HostingForm({
       welcomeMessage: "",
       citationMetadataPath: "",
       searchEnabled: true,
+      rerankModel: DEFAULT_RERANKER,
+      llmModel: DEFAULT_LLM,
       ...defaultValues,
     },
   });
@@ -102,6 +123,8 @@ export default function HostingForm({
       welcomeMessage: data.welcomeMessage,
       citationMetadataPath: data.citationMetadataPath,
       searchEnabled: data.searchEnabled,
+      rerankConfig: { model: data.rerankModel },
+      llmConfig: { model: data.llmModel },
     });
   };
 
@@ -342,6 +365,80 @@ export default function HostingForm({
                 name="examplesQuestions"
                 label="Examples"
                 maxItems={4}
+              />
+
+              <FormField
+                control={form.control}
+                name="llmModel"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>LLM Model</FormLabel>
+                    <Select
+                      value={field.value}
+                      onValueChange={(value) => field.onChange(value)}
+                    >
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select LLM model" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        {Object.entries(LLM_MODELS).flatMap(
+                          ([provider, models]) =>
+                            models.map((m) => (
+                              <SelectItem
+                                key={`${provider}:${m.model}`}
+                                value={`${provider}:${m.model}`}
+                              >
+                                {m.name}
+                              </SelectItem>
+                            )),
+                        )}
+                      </SelectContent>
+                    </Select>
+                    <FormDescription>
+                      Choose the language model for chat responses.
+                    </FormDescription>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="rerankModel"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Re-ranker Model</FormLabel>
+                    <Select
+                      value={field.value}
+                      onValueChange={(value) => field.onChange(value)}
+                    >
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select re-ranker model" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        {Object.entries(RERANKER_MODELS).flatMap(
+                          ([provider, models]) =>
+                            models.map((m) => (
+                              <SelectItem
+                                key={`${provider}:${m.model}`}
+                                value={`${provider}:${m.model}`}
+                              >
+                                {m.name}
+                              </SelectItem>
+                            )),
+                        )}
+                      </SelectContent>
+                    </Select>
+                    <FormDescription>
+                      Choose the re-ranker model for search results.
+                    </FormDescription>
+                    <FormMessage />
+                  </FormItem>
+                )}
               />
             </div>
           </div>
