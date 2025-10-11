@@ -82,9 +82,7 @@ export const POST = withAuthApiHandler(
           includeMetadata: body.includeMetadata,
           includeRelationships: body.includeRelationships,
           rerank: body.rerank
-            ? body.rerankLimit
-              ? { limit: body.rerankLimit }
-              : true
+            ? { model: "cohere", limit: body.rerankLimit }
             : false,
         },
         messagesWithoutQuery: [],
@@ -104,9 +102,7 @@ export const POST = withAuthApiHandler(
         includeMetadata: body.includeMetadata,
         includeRelationships: body.includeRelationships,
         rerank: body.rerank
-          ? body.rerankLimit
-            ? { limit: body.rerankLimit }
-            : true
+          ? { model: "cohere", limit: body.rerankLimit }
           : false,
       });
 

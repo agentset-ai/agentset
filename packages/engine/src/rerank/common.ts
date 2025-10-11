@@ -5,13 +5,9 @@ export interface RerankOptions {
   query: string;
 }
 
-export type RerankResult<T extends VectorStoreResult> = T & {
-  rerankScore?: number;
-};
-
 export abstract class Reranker {
-  abstract rerank<T extends VectorStoreResult>(
+  abstract doRerank<T extends VectorStoreResult>(
     results: T[],
     options: RerankOptions,
-  ): Promise<RerankResult<T>[]>;
+  ): Promise<{ index: number; rerankScore?: number }[]>;
 }
