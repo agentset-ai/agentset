@@ -46,6 +46,8 @@ const getHosting = async (namespaceId: string) => {
     select: {
       id: true,
       systemPrompt: true,
+      rerankConfig: true,
+      llmConfig: true,
       protected: true,
       allowedEmails: true,
       allowedEmailDomains: true,
@@ -103,9 +105,8 @@ export const POST = withPublicApiHandler(
 
     await hostingAuth(req, hosting);
 
-    // TODO: pass namespace config
     const [languageModel, vectorStore, embeddingModel] = await Promise.all([
-      getNamespaceLanguageModel("openai:gpt-4.1"),
+      getNamespaceLanguageModel(hosting.llmConfig?.model),
       getNamespaceVectorStore(hosting.namespace),
       getNamespaceEmbeddingModel(hosting.namespace, "query"),
     ]);
@@ -122,7 +123,10 @@ export const POST = withPublicApiHandler(
         embeddingModel,
         vectorStore,
         topK: 50,
-        rerank: { model: "cohere:rerank-v3.5", limit: 15 },
+        rerank: {
+          model: hosting.rerankConfig?.model,
+          limit: 15,
+        },
         includeMetadata: true,
       },
       systemPrompt: hosting.systemPrompt ?? DEFAULT_SYSTEM_PROMPT.compile(),

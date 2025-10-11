@@ -1,25 +1,20 @@
 import z from "zod/v4";
 
-const llms = {
-  openai: ["gpt-4.1", "gpt-5", "gpt-5-mini", "gpt-5-nano"],
-} as const;
+import { DEFAULT_LLM, LLM, LLM_MODELS } from "./constants";
 
-type _LLMMap = {
-  [T in keyof typeof llms]: `${T}:${(typeof llms)[T][number]}`;
-};
-
-export type LLM = _LLMMap[keyof _LLMMap];
-
-export const llmSchema = z.enum(
-  Object.entries(llms).flatMap(([key, values]) =>
-    values.map((value) => `${key}:${value}`),
-  ) as unknown as LLM[],
-);
+export const llmSchema = z
+  .enum(
+    Object.entries(LLM_MODELS).flatMap(([provider, models]) =>
+      models.map((m) => `${provider}:${m.model}`),
+    ) as unknown as [LLM, ...LLM[]],
+  )
+  .optional()
+  .default(DEFAULT_LLM);
 
 type _ParsedLLMMap = {
-  [T in keyof typeof llms]: {
+  [T in keyof typeof LLM_MODELS]: {
     provider: T;
-    model: (typeof llms)[T][number];
+    model: (typeof LLM_MODELS)[T][number]["model"];
   };
 };
 

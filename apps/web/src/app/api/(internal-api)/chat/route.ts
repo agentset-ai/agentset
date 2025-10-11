@@ -76,7 +76,7 @@ export const POST = withAuthApiHandler(
 
     // TODO: pass namespace config
     const [languageModel, vectorStore, embeddingModel] = await Promise.all([
-      getNamespaceLanguageModel("openai:gpt-4.1"),
+      getNamespaceLanguageModel(body.llmModel),
       getNamespaceVectorStore(namespace, tenantId),
       getNamespaceEmbeddingModel(namespace, "query"),
     ]);
@@ -125,7 +125,10 @@ export const POST = withAuthApiHandler(
           includeMetadata: body.includeMetadata,
           includeRelationships: body.includeRelationships,
           rerank: body.rerank
-            ? { model: "cohere:rerank-v3.5", limit: body.rerankLimit }
+            ? {
+                model: body.rerankModel,
+                limit: body.rerankLimit,
+              }
             : false,
         },
         // maxQueries
@@ -154,7 +157,10 @@ export const POST = withAuthApiHandler(
           includeMetadata: body.includeMetadata,
           includeRelationships: body.includeRelationships,
           rerank: body.rerank
-            ? { model: "cohere:rerank-v3.5", limit: body.rerankLimit }
+            ? {
+                model: body.rerankModel,
+                limit: body.rerankLimit,
+              }
             : false,
         },
         systemPrompt: body.systemPrompt,
@@ -180,7 +186,10 @@ export const POST = withAuthApiHandler(
       includeMetadata: body.includeMetadata,
       includeRelationships: body.includeRelationships,
       rerank: body.rerank
-        ? { model: "cohere:rerank-v3.5", limit: body.rerankLimit }
+        ? {
+            model: body.rerankModel,
+            limit: body.rerankLimit,
+          }
         : false,
     });
 
