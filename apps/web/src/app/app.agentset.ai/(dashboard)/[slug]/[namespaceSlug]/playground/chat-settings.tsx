@@ -1,5 +1,8 @@
 import { useState } from "react";
-import { useChatSettings } from "@/components/chat/chat-settings.store";
+import {
+  useChatSettings,
+  useNamespaceChatSettings,
+} from "@/components/chat/chat-settings.store";
 import { LLMSelector } from "@/components/llm-selector";
 import { RerankerSelector } from "@/components/reranker-selector";
 import { useNamespace } from "@/hooks/use-namespace";
@@ -20,7 +23,6 @@ import {
   Label,
   Textarea,
 } from "@agentset/ui";
-import { LLM, RerankingModel } from "@agentset/validation";
 
 const defaultPrompt = DEFAULT_SYSTEM_PROMPT.compile().trim();
 
@@ -28,18 +30,15 @@ export default function ChatSettings() {
   const namespace = useNamespace();
   const [open, setOpen] = useState(false);
 
-  const getNamespaceSettings = useChatSettings((s) => s.getNamespace);
-  const setNamespaceSettings = useChatSettings((s) => s.setAll);
-  const resetNamespaceSettings = useChatSettings((s) => s.reset);
+  const [settings, setSettings] = useNamespaceChatSettings(namespace.id);
+  const resetSettings = useChatSettings((s) => s.reset);
 
-  const currentState = getNamespaceSettings(namespace.id);
-
-  const [topK, setTopK] = useState(currentState.topK);
-  const [rerankLimit, setRerankLimit] = useState(currentState.rerankLimit);
-  const [systemPrompt, setSystemPrompt] = useState(currentState.systemPrompt);
-  const [temperature, setTemperature] = useState(currentState.temperature);
-  const [rerankModel, setRerankModel] = useState(currentState.rerankModel);
-  const [llmModel, setLlmModel] = useState(currentState.llmModel);
+  const [topK, setTopK] = useState(settings.topK);
+  const [rerankLimit, setRerankLimit] = useState(settings.rerankLimit);
+  const [systemPrompt, setSystemPrompt] = useState(settings.systemPrompt);
+  const [temperature, setTemperature] = useState(settings.temperature);
+  const [rerankModel, setRerankModel] = useState(settings.rerankModel);
+  const [llmModel, setLlmModel] = useState(settings.llmModel);
 
   const handleSave = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -49,7 +48,7 @@ export default function ChatSettings() {
       return;
     }
 
-    setNamespaceSettings(namespace.id, {
+    setSettings({
       topK,
       rerankLimit,
       systemPrompt: systemPrompt && systemPrompt !== "" ? systemPrompt : null,
@@ -62,7 +61,8 @@ export default function ChatSettings() {
   };
 
   const handleReset = () => {
-    const newState = resetNamespaceSettings(namespace.id);
+    const newState = resetSettings(namespace.id);
+
     setTopK(newState.topK);
     setRerankLimit(newState.rerankLimit);
     setSystemPrompt(newState.systemPrompt);

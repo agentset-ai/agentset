@@ -296,6 +296,42 @@ export default function HostingForm({
             <div className="flex flex-col gap-8">
               <FormField
                 control={form.control}
+                name="llmModel"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>LLM Model</FormLabel>
+                    <FormControl>
+                      <LLMSelector
+                        value={field.value}
+                        onValueChange={field.onChange}
+                      />
+                    </FormControl>
+
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="rerankModel"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Re-ranker Model</FormLabel>
+                    <FormControl>
+                      <RerankerSelector
+                        value={field.value}
+                        onValueChange={field.onChange}
+                      />
+                    </FormControl>
+
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
                 name="systemPrompt"
                 render={({ field }) => (
                   <FormItem>
@@ -358,46 +394,6 @@ export default function HostingForm({
                 name="examplesQuestions"
                 label="Examples"
                 maxItems={4}
-              />
-
-              <FormField
-                control={form.control}
-                name="llmModel"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>LLM Model</FormLabel>
-                    <FormControl>
-                      <LLMSelector
-                        value={field.value}
-                        onValueChange={field.onChange}
-                      />
-                    </FormControl>
-                    <FormDescription>
-                      Choose the language model for chat responses.
-                    </FormDescription>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name="rerankModel"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Re-ranker Model</FormLabel>
-                    <FormControl>
-                      <RerankerSelector
-                        value={field.value}
-                        onValueChange={field.onChange}
-                      />
-                    </FormControl>
-                    <FormDescription>
-                      Choose the re-ranker model for search results.
-                    </FormDescription>
-                    <FormMessage />
-                  </FormItem>
-                )}
               />
             </div>
           </div>

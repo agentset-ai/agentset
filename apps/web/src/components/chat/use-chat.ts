@@ -8,29 +8,27 @@ import { useChatSettings } from "./chat-settings.store";
 
 export function useNamespaceChat() {
   const namespace = useNamespace();
-  const getNamespace = useChatSettings((s) => s.getNamespace);
 
   return useChat<MyUIMessage>({
     // storeId: `chat-${namespace.id}`,
     transport: new DefaultChatTransport({
       api: `/api/chat?namespaceId=${namespace.id}`,
       prepareSendMessagesRequest({ messages, body }) {
-        const settings = getNamespace(namespace.id);
+        const settings = useChatSettings.getState().namespaces[namespace.id];
+
         return {
           body: {
             messages,
             ...body,
-            topK: settings.topK,
             rerank: true,
-            rerankLimit: settings.rerankLimit,
-            rerankModel: settings.rerankModel,
-            llmModel: settings.llmModel,
-            temperature: settings.temperature,
             includeMetadata: true,
-            mode: settings.mode ?? "normal",
-            ...(settings.systemPrompt && {
-              systemPrompt: settings.systemPrompt,
-            }),
+            topK: settings?.topK,
+            rerankLimit: settings?.rerankLimit,
+            rerankModel: settings?.rerankModel,
+            llmModel: settings?.llmModel,
+            temperature: settings?.temperature,
+            mode: settings?.mode ?? "normal",
+            systemPrompt: settings?.systemPrompt ?? undefined,
           },
         };
       },

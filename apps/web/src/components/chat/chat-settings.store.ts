@@ -1,5 +1,6 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
+import { useShallow } from "zustand/react/shallow";
 
 import {
   DEFAULT_LLM,
@@ -23,20 +24,7 @@ interface ChatState {
 }
 
 interface ChatActions {
-  getNamespace: (namespaceId: string) => NamespaceState;
-
-  setAll: (namespaceId: string, state: Partial<NamespaceState>) => void;
-  // setSystemPrompt: (namespaceId: string, systemPrompt: string | null) => void;
-  // setTemperature: (namespaceId: string, temperature: number) => void;
-  // setTopK: (namespaceId: string, topK: number) => void;
-  // setRerankLimit: (namespaceId: string, rerankLimit: number) => void;
-  // setRerankModel: (namespaceId: string, rerankModel: RerankingModel) => void;
-  // setLlmModel: (namespaceId: string, llmModel: LLM) => void;
-  // setMode: (
-  //   namespaceId: string,
-  //   mode: "normal" | "agentic" | "deepResearch",
-  // ) => void;
-
+  setSettings: (namespaceId: string, state: Partial<NamespaceState>) => void;
   reset: (namespaceId: string) => NamespaceState;
 }
 
@@ -71,11 +59,7 @@ export const useChatSettings = create<ChatSettings>()(
   persist(
     (set, get) => ({
       namespaces: {},
-      getNamespace: (namespaceId: string) => {
-        const state = get();
-        return state.namespaces[namespaceId] ?? defaultState;
-      },
-      setAll: (namespaceId: string, newState: Partial<NamespaceState>) =>
+      setSettings: (namespaceId: string, newState: Partial<NamespaceState>) =>
         set((state) => updateNamespace(state, namespaceId, newState)),
       reset: (namespaceId: string) => {
         set((state) => updateNamespace(state, namespaceId, defaultState));
@@ -107,3 +91,16 @@ export const useChatSettings = create<ChatSettings>()(
     },
   ),
 );
+
+export const useNamespaceChatSettings = (namespaceId: string) => {
+  const settings =
+    useChatSettings(useShallow((s) => s.namespaces[namespaceId])) ??
+    defaultState;
+
+  const _setSettings = useChatSettings((s) => s.setSettings);
+
+  const setSettings = (newState: Partial<NamespaceState>) =>
+    _setSettings(namespaceId, newState);
+
+  return [settings, setSettings] as const;
+};
