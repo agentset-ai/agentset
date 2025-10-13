@@ -5,11 +5,11 @@ import { hostingAuth } from "@/lib/api/hosting-auth";
 import { makeApiSuccessResponse } from "@/lib/api/response";
 import { incrementSearchUsage } from "@/lib/api/usage";
 import { parseRequestBody } from "@/lib/api/utils";
-import { getNamespaceLanguageModel } from "@/lib/llm";
 
 import { db } from "@agentset/db";
 import {
   getNamespaceEmbeddingModel,
+  getNamespaceLanguageModel,
   getNamespaceVectorStore,
   KeywordStore,
 } from "@agentset/engine";
@@ -44,6 +44,8 @@ export const POST = withPublicApiHandler(
         allowedEmails: true,
         allowedEmailDomains: true,
         searchEnabled: true,
+        rerankConfig: true,
+        llmConfig: true,
         namespace: {
           select: {
             id: true,
@@ -71,9 +73,8 @@ export const POST = withPublicApiHandler(
       });
     }
 
-    // TODO: pass namespace config
     const [languageModel, vectorStore, embeddingModel] = await Promise.all([
-      getNamespaceLanguageModel(),
+      getNamespaceLanguageModel(hosting.llmConfig?.model),
       getNamespaceVectorStore(hosting.namespace),
       getNamespaceEmbeddingModel(hosting.namespace, "query"),
     ]);
@@ -89,7 +90,10 @@ export const POST = withPublicApiHandler(
         embeddingModel,
         vectorStore,
         topK: 50,
-        rerank: { limit: 15 },
+        rerank: {
+          model: hosting.rerankConfig?.model,
+          limit: 15,
+        },
         includeMetadata: true,
       },
       messages: [

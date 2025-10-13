@@ -101,6 +101,8 @@ export default function HostingPage() {
           welcomeMessage: data.welcomeMessage || "",
           citationMetadataPath: data.citationMetadataPath || "",
           searchEnabled: data.searchEnabled,
+          rerankConfig: data.rerankConfig,
+          llmConfig: data.llmConfig,
         }}
       />
 

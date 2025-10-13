@@ -1,4 +1,5 @@
 export * from "./embedding";
+export * from "./llm";
 export * from "./vector-store";
 export * from "./vector-store/query";
 

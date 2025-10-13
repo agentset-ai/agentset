@@ -2,39 +2,31 @@ import { memo } from "react";
 import { useNamespace } from "@/hooks/use-namespace";
 import { useSession } from "@/hooks/use-session";
 import { BoxIcon, TelescopeIcon } from "lucide-react";
-import { useShallow } from "zustand/react/shallow";
 
 import { Button, cn } from "@agentset/ui";
 
-import { useChatSettings } from "./chat-settings.store";
+import { useNamespaceChatSettings } from "./chat-settings.store";
 
 const ChatInputModes = memo(() => {
   const { isAdmin } = useSession();
 
   const namespace = useNamespace();
-  const settings = useChatSettings(
-    useShallow((s) => {
-      const namespaceSettings = s.getNamespace(namespace.id);
-      return {
-        mode: namespaceSettings.mode,
-        setMode: s.setMode,
-      };
-    }),
-  );
+  const [settings, setSettings] = useNamespaceChatSettings(namespace.id);
 
-  const currentMode = settings.mode ?? "normal";
+  const mode = settings.mode ?? "normal";
 
-  const toggleMode = (mode: typeof currentMode) => {
-    settings.setMode(namespace.id, mode === currentMode ? "normal" : mode);
+  const toggleMode = (newMode: typeof mode) => {
+    console.log({ newMode, mode });
+    setSettings({ mode: newMode === mode ? "normal" : newMode });
   };
 
   return (
     <div className="absolute bottom-0 left-0 flex w-fit flex-row justify-end gap-2 p-2">
       <Button
-        variant={currentMode === "agentic" ? "default" : "outline"}
+        variant={mode === "agentic" ? "default" : "outline"}
         className={cn(
           "rounded-full",
-          currentMode === "agentic" ? "border border-transparent" : "",
+          mode === "agentic" ? "border border-transparent" : "",
         )}
         onClick={() => toggleMode("agentic")}
         size="sm"
@@ -46,10 +38,10 @@ const ChatInputModes = memo(() => {
 
       {isAdmin && (
         <Button
-          variant={currentMode === "deepResearch" ? "default" : "outline"}
+          variant={mode === "deepResearch" ? "default" : "outline"}
           className={cn(
             "rounded-full",
-            currentMode === "deepResearch" ? "border border-transparent" : "",
+            mode === "deepResearch" ? "border border-transparent" : "",
           )}
           onClick={() => toggleMode("deepResearch")}
           size="sm"

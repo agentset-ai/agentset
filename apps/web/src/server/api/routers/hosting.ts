@@ -11,6 +11,7 @@ import { z } from "zod/v4";
 
 import { Prisma } from "@agentset/db";
 import { deleteAsset, uploadImage } from "@agentset/storage";
+import { llmSchema, rerankerSchema } from "@agentset/validation";
 
 const commonInput = z.object({
   namespaceId: z.string(),
@@ -115,6 +116,8 @@ export const hostingRouter = createTRPCRouter({
         welcomeMessage: z.string().optional(),
         citationMetadataPath: z.string().optional(),
         searchEnabled: z.boolean().optional(),
+        rerankModel: rerankerSchema,
+        llmModel: llmSchema,
       }),
     )
     .mutation(async ({ ctx, input }) => {
@@ -156,6 +159,12 @@ export const hostingRouter = createTRPCRouter({
             welcomeMessage: input.welcomeMessage,
             citationMetadataPath: input.citationMetadataPath,
             searchEnabled: input.searchEnabled,
+            ...(input.rerankModel && {
+              rerankConfig: { model: input.rerankModel },
+            }),
+            ...(input.llmModel && {
+              llmConfig: { model: input.llmModel },
+            }),
           },
         });
 

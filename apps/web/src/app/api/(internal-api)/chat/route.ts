@@ -4,7 +4,6 @@ import { AgentsetApiError } from "@/lib/api/errors";
 import { withAuthApiHandler } from "@/lib/api/handler";
 import { parseRequestBody } from "@/lib/api/utils";
 import { DeepResearchPipeline } from "@/lib/deep-research";
-import { getNamespaceLanguageModel } from "@/lib/llm";
 import {
   CONDENSE_SYSTEM_PROMPT,
   CONDENSE_USER_PROMPT,
@@ -24,6 +23,7 @@ import {
 import { db } from "@agentset/db";
 import {
   getNamespaceEmbeddingModel,
+  getNamespaceLanguageModel,
   getNamespaceVectorStore,
   KeywordStore,
   queryVectorStore,
@@ -76,7 +76,7 @@ export const POST = withAuthApiHandler(
 
     // TODO: pass namespace config
     const [languageModel, vectorStore, embeddingModel] = await Promise.all([
-      getNamespaceLanguageModel(),
+      getNamespaceLanguageModel(body.llmModel),
       getNamespaceVectorStore(namespace, tenantId),
       getNamespaceEmbeddingModel(namespace, "query"),
     ]);
@@ -125,9 +125,10 @@ export const POST = withAuthApiHandler(
           includeMetadata: body.includeMetadata,
           includeRelationships: body.includeRelationships,
           rerank: body.rerank
-            ? body.rerankLimit
-              ? { limit: body.rerankLimit }
-              : true
+            ? {
+                model: body.rerankModel,
+                limit: body.rerankLimit,
+              }
             : false,
         },
         // maxQueries
@@ -156,9 +157,10 @@ export const POST = withAuthApiHandler(
           includeMetadata: body.includeMetadata,
           includeRelationships: body.includeRelationships,
           rerank: body.rerank
-            ? body.rerankLimit
-              ? { limit: body.rerankLimit }
-              : true
+            ? {
+                model: body.rerankModel,
+                limit: body.rerankLimit,
+              }
             : false,
         },
         systemPrompt: body.systemPrompt,
@@ -184,9 +186,10 @@ export const POST = withAuthApiHandler(
       includeMetadata: body.includeMetadata,
       includeRelationships: body.includeRelationships,
       rerank: body.rerank
-        ? body.rerankLimit
-          ? { limit: body.rerankLimit }
-          : true
+        ? {
+            model: body.rerankModel,
+            limit: body.rerankLimit,
+          }
         : false,
     });
 

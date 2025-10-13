@@ -68,9 +68,10 @@ export const POST = withNamespaceApiHandler(
           includeMetadata: body.includeMetadata,
           includeRelationships: body.includeRelationships,
           rerank: body.rerank
-            ? body.rerankLimit
-              ? { limit: body.rerankLimit }
-              : true
+            ? {
+                model: body.rerankModel,
+                limit: body.rerankLimit,
+              }
             : false,
         })
       )?.results;

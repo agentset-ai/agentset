@@ -20,6 +20,7 @@
     "@agentset/db": "workspace:*",
     "@agentset/storage": "workspace:*",
     "@agentset/utils": "workspace:*",
+    "@agentset/validation": "workspace:*",
     "@ai-sdk/anthropic": "^2.0.17",
     "@ai-sdk/azure": "^2.0.30",
     "@ai-sdk/google": "^2.0.14",
@@ -31,6 +32,7 @@
     "@turbopuffer/turbopuffer": "^1.2.0",
     "cohere-ai": "^7.19.0",
     "voyage-ai-provider": "^2.0.0",
+    "zeroentropy": "0.1.0-alpha.6",
     "zod": "catalog:"
   },
   "devDependencies": {

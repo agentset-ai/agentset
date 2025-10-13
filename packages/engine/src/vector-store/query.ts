@@ -1,13 +1,15 @@
 import { embed, EmbeddingModel } from "ai";
 
-import { CohereReranker } from "../rerank/cohere";
+import { RerankingModel } from "@agentset/validation";
+
+import { getRerankingModel, rerank } from "../rerank";
 import { VectorStore, VectorStoreQueryOptions } from "./common/vector-store";
 
 export type QueryVectorStoreOptions = Omit<VectorStoreQueryOptions, "mode"> & {
   query: string;
   embeddingModel: EmbeddingModel;
   vectorStore: VectorStore;
-  rerank?: boolean | { limit: number };
+  rerank?: false | { model?: RerankingModel; limit?: number };
 };
 
 export const queryVectorStore = async ({
@@ -37,12 +39,10 @@ export const queryVectorStore = async ({
   // If re-ranking is enabled and we have a query, perform reranking
   let rerankedResults: typeof results | null = null;
   if (options.rerank && results.length > 0) {
-    const reranker = new CohereReranker();
-    rerankedResults = await reranker.rerank(results, {
-      limit:
-        typeof options.rerank === "object"
-          ? options.rerank.limit
-          : options.topK,
+    const reranker = await getRerankingModel(options.rerank.model);
+    rerankedResults = await rerank(results, {
+      model: reranker,
+      limit: options.rerank.limit ?? options.topK,
       query: options.query,
     });
   }
