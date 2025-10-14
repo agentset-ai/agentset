@@ -1,6 +1,6 @@
 import { z } from "zod/v4";
 
-import { rerankerSchema } from "@agentset/validation";
+import { rerankerSchemaWithDefault } from "@agentset/validation";
 
 export const baseQueryVectorStoreSchema = z.object({
   query: z.string().describe("The query to search for."),
@@ -26,7 +26,9 @@ export const baseQueryVectorStoreSchema = z.object({
     .describe(
       "The number of results to return after reranking. Defaults to `topK`.",
     ),
-  rerankModel: rerankerSchema.describe("The reranking model to use."),
+  rerankModel: rerankerSchemaWithDefault.describe(
+    "The reranking model to use.",
+  ),
   filter: z
     .record(z.string(), z.any())
     .optional()

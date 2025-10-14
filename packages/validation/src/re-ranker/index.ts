@@ -2,12 +2,13 @@ import z from "zod/v4";
 
 import { DEFAULT_RERANKER, RERANKER_MODELS, RerankingModel } from "./constants";
 
-export const rerankerSchema = z
-  .enum(
-    Object.entries(RERANKER_MODELS).flatMap(([provider, models]) =>
-      models.map((m) => `${provider}:${m.model}`),
-    ) as unknown as [RerankingModel, ...RerankingModel[]],
-  )
+export const rerankerSchema = z.enum(
+  Object.entries(RERANKER_MODELS).flatMap(([provider, models]) =>
+    models.map((m) => `${provider}:${m.model}`),
+  ) as unknown as [RerankingModel, ...RerankingModel[]],
+);
+
+export const rerankerSchemaWithDefault = rerankerSchema
   .optional()
   .default(DEFAULT_RERANKER);
 
