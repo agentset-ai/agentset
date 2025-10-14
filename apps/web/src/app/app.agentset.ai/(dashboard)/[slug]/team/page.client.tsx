@@ -56,6 +56,7 @@ export default function TeamSettingsPage() {
         <div className="flex flex-col gap-6">
           {sortedMembers.map((member) => (
             <MemberCard
+              type="member"
               key={member.id}
               id={member.id}
               name={member.user.name}
@@ -76,6 +77,7 @@ export default function TeamSettingsPage() {
 
           {invitations.map((invitation) => (
             <MemberCard
+              type="invitation"
               key={invitation.id}
               id={invitation.id}
               name={invitation.email}

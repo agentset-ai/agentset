@@ -5,6 +5,6 @@
     "jsx": "preserve",
     "module": "esnext"
   },
-  "include": ["src"],
+  "include": ["src", "test"],
   "exclude": ["node_modules"]
 }

@@ -1,62 +1,33 @@
 import { CohereClientV2 } from "cohere-ai";
-import { MetadataMode } from "llamaindex";
 
-import { tryCatch } from "@agentset/utils";
+import { VectorStoreResult } from "../vector-store/common/vector-store";
+import { Reranker, RerankOptions } from "./common";
 
-import { env } from "../env";
-import {
-  BaseRerankDocument,
-  BaseReranker,
-  RerankOptions,
-  RerankResult,
-} from "./common";
-
-export class CohereReranker extends BaseReranker {
+export class CohereReranker implements Reranker {
   private readonly client: CohereClientV2;
 
-  constructor({ apiKey }: { apiKey?: string } = {}) {
-    super();
-    this.client = new CohereClientV2({
-      token: apiKey ?? env.DEFAULT_COHERE_API_KEY,
-    });
+  constructor(
+    private readonly model: string,
+    { apiKey }: { apiKey: string },
+  ) {
+    this.client = new CohereClientV2({ token: apiKey });
   }
 
-  async rerank<T extends BaseRerankDocument>(
+  async doRerank<T extends VectorStoreResult>(
     results: T[],
     options: RerankOptions,
-  ) {
-    if (!results.length) return results;
-
-    const { data: rerankResults, error } = await tryCatch(
-      this.client.rerank({
-        documents: results.map((doc) => doc.node.getContent(MetadataMode.NONE)),
-        query: options.query,
-        topN: options.limit,
-        model: "rerank-v3.5",
-        returnDocuments: false,
-      }),
-    );
-
-    if (error) {
-      return results;
-    }
+  ): Promise<{ index: number; rerankScore?: number }[]> {
+    const rerankResults = await this.client.rerank({
+      documents: results.map((doc) => doc.text),
+      query: options.query,
+      topN: options.limit,
+      model: this.model,
+    });
 
     // TODO: track usage with rerankResults.meta
-    return rerankResults.results
-      .map((result) => {
-        // Use the index from the result to find the original document
-        const originalIndex = result.index;
-        const originalDoc = results[originalIndex];
-
-        if (!originalDoc) {
-          return null;
-        }
-
-        return {
-          ...originalDoc,
-          rerankScore: result.relevanceScore,
-        };
-      })
-      .filter(Boolean) as RerankResult<T>[];
+    return rerankResults.results.map((result) => ({
+      index: result.index,
+      rerankScore: result.relevanceScore,
+    }));
   }
 }

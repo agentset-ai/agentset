@@ -33,7 +33,6 @@ export const deleteDocument = schemaTask({
             id: true,
             vectorStoreConfig: true,
             keywordEnabled: true,
-            createdAt: true,
           },
         },
       },
@@ -61,42 +60,16 @@ export const deleteDocument = schemaTask({
     // Get vector store and clean up chunks
     const vectorStore = await getNamespaceVectorStore(
       namespace,
-      document.tenantId ?? undefined,
+      document.tenantId,
     );
 
-    // Get vector store chunk IDs to delete
-    let paginationToken: string | undefined;
-    const chunkIdsToDelete: string[] = [];
-
-    do {
-      const chunks = await vectorStore.list({
-        prefix: `${document.id}#`,
-        paginationToken,
-      });
-
-      chunks.vectors?.forEach((chunk) => {
-        if (chunk.id) {
-          chunkIdsToDelete.push(chunk.id);
-        }
-      });
-
-      paginationToken = chunks.pagination?.next;
-    } while (paginationToken);
-
-    // Delete vector store chunks
-    if (chunkIdsToDelete.length > 0) {
-      const batches = chunkArray(chunkIdsToDelete, BATCH_SIZE);
-      for (const batch of batches) {
-        await vectorStore.delete(batch);
-      }
-    }
+    const deletedChunks = await vectorStore.deleteByFilter({
+      documentId: document.id,
+    });
 
     // Clean up keyword store if enabled
     if (namespace.keywordEnabled) {
-      const keywordStore = new KeywordStore(
-        namespace.id,
-        document.tenantId ?? undefined,
-      );
+      const keywordStore = new KeywordStore(namespace.id, document.tenantId);
 
       let page = 1;
       let hasNextPage = true;
@@ -135,7 +108,7 @@ export const deleteDocument = schemaTask({
     return {
       documentId: document.id,
       deleted: true as const,
-      vectorChunksDeleted: chunkIdsToDelete.length,
+      vectorChunksDeleted: deletedChunks.deleted,
       pagesDeleted: document.totalPages,
     };
   },

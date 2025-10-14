@@ -1,11 +1,13 @@
 import { agenticSearch } from "@/lib/agentic/search";
 import { incrementSearchUsage } from "@/lib/api/usage";
-import { getNamespaceLanguageModel } from "@/lib/llm";
 import { createTRPCRouter, protectedProcedure } from "@/server/api/trpc";
 import { TRPCError } from "@trpc/server";
 import { z } from "zod/v4";
 
 import {
+  getNamespaceEmbeddingModel,
+  getNamespaceLanguageModel,
+  getNamespaceVectorStore,
   KeywordStore,
   queryVectorStore,
   QueryVectorStoreResult,
@@ -43,10 +45,21 @@ export const searchRouter = createTRPCRouter({
         throw new TRPCError({ code: "NOT_FOUND" });
       }
 
-      const model = await getNamespaceLanguageModel();
+      const [model, vectorStore, embeddingModel] = await Promise.all([
+        getNamespaceLanguageModel("openai:gpt-4.1"),
+        getNamespaceVectorStore(namespace),
+        getNamespaceEmbeddingModel(namespace, "query"),
+      ]);
 
-      const results = await agenticSearch(namespace, {
+      const results = await agenticSearch({
         model,
+        queryOptions: {
+          embeddingModel,
+          vectorStore,
+          topK: 50,
+          rerank: { model: "cohere:rerank-v3.5", limit: 15 },
+          includeMetadata: true,
+        },
         messages: [
           {
             role: "user",
@@ -84,19 +97,27 @@ export const searchRouter = createTRPCRouter({
         });
       }
 
+      const [embeddingModel, vectorStore] = await Promise.all([
+        getNamespaceEmbeddingModel(namespace, "query"),
+        getNamespaceVectorStore(namespace),
+      ]);
+
       let results: QueryVectorStoreResult["results"] | undefined = [];
       let queryPerformed = input.query;
 
       if (input.mode === "semantic") {
-        const queryResult = await queryVectorStore(namespace, {
+        const queryResult = await queryVectorStore({
           query: input.query,
           topK: input.topK,
           minScore: input.minScore,
           filter: input.filter,
           includeMetadata: input.includeMetadata,
           includeRelationships: input.includeRelationships,
-          rerankLimit: input.rerankLimit,
-          rerank: input.rerank,
+          rerank: input.rerank
+            ? { model: "cohere:rerank-v3.5", limit: input.rerankLimit }
+            : false,
+          embeddingModel,
+          vectorStore,
         });
 
         if (!queryResult) {
@@ -126,7 +147,7 @@ export const searchRouter = createTRPCRouter({
         results,
         query: queryPerformed,
         mode: input.mode,
-        totalResults: results.length,
+        totalResults: results?.length ?? 0,
         parameters: {
           topK: input.topK,
           minScore: input.minScore,

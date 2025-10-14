@@ -4,14 +4,18 @@ import { AgentsetApiError } from "@/lib/api/errors";
 import { withAuthApiHandler } from "@/lib/api/handler";
 import { makeApiSuccessResponse } from "@/lib/api/response";
 import { parseRequestBody } from "@/lib/api/utils";
-import { getNamespaceLanguageModel } from "@/lib/llm";
 import { NEW_MESSAGE_PROMPT } from "@/lib/prompts";
 import { waitUntil } from "@vercel/functions";
 import { generateText } from "ai";
 
 import type { QueryVectorStoreResult } from "@agentset/engine";
 import { db } from "@agentset/db";
-import { queryVectorStore } from "@agentset/engine";
+import {
+  getNamespaceEmbeddingModel,
+  getNamespaceLanguageModel,
+  getNamespaceVectorStore,
+  queryVectorStore,
+} from "@agentset/engine";
 
 import { chatSchema } from "./schema";
 import { correctnessEval, faithfulnessEval, relevanceEval } from "./utils";
@@ -53,7 +57,11 @@ export const POST = withAuthApiHandler(
     }
 
     // TODO: pass namespace config
-    const languageModel = await getNamespaceLanguageModel();
+    const [languageModel, vectorStore, embeddingModel] = await Promise.all([
+      getNamespaceLanguageModel("openai:gpt-4.1"),
+      getNamespaceVectorStore(namespace, tenantId),
+      getNamespaceEmbeddingModel(namespace, "query"),
+    ]);
 
     let result: {
       answer: string;
@@ -61,10 +69,22 @@ export const POST = withAuthApiHandler(
     };
 
     if (body.mode === "agentic") {
-      result = await generateAgenticResponse(namespace, {
+      result = await generateAgenticResponse({
         model: languageModel,
         systemPrompt: body.systemPrompt,
         temperature: body.temperature,
+        queryOptions: {
+          embeddingModel,
+          vectorStore,
+          topK: body.topK,
+          minScore: body.minScore,
+          filter: body.filter,
+          includeMetadata: body.includeMetadata,
+          includeRelationships: body.includeRelationships,
+          rerank: body.rerank
+            ? { model: "cohere:rerank-v3.5", limit: body.rerankLimit }
+            : false,
+        },
         messagesWithoutQuery: [],
         lastMessage: message,
         afterQueries: (totalQueries) => {
@@ -72,24 +92,19 @@ export const POST = withAuthApiHandler(
         },
       });
     } else {
-      const data = await queryVectorStore(namespace, {
+      const data = await queryVectorStore({
+        embeddingModel,
+        vectorStore,
         query: message,
-        tenantId,
         topK: body.topK,
         minScore: body.minScore,
         filter: body.filter,
         includeMetadata: body.includeMetadata,
         includeRelationships: body.includeRelationships,
-        rerankLimit: body.rerankLimit,
-        rerank: body.rerank,
+        rerank: body.rerank
+          ? { model: "cohere:rerank-v3.5", limit: body.rerankLimit }
+          : false,
       });
-
-      if (!data) {
-        throw new AgentsetApiError({
-          code: "internal_server_error",
-          message: "Failed to parse chunks",
-        });
-      }
 
       const newMessages: ModelMessage[] = [
         {

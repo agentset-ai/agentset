@@ -6,8 +6,10 @@ export const env = createEnv({
     DEFAULT_PINECONE_API_KEY: z.string(),
     DEFAULT_PINECONE_HOST: z.url(),
 
-    SECONDARY_PINECONE_API_KEY: z.string().optional(),
-    SECONDARY_PINECONE_HOST: z.url().optional(),
+    SECONDARY_PINECONE_API_KEY: z.string(),
+    SECONDARY_PINECONE_HOST: z.url(),
+
+    DEFAULT_TURBOPUFFER_API_KEY: z.string(),
 
     AZURE_SEARCH_URL: z.url(),
     AZURE_SEARCH_INDEX: z.string(),
@@ -15,11 +17,10 @@ export const env = createEnv({
 
     DEFAULT_AZURE_RESOURCE_NAME: z.string(),
     DEFAULT_AZURE_API_KEY: z.string(),
-
     DEFAULT_AZURE_EMBEDDING_DEPLOYMENT: z.string(),
-    DEFAULT_AZURE_LLM_DEPLOYMENT: z.string(),
 
     DEFAULT_COHERE_API_KEY: z.string(),
+    DEFAULT_ZEROENTROPY_API_KEY: z.string(),
 
     PARTITION_API_KEY: z.string(),
     PARTITION_API_URL: z.url(),
@@ -31,6 +32,8 @@ export const env = createEnv({
     SECONDARY_PINECONE_API_KEY: process.env.SECONDARY_PINECONE_API_KEY,
     SECONDARY_PINECONE_HOST: process.env.SECONDARY_PINECONE_HOST,
 
+    DEFAULT_TURBOPUFFER_API_KEY: process.env.DEFAULT_TURBOPUFFER_API_KEY,
+
     AZURE_SEARCH_URL: process.env.AZURE_SEARCH_URL,
     AZURE_SEARCH_INDEX: process.env.AZURE_SEARCH_INDEX,
     AZURE_SEARCH_KEY: process.env.AZURE_SEARCH_KEY,
@@ -39,9 +42,9 @@ export const env = createEnv({
     DEFAULT_AZURE_API_KEY: process.env.DEFAULT_AZURE_API_KEY,
     DEFAULT_AZURE_EMBEDDING_DEPLOYMENT:
       process.env.DEFAULT_AZURE_EMBEDDING_DEPLOYMENT,
-    DEFAULT_AZURE_LLM_DEPLOYMENT: process.env.DEFAULT_AZURE_LLM_DEPLOYMENT,
 
     DEFAULT_COHERE_API_KEY: process.env.DEFAULT_COHERE_API_KEY,
+    DEFAULT_ZEROENTROPY_API_KEY: process.env.DEFAULT_ZEROENTROPY_API_KEY,
 
     PARTITION_API_KEY: process.env.PARTITION_API_KEY,
     PARTITION_API_URL: process.env.PARTITION_API_URL,

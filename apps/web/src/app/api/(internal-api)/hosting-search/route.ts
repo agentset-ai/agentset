@@ -5,9 +5,14 @@ import { hostingAuth } from "@/lib/api/hosting-auth";
 import { makeApiSuccessResponse } from "@/lib/api/response";
 import { incrementSearchUsage } from "@/lib/api/usage";
 import { parseRequestBody } from "@/lib/api/utils";
-import { getNamespaceLanguageModel } from "@/lib/llm";
 
 import { db } from "@agentset/db";
+import {
+  getNamespaceEmbeddingModel,
+  getNamespaceLanguageModel,
+  getNamespaceVectorStore,
+  KeywordStore,
+} from "@agentset/engine";
 
 import { hostingSearchSchema } from "./schema";
 
@@ -39,10 +44,11 @@ export const POST = withPublicApiHandler(
         allowedEmails: true,
         allowedEmailDomains: true,
         searchEnabled: true,
+        rerankConfig: true,
+        llmConfig: true,
         namespace: {
           select: {
             id: true,
-            createdAt: true,
             vectorStoreConfig: true,
             embeddingConfig: true,
             keywordEnabled: true,
@@ -67,16 +73,27 @@ export const POST = withPublicApiHandler(
       });
     }
 
-    // TODO: pass namespace config
-    const languageModel = await getNamespaceLanguageModel();
+    const [languageModel, vectorStore, embeddingModel] = await Promise.all([
+      getNamespaceLanguageModel(hosting.llmConfig?.model),
+      getNamespaceVectorStore(hosting.namespace),
+      getNamespaceEmbeddingModel(hosting.namespace, "query"),
+    ]);
 
-    const result = await agenticSearch(hosting.namespace, {
-      model: languageModel,
+    const keywordStore = hosting.namespace.keywordEnabled
+      ? new KeywordStore(hosting.namespace.id)
+      : undefined;
+
+    const result = await agenticSearch({
       // TODO: get from hosting
+      model: languageModel,
       queryOptions: {
+        embeddingModel,
+        vectorStore,
         topK: 50,
-        rerankLimit: 15,
-        rerank: true,
+        rerank: {
+          model: hosting.rerankConfig?.model,
+          limit: 15,
+        },
         includeMetadata: true,
       },
       messages: [

@@ -1,14 +1,16 @@
 import type { Role } from "@/lib/auth-types";
+import { useState } from "react";
+import { useOrganization } from "@/hooks/use-organization";
 import { ChevronDownIcon } from "lucide-react";
 
 import {
   Button,
-  Command,
-  CommandEmpty,
-  CommandGroup,
-  CommandInput,
-  CommandItem,
-  CommandList,
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
   Popover,
   PopoverContent,
   PopoverTrigger,
@@ -17,23 +19,24 @@ import {
 const roles = [
   {
     label: "Member",
-    description: "Can view and comment.",
+    description:
+      "Cannot delete or modify resources. Cannot manage organization settings.",
     value: "member",
   },
   {
     label: "Admin",
-    description: "Can view, comment and manage billing.",
+    description: "Can view and manage everything. Cannot remove owners.",
     value: "admin",
   },
   {
     label: "Owner",
-    description: "Admin-level access to all resources.",
+    description: "Can view and manage everything.",
     value: "owner",
   },
 ];
 
 export default function RoleSelector({
-  role,
+  role: activeRole,
   setRole,
   disabled,
 }: {
@@ -41,36 +44,74 @@ export default function RoleSelector({
   setRole: (role: Role) => void;
   disabled?: boolean;
 }) {
+  const { isOwner } = useOrganization();
+  const [open, setOpen] = useState(false);
+
   return (
-    <Popover>
-      <PopoverTrigger asChild disabled={disabled}>
-        <Button variant="outline" className="ml-auto">
-          {roles.find((r) => r.value === role)?.label || "Role"}{" "}
-          <ChevronDownIcon className="text-muted-foreground" />
-        </Button>
-      </PopoverTrigger>
-      <PopoverContent className="p-0" align="end">
-        <Command value={role} onValueChange={(value) => setRole(value as Role)}>
-          <CommandInput placeholder="Select new role..." />
-          <CommandList>
-            <CommandEmpty>No roles found.</CommandEmpty>
-            <CommandGroup>
-              {roles.map((role) => (
-                <CommandItem
-                  key={role.value}
-                  value={role.value}
-                  className="flex flex-col items-start gap-0 px-4 py-2"
-                >
-                  <p>{role.label}</p>
-                  <p className="text-muted-foreground text-sm">
-                    {role.description}
-                  </p>
-                </CommandItem>
-              ))}
-            </CommandGroup>
-          </CommandList>
-        </Command>
-      </PopoverContent>
-    </Popover>
+    <>
+      <Popover>
+        <PopoverTrigger asChild disabled={disabled}>
+          <Button variant="outline" className="ml-auto">
+            {roles.find((r) => r.value === activeRole)?.label || "Role"}{" "}
+            <ChevronDownIcon className="text-muted-foreground" />
+          </Button>
+        </PopoverTrigger>
+        <PopoverContent className="flex flex-col gap-1 p-1" align="end">
+          {roles.map((role) => (
+            <button
+              key={role.value}
+              data-selected={role.value === activeRole}
+              className="data-[selected=true]:bg-accent data-[selected=true]:text-accent-foreground hover:bg-accent hover:text-accent-foreground relative w-full cursor-default flex-col items-start justify-start gap-2 rounded-sm px-4 py-2 text-left text-sm outline-hidden select-none disabled:pointer-events-none disabled:opacity-50"
+              onClick={() => {
+                const newRole = role.value as Role;
+                if (newRole === "owner") {
+                  setOpen(true);
+                } else {
+                  setRole(newRole);
+                }
+              }}
+              disabled={!isOwner && role.value === "owner"}
+            >
+              <p>{role.label}</p>
+              <p className="text-muted-foreground text-xs">
+                {role.description}
+              </p>
+            </button>
+          ))}
+        </PopoverContent>
+      </Popover>
+
+      <Dialog open={open} onOpenChange={setOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Move Ownership</DialogTitle>
+            <DialogDescription>
+              Are you sure you want to move ownership to this member? This
+              action cannot be undone.
+            </DialogDescription>
+          </DialogHeader>
+
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => {
+                setOpen(false);
+              }}
+            >
+              Cancel
+            </Button>
+            <Button
+              variant="destructive"
+              onClick={() => {
+                setRole("owner");
+                setOpen(false);
+              }}
+            >
+              Move Ownership
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    </>
   );
 }

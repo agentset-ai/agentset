@@ -1,5 +1,10 @@
 import { useState } from "react";
-import { useChatSettings } from "@/components/chat/chat-settings.store";
+import {
+  useChatSettings,
+  useNamespaceChatSettings,
+} from "@/components/chat/chat-settings.store";
+import { LLMSelector } from "@/components/llm-selector";
+import { RerankerSelector } from "@/components/reranker-selector";
 import { useNamespace } from "@/hooks/use-namespace";
 import { DEFAULT_SYSTEM_PROMPT } from "@/lib/prompts";
 import { Settings2Icon } from "lucide-react";
@@ -24,13 +29,16 @@ const defaultPrompt = DEFAULT_SYSTEM_PROMPT.compile().trim();
 export default function ChatSettings() {
   const namespace = useNamespace();
   const [open, setOpen] = useState(false);
-  const store = useChatSettings();
-  const currentState = store.getNamespace(namespace.id);
 
-  const [topK, setTopK] = useState(currentState.topK);
-  const [rerankLimit, setRerankLimit] = useState(currentState.rerankLimit);
-  const [systemPrompt, setSystemPrompt] = useState(currentState.systemPrompt);
-  const [temperature, setTemperature] = useState(currentState.temperature);
+  const [settings, setSettings] = useNamespaceChatSettings(namespace.id);
+  const resetSettings = useChatSettings((s) => s.reset);
+
+  const [topK, setTopK] = useState(settings.topK);
+  const [rerankLimit, setRerankLimit] = useState(settings.rerankLimit);
+  const [systemPrompt, setSystemPrompt] = useState(settings.systemPrompt);
+  const [temperature, setTemperature] = useState(settings.temperature);
+  const [rerankModel, setRerankModel] = useState(settings.rerankModel);
+  const [llmModel, setLlmModel] = useState(settings.llmModel);
 
   const handleSave = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -40,33 +48,27 @@ export default function ChatSettings() {
       return;
     }
 
-    if (topK !== currentState.topK) {
-      store.setTopK(namespace.id, topK);
-    }
-    if (rerankLimit !== currentState.rerankLimit) {
-      store.setRerankLimit(namespace.id, rerankLimit);
-    }
-
-    if (systemPrompt !== currentState.systemPrompt) {
-      store.setSystemPrompt(
-        namespace.id,
-        systemPrompt && systemPrompt !== "" ? systemPrompt : null,
-      );
-    }
-
-    if (temperature !== currentState.temperature) {
-      store.setTemperature(namespace.id, temperature);
-    }
+    setSettings({
+      topK,
+      rerankLimit,
+      systemPrompt: systemPrompt && systemPrompt !== "" ? systemPrompt : null,
+      temperature,
+      rerankModel,
+      llmModel,
+    });
 
     setOpen(false);
   };
 
   const handleReset = () => {
-    const newState = store.reset(namespace.id);
+    const newState = resetSettings(namespace.id);
+
     setTopK(newState.topK);
     setRerankLimit(newState.rerankLimit);
     setSystemPrompt(newState.systemPrompt);
     setTemperature(newState.temperature);
+    setRerankModel(newState.rerankModel);
+    setLlmModel(newState.llmModel);
   };
 
   return (
@@ -125,6 +127,19 @@ export default function ChatSettings() {
               max={1}
               step={0.1}
               onChange={(e) => setTemperature(Number(e.target.value))}
+            />
+          </div>
+
+          <div className="grid gap-2">
+            <Label>LLM Model</Label>
+            <LLMSelector value={llmModel} onValueChange={setLlmModel} />
+          </div>
+
+          <div className="grid gap-2">
+            <Label>Re-ranker Model</Label>
+            <RerankerSelector
+              value={rerankModel}
+              onValueChange={setRerankModel}
             />
           </div>
 

@@ -5,25 +5,10 @@ import type {
   IngestJobConfig as _IngestJobConfig,
   IngestJobPayload as _IngestJobPayload,
   EmbeddingConfig,
+  LLM,
+  RerankingModel,
   VectorStoreConfig,
 } from "@agentset/validation";
-
-type OpenAILanguageModel = "gpt-4o" | "gpt-4o-mini";
-
-export type LLMConfig =
-  | {
-      provider: "OPENAI";
-      model: OpenAILanguageModel;
-      apiKey: string;
-    }
-  | {
-      provider: "AZURE_OPENAI";
-      model: OpenAILanguageModel;
-      resourceName: string;
-      deployment: string;
-      apiKey: string;
-      apiVersion?: string;
-    };
 
 declare global {
   export namespace PrismaJson {
@@ -50,8 +35,10 @@ declare global {
     };
 
     type NamespaceEmbeddingConfig = EmbeddingConfig;
-    type NamespaceLLMConfig = LLMConfig;
     type DocumentProperties = _DocumentProperties;
+
+    type HostingRerankConfig = { model: RerankingModel };
+    type HostingLLMConfig = { model: LLM };
 
     type DocumentSource = _DocumentPayload;
     type DocumentConfig = _IngestJobConfig;

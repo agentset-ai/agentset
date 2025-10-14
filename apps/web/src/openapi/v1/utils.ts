@@ -1,11 +1,13 @@
 import z from "zod/v4";
 
+const tenantIdRegex = /^[A-Za-z0-9]{1,64}$/;
 export const tenantHeaderSchema = z
   .string()
+  .regex(tenantIdRegex)
   .optional()
   .meta({
     description:
-      "The tenant id to use for the request. If not provided, the default tenant will be used.",
+      "Optional tenant id to use for the request. If not provided, the namespace will be used directly. Must be alphanumeric and up to 64 characters.",
     param: {
       in: "header",
       name: "x-tenant-id",

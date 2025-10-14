@@ -2,7 +2,6 @@ import { embed } from "ai";
 
 import type { Namespace } from "@agentset/db";
 import {
-  getEmbeddingProviderOptions,
   getNamespaceEmbeddingModel,
   getNamespaceVectorStore,
 } from "@agentset/engine";
@@ -28,32 +27,23 @@ const modelToDimensions: Record<
 };
 
 export const validateVectorStoreConfig = async (
-  vectorStoreConfig?: Namespace["vectorStoreConfig"],
-  embeddingConfig?: Namespace["embeddingConfig"],
+  vectorStoreConfig: NonNullable<Namespace["vectorStoreConfig"]>,
+  embeddingConfig: NonNullable<Namespace["embeddingConfig"]>,
 ) => {
-  // default vector store + embedding model will always work
-  if (!vectorStoreConfig && !embeddingConfig) {
-    return {
-      success: true as const,
-    };
-  }
-
-  let embeddingDimensions: number = 3072; // TODO: make this dynamic
-  if (embeddingConfig) {
-    embeddingDimensions = modelToDimensions[embeddingConfig.model];
-  }
+  // TODO: make this dynamic
+  const embeddingDimensions: number = modelToDimensions[embeddingConfig.model];
 
   // one of either vector store config or embedding config is provided
-  let vectorStoreDimensions: number = 3072; // TODO: make this dynamic
-  if (vectorStoreConfig) {
+  // TODO: make this dynamic
+  let vectorStoreDimensions: number;
+  if (vectorStoreConfig.provider === "MANAGED_TURBOPUFFER") {
+    vectorStoreDimensions = embeddingDimensions;
+  } else {
     try {
-      const v = await getNamespaceVectorStore({
-        id: "",
-        vectorStoreConfig,
-        createdAt: new Date(),
-      });
+      const v = await getNamespaceVectorStore({ id: "", vectorStoreConfig });
       const dimensions = await v.getDimensions();
-      vectorStoreDimensions = dimensions;
+      vectorStoreDimensions =
+        dimensions === "ANY" ? embeddingDimensions : dimensions;
     } catch {
       return {
         success: false as const,
@@ -76,21 +66,20 @@ export const validateVectorStoreConfig = async (
 };
 
 export const validateEmbeddingModel = async (
-  embeddingConfig?: Namespace["embeddingConfig"],
+  embeddingConfig: NonNullable<Namespace["embeddingConfig"]>,
 ) => {
-  if (!embeddingConfig) {
-    return {
-      success: true as const,
-    };
-  }
+  // if (embeddingConfig.provider.startsWith("MANAGED_")) {
+  //   return {
+  //     success: true as const,
+  //   };
+  // }
 
-  const model = await getNamespaceEmbeddingModel({ embeddingConfig });
+  const model = await getNamespaceEmbeddingModel({ embeddingConfig }, "query");
 
   try {
     await embed({
       model,
       value: "Hello, world!",
-      ...getEmbeddingProviderOptions({ embeddingConfig }, "query"),
     });
 
     return {

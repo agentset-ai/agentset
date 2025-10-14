@@ -72,6 +72,7 @@ export * from "./icons/github";
 export * from "./icons/gmail";
 export * from "./icons/google-drive";
 export * from "./icons/google";
+export * from "./icons/turbopuffer";
 export * from "./icons/notion";
 export * from "./icons/onedrive";
 export * from "./icons/openai";
