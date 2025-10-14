@@ -91,13 +91,19 @@ export const ingestJob = schemaTask({
       ingestionJob.payload.type === "TEXT" ||
       ingestionJob.payload.type === "MANAGED_FILE"
     ) {
+      const commonDocumentData = {
+        name: ingestionJob.payload.fileName,
+        // TODO: bring this back when we implement document external ID
+        // externalId: ingestionJob.payload.externalId,
+      };
+
       // Handle single document types
       if (ingestionJob.payload.type === "TEXT") {
         const { text } = ingestionJob.payload;
         const document = await db.document.create({
           data: {
             ...commonData,
-            name: ingestionJob.payload.fileName,
+            ...commonDocumentData,
             source: {
               type: "TEXT",
               text,
@@ -113,7 +119,7 @@ export const ingestJob = schemaTask({
         const document = await db.document.create({
           data: {
             ...commonData,
-            name: ingestionJob.payload.fileName,
+            ...commonDocumentData,
             source: {
               type: "FILE",
               fileUrl: fileUrl,
@@ -128,7 +134,7 @@ export const ingestJob = schemaTask({
         const document = await db.document.create({
           data: {
             ...commonData,
-            name: ingestionJob.payload.fileName,
+            ...commonDocumentData,
             source: {
               type: "MANAGED_FILE",
               key: key,
@@ -147,12 +153,21 @@ export const ingestJob = schemaTask({
         const fileBatch = batches[i]!;
         const batchResult = await db.document.createManyAndReturn({
           select: { id: true },
-          data: fileBatch.map(({ config, fileName, ...file }) => ({
-            ...commonData,
-            name: fileName,
-            source: file,
-            config,
-          })),
+          data: fileBatch.map(
+            ({
+              config,
+              fileName,
+              // externalId,
+              ...file
+            }) => ({
+              ...commonData,
+              // TODO: bring this back when we implement document external ID
+              // externalId: file.externalId,
+              name: fileName,
+              source: file,
+              config,
+            }),
+          ),
         });
 
         documents = documents.concat(batchResult);
