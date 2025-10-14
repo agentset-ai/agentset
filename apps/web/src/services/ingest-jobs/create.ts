@@ -62,7 +62,8 @@ export const createIngestJob = async ({
   } else {
     const commonPayload = {
       ...(data.payload.fileName && { fileName: data.payload.fileName }),
-      ...(data.payload.externalId && { externalId: data.payload.externalId }),
+      // TODO: bring this back when we implement document external ID
+      // ...(data.payload.externalId && { externalId: data.payload.externalId }),
     };
     if (data.payload.type === "TEXT") {
       finalPayload = {

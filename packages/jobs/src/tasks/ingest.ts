@@ -93,7 +93,8 @@ export const ingestJob = schemaTask({
     ) {
       const commonDocumentData = {
         name: ingestionJob.payload.fileName,
-        externalId: ingestionJob.payload.externalId,
+        // TODO: bring this back when we implement document external ID
+        // externalId: ingestionJob.payload.externalId,
       };
 
       // Handle single document types
@@ -152,13 +153,21 @@ export const ingestJob = schemaTask({
         const fileBatch = batches[i]!;
         const batchResult = await db.document.createManyAndReturn({
           select: { id: true },
-          data: fileBatch.map(({ config, fileName, externalId, ...file }) => ({
-            ...commonData,
-            name: fileName,
-            externalId,
-            source: file,
-            config,
-          })),
+          data: fileBatch.map(
+            ({
+              config,
+              fileName,
+              // externalId,
+              ...file
+            }) => ({
+              ...commonData,
+              // TODO: bring this back when we implement document external ID
+              // externalId: file.externalId,
+              name: fileName,
+              source: file,
+              config,
+            }),
+          ),
         });
 
         documents = documents.concat(batchResult);

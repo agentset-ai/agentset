@@ -64,20 +64,21 @@ const fileNameSchema = z
   .nullable()
   .optional();
 
-export const documentExternalIdSchema = z
-  .string()
-  .nullable()
-  .optional()
-  .describe(
-    "A unique external ID of the document. You can use this to identify the document in your system.",
-  );
+// TODO: bring this back when we implement document external ID
+// export const documentExternalIdSchema = z
+//   .string()
+//   .nullable()
+//   .optional()
+//   .describe(
+//     "A unique external ID of the document. You can use this to identify the document in your system.",
+//   );
 
 export const textPayloadSchema = z
   .object({
     type: z.literal("TEXT"),
     text: z.string().describe("The text to ingest."),
     fileName: fileNameSchema,
-    externalId: documentExternalIdSchema,
+    // externalId: documentExternalIdSchema,
   })
   .meta({
     id: "text-payload",
@@ -89,7 +90,7 @@ export const filePayloadSchema = z
     type: z.literal("FILE"),
     fileUrl: z.string().describe("The URL of the file to ingest."),
     fileName: fileNameSchema,
-    externalId: documentExternalIdSchema,
+    // externalId: documentExternalIdSchema,
   })
   .meta({
     id: "file-payload",
@@ -101,7 +102,7 @@ export const managedFilePayloadSchema = z
     type: z.literal("MANAGED_FILE"),
     key: z.string().describe("The key of the managed file to ingest."),
     fileName: fileNameSchema,
-    externalId: documentExternalIdSchema,
+    // externalId: documentExternalIdSchema,
   })
   .meta({
     id: "managed-file-payload",
