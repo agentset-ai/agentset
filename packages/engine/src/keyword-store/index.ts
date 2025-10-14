@@ -8,11 +8,11 @@ import {
   odata,
   SearchClient,
 } from "@azure/search-documents";
-import { metadataDictToNode } from "@llamaindex/core/vector-store";
-import { TextNode } from "llamaindex";
+import { MetadataMode, TextNode } from "@llamaindex/core/schema";
 
+import { metadataToChunk } from "../chunk";
 import { env } from "../env";
-import { formatResults } from "../vector-store/parse";
+import { VectorStoreResult } from "../vector-store/common/vector-store";
 
 export type KeywordSearchChunk = {
   id: string;
@@ -50,7 +50,7 @@ const safeParse = (json: string) => {
 export class KeywordStore {
   constructor(
     private readonly namespaceId: string,
-    private readonly tenantId?: string,
+    private readonly tenantId?: string | null,
   ) {}
 
   private async asyncIterableToArray<T extends object>(
@@ -128,31 +128,29 @@ export class KeywordStore {
       currentPage: page,
       hasNextPage: page < totalPages,
       hasPreviousPage: page > 1,
-      results: formatResults(
-        resultsArray.map((result) => {
-          const document = result.document;
-          const metadata = safeParse(result.document.metadata) ?? {};
-          const id = this.decodeId(document.id);
+      results: resultsArray.map((result) => {
+        const document = result.document;
+        const metadata = safeParse(result.document.metadata) ?? {};
+        const id = this.decodeId(document.id);
 
-          // add top-level fields back to metadata to match vector store format
-          topLevelMetadataKeys.forEach((key) => {
-            metadata[key] = document[key];
-          });
+        // add top-level fields back to metadata to match vector store format
+        topLevelMetadataKeys.forEach((key) => {
+          metadata[key] = document[key];
+        });
 
-          return {
-            id,
-            score: result.score,
-            highlights: result.highlights?.text ?? [],
-            node: metadata._node_content
-              ? metadataDictToNode(metadata)
-              : new TextNode({ id_: id, text: document.text, metadata }),
-          };
-        }),
-        {
-          includeMetadata,
-          includeRelationships,
-        },
-      ),
+        const node =
+          metadataToChunk(metadata) ||
+          new TextNode({ id_: id, text: document.text, metadata });
+
+        return {
+          id,
+          score: result.score,
+          highlights: result.highlights?.text ?? [],
+          text: node.getContent(MetadataMode.NONE),
+          metadata: includeMetadata ? node.metadata : undefined,
+          relationships: includeRelationships ? node.relationships : undefined,
+        };
+      }) satisfies VectorStoreResult[],
     };
   }
 

@@ -9,27 +9,25 @@ export function useCursorPagination() {
 
   const handleNext = ({ nextCursor }: { nextCursor?: string | null }) => {
     if (nextCursor) {
-      setCursorDirection("forward");
-
       setCursor(nextCursor);
       setCursors((prev) => [...prev, nextCursor]);
     }
   };
 
   const handlePrevious = () => {
-    const previousCursor = cursors[cursors.length - 1];
+    // get the cursor before the current cursor
+    const previousCursor = cursors[cursors.length - 2];
     if (previousCursor) {
-      setCursorDirection("backward");
       setCursor(previousCursor);
-      setCursors((prev) => prev.slice(0, -1));
+      setCursors((prev) => prev.filter((c) => c !== previousCursor));
     } else {
       setCursor(null);
+      setCursors([]);
     }
   };
 
   const reset = () => {
     setCursor(null);
-    setCursorDirection("forward");
     setCursors([]);
   };
 

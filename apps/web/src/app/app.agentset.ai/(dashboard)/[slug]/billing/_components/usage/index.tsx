@@ -3,17 +3,9 @@
 import { useMemo } from "react";
 import Link from "next/link";
 import { useOrganization } from "@/hooks/use-organization";
-import { getFirstAndLastDay } from "@/lib/datetime";
-import { capitalize } from "@/lib/string-utils";
 import { formatNumber } from "@/lib/utils";
 import NumberFlow from "@number-flow/react";
-import {
-  BookIcon,
-  FoldersIcon,
-  PlugIcon,
-  SearchIcon,
-  UsersIcon,
-} from "lucide-react";
+import { BookIcon, FoldersIcon, PlugIcon, SearchIcon } from "lucide-react";
 
 import {
   Button,
@@ -24,7 +16,11 @@ import {
   Separator,
   Skeleton,
 } from "@agentset/ui";
-import { INFINITY_NUMBER } from "@agentset/utils";
+import {
+  capitalize,
+  getFirstAndLastDay,
+  INFINITY_NUMBER,
+} from "@agentset/utils";
 
 import SubscriptionMenu from "./subscription-menu";
 

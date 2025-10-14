@@ -22,7 +22,12 @@ const s3Client = new S3Client({
 });
 
 const DOWNLOAD_EXPIRATION = 60 * 60 * 24; // 24 hours
-const UPLOAD_EXPIRATION = 60 * 60 * 12; // 12 hours
+const UPLOAD_EXPIRATION = 60 * 60 * 1; // 1 hour
+
+const presignUploadOptions: NonNullable<Parameters<typeof getSignedUrl>[2]> = {
+  expiresIn: UPLOAD_EXPIRATION,
+  signableHeaders: new Set(["content-type"]),
+};
 
 export const presignUploadUrl = async ({
   key,
@@ -37,21 +42,6 @@ export const presignUploadUrl = async ({
     throw new Error("File size is too large");
   }
 
-  // presigned post is not supported in R2 yet
-  // const options: PresignedPostOptions = {
-  //   Bucket: env.S3_BUCKET,
-  //   Key: key,
-  //   Expires: UPLOAD_EXPIRATION,
-  //   Conditions: [
-  //     ["content-length-range", 1, MAX_UPLOAD_SIZE], // Enforce file size
-  //     ["eq", "$Content-Type", contentType], // Enforce content type
-  //   ],
-  //   Fields: {
-  //     "Content-Type": contentType,
-  //   },
-  // };
-  // const result = await tryCatch(createPresignedPost(s3Client, options));
-
   const result = await getSignedUrl(
     s3Client,
     new PutObjectCommand({
@@ -60,9 +50,7 @@ export const presignUploadUrl = async ({
       ContentType: contentType,
       ContentLength: fileSize,
     }),
-    {
-      expiresIn: UPLOAD_EXPIRATION,
-    },
+    presignUploadOptions,
   );
 
   return result;

@@ -1,25 +1,47 @@
-import { nodeToMetadata } from "@llamaindex/core/vector-store";
-import { jsonToNode, ObjectType } from "llamaindex";
+import { jsonToNode, ObjectType } from "@llamaindex/core/schema";
+import {
+  metadataDictToNode,
+  nodeToMetadata,
+} from "@llamaindex/core/vector-store";
 
 import type { PartitionBatch } from "./partition";
+import { VectorStoreMetadata } from "./vector-store/common/vector-store";
 
-export const makeChunk = ({
-  documentId,
-  embedding,
-  chunk,
-}: {
-  documentId: string;
-  embedding: number[];
-  chunk: PartitionBatch[number];
-}) => {
+export const makeChunk = (
+  {
+    documentId,
+    embedding,
+    chunk,
+  }: {
+    documentId: string;
+    embedding: number[];
+    chunk: PartitionBatch[number];
+  },
+  { removeTextFromMetadata = false }: { removeTextFromMetadata?: boolean } = {},
+) => {
   const node = chunkResultToLlamaIndex(chunk);
 
   return {
     id: `${documentId}#${chunk.id_}`,
     vector: embedding,
-    metadata: nodeToMetadata(node),
+    text: chunk.text,
+    metadata: nodeToMetadata(node, removeTextFromMetadata),
   };
 };
+
+export const metadataToChunk = (metadata?: VectorStoreMetadata) => {
+  const nodeContent = metadata?._node_content;
+  if (!nodeContent) return null;
+
+  try {
+    const node = metadataDictToNode(metadata);
+    return node;
+  } catch {
+    return null;
+  }
+};
+
+export type Chunk = ReturnType<typeof makeChunk>;
 
 const objectTypeMap = {
   "1": ObjectType.TEXT,

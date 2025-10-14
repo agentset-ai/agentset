@@ -1,7 +1,8 @@
 "use client";
 
-import { cn } from "@/lib/utils";
 import { Tabs as TabsPrimitive } from "radix-ui";
+
+import { cn } from "@agentset/ui/utils";
 
 function Tabs({
   className,

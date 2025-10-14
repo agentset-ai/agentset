@@ -1,4 +1,4 @@
-import { cn } from "@/lib/utils";
+import { cn } from "@agentset/ui/utils";
 
 function Input({ className, type, ...props }: React.ComponentProps<"input">) {
   return (

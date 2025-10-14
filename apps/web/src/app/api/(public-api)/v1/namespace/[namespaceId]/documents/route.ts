@@ -10,6 +10,16 @@ export const GET = withNamespaceApiHandler(
   async ({ searchParams, namespace, tenantId, headers }) => {
     const query = await getDocumentsSchema.parseAsync(searchParams);
 
+    // For backward pagination we scan in the opposite direction, then reverse results.
+    const { where, ...paginationArgs } = getPaginationArgs(
+      query,
+      {
+        orderBy: query.orderBy,
+        order: query.order,
+      },
+      "doc_",
+    );
+
     const documents = await db.document.findMany({
       where: {
         tenantId,
@@ -17,13 +27,9 @@ export const GET = withNamespaceApiHandler(
         ...(query.ingestJobId && { ingestJobId: query.ingestJobId }),
         ...(query.statuses &&
           query.statuses.length > 0 && { status: { in: query.statuses } }),
+        ...where,
       },
-      orderBy: [
-        {
-          [query.orderBy]: query.order,
-        },
-      ],
-      ...getPaginationArgs(query, "doc_"),
+      ...paginationArgs,
     });
 
     const paginated = paginateResults(
@@ -39,7 +45,7 @@ export const GET = withNamespaceApiHandler(
 
     return makeApiSuccessResponse({
       data: paginated.records,
-      nextCursor: paginated.nextCursor,
+      pagination: paginated.pagination,
       headers,
     });
   },

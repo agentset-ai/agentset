@@ -16,27 +16,32 @@ import { isProPlan } from "@agentset/stripe/plans";
 
 export const GET = withNamespaceApiHandler(
   async ({ searchParams, namespace, tenantId, headers }) => {
-    const body = await getIngestionJobsSchema.parseAsync(searchParams);
+    const query = await getIngestionJobsSchema.parseAsync(searchParams);
+
+    const { where, ...paginationArgs } = getPaginationArgs(
+      query,
+      {
+        orderBy: query.orderBy,
+        order: query.order,
+      },
+      "job_",
+    );
 
     const ingestJobs = await db.ingestJob.findMany({
       where: {
         namespaceId: namespace.id,
         tenantId,
-        ...(body.statuses &&
-          body.statuses.length > 0 && {
-            status: { in: body.statuses },
+        ...(query.statuses &&
+          query.statuses.length > 0 && {
+            status: { in: query.statuses },
           }),
+        ...where,
       },
-      orderBy: [
-        {
-          [body.orderBy]: body.order,
-        },
-      ],
-      ...getPaginationArgs(body, "job_"),
+      ...paginationArgs,
     });
 
     const paginated = paginateResults(
-      body,
+      query,
       ingestJobs.map((job) =>
         IngestJobSchema.parse({
           ...job,
@@ -48,7 +53,7 @@ export const GET = withNamespaceApiHandler(
 
     return makeApiSuccessResponse({
       data: paginated.records,
-      nextCursor: paginated.nextCursor,
+      pagination: paginated.pagination,
       headers,
     });
   },

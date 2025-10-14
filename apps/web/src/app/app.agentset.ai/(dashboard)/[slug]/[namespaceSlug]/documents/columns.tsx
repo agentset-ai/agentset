@@ -1,7 +1,6 @@
 "use client";
 
 import type { ColumnDef } from "@tanstack/react-table";
-import { capitalize } from "@/lib/string-utils";
 import { formatDuration } from "@/lib/utils";
 import { ChevronDownIcon, ChevronRightIcon } from "lucide-react";
 
@@ -15,6 +14,7 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "@agentset/ui";
+import { capitalize } from "@agentset/utils";
 
 import { JobActions } from "./actions";
 import { ConfigModal } from "./config-modal";

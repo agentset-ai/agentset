@@ -64,6 +64,12 @@ model Hosting {
   searchEnabled        Boolean  @default(true)
   exampleSearchQueries String[] @default([]) @db.Text
 
+  // model configuration
+  /// [HostingRerankConfig]
+  rerankConfig Json?
+  /// [HostingLLMConfig]
+  llmConfig    Json?
+
   protected           Boolean  @default(true) // Whether the namespace is protected from public access
   allowedEmails       String[] @default([]) // relevant when protected is true
   allowedEmailDomains String[] @default([]) // relevant when protected is true

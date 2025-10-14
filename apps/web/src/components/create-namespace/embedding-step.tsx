@@ -1,7 +1,4 @@
-"use client";
-
 import { useEffect, useMemo } from "react";
-import { camelCaseToWords, capitalize } from "@/lib/string-utils";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { z } from "zod/v4";
@@ -26,13 +23,30 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@agentset/ui";
-import { EmbeddingConfigSchema } from "@agentset/validation";
+import { camelCaseToWords, capitalize } from "@agentset/utils";
+import { EmbeddingConfig, EmbeddingConfigSchema } from "@agentset/validation";
 
 import { embeddingModels } from "./models";
 
 const formSchema = z.object({
-  embeddingModel: EmbeddingConfigSchema.optional(),
+  embeddingModel: EmbeddingConfigSchema,
 });
+
+const options = EmbeddingConfigSchema.options.map(
+  (o) => o.shape.provider.value,
+);
+
+const managedOptions = options.filter((o) =>
+  o.startsWith("MANAGED_"),
+) as Extract<(typeof options)[number], `MANAGED_${string}`>[];
+
+const providerToModels = EmbeddingConfigSchema.options.reduce(
+  (acc, o) => {
+    acc[o.shape.provider.value] = o.shape.model.options;
+    return acc;
+  },
+  {} as Record<EmbeddingConfig["provider"], string[]>,
+);
 
 export default function CreateNamespaceEmbeddingStep({
   onSubmit,
@@ -41,37 +55,39 @@ export default function CreateNamespaceEmbeddingStep({
 }: {
   onSubmit: (values: z.infer<typeof formSchema>) => void;
   onBack: () => void;
-  defaultValues?: Partial<z.infer<typeof formSchema>>;
+  defaultValues?: z.infer<typeof formSchema>;
 }) {
   const form = useForm({
     resolver: zodResolver(formSchema),
-    defaultValues,
+    defaultValues: defaultValues ?? {
+      embeddingModel: {
+        provider: "MANAGED_OPENAI",
+        model: "text-embedding-3-large",
+      },
+    },
   });
 
   // when the provider changes, set the model to the default model for the provider
-  const currentEmbeddingProvider = form.watch("embeddingModel")?.provider;
+  const currentEmbeddingProvider = form.watch("embeddingModel").provider;
+  const isCurrentEmbeddingProviderManaged = managedOptions.includes(
+    currentEmbeddingProvider as (typeof managedOptions)[number],
+  );
 
   useEffect(() => {
-    if (currentEmbeddingProvider) {
-      const model = embeddingModels.find(
-        (p) => p.value === currentEmbeddingProvider,
-      )?.models[0];
+    const model = providerToModels[currentEmbeddingProvider][0];
 
-      // reset other fields in the embeddingModel object
-      form.resetField("embeddingModel", {
-        defaultValue: {
-          provider: currentEmbeddingProvider,
-          model,
-        } as z.infer<typeof EmbeddingConfigSchema>,
-      });
-    } else {
-      form.setValue("embeddingModel", undefined);
-    }
-    // eslint-disable-next-line react-compiler/react-compiler
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    // reset other fields in the embeddingModel object
+    form.resetField("embeddingModel", {
+      defaultValue: {
+        provider: currentEmbeddingProvider,
+        model,
+      } as EmbeddingConfig,
+    });
   }, [currentEmbeddingProvider]);
 
   const currentEmbeddingOptions = useMemo(() => {
+    if (currentEmbeddingProvider.startsWith("MANAGED_")) return [];
+
     const shape = EmbeddingConfigSchema.options.find(
       (o) => o.shape.provider.value === currentEmbeddingProvider,
     )?.shape;
@@ -103,20 +119,24 @@ export default function CreateNamespaceEmbeddingStep({
                   <RadioGroup
                     onValueChange={(newValue) => {
                       if (newValue === "agentset") {
-                        form.setValue("embeddingModel", undefined);
+                        form.setValue("embeddingModel", {
+                          provider: "MANAGED_OPENAI",
+                          model: "text-embedding-3-large",
+                        });
                       } else {
                         field.onChange(newValue);
                       }
                     }}
                     defaultValue={
-                      (field.value as typeof field.value | undefined) ??
-                      "agentset"
+                      field.value.startsWith("MANAGED_")
+                        ? "agentset"
+                        : field.value
                     }
                     className="grid grid-cols-3 gap-4"
                   >
                     <RadioButton
                       value="agentset"
-                      label="Agentset"
+                      label="Managed"
                       icon={Logo}
                       note="Default"
                     />
@@ -137,13 +157,14 @@ export default function CreateNamespaceEmbeddingStep({
             )}
           />
 
-          {currentEmbeddingProvider && (
+          {isCurrentEmbeddingProviderManaged && (
             <FormField
               control={form.control}
-              name="embeddingModel.model"
+              name={"embeddingModel.provider"}
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Model</FormLabel>
+                  <FormLabel>Provider</FormLabel>
+
                   <FormControl>
                     <Select
                       defaultValue={field.value}
@@ -151,29 +172,58 @@ export default function CreateNamespaceEmbeddingStep({
                       onValueChange={field.onChange}
                     >
                       <SelectTrigger className="w-xs">
-                        <SelectValue placeholder="Select a model" />
+                        <SelectValue placeholder="Select a model provider" />
                       </SelectTrigger>
 
                       <SelectContent>
-                        {embeddingModels
-                          .find((p) => p.value === currentEmbeddingProvider)
-                          ?.models.map((model) => (
-                            <SelectItem key={model} value={model}>
-                              {model}
-                            </SelectItem>
-                          ))}
+                        {managedOptions.map((option) => (
+                          <SelectItem key={option} value={option}>
+                            {capitalize(option.replace("MANAGED_", ""))}
+                          </SelectItem>
+                        ))}
                       </SelectContent>
                     </Select>
                   </FormControl>
-
-                  <FormMessage />
                 </FormItem>
               )}
             />
           )}
 
-          {/* render other fields based on the provider dynamically */}
-          {currentEmbeddingProvider ? (
+          <FormField
+            control={form.control}
+            name="embeddingModel.model"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Model</FormLabel>
+                <FormControl>
+                  <Select
+                    defaultValue={field.value}
+                    value={field.value}
+                    onValueChange={field.onChange}
+                  >
+                    <SelectTrigger className="w-xs">
+                      <SelectValue placeholder="Select a model" />
+                    </SelectTrigger>
+
+                    <SelectContent>
+                      {providerToModels[currentEmbeddingProvider].map(
+                        (model) => (
+                          <SelectItem key={model} value={model}>
+                            {model}
+                          </SelectItem>
+                        ),
+                      )}
+                    </SelectContent>
+                  </Select>
+                </FormControl>
+
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          {/* if the embedding provider is not managed, render the fields, otherwise show the managed options */}
+          {!isCurrentEmbeddingProviderManaged &&
             currentEmbeddingOptions.map((key) => (
               <FormField
                 key={key.name}
@@ -198,24 +248,7 @@ export default function CreateNamespaceEmbeddingStep({
                   </FormItem>
                 )}
               />
-            ))
-          ) : (
-            <div className="flex flex-col gap-2">
-              <Label data-slot="form-label">Model</Label>
-
-              <Select disabled value="default">
-                <SelectTrigger className="w-xs">
-                  <SelectValue placeholder="Select a model" />
-                </SelectTrigger>
-
-                <SelectContent>
-                  <SelectItem value="default">
-                    OpenAI / text-embedding-3-large
-                  </SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-          )}
+            ))}
         </div>
 
         <DialogFooter className="mt-10 flex-row items-center justify-between sm:justify-between">

@@ -324,6 +324,23 @@ Triggered when a member is removed from an organization (or leaves).
 
 **Location:** `apps/web/src/app/app.agentset.ai/(dashboard)/[slug]/team/remove-member.tsx`
 
+### `organization_team_role_updated`
+
+Triggered when a member's role is updated in an organization.
+
+**Payload:**
+
+```typescript
+{
+  organizationId: string; // Organization ID
+  memberId: string;       // Member ID being updated
+  oldRole: string;        // Previous role
+  newRole: string;        // New role
+}
+```
+
+**Location:** `apps/web/src/app/app.agentset.ai/(dashboard)/[slug]/team/member-card.tsx`
+
 ## Domain Management Events
 
 ### `domain_added`

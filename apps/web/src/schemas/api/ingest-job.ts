@@ -7,11 +7,13 @@ import {
   ingestJobPayloadSchema,
 } from "@agentset/validation";
 
+import { csvToStringArray } from "../helpers";
 import { paginationSchema } from "./pagination";
 
-export const IngestJobStatusSchema = z
-  .enum(IngestJobStatus)
-  .describe("The status of the ingest job.");
+export const IngestJobStatusSchema = z.enum(IngestJobStatus).meta({
+  id: "ingest-job-status",
+  description: "The status of the ingest job.",
+});
 
 const externalIdSchema = z
   .string()
@@ -72,26 +74,29 @@ export const IngestJobSchema = z
       .default(null),
   })
   .meta({
+    id: "ingest-job",
     title: "Ingest Job",
   });
 
 export const IngestJobsQuerySchema = z.object({
   statuses: z
-    .string()
-    .transform((val) => val.split(","))
-    .pipe(z.array(IngestJobStatusSchema))
-    .optional()
-    .describe("Comma separated list of statuses to filter by."),
+    .preprocess(csvToStringArray, z.array(IngestJobStatusSchema))
+    .describe("Comma separated list of statuses to filter by.")
+    .meta({
+      style: "form",
+      explode: false,
+    })
+    .optional(),
   orderBy: z
     .enum(["createdAt"])
+    .describe("The field to order by. Default is `createdAt`.")
     .optional()
-    .default("createdAt")
-    .describe("The field to order by. Default is `createdAt`."),
+    .default("createdAt"),
   order: z
     .enum(["asc", "desc"])
+    .describe("The sort order. Default is `desc`.")
     .optional()
-    .default("desc")
-    .describe("The sort order. Default is `desc`."),
+    .default("desc"),
 });
 
 export const getIngestionJobsSchema = IngestJobsQuerySchema.extend(

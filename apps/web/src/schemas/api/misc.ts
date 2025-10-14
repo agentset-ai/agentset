@@ -1,7 +1,8 @@
 import { env } from "@/env";
-import { toSlug, validSlugRegex } from "@/lib/slug";
 import { fileTypeFromBuffer } from "file-type";
 import { z } from "zod/v4";
+
+import { toSlug, validSlugRegex } from "@agentset/utils";
 
 const allowedImageTypes = [
   "image/png",
@@ -47,7 +48,6 @@ export const uploadedImageSchema = z
   .union([
     base64ImageSchema,
     z
-      .string()
       .url()
       .trim()
       .refine((url) => url.startsWith(env.ASSETS_S3_URL), {

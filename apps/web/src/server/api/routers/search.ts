@@ -1,9 +1,14 @@
 import { agenticSearch } from "@/lib/agentic/search";
 import { incrementSearchUsage } from "@/lib/api/usage";
-import { getNamespaceLanguageModel } from "@/lib/llm";
 import { createTRPCRouter, protectedProcedure } from "@/server/api/trpc";
 import { TRPCError } from "@trpc/server";
 import { z } from "zod/v4";
+
+import {
+  getNamespaceEmbeddingModel,
+  getNamespaceLanguageModel,
+  getNamespaceVectorStore,
+} from "@agentset/engine";
 
 import { getNamespaceByUser } from "../auth";
 
@@ -24,10 +29,21 @@ export const searchRouter = createTRPCRouter({
         throw new TRPCError({ code: "NOT_FOUND" });
       }
 
-      const model = await getNamespaceLanguageModel();
+      const [model, vectorStore, embeddingModel] = await Promise.all([
+        getNamespaceLanguageModel("openai:gpt-4.1"),
+        getNamespaceVectorStore(namespace),
+        getNamespaceEmbeddingModel(namespace, "query"),
+      ]);
 
-      const results = await agenticSearch(namespace, {
+      const results = await agenticSearch({
         model,
+        queryOptions: {
+          embeddingModel,
+          vectorStore,
+          topK: 50,
+          rerank: { model: "cohere:rerank-v3.5", limit: 15 },
+          includeMetadata: true,
+        },
         messages: [
           {
             role: "user",

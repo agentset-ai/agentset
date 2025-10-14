@@ -1,4 +1,6 @@
 import ListInput from "@/components/list-input";
+import { LLMSelector } from "@/components/llm-selector";
+import { RerankerSelector } from "@/components/reranker-selector";
 import SortableList from "@/components/sortable-list";
 import { APP_DOMAIN, HOSTING_PREFIX } from "@/lib/constants";
 import { DEFAULT_SYSTEM_PROMPT } from "@/lib/prompts";
@@ -23,6 +25,12 @@ import {
   Switch,
   Textarea,
 } from "@agentset/ui";
+import {
+  DEFAULT_LLM,
+  DEFAULT_RERANKER,
+  llmSchema,
+  rerankerSchema,
+} from "@agentset/validation";
 
 // Separate type for API submission
 type FormSubmissionData = {
@@ -38,6 +46,8 @@ type FormSubmissionData = {
   welcomeMessage: string;
   citationMetadataPath?: string;
   searchEnabled: boolean;
+  rerankConfig?: PrismaJson.HostingRerankConfig | null;
+  llmConfig?: PrismaJson.HostingLLMConfig | null;
 };
 
 export const schema = z.object({
@@ -57,6 +67,8 @@ export const schema = z.object({
   welcomeMessage: z.string(),
   citationMetadataPath: z.string().optional(),
   searchEnabled: z.boolean(),
+  rerankModel: rerankerSchema,
+  llmModel: llmSchema,
 });
 
 type FormValues = z.infer<typeof schema>;
@@ -84,6 +96,8 @@ export default function HostingForm({
       welcomeMessage: "",
       citationMetadataPath: "",
       searchEnabled: true,
+      rerankModel: DEFAULT_RERANKER,
+      llmModel: DEFAULT_LLM,
       ...defaultValues,
     },
   });
@@ -102,6 +116,8 @@ export default function HostingForm({
       welcomeMessage: data.welcomeMessage,
       citationMetadataPath: data.citationMetadataPath,
       searchEnabled: data.searchEnabled,
+      rerankConfig: { model: data.rerankModel },
+      llmConfig: { model: data.llmModel },
     });
   };
 
@@ -278,6 +294,42 @@ export default function HostingForm({
             <Separator className="my-4" />
 
             <div className="flex flex-col gap-8">
+              <FormField
+                control={form.control}
+                name="llmModel"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>LLM Model</FormLabel>
+                    <FormControl>
+                      <LLMSelector
+                        value={field.value}
+                        onValueChange={field.onChange}
+                      />
+                    </FormControl>
+
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="rerankModel"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Re-ranker Model</FormLabel>
+                    <FormControl>
+                      <RerankerSelector
+                        value={field.value}
+                        onValueChange={field.onChange}
+                      />
+                    </FormControl>
+
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
               <FormField
                 control={form.control}
                 name="systemPrompt"

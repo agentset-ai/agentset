@@ -22,9 +22,9 @@ export const documentPropertiesSchema = z
     fileSize: z.number().describe("The size of the file in bytes."),
     mimeType: z
       .string()
+      .describe("The MIME type of the file.")
       .nullable()
-      .default(null)
-      .describe("The MIME type of the file."),
+      .default(null),
   })
   .describe("The properties of the document.");
 

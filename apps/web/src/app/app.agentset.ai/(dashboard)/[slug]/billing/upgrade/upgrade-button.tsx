@@ -4,7 +4,6 @@ import type { ComponentProps } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useOrganization } from "@/hooks/use-organization";
 import { logEvent } from "@/lib/analytics";
-import { capitalize } from "@/lib/string-utils";
 import { getBaseUrl } from "@/lib/utils";
 import { useTRPC } from "@/trpc/react";
 import { useMutation } from "@tanstack/react-query";
@@ -13,6 +12,7 @@ import { toast } from "sonner";
 import { getStripe } from "@agentset/stripe/client";
 import { SELF_SERVE_PAID_PLANS } from "@agentset/stripe/plans";
 import { Button } from "@agentset/ui";
+import { capitalize } from "@agentset/utils";
 
 export function UpgradePlanButton({
   plan,

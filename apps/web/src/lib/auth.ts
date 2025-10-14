@@ -2,7 +2,6 @@ import { cache } from "react";
 import { headers } from "next/headers";
 import { betterAuth } from "better-auth";
 import { prismaAdapter } from "better-auth/adapters/prisma";
-import { nextCookies } from "better-auth/next-js";
 import { admin, magicLink, organization } from "better-auth/plugins";
 
 import { db } from "@agentset/db";
@@ -13,12 +12,26 @@ import { APP_DOMAIN } from "./constants";
 import { sendEmail } from "./resend";
 import { getBaseUrl } from "./utils";
 
-export const makeAuth = (baseUrl = env.BETTER_AUTH_URL, isHosting = false) => {
-  const isUsingDefaultUrl = baseUrl === env.BETTER_AUTH_URL;
+export const makeAuth = (params?: { baseUrl: string; isHosting: boolean }) => {
+  const isUsingDefaultUrl = params?.baseUrl === env.BETTER_AUTH_URL;
 
   return betterAuth({
     appName: "Agentset",
-    baseURL: baseUrl,
+    database: prismaAdapter(db, {
+      provider: "postgresql",
+    }),
+    advanced: {
+      useSecureCookies: true,
+    },
+    session: {
+      expiresIn: 60 * 60 * 24 * 14, // 14 days
+    },
+    ...(params
+      ? {
+          baseURL: params.baseUrl,
+          trustedOrigins: [params.baseUrl],
+        }
+      : {}),
     secret: env.BETTER_AUTH_SECRET,
     socialProviders: {
       github: {
@@ -30,7 +43,6 @@ export const makeAuth = (baseUrl = env.BETTER_AUTH_URL, isHosting = false) => {
         clientSecret: env.GOOGLE_CLIENT_SECRET,
       },
     },
-    trustedOrigins: [baseUrl],
     plugins: [
       admin(),
       organization({
@@ -60,7 +72,6 @@ export const makeAuth = (baseUrl = env.BETTER_AUTH_URL, isHosting = false) => {
           });
         },
       }),
-      nextCookies(),
     ],
     account: {
       accountLinking: {
@@ -77,55 +88,44 @@ export const makeAuth = (baseUrl = env.BETTER_AUTH_URL, isHosting = false) => {
         },
       },
     },
-    databaseHooks: {
-      user: {
-        create: {
-          // TODO: track the hosting id
-          before: !isUsingDefaultUrl
-            ? // eslint-disable-next-line @typescript-eslint/require-await
-              async (user) => {
-                const domain = new URL(baseUrl).host;
+    databaseHooks: params
+      ? {
+          user: {
+            create: {
+              // TODO: track the hosting id
+              before: !isUsingDefaultUrl
+                ? // eslint-disable-next-line @typescript-eslint/require-await
+                  async (user) => {
+                    const domain = new URL(params.baseUrl).host;
 
-                return {
-                  data: {
-                    ...user,
-                    referrerDomain: domain,
-                  },
-                };
-              }
-            : undefined,
-          // only send welcome email if using default url
-          after:
-            isUsingDefaultUrl && !isHosting
-              ? async (user) => {
-                  await sendEmail({
-                    email: user.email,
-                    subject: "Welcome to Agentset",
-                    react: WelcomeEmail({
-                      name: user.name || null,
-                      email: user.email,
-                      domain: APP_DOMAIN,
-                    }),
-                    variant: "marketing",
-                  });
-                }
-              : undefined,
-        },
-      },
-    },
-    database: prismaAdapter(db, {
-      provider: "postgresql",
-    }),
-    advanced: {
-      useSecureCookies: true,
-    },
-    session: {
-      expiresIn: 60 * 60 * 24 * 14, // 14 days
-      cookieCache: {
-        enabled: true,
-        maxAge: 5 * 60, // Cache duration in seconds
-      },
-    },
+                    return {
+                      data: {
+                        ...user,
+                        referrerDomain: domain,
+                      },
+                    };
+                  }
+                : undefined,
+              // only send welcome email if using default url
+              after:
+                isUsingDefaultUrl && !params.isHosting
+                  ? async (user) => {
+                      await sendEmail({
+                        email: user.email,
+                        subject: "Welcome to Agentset",
+                        react: WelcomeEmail({
+                          name: user.name || null,
+                          email: user.email,
+                          domain: APP_DOMAIN,
+                        }),
+                        variant: "marketing",
+                      });
+                    }
+                  : undefined,
+            },
+          },
+        }
+      : undefined,
   });
 };
 

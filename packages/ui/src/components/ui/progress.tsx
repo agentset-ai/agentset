@@ -1,7 +1,8 @@
 "use client";
 
-import { cn } from "@/lib/utils";
 import { Progress as ProgressPrimitive } from "radix-ui";
+
+import { cn } from "@agentset/ui/utils";
 
 function Progress({
   className,

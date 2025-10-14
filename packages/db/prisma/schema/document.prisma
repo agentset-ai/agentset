@@ -54,13 +54,13 @@ model Document {
 
   // externalId must be unique within a namespace
   @@unique([namespaceId, externalId])
-  // filtering by status
-  @@index([namespaceId, status])
-  @@index([ingestJobId, status])
-  @@index([ingestJobId, tenantId, status])
-  @@index([namespaceId, tenantId, status])
-  // filtering by tenant
-  @@index([ingestJobId, tenantId])
-  @@index([namespaceId, tenantId])
+  // ---- Namespace-centric (primary path) ----
+  @@index([namespaceId, createdAt(sort: Desc), id(sort: Desc)])
+  @@index([namespaceId, status, createdAt(sort: Desc), id(sort: Desc)])
+  @@index([namespaceId, tenantId, createdAt(sort: Desc), id(sort: Desc)])
+  // ---- Job-centric ----
+  @@index([ingestJobId, createdAt(sort: Desc), id(sort: Desc)])
+  @@index([ingestJobId, status, createdAt(sort: Desc), id(sort: Desc)])
+  @@index([ingestJobId, tenantId, createdAt(sort: Desc), id(sort: Desc)])
   @@map("document")
 }

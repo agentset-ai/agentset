@@ -3,7 +3,7 @@ import { NextResponse } from "next/server";
 import { generateErrorMessage } from "zod-error";
 import { z, ZodError } from "zod/v4";
 
-import { capitalize } from "../string-utils";
+import { capitalize } from "@agentset/utils";
 
 export const ErrorCode = z.enum([
   "bad_request",
@@ -19,7 +19,7 @@ export const ErrorCode = z.enum([
   "unprocessable_entity",
 ]);
 
-const docsBase = "https://docs.agentset.com";
+const docsBase = "https://docs.agentset.ai";
 
 const errorCodeToHttpStatus: Record<z.infer<typeof ErrorCode>, number> = {
   bad_request: 400,
@@ -195,6 +195,7 @@ export const errorSchemaFactory = (
   description: string,
 ): ZodOpenApiResponseObject => {
   return {
+    id: errorCodeToHttpStatus[code].toString(),
     description,
     content: {
       "application/json": {
@@ -237,7 +238,6 @@ export const errorSchemaFactory = (
         },
       },
     },
-    id: code,
   };
 };
 

@@ -2,21 +2,22 @@
 
 import type { ComponentProps, ReactNode } from "react";
 import { createContext, useContext, useState } from "react";
-import { Button } from "@/components/ui/button";
+import { ChevronDownIcon } from "lucide-react";
+
+import { Button } from "@agentset/ui/button";
 import {
   Collapsible,
   CollapsibleContent,
   CollapsibleTrigger,
-} from "@/components/ui/collapsible";
-import { Input } from "@/components/ui/input";
+} from "@agentset/ui/collapsible";
+import { Input } from "@agentset/ui/input";
 import {
   Tooltip,
   TooltipContent,
   TooltipProvider,
   TooltipTrigger,
-} from "@/components/ui/tooltip";
-import { cn } from "@/lib/utils";
-import { ChevronDownIcon } from "lucide-react";
+} from "@agentset/ui/tooltip";
+import { cn } from "@agentset/ui/utils";
 
 export type WebPreviewContextValue = {
   url: string;

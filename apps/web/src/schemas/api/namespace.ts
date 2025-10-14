@@ -1,7 +1,11 @@
-import { toSlug, validSlugRegex } from "@/lib/slug";
 import { z } from "zod/v4";
 
-import { EmbeddingConfigSchema, VectorStoreSchema } from "@agentset/validation";
+import { toSlug, validSlugRegex } from "@agentset/utils";
+import {
+  createVectorStoreSchema,
+  EmbeddingConfigSchema,
+  VectorStoreSchema,
+} from "@agentset/validation";
 
 export const NamespaceSchema = z
   .object({
@@ -18,6 +22,7 @@ export const NamespaceSchema = z
     vectorStoreConfig: VectorStoreSchema.nullable().default(null),
   })
   .meta({
+    id: "namespace",
     title: "Namespace",
   });
 
@@ -29,8 +34,13 @@ export const createNamespaceSchema = z.object({
     .max(48, "Slug must be less than 48 characters")
     .transform((v) => toSlug(v))
     .refine((v) => validSlugRegex.test(v), { message: "Invalid slug format" }),
-  embeddingConfig: EmbeddingConfigSchema.optional(),
-  vectorStoreConfig: VectorStoreSchema.optional(),
+  embeddingConfig: EmbeddingConfigSchema.optional().default({
+    provider: "MANAGED_OPENAI",
+    model: "text-embedding-3-large",
+  }),
+  vectorStoreConfig: createVectorStoreSchema.optional().default({
+    provider: "MANAGED_PINECONE",
+  }),
 });
 
 export const updateNamespaceSchema = createNamespaceSchema

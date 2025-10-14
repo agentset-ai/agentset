@@ -1,5 +1,13 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
+import { useShallow } from "zustand/react/shallow";
+
+import {
+  DEFAULT_LLM,
+  DEFAULT_RERANKER,
+  LLM,
+  RerankingModel,
+} from "@agentset/validation";
 
 interface NamespaceState {
   topK: number;
@@ -7,6 +15,8 @@ interface NamespaceState {
   systemPrompt: string | null;
   temperature: number;
   mode?: "normal" | "agentic" | "deepResearch";
+  rerankModel: RerankingModel;
+  llmModel: LLM;
 }
 
 interface ChatState {
@@ -14,16 +24,8 @@ interface ChatState {
 }
 
 interface ChatActions {
-  getNamespace: (namespaceId: string) => NamespaceState;
-  setSystemPrompt: (namespaceId: string, systemPrompt: string | null) => void;
-  setTemperature: (namespaceId: string, temperature: number) => void;
-  setTopK: (namespaceId: string, topK: number) => void;
-  setRerankLimit: (namespaceId: string, rerankLimit: number) => void;
+  setSettings: (namespaceId: string, state: Partial<NamespaceState>) => void;
   reset: (namespaceId: string) => NamespaceState;
-  setMode: (
-    namespaceId: string,
-    mode: "normal" | "agentic" | "deepResearch",
-  ) => void;
 }
 
 type ChatSettings = ChatState & ChatActions;
@@ -34,6 +36,8 @@ const defaultState: NamespaceState = {
   systemPrompt: null,
   temperature: 0,
   mode: "agentic",
+  rerankModel: DEFAULT_RERANKER,
+  llmModel: DEFAULT_LLM,
 };
 
 const updateNamespace = (
@@ -55,22 +59,8 @@ export const useChatSettings = create<ChatSettings>()(
   persist(
     (set, get) => ({
       namespaces: {},
-      getNamespace: (namespaceId: string) => {
-        const state = get();
-        return state.namespaces[namespaceId] ?? defaultState;
-      },
-      setTopK: (namespaceId: string, topK: number) =>
-        set((state) => updateNamespace(state, namespaceId, { topK })),
-      setRerankLimit: (namespaceId: string, rerankLimit: number) =>
-        set((state) => updateNamespace(state, namespaceId, { rerankLimit })),
-      setSystemPrompt: (namespaceId: string, systemPrompt: string | null) =>
-        set((state) => updateNamespace(state, namespaceId, { systemPrompt })),
-      setTemperature: (namespaceId: string, temperature: number) =>
-        set((state) => updateNamespace(state, namespaceId, { temperature })),
-      setMode: (
-        namespaceId: string,
-        mode: "normal" | "agentic" | "deepResearch",
-      ) => set((state) => updateNamespace(state, namespaceId, { mode })),
+      setSettings: (namespaceId: string, newState: Partial<NamespaceState>) =>
+        set((state) => updateNamespace(state, namespaceId, newState)),
       reset: (namespaceId: string) => {
         set((state) => updateNamespace(state, namespaceId, defaultState));
         return defaultState;
@@ -78,10 +68,39 @@ export const useChatSettings = create<ChatSettings>()(
     }),
     {
       name: "chat-settings",
-      version: 1,
-      migrate(persistedState) {
+      version: 2,
+      migrate(persistedState: unknown, version: number) {
+        if (version < 2) {
+          // Add default model values for version 1 -> 2 migration
+          const oldState = persistedState as ChatState;
+          return {
+            namespaces: Object.fromEntries(
+              Object.entries(oldState.namespaces).map(([id, state]) => [
+                id,
+                {
+                  ...state,
+                  rerankModel: DEFAULT_RERANKER,
+                  llmModel: DEFAULT_LLM,
+                },
+              ]),
+            ),
+          };
+        }
         return persistedState;
       },
     },
   ),
 );
+
+export const useNamespaceChatSettings = (namespaceId: string) => {
+  const settings =
+    useChatSettings(useShallow((s) => s.namespaces[namespaceId])) ??
+    defaultState;
+
+  const _setSettings = useChatSettings((s) => s.setSettings);
+
+  const setSettings = (newState: Partial<NamespaceState>) =>
+    _setSettings(namespaceId, newState);
+
+  return [settings, setSettings] as const;
+};

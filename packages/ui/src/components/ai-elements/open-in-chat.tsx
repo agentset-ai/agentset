@@ -1,4 +1,12 @@
-import { Button } from "@/components/ui/button";
+import type { ComponentProps } from "react";
+import { createContext, useContext } from "react";
+import {
+  ChevronDownIcon,
+  ExternalLinkIcon,
+  MessageCircleIcon,
+} from "lucide-react";
+
+import { Button } from "@agentset/ui/button";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -6,14 +14,8 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import { cn } from "@/lib/utils";
-import {
-  ChevronDownIcon,
-  ExternalLinkIcon,
-  MessageCircleIcon,
-} from "lucide-react";
-import { type ComponentProps, createContext, useContext } from "react";
+} from "@agentset/ui/dropdown-menu";
+import { cn } from "@agentset/ui/utils";
 
 const providers = {
   github: {

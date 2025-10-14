@@ -1,5 +1,4 @@
 import type { ColumnDef } from "@tanstack/react-table";
-import { capitalize } from "@/lib/string-utils";
 import { formatDuration, formatNumber } from "@/lib/utils";
 import { BookTextIcon, Code2Icon, FileTextIcon, ImageIcon } from "lucide-react";
 
@@ -13,6 +12,7 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "@agentset/ui";
+import { capitalize } from "@agentset/utils";
 
 import DocumentActions from "./document-actions";
 

@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import { capitalize } from "@/lib/string-utils";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { PlusIcon } from "lucide-react";
 import { useForm } from "react-hook-form";
@@ -29,6 +28,7 @@ import {
   RadioGroup,
   S3Icon,
 } from "@agentset/ui";
+import { capitalize } from "@agentset/utils";
 
 const formSchema = z.object({
   connectorProvider: z.string(),

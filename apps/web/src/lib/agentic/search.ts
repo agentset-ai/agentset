@@ -1,6 +1,5 @@
 import type { LanguageModel, ModelMessage } from "ai";
 
-import type { Namespace } from "@agentset/db";
 import type {
   QueryVectorStoreOptions,
   QueryVectorStoreResult,
@@ -10,33 +9,23 @@ import { KeywordStore, queryVectorStore } from "@agentset/engine";
 import type { Queries } from "./utils";
 import { evaluateQueries, generateQueries } from "./utils";
 
-export type AgenticSearchNamespace = Pick<
-  Namespace,
-  | "id"
-  | "vectorStoreConfig"
-  | "embeddingConfig"
-  | "createdAt"
-  | "keywordEnabled"
->;
-
-export async function agenticSearch(
-  namespace: AgenticSearchNamespace,
-  {
-    model,
-    messages,
-    queryOptions,
-    maxEvals = 3,
-    tokenBudget = 4096,
-    onQueries,
-  }: {
-    model: LanguageModel;
-    messages: ModelMessage[];
-    queryOptions?: Omit<QueryVectorStoreOptions, "query">;
-    maxEvals?: number;
-    tokenBudget?: number;
-    onQueries?: (queries: Queries) => void;
-  },
-) {
+export async function agenticSearch({
+  model,
+  keywordStore,
+  messages,
+  queryOptions,
+  maxEvals = 3,
+  tokenBudget = 4096,
+  onQueries,
+}: {
+  model: LanguageModel;
+  messages: ModelMessage[];
+  queryOptions: Omit<QueryVectorStoreOptions, "query">;
+  keywordStore?: KeywordStore;
+  maxEvals?: number;
+  tokenBudget?: number;
+  onQueries?: (queries: Queries) => void;
+}) {
   const queries: Queries = [];
   const chunks: Record<string, QueryVectorStoreResult["results"][number]> = {};
   const queryToResult: Record<string, QueryVectorStoreResult> = {};
@@ -72,12 +61,7 @@ export async function agenticSearch(
             : []),
           ...newQueries,
         ].map(async (query) => {
-          if (namespace.keywordEnabled && query.type === "keyword") {
-            const keywordStore = new KeywordStore(
-              namespace.id,
-              queryOptions?.tenantId,
-            );
-
+          if (keywordStore && query.type === "keyword") {
             const keywordResult = await keywordStore.search(query.query, {
               limit: 15,
               includeMetadata: true,
@@ -91,11 +75,9 @@ export async function agenticSearch(
             };
           }
 
-          const queryResult = await queryVectorStore(namespace, {
+          const queryResult = await queryVectorStore({
             query: query.query,
-            topK: 50,
-            rerankLimit: 15,
-            rerank: true,
+            rerank: { model: "cohere:rerank-v3.5", limit: 15 },
             includeMetadata: true,
             ...queryOptions,
           });
