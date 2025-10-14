@@ -216,23 +216,52 @@ export class Qdrant implements VectorStore<QdrantVectorFilter> {
     );
   }
 
-  private static extractVectorSize(info: {
-    config?: {
-      params?: {
-        vectors?: {
-          size?: number;
-        } | Record<string, { size?: number }>;
-      };
-    };
-  }) {
-    const vectors = info.config?.params?.vectors;
+  private static extractVectorSize(
+    info:
+      | Schemas["GetCollectionResponse"]
+      | Schemas["CollectionInfo"]
+      | {
+          config?: {
+            params?: {
+              vectors?:
+                | { size?: number }
+                | Record<string, { size?: number }>;
+            };
+          };
+        },
+  ) {
+    // Support both `GetCollectionResponse` ({ result: CollectionInfo }) and `CollectionInfo`
+    const maybeResult = (info as Schemas["GetCollectionResponse"])?.result;
+    const collectionInfo =
+      maybeResult ??
+      (info as
+        | Schemas["CollectionInfo"]
+        | {
+            config?: {
+              params?: {
+                vectors?:
+                  | { size?: number }
+                  | Record<string, { size?: number }>;
+              };
+            };
+          });
+
+    const vectors = collectionInfo?.config?.params?.vectors;
     if (!vectors) return undefined;
 
-    if ("size" in vectors && typeof vectors.size === "number") {
-      return vectors.size;
+    // Single unnamed vectors config
+    if (
+      !Array.isArray(vectors) &&
+      "size" in (vectors as any) &&
+      typeof (vectors as any).size === "number"
+    ) {
+      return (vectors as any).size;
     }
 
-    const first = Object.values(vectors)[0];
+    // Named vectors config
+    const first = Object.values(
+      vectors as Record<string, { size?: number }>,
+    )[0];
     if (first && typeof first.size === "number") {
       return first.size;
     }
