@@ -1,10 +1,12 @@
 import { z } from "zod/v4";
 
 import { PineconeVectorStoreConfigSchema } from "./pinecone";
+import { QdrantVectorStoreConfigSchema } from "./qdrant";
 import { TurbopufferVectorStoreConfigSchema } from "./turbopuffer";
 
 export { PineconeVectorStoreConfigSchema } from "./pinecone";
 export { TurbopufferVectorStoreConfigSchema } from "./turbopuffer";
+export { QdrantVectorStoreConfigSchema } from "./qdrant";
 export type VectorStoreConfig = z.infer<typeof VectorStoreSchema>;
 export type CreateVectorStoreConfig = z.infer<typeof createVectorStoreSchema>;
 
@@ -13,6 +15,7 @@ const vectorStores = [
   z.object({ provider: z.literal("MANAGED_TURBOPUFFER") }),
   PineconeVectorStoreConfigSchema,
   TurbopufferVectorStoreConfigSchema,
+  QdrantVectorStoreConfigSchema,
 ] as const;
 
 // This reflects the vector store config that is used to create a namespace
