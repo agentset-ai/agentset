@@ -1,5 +1,5 @@
 import { withNamespaceApiHandler } from "@/lib/api/handler";
-import { prefixId } from "@/lib/api/ids";
+import { normalizeId, prefixId } from "@/lib/api/ids";
 import { makeApiSuccessResponse } from "@/lib/api/response";
 import { DocumentSchema, getDocumentsSchema } from "@/schemas/api/document";
 import { getPaginationArgs, paginateResults } from "@/services/pagination";
@@ -24,7 +24,9 @@ export const GET = withNamespaceApiHandler(
       where: {
         tenantId,
         namespaceId: namespace.id,
-        ...(query.ingestJobId && { ingestJobId: query.ingestJobId }),
+        ...(query.ingestJobId && {
+          ingestJobId: normalizeId(query.ingestJobId, "job_"),
+        }),
         ...(query.statuses &&
           query.statuses.length > 0 && { status: { in: query.statuses } }),
         ...where,

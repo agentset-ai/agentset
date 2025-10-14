@@ -11,7 +11,7 @@ import {
 import { createIngestJob } from "@/services/ingest-jobs/create";
 import { getPaginationArgs, paginateResults } from "@/services/pagination";
 
-import { db } from "@agentset/db";
+import { db, Prisma } from "@agentset/db";
 import { isProPlan } from "@agentset/stripe/plans";
 
 export const GET = withNamespaceApiHandler(
@@ -99,6 +99,16 @@ export const POST = withNamespaceApiHandler(
         status: 201,
       });
     } catch (error) {
+      if (
+        error instanceof Prisma.PrismaClientKnownRequestError &&
+        error.code === "P2002"
+      ) {
+        throw new AgentsetApiError({
+          code: "conflict",
+          message: `The external ID "${body.externalId}" is already in use.`,
+        });
+      }
+
       if (error instanceof Error) {
         if (error.message === "INVALID_PAYLOAD") {
           throw new AgentsetApiError({

@@ -10,12 +10,18 @@ import {
 import { csvToStringArray } from "../helpers";
 import { paginationSchema } from "./pagination";
 
-export const IngestJobStatusSchema = z
-  .enum(IngestJobStatus)
-  .meta({
-    id: "ingest-job-status",
-    description: "The status of the ingest job.",
-  });
+export const IngestJobStatusSchema = z.enum(IngestJobStatus).meta({
+  id: "ingest-job-status",
+  description: "The status of the ingest job.",
+});
+
+const externalIdSchema = z
+  .string()
+  .nullable()
+  .default(null)
+  .describe(
+    "A unique external ID of the ingest job. You can use this to identify the ingest job in your system.",
+  );
 
 export const IngestJobSchema = z
   .object({
@@ -27,6 +33,7 @@ export const IngestJobSchema = z
       .nullable()
       .default(null)
       .describe("The tenant ID of the ingest job."),
+    externalId: externalIdSchema,
     status: IngestJobStatusSchema,
     error: z
       .string()
@@ -100,4 +107,5 @@ export const createIngestJobSchema = z.object({
   name: ingestJobNameSchema,
   payload: ingestJobPayloadSchema,
   config: configSchema.optional(),
+  externalId: externalIdSchema,
 });
