@@ -1,4 +1,3 @@
-import { agenticSearch } from "@/lib/agentic/search";
 import { incrementSearchUsage } from "@/lib/api/usage";
 import { createTRPCRouter, protectedProcedure } from "@/server/api/trpc";
 import { TRPCError } from "@trpc/server";
@@ -6,20 +5,26 @@ import { z } from "zod/v4";
 
 import {
   getNamespaceEmbeddingModel,
-  getNamespaceLanguageModel,
   getNamespaceVectorStore,
+  queryVectorStore,
 } from "@agentset/engine";
+import { rerankerSchema } from "@agentset/validation";
 
 import { getNamespaceByUser } from "../auth";
 
+const chunkExplorerInputSchema = z.object({
+  namespaceId: z.string(),
+  query: z.string().min(1),
+  topK: z.number().min(1).max(100),
+  rerank: z.boolean(),
+  rerankModel: rerankerSchema,
+  rerankLimit: z.number().min(1).max(100),
+  filter: z.record(z.string(), z.any()).optional(),
+});
+
 export const searchRouter = createTRPCRouter({
   search: protectedProcedure
-    .input(
-      z.object({
-        namespaceId: z.string(),
-        query: z.string(),
-      }),
-    )
+    .input(chunkExplorerInputSchema)
     .query(async ({ ctx, input }) => {
       const namespace = await getNamespaceByUser(ctx, {
         id: input.namespaceId,
@@ -29,36 +34,26 @@ export const searchRouter = createTRPCRouter({
         throw new TRPCError({ code: "NOT_FOUND" });
       }
 
-      const [model, vectorStore, embeddingModel] = await Promise.all([
-        getNamespaceLanguageModel("openai:gpt-4.1"),
-        getNamespaceVectorStore(namespace),
+      const [embeddingModel, vectorStore] = await Promise.all([
         getNamespaceEmbeddingModel(namespace, "query"),
+        getNamespaceVectorStore(namespace),
       ]);
 
-      const results = await agenticSearch({
-        model,
-        queryOptions: {
-          embeddingModel,
-          vectorStore,
-          topK: 50,
-          rerank: { model: "cohere:rerank-v3.5", limit: 15 },
-          includeMetadata: true,
-        },
-        messages: [
-          {
-            role: "user",
-            content: input.query,
-          },
-        ],
+      const queryResult = await queryVectorStore({
+        query: input.query,
+        topK: input.topK,
+        filter: input.filter,
+        includeMetadata: true,
+        rerank: input.rerank
+          ? { model: input.rerankModel, limit: input.rerankLimit }
+          : false,
+        embeddingModel,
+        vectorStore,
       });
 
-      incrementSearchUsage(namespace.id, results.totalQueries);
+      // Track search usage
+      incrementSearchUsage(namespace.id, 1);
 
-      const chunks = Object.values(results.chunks);
-
-      return {
-        results: chunks,
-        queries: results.queries,
-      };
+      return queryResult.results;
     }),
 });
