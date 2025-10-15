@@ -32,5 +32,6 @@ export const deleteHosting = async ({
         message: "Hosting is not enabled for this namespace",
       });
     }
+    throw error;
   }
 };
