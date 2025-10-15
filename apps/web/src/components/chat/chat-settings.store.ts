@@ -49,6 +49,7 @@ const updateNamespace = (
     namespaces: {
       ...state.namespaces,
       [namespaceId]: {
+        ...defaultState,
         ...state.namespaces[namespaceId],
         ...(update as NamespaceState),
       },
@@ -57,7 +58,7 @@ const updateNamespace = (
 
 export const useChatSettings = create<ChatSettings>()(
   persist(
-    (set, get) => ({
+    (set) => ({
       namespaces: {},
       setSettings: (namespaceId: string, newState: Partial<NamespaceState>) =>
         set((state) => updateNamespace(state, namespaceId, newState)),

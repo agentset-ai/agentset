@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { RerankerSelector } from "@/components/reranker-selector";
 import SearchChunk from "@/components/search-chunk";
 import { useNamespace } from "@/hooks/use-namespace";
 import { logEvent } from "@/lib/analytics";
@@ -8,6 +9,7 @@ import { useTRPC } from "@/trpc/react";
 import { useQuery } from "@tanstack/react-query";
 import { SearchIcon } from "lucide-react";
 
+import type { RerankingModel } from "@agentset/validation";
 import {
   Badge,
   Button,
@@ -24,15 +26,15 @@ import {
   SelectTrigger,
   SelectValue,
   Skeleton,
-  Slider,
   Switch,
 } from "@agentset/ui";
+import { DEFAULT_RERANKER } from "@agentset/validation";
 
 interface ChunkExplorerFilters {
   mode: "semantic" | "keyword";
   topK: number;
-  minScore?: number;
   rerank: boolean;
+  rerankModel?: RerankingModel;
   rerankLimit?: number;
   filter?: Record<string, any>;
 }
@@ -41,23 +43,23 @@ export default function ChunkExplorerPageClient() {
   const namespace = useNamespace();
   const [query, setQuery] = useState("");
   const [searchQuery, setSearchQuery] = useState("");
-  const [mode, setMode] = useState<"semantic" | "keyword">("semantic");
+
   const [topK, setTopK] = useState(20);
   const [rerank, setRerank] = useState(true);
+  const [rerankModel, setRerankModel] =
+    useState<RerankingModel>(DEFAULT_RERANKER);
   const [rerankLimit, setRerankLimit] = useState(20);
-  const [minScore, setMinScore] = useState(0);
   const trpc = useTRPC();
 
   const { data, isLoading, isFetching, error } = useQuery(
-    trpc.search.exploreChunks.queryOptions(
+    trpc.search.search.queryOptions(
       {
         namespaceId: namespace.id,
         query: searchQuery,
-        mode,
         topK,
         rerank,
+        rerankModel,
         rerankLimit,
-        minScore,
       },
       {
         enabled: searchQuery.length > 0,
@@ -73,140 +75,102 @@ export default function ChunkExplorerPageClient() {
     logEvent("playground_search", {
       namespaceId: namespace.id,
       query,
-      mode,
       topK,
       rerank,
+      rerankModel,
       rerankLimit,
-      minScore,
     });
     setSearchQuery(query);
   };
 
   return (
-    <div className="space-y-6">
-      {/* Search Form */}
-      <Card>
-        <CardContent className="pt-6">
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <div className="flex gap-2">
-              <Input
-                value={query}
-                onChange={(e) => setQuery(e.target.value)}
-                placeholder="Enter your search query to explore chunks..."
-                className="flex-1"
-              />
-              <Button
-                type="submit"
-                disabled={isLoading || !query.trim()}
-                isLoading={isLoading || isFetching}
-              >
-                <SearchIcon className="size-4" />
-                Explore
-              </Button>
-            </div>
+    <div>
+      <form onSubmit={handleSubmit} className="space-y-4">
+        <div className="flex gap-2">
+          <Input
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            placeholder="Enter your search query to explore chunks..."
+            className="flex-1"
+          />
+          <Button
+            type="submit"
+            disabled={isLoading || !query.trim()}
+            isLoading={isLoading || isFetching}
+          >
+            <SearchIcon className="size-4" />
+            Explore
+          </Button>
+        </div>
 
-            {/* Quick Filters */}
-            <div className="flex items-center gap-4">
-              {namespace.keywordEnabled && (
-                <div className="flex items-center gap-2">
-                  <Label htmlFor="mode" className="text-sm">
-                    Mode:
-                  </Label>
-                  <Select
-                    value={mode}
-                    onValueChange={(value: "semantic" | "keyword") =>
-                      setMode(value)
-                    }
-                  >
-                    <SelectTrigger className="w-32">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="semantic">Semantic</SelectItem>
-                      <SelectItem value="keyword">Keyword</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-              )}
+        <div className="flex items-center gap-4">
+          <div className="flex items-center gap-2">
+            <Label className="text-sm">Results:</Label>
+            <Select
+              value={topK.toString()}
+              onValueChange={(value) => setTopK(parseInt(value))}
+            >
+              <SelectTrigger className="w-20">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="10">10</SelectItem>
+                <SelectItem value="20">20</SelectItem>
+                <SelectItem value="50">50</SelectItem>
+                <SelectItem value="100">100</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div className="flex items-center space-x-2">
+            <Switch
+              id="rerank"
+              checked={rerank}
+              onCheckedChange={(checked) => setRerank(checked)}
+            />
+            <Label htmlFor="rerank" className="text-sm">
+              Rerank
+            </Label>
+          </div>
+
+          {rerank && (
+            <>
+              <div className="flex items-center gap-2">
+                <Label className="text-sm">Model:</Label>
+                <RerankerSelector
+                  value={rerankModel}
+                  onValueChange={setRerankModel}
+                />
+              </div>
 
               <div className="flex items-center gap-2">
-                <Label className="text-sm">Results:</Label>
+                <Label className="text-sm">Rerank Limit:</Label>
                 <Select
-                  value={topK.toString()}
-                  onValueChange={(value) => setTopK(parseInt(value))}
+                  value={(rerankLimit || topK).toString()}
+                  onValueChange={(value) => setRerankLimit(parseInt(value))}
                 >
                   <SelectTrigger className="w-20">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="10">10</SelectItem>
-                    <SelectItem value="20">20</SelectItem>
-                    <SelectItem value="50">50</SelectItem>
-                    <SelectItem value="100">100</SelectItem>
+                    {Array.from({ length: Math.min(topK, 10) }, (_, i) => {
+                      const value = Math.ceil((topK * (i + 1)) / 10);
+                      return (
+                        <SelectItem key={value} value={value.toString()}>
+                          {value}
+                        </SelectItem>
+                      );
+                    })}
                   </SelectContent>
                 </Select>
               </div>
-
-              <div className="flex items-center space-x-2">
-                <Switch
-                  id="rerank"
-                  checked={rerank}
-                  onCheckedChange={(checked) => setRerank(checked)}
-                />
-                <Label htmlFor="rerank" className="text-sm">
-                  Rerank
-                </Label>
-              </div>
-
-              {rerank && (
-                <div className="flex items-center gap-2">
-                  <Label className="text-sm">Rerank Limit:</Label>
-                  <Select
-                    value={(rerankLimit || topK).toString()}
-                    onValueChange={(value) => setRerankLimit(parseInt(value))}
-                  >
-                    <SelectTrigger className="w-20">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {Array.from({ length: Math.min(topK, 10) }, (_, i) => {
-                        const value = Math.ceil((topK * (i + 1)) / 10);
-                        return (
-                          <SelectItem key={value} value={value.toString()}>
-                            {value}
-                          </SelectItem>
-                        );
-                      })}
-                    </SelectContent>
-                  </Select>
-                </div>
-              )}
-            </div>
-
-            {/* Filters */}
-            <div className="space-y-4 border-t pt-4">
-              <div className="space-y-2">
-                <Label className="text-sm">
-                  Minimum Score: {minScore?.toFixed(2) || "None"}
-                </Label>
-                <Slider
-                  value={[minScore || 0]}
-                  onValueChange={([value]) =>
-                    setMinScore(value && value > 0 ? value : 0)
-                  }
-                  max={1}
-                  min={0}
-                  step={0.01}
-                  className="w-full"
-                />
-              </div>
-            </div>
-          </form>
-        </CardContent>
-      </Card>
+            </>
+          )}
+        </div>
+      </form>
 
       {/* Results */}
-      <div>
+      <div className="mt-16">
         {isFetching ? (
           <div className="space-y-4">
             <Card>
@@ -236,31 +200,12 @@ export default function ChunkExplorerPageClient() {
             <div className="flex items-center justify-between">
               <CardTitle className="text-lg">Search Results</CardTitle>
               <div className="flex items-center gap-2">
-                <Badge variant="outline">{data.mode}</Badge>
                 <Badge variant="secondary">
                   {data.totalResults} chunks found
                 </Badge>
               </div>
             </div>
-            <div className="text-muted-foreground space-y-1 text-sm">
-              <p>
-                <strong>Query:</strong> {data.query}
-              </p>
-              <div className="flex flex-wrap gap-2">
-                <span>Top K: {data.parameters.topK}</span>
-                {data.parameters.minScore && (
-                  <span>Min Score: {data.parameters.minScore.toFixed(2)}</span>
-                )}
-                {data.parameters.rerank && (
-                  <span>
-                    Reranked:{" "}
-                    {data.parameters.rerankLimit || data.parameters.topK}
-                  </span>
-                )}
-              </div>
-            </div>
 
-            {/* Chunks */}
             <div className="space-y-4">
               {data.results.length > 0 ? (
                 data.results.map((result: any) => (
