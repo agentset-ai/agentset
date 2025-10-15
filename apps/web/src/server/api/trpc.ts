@@ -6,6 +6,7 @@
  * TL;DR - This is where all the tRPC server stuff is created and plugged in. The pieces you will
  * need to use are documented accordingly near the end.
  */
+import { AgentsetApiError } from "@/lib/api/errors";
 import { auth } from "@/lib/auth";
 import { initTRPC, TRPCError } from "@trpc/server";
 import superjson from "superjson";
@@ -80,6 +81,42 @@ export const createCallerFactory = t.createCallerFactory;
 export const createTRPCRouter = t.router;
 
 /**
+ * Map AgentsetApiError error codes to TRPC error codes
+ */
+const errorCodeToTRPCCode = (
+  code: string,
+):
+  | "BAD_REQUEST"
+  | "UNAUTHORIZED"
+  | "FORBIDDEN"
+  | "NOT_FOUND"
+  | "CONFLICT"
+  | "INTERNAL_SERVER_ERROR"
+  | "TOO_MANY_REQUESTS"
+  | "UNPROCESSABLE_CONTENT" => {
+  switch (code) {
+    case "bad_request":
+      return "BAD_REQUEST";
+    case "unauthorized":
+      return "UNAUTHORIZED";
+    case "forbidden":
+    case "exceeded_limit":
+      return "FORBIDDEN";
+    case "not_found":
+      return "NOT_FOUND";
+    case "conflict":
+    case "invite_pending":
+      return "CONFLICT";
+    case "rate_limit_exceeded":
+      return "TOO_MANY_REQUESTS";
+    case "unprocessable_entity":
+      return "UNPROCESSABLE_CONTENT";
+    default:
+      return "INTERNAL_SERVER_ERROR";
+  }
+};
+
+/**
  * Middleware for timing procedure execution and adding an artificial delay in development.
  *
  * You can remove this if you don't like it, but it can help catch unwanted waterfalls by simulating
@@ -88,18 +125,23 @@ export const createTRPCRouter = t.router;
 const timingMiddleware = t.middleware(async ({ next, path }) => {
   const start = Date.now();
 
-  if (t._config.isDev) {
-    // artificial delay in dev
-    const waitMs = Math.floor(Math.random() * 400) + 100;
-    await new Promise((resolve) => setTimeout(resolve, waitMs));
+  try {
+    const result = await next();
+
+    const end = Date.now();
+    console.log(`[TRPC] ${path} took ${end - start}ms to execute`);
+
+    return result;
+  } catch (error) {
+    // Convert AgentsetApiError to TRPCError
+    if (error instanceof AgentsetApiError) {
+      throw new TRPCError({
+        code: errorCodeToTRPCCode(error.code),
+        message: error.message,
+      });
+    }
+    throw error;
   }
-
-  const result = await next();
-
-  const end = Date.now();
-  console.log(`[TRPC] ${path} took ${end - start}ms to execute`);
-
-  return result;
 });
 
 /**

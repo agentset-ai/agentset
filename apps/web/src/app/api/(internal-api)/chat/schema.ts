@@ -3,7 +3,10 @@ import { baseQueryVectorStoreSchema } from "@/schemas/api/query";
 import { messagesSchema } from "@/schemas/chat";
 import { z } from "zod/v4";
 
-import { llmSchema, rerankerSchema } from "@agentset/validation";
+import {
+  llmSchemaWithDefault,
+  rerankerSchemaWithDefault,
+} from "@agentset/validation";
 
 export const chatSchema = baseQueryVectorStoreSchema
   .omit({ query: true })
@@ -18,8 +21,8 @@ export const chatSchema = baseQueryVectorStoreSchema
     messages: messagesSchema,
     temperature: z.number().optional(),
     mode: z.enum(["normal", "agentic", "deepResearch"]).optional(),
-    rerankModel: rerankerSchema,
-    llmModel: llmSchema,
+    rerankModel: rerankerSchemaWithDefault,
+    llmModel: llmSchemaWithDefault,
   })
   .check((ctx) => {
     if (ctx.value.rerankLimit && ctx.value.rerankLimit > ctx.value.topK) {
