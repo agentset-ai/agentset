@@ -15,10 +15,10 @@ import { getNamespaceByUser } from "../auth";
 const chunkExplorerInputSchema = z.object({
   namespaceId: z.string(),
   query: z.string().min(1),
-  topK: z.number().min(1).max(100).default(20),
-  rerank: z.boolean().default(true),
+  topK: z.number().min(1).max(100),
+  rerank: z.boolean(),
   rerankModel: rerankerSchema,
-  rerankLimit: z.number().min(1).max(100).optional(),
+  rerankLimit: z.number().min(1).max(100),
   filter: z.record(z.string(), z.any()).optional(),
 });
 
@@ -54,10 +54,6 @@ export const searchRouter = createTRPCRouter({
       // Track search usage
       incrementSearchUsage(namespace.id, 1);
 
-      return {
-        results: queryResult.results,
-        query: queryResult.query,
-        totalResults: queryResult.results.length,
-      };
+      return queryResult.results;
     }),
 });

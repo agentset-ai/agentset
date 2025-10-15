@@ -15,8 +15,8 @@ import {
   Button,
   Card,
   CardContent,
-  CardHeader,
   CardTitle,
+  DataWrapper,
   EmptyState,
   Input,
   Label,
@@ -30,15 +30,6 @@ import {
 } from "@agentset/ui";
 import { DEFAULT_RERANKER } from "@agentset/validation";
 
-interface ChunkExplorerFilters {
-  mode: "semantic" | "keyword";
-  topK: number;
-  rerank: boolean;
-  rerankModel?: RerankingModel;
-  rerankLimit?: number;
-  filter?: Record<string, any>;
-}
-
 export default function ChunkExplorerPageClient() {
   const namespace = useNamespace();
   const [query, setQuery] = useState("");
@@ -51,7 +42,7 @@ export default function ChunkExplorerPageClient() {
   const [rerankLimit, setRerankLimit] = useState(20);
   const trpc = useTRPC();
 
-  const { data, isLoading, isFetching, error } = useQuery(
+  const { data, isLoading, isFetching, error, isEnabled } = useQuery(
     trpc.search.search.queryOptions(
       {
         namespaceId: namespace.id,
@@ -171,67 +162,74 @@ export default function ChunkExplorerPageClient() {
 
       {/* Results */}
       <div className="mt-16">
-        {isFetching ? (
-          <div className="space-y-4">
-            <Card>
-              <CardHeader>
-                <Skeleton className="h-4 w-48" />
-              </CardHeader>
-            </Card>
-            <div className="space-y-4">
-              {Array.from({ length: 5 }).map((_, idx) => (
-                <Skeleton key={idx} className="h-48 w-full" />
-              ))}
-            </div>
-          </div>
-        ) : error ? (
-          <Card>
-            <CardContent className="pt-6">
-              <div className="text-center text-red-600">
-                <p className="font-medium">Error occurred</p>
-                <p className="text-muted-foreground mt-1 text-sm">
-                  {error.message}
-                </p>
+        {isEnabled ? (
+          <DataWrapper
+            data={data}
+            isLoading={isLoading}
+            error={error}
+            loadingState={
+              <div className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <CardTitle className="text-lg">Search Results</CardTitle>
+                  <div className="flex items-center gap-2">
+                    <Skeleton className="h-4 w-16" />
+                  </div>
+                </div>
+                <div className="space-y-4">
+                  {Array.from({ length: 5 }).map((_, idx) => (
+                    <Skeleton key={idx} className="h-48 w-full" />
+                  ))}
+                </div>
               </div>
-            </CardContent>
-          </Card>
-        ) : data ? (
-          <div className="space-y-4">
-            <div className="flex items-center justify-between">
-              <CardTitle className="text-lg">Search Results</CardTitle>
-              <div className="flex items-center gap-2">
-                <Badge variant="secondary">
-                  {data.totalResults} chunks found
-                </Badge>
-              </div>
-            </div>
+            }
+            errorState={
+              <Card>
+                <CardContent>
+                  <div className="text-center text-red-600">
+                    <p className="font-medium">Error occurred</p>
+                  </div>
+                </CardContent>
+              </Card>
+            }
+            emptyState={
+              <Card>
+                <CardContent>
+                  <div className="text-center">
+                    <p className="text-muted-foreground">
+                      No chunks found matching your criteria
+                    </p>
+                    <p className="text-muted-foreground mt-1 text-sm">
+                      Try adjusting your query
+                    </p>
+                  </div>
+                </CardContent>
+              </Card>
+            }
+          >
+            {(results) => (
+              <div className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <CardTitle className="text-lg">Search Results</CardTitle>
+                  <div className="flex items-center gap-2">
+                    <Badge variant="secondary">
+                      {results.length} chunks found
+                    </Badge>
+                  </div>
+                </div>
 
-            <div className="space-y-4">
-              {data.results.length > 0 ? (
-                data.results.map((result: any) => (
-                  <SearchChunk
-                    key={result.id}
-                    chunk={result}
-                    truncate={true}
-                    query={searchQuery}
-                  />
-                ))
-              ) : (
-                <Card>
-                  <CardContent className="pt-6">
-                    <div className="text-center">
-                      <p className="text-muted-foreground">
-                        No chunks found matching your criteria
-                      </p>
-                      <p className="text-muted-foreground mt-1 text-sm">
-                        Try adjusting your query or filters
-                      </p>
-                    </div>
-                  </CardContent>
-                </Card>
-              )}
-            </div>
-          </div>
+                <div className="space-y-4">
+                  {results.map((result) => (
+                    <SearchChunk
+                      key={result.id}
+                      chunk={result}
+                      truncate={true}
+                      query={searchQuery}
+                    />
+                  ))}
+                </div>
+              </div>
+            )}
+          </DataWrapper>
         ) : (
           <EmptyState
             title="Search"
