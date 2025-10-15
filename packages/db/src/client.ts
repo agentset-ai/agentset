@@ -3,7 +3,7 @@ import { PrismaNeon } from "@prisma/adapter-neon";
 
 // import ws from "ws";
 
-import { PrismaClient } from "../generated/prisma";
+import { PrismaClient } from "../generated/client";
 
 const createPrismaClient = () => {
   if (typeof WebSocket === "undefined") {
