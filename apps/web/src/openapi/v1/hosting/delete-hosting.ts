@@ -26,7 +26,7 @@ export const deleteHosting: ZodOpenApiOperationObject = {
   security: [{ token: [] }],
   ...makeCodeSamples(
     ts`
-await ns.hosting.delete("ns_xxx");
+await ns.hosting.delete();
 console.log("Hosting deleted");
 `,
   ),

@@ -26,7 +26,7 @@ export const enableHosting: ZodOpenApiOperationObject = {
   security: [{ token: [] }],
   ...makeCodeSamples(
     ts`
-const hosting = await ns.hosting.enable("ns_xxx");
+const hosting = await ns.hosting.enable();
 console.log(hosting);
 `,
   ),

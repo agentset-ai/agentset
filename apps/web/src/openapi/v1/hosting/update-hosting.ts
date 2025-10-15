@@ -8,7 +8,7 @@ import { namespaceIdPathSchema } from "../utils";
 export const updateHosting: ZodOpenApiOperationObject = {
   operationId: "updateHosting",
   "x-speakeasy-name-override": "update",
-  "x-speakeasy-max-method-params": 2,
+  "x-speakeasy-max-method-params": 1,
   summary: "Update hosting configuration",
   description:
     "Update the hosting configuration for a namespace. If there is no change, return it as it is.",
@@ -34,7 +34,7 @@ export const updateHosting: ZodOpenApiOperationObject = {
   security: [{ token: [] }],
   ...makeCodeSamples(
     ts`
-const updatedHosting = await ns.hosting.update("ns_xxx", {
+const updatedHosting = await ns.hosting.update({
   title: "My Knowledge Base",
   welcomeMessage: "Welcome to my knowledge base!",
   searchEnabled: true,

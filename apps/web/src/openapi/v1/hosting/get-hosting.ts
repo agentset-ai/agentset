@@ -26,7 +26,7 @@ export const getHosting: ZodOpenApiOperationObject = {
   security: [{ token: [] }],
   ...makeCodeSamples(
     ts`
-const hosting = await ns.hosting.get("ns_xxx");
+const hosting = await ns.hosting.get();
 console.log(hosting);
 `,
   ),
