@@ -32,7 +32,6 @@
     "@dnd-kit/sortable": "^10.0.0",
     "@hookform/resolvers": "^5.2.2",
     "@number-flow/react": "^0.5.9",
-    "@supabase/supabase-js": "^2.49.1",
     "@t3-oss/env-nextjs": "catalog:",
     "@tanstack/react-query": "catalog:",
     "@trpc/client": "catalog:",

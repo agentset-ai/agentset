@@ -4,7 +4,6 @@
   "type": "module",
   "exports": {
     ".": "./src/index.ts",
-    "./supabase-types": "./src/types/supabase.types.ts",
     "./types": "./src/types/prisma.ts"
   },
   "scripts": {
