@@ -30,8 +30,28 @@ export const makeChunk = (
 };
 
 export const metadataToChunk = (metadata?: VectorStoreMetadata) => {
+  if (!metadata) return null;
+
   const nodeContent = metadata?._node_content;
-  if (!nodeContent) return null;
+  if (typeof nodeContent !== "string" || nodeContent.trim() === "") {
+    return null;
+  }
+
+  let parsed: unknown;
+  try {
+    parsed = JSON.parse(nodeContent);
+  } catch {
+    return null;
+  }
+
+  if (
+    !parsed ||
+    typeof parsed !== "object" ||
+    typeof (parsed as Record<string, unknown>).id_ !== "string" ||
+    typeof (parsed as Record<string, unknown>).text !== "string"
+  ) {
+    return null;
+  }
 
   try {
     const node = metadataDictToNode(metadata);

@@ -65,6 +65,16 @@ export const getNamespaceVectorStore = async (
       });
     }
 
+    case "QDRANT": {
+      const { Qdrant } = await import("./qdrant/index");
+
+      return new Qdrant({
+        url: config.url,
+        apiKey: config.apiKey,
+        ...commonConfig,
+      });
+    }
+
     default: {
       // This exhaustive check ensures TypeScript will error if a new provider
       // is added without handling it in the switch statement
