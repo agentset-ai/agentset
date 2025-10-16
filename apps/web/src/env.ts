@@ -22,8 +22,6 @@ export const env = createEnv({
   },
   server: {
     DATABASE_URL: z.url(),
-    SUPABASE_URL: z.url().optional(),
-    SUPABASE_ANON_KEY: z.string().optional(),
 
     RESEND_API_KEY: z.string(),
 
@@ -62,13 +60,8 @@ export const env = createEnv({
     NEXT_PUBLIC_APP_NAME: process.env.NEXT_PUBLIC_APP_NAME,
     NEXT_PUBLIC_APP_SHORT_DOMAIN: process.env.NEXT_PUBLIC_APP_SHORT_DOMAIN,
     NEXT_PUBLIC_VERCEL_ENV: process.env.NEXT_PUBLIC_VERCEL_ENV,
-
     NEXT_PUBLIC_POSTHOG_KEY: process.env.NEXT_PUBLIC_POSTHOG_KEY,
-
     DATABASE_URL: process.env.DATABASE_URL,
-    SUPABASE_URL: process.env.SUPABASE_URL,
-    SUPABASE_ANON_KEY: process.env.SUPABASE_ANON_KEY,
-
     NODE_ENV: process.env.NODE_ENV,
     RESEND_API_KEY: process.env.RESEND_API_KEY,
 
