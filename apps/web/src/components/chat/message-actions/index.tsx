@@ -2,7 +2,8 @@ import { memo } from "react";
 import { useIsHosting } from "@/contexts/hosting-context";
 import { extractTextFromParts } from "@/lib/string-utils";
 import { MyUIMessage } from "@/types/ai";
-import { CopyIcon } from "lucide-react";
+import { useChatProperty } from "ai-sdk-zustand";
+import { CopyIcon, RefreshCcwIcon } from "lucide-react";
 import { toast } from "sonner";
 import { useCopyToClipboard } from "usehooks-ts";
 
@@ -19,28 +20,36 @@ export function PureMessageActions({
 }) {
   const [_, copyToClipboard] = useCopyToClipboard();
   const isHosting = useIsHosting();
+  const regenerate = useChatProperty((a) => a.regenerate);
 
-  if (isLoading) return null;
   if (message.role === "user") return null;
 
+  const handleCopy = async () => {
+    const textFromParts = extractTextFromParts(message.parts);
+
+    if (!textFromParts) {
+      toast.error("There's no text to copy!");
+      return;
+    }
+
+    await copyToClipboard(textFromParts);
+    toast.success("Copied to clipboard!");
+  };
+
+  const handleRegenerate = async () => {
+    await regenerate();
+  };
+
   return (
-    <div className="flex flex-row gap-2">
+    <div className="-mt-2 flex flex-row gap-2">
       <Tooltip>
         <TooltipTrigger asChild>
           <Button
-            className="text-muted-foreground h-fit px-2 py-1"
-            variant="outline"
-            onClick={async () => {
-              const textFromParts = extractTextFromParts(message.parts);
-
-              if (!textFromParts) {
-                toast.error("There's no text to copy!");
-                return;
-              }
-
-              await copyToClipboard(textFromParts);
-              toast.success("Copied to clipboard!");
-            }}
+            className="text-muted-foreground rounded-full"
+            variant="ghost"
+            size="icon"
+            disabled={isLoading}
+            onClick={handleCopy}
           >
             <CopyIcon className="size-4" />
           </Button>
@@ -48,7 +57,22 @@ export function PureMessageActions({
         <TooltipContent>Copy</TooltipContent>
       </Tooltip>
 
-      {!isHosting && <MessageLogs message={message} />}
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <Button
+            className="text-muted-foreground rounded-full"
+            variant="ghost"
+            size="icon"
+            disabled={isLoading}
+            onClick={handleRegenerate}
+          >
+            <RefreshCcwIcon className="size-4" />
+          </Button>
+        </TooltipTrigger>
+        <TooltipContent>Regenerate</TooltipContent>
+      </Tooltip>
+
+      {!isHosting && <MessageLogs message={message} isLoading={isLoading} />}
     </div>
   );
 }

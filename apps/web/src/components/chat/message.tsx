@@ -1,5 +1,3 @@
-"use client";
-
 import { useState } from "react";
 import { sanitizeText } from "@/lib/string-utils";
 import { MyUIMessage } from "@/types/ai";
@@ -74,18 +72,15 @@ const MessageStatus = ({
 export const PreviewMessage = ({
   message,
   isLoading,
-  requiresScrollPadding,
 }: {
   message: MyUIMessage;
   isLoading: boolean;
-  requiresScrollPadding: boolean;
 }) => {
   const [mode, setMode] = useState<"view" | "edit">("view");
 
   return (
     <AnimatePresence>
       <motion.div
-        data-testid={`message-${message.role}`}
         className="group/message mx-auto w-full max-w-3xl px-4"
         initial={{ y: 5, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
@@ -105,14 +100,7 @@ export const PreviewMessage = ({
             </div>
           )}
 
-          <div
-            className={cn(
-              "flex w-full flex-col gap-4",
-              requiresScrollPadding && message.role === "assistant"
-                ? "min-h-96"
-                : "",
-            )}
-          >
+          <div className="flex w-full flex-col gap-4">
             <MessageStatus message={message} isLoading={isLoading} />
 
             {message.parts.map((part, index) => {
@@ -137,7 +125,6 @@ export const PreviewMessage = ({
                         <Tooltip>
                           <TooltipTrigger asChild>
                             <Button
-                              data-testid="message-edit-button"
                               variant="ghost"
                               size="icon"
                               className="text-muted-foreground rounded-full opacity-0 group-hover/message:opacity-100"
@@ -151,7 +138,6 @@ export const PreviewMessage = ({
                       )}
 
                       <div
-                        data-testid="message-content"
                         className={cn(
                           "flex flex-col gap-4",
                           message.role === "user" &&
@@ -175,73 +161,6 @@ export const PreviewMessage = ({
                   );
                 }
               }
-
-              // if (type === "tool-invocation") {
-              //   const { toolInvocation } = part;
-              //   const { toolName, toolCallId, state } = toolInvocation;
-
-              // if (state === "call") {
-              //   const { args } = toolInvocation;
-
-              //   return (
-              //     <div
-              //       key={toolCallId}
-              //       className={cn({
-              //         skeleton: ["getWeather"].includes(toolName),
-              //       })}
-              //     >
-              //       {toolName === "getWeather" ? (
-              //         <Weather />
-              //       ) : toolName === "createDocument" ? (
-              //         <DocumentPreview isReadonly={isReadonly} args={args} />
-              //       ) : toolName === "updateDocument" ? (
-              //         <DocumentToolCall
-              //           type="update"
-              //           args={args}
-              //           isReadonly={isReadonly}
-              //         />
-              //       ) : toolName === "requestSuggestions" ? (
-              //         <DocumentToolCall
-              //           type="request-suggestions"
-              //           args={args}
-              //           isReadonly={isReadonly}
-              //         />
-              //       ) : null}
-              //     </div>
-              //   );
-              // }
-
-              // if (state === "result") {
-              //   const { result } = toolInvocation;
-
-              //   return (
-              //     <div key={toolCallId}>
-              //       {toolName === "getWeather" ? (
-              //         <Weather weatherAtLocation={result} />
-              //       ) : toolName === "createDocument" ? (
-              //         <DocumentPreview
-              //           isReadonly={isReadonly}
-              //           result={result}
-              //         />
-              //       ) : toolName === "updateDocument" ? (
-              //         <DocumentToolResult
-              //           type="update"
-              //           result={result}
-              //           isReadonly={isReadonly}
-              //         />
-              //       ) : toolName === "requestSuggestions" ? (
-              //         <DocumentToolResult
-              //           type="request-suggestions"
-              //           result={result}
-              //           isReadonly={isReadonly}
-              //         />
-              //       ) : (
-              //         <pre>{JSON.stringify(result, null, 2)}</pre>
-              //       )}
-              //     </div>
-              //   );
-              // }
-              // }
             })}
 
             <MessageActions
@@ -276,7 +195,6 @@ export const ThinkingMessage = () => {
         parts: [],
       }}
       isLoading={true}
-      requiresScrollPadding
     />
   );
 };

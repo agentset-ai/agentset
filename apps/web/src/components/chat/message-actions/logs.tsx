@@ -25,7 +25,13 @@ import {
 
 import { CodeBlock } from "../code-block";
 
-export default function MessageLogs({ message }: { message: MyUIMessage }) {
+export default function MessageLogs({
+  message,
+  isLoading,
+}: {
+  message: MyUIMessage;
+  isLoading: boolean;
+}) {
   const annotation = message.parts?.find(
     (a) => a.type === "data-agentset-sources",
   );
@@ -43,8 +49,10 @@ export default function MessageLogs({ message }: { message: MyUIMessage }) {
         <TooltipTrigger asChild>
           <DialogTrigger asChild>
             <Button
-              variant="outline"
-              className="text-muted-foreground h-fit px-2 py-1"
+              className="text-muted-foreground rounded-full"
+              variant="ghost"
+              size="icon"
+              disabled={isLoading}
             >
               <LogsIcon className="size-4" />
             </Button>
