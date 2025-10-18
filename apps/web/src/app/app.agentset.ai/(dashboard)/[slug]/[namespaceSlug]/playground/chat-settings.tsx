@@ -7,7 +7,6 @@ import { LLMSelector } from "@/components/llm-selector";
 import { RerankerSelector } from "@/components/reranker-selector";
 import { useNamespace } from "@/hooks/use-namespace";
 import { DEFAULT_SYSTEM_PROMPT } from "@/lib/prompts";
-import { Settings2Icon } from "lucide-react";
 import { toast } from "sonner";
 
 import {
@@ -26,7 +25,11 @@ import {
 
 const defaultPrompt = DEFAULT_SYSTEM_PROMPT.compile().trim();
 
-export default function ChatSettings() {
+export default function ChatSettings({
+  trigger,
+}: {
+  trigger: React.ReactNode;
+}) {
   const namespace = useNamespace();
   const [open, setOpen] = useState(false);
 
@@ -73,12 +76,7 @@ export default function ChatSettings() {
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger asChild>
-        <Button variant="outline">
-          <Settings2Icon className="size-4" />
-          Parameters
-        </Button>
-      </DialogTrigger>
+      <DialogTrigger asChild>{trigger}</DialogTrigger>
 
       <DialogContent className="overflow-y-auto sm:max-w-xl">
         <DialogHeader>

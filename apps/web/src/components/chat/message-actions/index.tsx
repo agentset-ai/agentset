@@ -3,15 +3,16 @@ import { useIsHosting } from "@/contexts/hosting-context";
 import { extractTextFromParts } from "@/lib/string-utils";
 import { MyUIMessage } from "@/types/ai";
 import { useChatProperty } from "ai-sdk-zustand";
-import { CopyIcon, RefreshCcwIcon } from "lucide-react";
+import { CopyIcon, LogsIcon, RefreshCcwIcon } from "lucide-react";
 import { toast } from "sonner";
 import { useCopyToClipboard } from "usehooks-ts";
 
-import { Button, Tooltip, TooltipContent, TooltipTrigger } from "@agentset/ui";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@agentset/ui";
+import { Action, Actions } from "@agentset/ui/ai/actions";
 
 import MessageLogs from "./logs";
 
-export function PureMessageActions({
+function PureMessageActions({
   message,
   isLoading,
 }: {
@@ -41,39 +42,42 @@ export function PureMessageActions({
   };
 
   return (
-    <div className="flex flex-row gap-2">
+    <Actions className="mt-2">
       <Tooltip>
         <TooltipTrigger asChild>
-          <Button
-            className="text-muted-foreground rounded-full"
-            variant="ghost"
-            size="icon"
-            disabled={isLoading}
-            onClick={handleCopy}
-          >
+          <Action disabled={isLoading} onClick={handleCopy}>
             <CopyIcon className="size-4" />
-          </Button>
+          </Action>
         </TooltipTrigger>
         <TooltipContent>Copy</TooltipContent>
       </Tooltip>
 
       <Tooltip>
         <TooltipTrigger asChild>
-          <Button
-            className="text-muted-foreground rounded-full"
-            variant="ghost"
-            size="icon"
-            disabled={isLoading}
-            onClick={handleRegenerate}
-          >
+          <Action disabled={isLoading} onClick={handleRegenerate}>
             <RefreshCcwIcon className="size-4" />
-          </Button>
+          </Action>
         </TooltipTrigger>
         <TooltipContent>Regenerate</TooltipContent>
       </Tooltip>
 
-      {!isHosting && <MessageLogs message={message} isLoading={isLoading} />}
-    </div>
+      {!isHosting && (
+        <Tooltip>
+          <MessageLogs
+            message={message}
+            trigger={
+              <TooltipTrigger asChild>
+                <Action disabled={isLoading}>
+                  <LogsIcon className="size-4" />
+                </Action>
+              </TooltipTrigger>
+            }
+          />
+
+          <TooltipContent>Logs</TooltipContent>
+        </Tooltip>
+      )}
+    </Actions>
   );
 }
 

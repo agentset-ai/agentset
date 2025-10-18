@@ -8,36 +8,25 @@ import {
 } from "@agentset/ui/ai/conversation";
 
 import { PreviewMessage, ThinkingMessage } from "./message";
-import { Overview } from "./overview";
 
-interface MessagesProps {
-  overviewMessage?: string;
-  logo?: string;
-}
-
-export function Messages({ overviewMessage, logo }: MessagesProps) {
+export function Messages() {
   const messages = useChatMessages<MyUIMessage>();
   const status = useChatStatus();
 
   return (
     <Conversation className="relative flex min-w-0 flex-1 pt-4">
       <ConversationContent className="flex flex-col gap-6 pb-32">
-        {messages.length === 0 ? (
-          <Overview message={overviewMessage} logo={logo} />
-        ) : (
-          messages.map((message, index) => (
-            <PreviewMessage
-              key={message.id}
-              message={message}
-              isLoading={
-                status === "streaming" && messages.length - 1 === index
-              }
-            />
-          ))
-        )}
+        {messages.map((message, index) => (
+          <PreviewMessage
+            key={message.id}
+            message={message}
+            isLoading={status === "streaming" && messages.length - 1 === index}
+          />
+        ))}
 
         <ThinkingMessage />
       </ConversationContent>
+
       <ConversationScrollButton />
     </Conversation>
   );

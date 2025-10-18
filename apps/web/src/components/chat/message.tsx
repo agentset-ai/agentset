@@ -6,7 +6,6 @@ import { AnimatePresence, motion } from "framer-motion";
 import { PencilIcon } from "lucide-react";
 
 import {
-  Button,
   cn,
   Logo,
   ShinyText,
@@ -14,6 +13,7 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "@agentset/ui";
+import { Action } from "@agentset/ui/components/ai-elements/actions";
 
 import { Markdown } from "./markdown";
 import { MessageActions } from "./message-actions";
@@ -129,14 +129,12 @@ export const PreviewMessage = ({
                       {message.role === "user" && (
                         <Tooltip>
                           <TooltipTrigger asChild>
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              className="text-muted-foreground rounded-full opacity-0 group-hover/message:opacity-100"
+                            <Action
+                              className="opacity-0 group-hover/message:opacity-100"
                               onClick={() => setMode("edit")}
                             >
                               <PencilIcon />
-                            </Button>
+                            </Action>
                           </TooltipTrigger>
                           <TooltipContent>Edit message</TooltipContent>
                         </Tooltip>
@@ -168,6 +166,7 @@ export const PreviewMessage = ({
               }
             })}
           </div>
+
           <MessageActions
             key={`action-${message.id}`}
             message={message}

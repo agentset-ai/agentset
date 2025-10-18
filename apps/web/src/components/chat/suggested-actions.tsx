@@ -42,12 +42,9 @@ function PureSuggestedActions({ exampleMessages }: SuggestedActionsProps) {
                 ],
               });
             }}
-            className="h-auto w-full flex-1 items-start justify-start gap-1 rounded-xl border px-4 py-3.5 text-left text-sm sm:flex-col"
+            title={suggestedAction}
+            className="line-clamp-1 h-auto w-full min-w-0 flex-1 items-start justify-start gap-1 rounded-xl border px-4 py-3.5 text-left text-sm overflow-ellipsis sm:flex-col"
           >
-            {/* <span className="font-medium">{suggestedAction.title}</span>
-            <span className="text-muted-foreground">
-              {suggestedAction.label}
-            </span> */}
             {suggestedAction}
           </Button>
         </motion.div>

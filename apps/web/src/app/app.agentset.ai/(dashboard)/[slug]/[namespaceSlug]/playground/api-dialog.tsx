@@ -21,11 +21,13 @@ import {
 } from "@agentset/ui";
 
 export default function ApiDialog({
+  trigger,
   variant = "outline",
   label = "API",
   description = "Use the api",
   tabs,
 }: {
+  trigger?: React.ReactNode;
   variant?: "ghost" | "outline";
   label?: string;
   description?: React.ReactNode;
@@ -53,10 +55,12 @@ export default function ApiDialog({
   return (
     <Dialog>
       <DialogTrigger asChild>
-        <Button variant={variant}>
-          <Code2Icon className="size-4" />
-          {label}
-        </Button>
+        {trigger ?? (
+          <Button variant={variant}>
+            <Code2Icon className="size-4" />
+            {label}
+          </Button>
+        )}
       </DialogTrigger>
       <DialogContent className="sm:max-w-2xl">
         <DialogHeader>
