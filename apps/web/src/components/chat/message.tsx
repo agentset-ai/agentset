@@ -2,8 +2,8 @@ import { useState } from "react";
 import { sanitizeText } from "@/lib/string-utils";
 import { MyUIMessage } from "@/types/ai";
 import { useChatProperty, useChatStatus } from "ai-sdk-zustand";
-import { AnimatePresence, motion } from "framer-motion";
 import { PencilIcon } from "lucide-react";
+import { AnimatePresence, motion } from "motion/react";
 
 import {
   cn,

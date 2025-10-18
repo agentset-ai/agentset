@@ -3,8 +3,8 @@
 import { notFound } from "next/navigation";
 import SearchChunk from "@/components/search-chunk";
 import { useHosting } from "@/contexts/hosting-context";
-import { motion } from "framer-motion";
 import { SearchIcon } from "lucide-react";
+import { motion } from "motion/react";
 
 import { Button, EmptyState, Input, Skeleton } from "@agentset/ui";
 

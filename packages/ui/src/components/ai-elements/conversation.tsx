@@ -2,8 +2,8 @@
 
 import type { ComponentProps } from "react";
 import { useCallback } from "react";
-import { AnimatePresence, motion } from "framer-motion";
 import { ArrowDownIcon } from "lucide-react";
+import { AnimatePresence, motion } from "motion/react";
 import { StickToBottom, useStickToBottomContext } from "use-stick-to-bottom";
 
 import { Button } from "@agentset/ui/button";

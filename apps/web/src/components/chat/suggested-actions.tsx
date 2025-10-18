@@ -1,7 +1,7 @@
 import { memo } from "react";
 import { logEvent } from "@/lib/analytics";
 import { useChatMessageCount, useChatSendMessage } from "ai-sdk-zustand";
-import { motion } from "framer-motion";
+import { motion } from "motion/react";
 
 import { Button } from "@agentset/ui";
 

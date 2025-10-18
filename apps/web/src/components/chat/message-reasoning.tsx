@@ -1,6 +1,6 @@
 import { useState } from "react";
-import { AnimatePresence, motion } from "framer-motion";
 import { ChevronDownIcon, LoaderIcon } from "lucide-react";
+import { AnimatePresence, motion } from "motion/react";
 
 import { Markdown } from "./markdown";
 

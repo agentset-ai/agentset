@@ -30,7 +30,7 @@
     "radix-ui": "^1.4.2",
     "react-dropzone": "^14.3.8",
     "react-syntax-highlighter": "^15.6.6",
-    "streamdown": "^1.0.11",
+    "streamdown": "^1.4.0",
     "tailwind-merge": "^3.0.2",
     "tokenlens": "^1.2.1",
     "use-stick-to-bottom": "^1.1.1"
