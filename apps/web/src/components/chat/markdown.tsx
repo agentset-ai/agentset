@@ -1,5 +1,6 @@
 import { MyUIMessage } from "@/types/ai";
-import { Streamdown } from "streamdown";
+
+import { Response } from "@agentset/ui/ai/response";
 
 import { CitationButton } from "./citation-button";
 import remarkCitations from "./remark-citations";
@@ -13,7 +14,7 @@ const remarkPlugins = [remarkCitations];
 
 export const Markdown = ({ children, message }: MarkdownProps) => {
   return (
-    <Streamdown
+    <Response
       remarkPlugins={remarkPlugins}
       components={{
         // @ts-ignore
@@ -23,6 +24,6 @@ export const Markdown = ({ children, message }: MarkdownProps) => {
       }}
     >
       {children}
-    </Streamdown>
+    </Response>
   );
 };
