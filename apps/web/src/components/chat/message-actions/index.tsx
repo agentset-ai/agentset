@@ -41,7 +41,7 @@ export function PureMessageActions({
   };
 
   return (
-    <div className="-mt-2 flex flex-row gap-2">
+    <div className="flex flex-row gap-2">
       <Tooltip>
         <TooltipTrigger asChild>
           <Button

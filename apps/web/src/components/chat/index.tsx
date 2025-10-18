@@ -6,6 +6,7 @@ import { cn } from "@agentset/ui";
 
 import { MultimodalInput } from "./chat-input";
 import { Messages } from "./messages";
+import { SuggestedActions } from "./suggested-actions";
 import { useNamespaceChat } from "./use-chat";
 import { useHostingChat } from "./use-hosting-chat";
 
@@ -29,9 +30,9 @@ const PlaygroundChat = () => {
     >
       <Messages />
 
-      <form className="bg-background mx-auto flex w-full gap-2 px-4 pb-4 md:max-w-3xl md:pb-6">
+      <div className="mx-auto flex w-full flex-col gap-4 px-4 pb-4 md:max-w-3xl md:pb-6">
         <MultimodalInput type="playground" />
-      </form>
+      </div>
     </div>
   );
 };
@@ -52,9 +53,10 @@ const HostingChat = () => {
         logo={logo ?? undefined}
       />
 
-      <form className="bg-background mx-auto flex w-full gap-2 px-4 pb-4 md:max-w-3xl md:pb-6">
-        <MultimodalInput type="hosted" exampleMessages={exampleQuestions} />
-      </form>
+      <div className="mx-auto flex w-full flex-col gap-4 px-4 pb-4 md:max-w-3xl md:pb-6">
+        <SuggestedActions exampleMessages={exampleQuestions} />
+        <MultimodalInput type="hosted" />
+      </div>
     </div>
   );
 };

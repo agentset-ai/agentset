@@ -16,10 +16,7 @@ function PureSuggestedActions({ exampleMessages }: SuggestedActionsProps) {
   if (totalMessages > 0) return null;
 
   return (
-    <div
-      data-testid="suggested-actions"
-      className="grid w-full gap-2 sm:grid-cols-2"
-    >
+    <div className="grid w-full gap-2 sm:grid-cols-2">
       {exampleMessages.map((suggestedAction, index) => (
         <motion.div
           initial={{ opacity: 0, y: 20 }}

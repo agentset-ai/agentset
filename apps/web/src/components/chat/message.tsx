@@ -3,11 +3,12 @@ import { sanitizeText } from "@/lib/string-utils";
 import { MyUIMessage } from "@/types/ai";
 import { useChatProperty, useChatStatus } from "ai-sdk-zustand";
 import { AnimatePresence, motion } from "framer-motion";
-import { PencilIcon, SparklesIcon } from "lucide-react";
+import { PencilIcon } from "lucide-react";
 
 import {
   Button,
   cn,
+  Logo,
   ShinyText,
   Tooltip,
   TooltipContent,
@@ -26,20 +27,22 @@ const MessageStatus = ({
   message: MyUIMessage;
   isLoading: boolean;
 }) => {
+  if (message.role === "user") return null;
+
   // get the last item with type status
-  const status = message.parts.find((a) => a.type === "data-status");
-  const queries = message.parts.find((a) => a.type === "data-queries");
+  const status = message.parts.find((p) => p.type === "data-status");
+  const queries = message.parts.find((p) => p.type === "data-queries");
 
   if (!status)
-    return isLoading ? (
+    return (
       <ShinyText
         className="w-fit font-medium"
         shimmerWidth={40}
         disabled={!isLoading}
       >
-        Generating answer...
+        {isLoading ? "Generating answer..." : "Done!"}
       </ShinyText>
-    ) : null;
+    );
 
   const queryString = queries
     ? queries.data.map((q, idx) => (
@@ -88,21 +91,23 @@ export const PreviewMessage = ({
       >
         <div
           className={cn(
-            "flex w-full gap-4 group-data-[role=user]/message:ml-auto group-data-[role=user]/message:max-w-2xl",
+            "flex w-full flex-col gap-2 group-data-[role=user]/message:ml-auto group-data-[role=user]/message:max-w-2xl",
             mode === "edit" ? "w-full" : "group-data-[role=user]/message:w-fit",
           )}
         >
-          {message.role === "assistant" && (
-            <div className="ring-border bg-background flex size-8 shrink-0 items-center justify-center rounded-full ring-1">
-              <div className="translate-y-px">
-                <SparklesIcon className="size-3.5" />
+          <div className="flex items-center gap-2">
+            {message.role === "assistant" && (
+              <div className="ring-border bg-background flex size-8 shrink-0 items-center justify-center rounded-full ring-1">
+                <div className="translate-y-px">
+                  <Logo className="size-3.5" />
+                </div>
               </div>
-            </div>
-          )}
+            )}
+
+            <MessageStatus message={message} isLoading={isLoading} />
+          </div>
 
           <div className="flex w-full flex-col gap-4">
-            <MessageStatus message={message} isLoading={isLoading} />
-
             {message.parts.map((part, index) => {
               const { type } = part;
               const key = `message-${message.id}-part-${index}`;
@@ -162,13 +167,12 @@ export const PreviewMessage = ({
                 }
               }
             })}
-
-            <MessageActions
-              key={`action-${message.id}`}
-              message={message}
-              isLoading={isLoading}
-            />
           </div>
+          <MessageActions
+            key={`action-${message.id}`}
+            message={message}
+            isLoading={isLoading}
+          />
         </div>
       </motion.div>
     </AnimatePresence>
