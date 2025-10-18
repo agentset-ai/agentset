@@ -60,7 +60,7 @@ The fastest way to get started with Agentset. Generous free tier with 1,000 page
 
 ### Self-host Agentset
 
-Follow our complete guide:[https://docs.agentset.ai/self-hosting](https://docs.agentset.ai/open-source/self-hosting)
+Follow our complete guide: https://docs.agentset.ai/open-source/self-hosting
 
 ## Quick Start (Local Development)
 
