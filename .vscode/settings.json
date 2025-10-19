@@ -27,5 +27,11 @@
     "next/dist",
     "lucide-react/dist/lucide-react.suffixed"
   ],
-  "typescript.tsdk": "node_modules/typescript/lib"
+  "typescript.tsdk": "node_modules/typescript/lib",
+  "search.exclude": {
+    "**/node_modules": true,
+    "**/dist": true,
+    "pnpm-lock.yaml": true,
+    ".git/**": true
+  }
 }
