@@ -25,6 +25,7 @@
     "./button": "./src/components/ui/button.tsx",
     "./card": "./src/components/ui/card.tsx",
     "./checkbox": "./src/components/ui/checkbox.tsx",
+    "./carousel": "./src/components/ui/carousel.tsx",
     "./collapsible": "./src/components/ui/collapsible.tsx",
     "./command": "./src/components/ui/command.tsx",
     "./data-table": "./src/components/ui/data-table.tsx",
