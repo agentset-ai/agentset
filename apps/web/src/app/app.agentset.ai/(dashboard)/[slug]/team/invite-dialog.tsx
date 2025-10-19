@@ -1,6 +1,6 @@
 "use client";
 
-import type { Role } from "@/lib/auth-types";
+import type { Invitation, Role } from "@/lib/auth-types";
 import { useState } from "react";
 import { useOrganization } from "@/hooks/use-organization";
 import { logEvent } from "@/lib/analytics";
@@ -58,7 +58,7 @@ function InviteMemberDialog() {
 
         return {
           ...old,
-          invitations: [...old.invitations, result],
+          invitations: [...old.invitations, result as Invitation],
         };
       });
 
