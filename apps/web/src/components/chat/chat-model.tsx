@@ -6,7 +6,7 @@ import {
   PromptInputModelSelectItem,
   PromptInputModelSelectTrigger,
   PromptInputModelSelectValue,
-} from "@agentset/ui/components/ai-elements/prompt-input";
+} from "@agentset/ui/ai/prompt-input";
 import { LLM, LLM_MODELS } from "@agentset/validation";
 
 import { useNamespaceChatSettings } from "./chat-settings.store";

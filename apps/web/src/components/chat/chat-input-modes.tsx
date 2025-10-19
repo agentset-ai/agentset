@@ -4,7 +4,7 @@ import { useSession } from "@/hooks/use-session";
 import { BoxIcon, TelescopeIcon } from "lucide-react";
 import { useIsClient } from "usehooks-ts";
 
-import { PromptInputButton } from "@agentset/ui/components/ai-elements/prompt-input";
+import { PromptInputButton } from "@agentset/ui/ai/prompt-input";
 
 import { useNamespaceChatSettings } from "./chat-settings.store";
 
