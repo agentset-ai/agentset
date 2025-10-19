@@ -3,7 +3,7 @@
 import { Fragment, useCallback, useEffect, useState } from "react";
 import { Slider as SliderPrimitive } from "radix-ui";
 
-import { cn } from "@agentset/ui/utils";
+import { cn } from "@agentset/ui/cn";
 
 import {
   Tooltip,

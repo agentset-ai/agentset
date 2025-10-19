@@ -6,7 +6,10 @@ import { useHosting } from "@/contexts/hosting-context";
 import { SearchIcon } from "lucide-react";
 import { motion } from "motion/react";
 
-import { Button, EmptyState, Input, Skeleton } from "@agentset/ui";
+import { Button } from "@agentset/ui/button";
+import { EmptyState } from "@agentset/ui/empty-state";
+import { Input } from "@agentset/ui/input";
+import { Skeleton } from "@agentset/ui/skeleton";
 
 import { useSearch } from "./use-search";
 

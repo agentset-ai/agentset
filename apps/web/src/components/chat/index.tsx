@@ -2,7 +2,7 @@
 
 import { useHosting } from "@/contexts/hosting-context";
 
-import { cn } from "@agentset/ui";
+import { cn } from "@agentset/ui/cn";
 
 import { MultimodalInput } from "./chat-input";
 import { Messages } from "./messages";
@@ -27,10 +27,16 @@ const PlaygroundChat = () => {
       className={cn(
         "bg-background flex min-w-0 flex-col",
         "h-[calc(100dvh-calc(var(--spacing)*20))]",
-        messages.length === 0 && "items-center justify-center",
+        // messages.length === 0 && "items-center justify-center",
       )}
     >
-      {messages.length === 0 ? <Overview /> : <Messages />}
+      {messages.length === 0 ? (
+        <div className="flex flex-1 items-center justify-center">
+          <Overview />
+        </div>
+      ) : (
+        <Messages />
+      )}
 
       <div className="mx-auto flex w-full flex-col gap-4 px-4 pb-4 md:max-w-3xl md:pb-6">
         <MultimodalInput type="playground" />
@@ -53,7 +59,7 @@ const HostingChat = () => {
     >
       {messages.length === 0 ? (
         <Overview
-          message={welcomeMessage ?? "Start a conversation!"}
+          title={welcomeMessage ?? "Start a conversation!"}
           logo={logo}
         />
       ) : (
@@ -62,7 +68,7 @@ const HostingChat = () => {
 
       <div className="mx-auto flex w-full flex-col gap-4 px-4 pb-4 md:max-w-3xl md:pb-6">
         <MultimodalInput type="hosted" />
-        <SuggestedActions exampleMessages={exampleQuestions} />
+        <SuggestedActions exampleMessages={["one", "two", "three", "four"]} />
       </div>
     </div>
   );

@@ -11,7 +11,7 @@ import {
   useFormState,
 } from "react-hook-form";
 
-import { cn } from "@agentset/ui/utils";
+import { cn } from "@agentset/ui/cn";
 
 import { Label } from "./label";
 

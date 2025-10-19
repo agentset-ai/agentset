@@ -1,4 +1,4 @@
-import { Skeleton } from "@agentset/ui";
+import { Skeleton } from "@agentset/ui/skeleton";
 
 export function OrganizationSwitcherSkeleton() {
   return (

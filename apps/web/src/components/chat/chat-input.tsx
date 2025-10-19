@@ -18,6 +18,7 @@ import {
 } from "@agentset/ui/ai/prompt-input";
 
 import ChatInputModes from "./chat-input-modes";
+import ChatModel from "./chat-model";
 
 function PureMultimodalInput({ type }: { type: "playground" | "hosted" }) {
   const textareaRef = useRef<HTMLTextAreaElement>(null);
@@ -31,7 +32,7 @@ function PureMultimodalInput({ type }: { type: "playground" | "hosted" }) {
 
   const handleSubmit = (message: PromptInputMessage) => {
     // If currently streaming or submitted, stop instead of submitting
-    if (status === "streaming" || status === "submitted") {
+    if (status === "streaming") {
       stop();
       setMessages((messages) => messages);
       return;
@@ -59,10 +60,6 @@ function PureMultimodalInput({ type }: { type: "playground" | "hosted" }) {
     setInput("");
   };
 
-  //     {exampleMessages && exampleMessages.length > 0 && (
-  //       <SuggestedActions exampleMessages={exampleMessages} />
-  //     )}
-
   return (
     <PromptInput onSubmit={handleSubmit}>
       <PromptInputBody>
@@ -77,12 +74,13 @@ function PureMultimodalInput({ type }: { type: "playground" | "hosted" }) {
       <PromptInputFooter>
         <PromptInputTools>
           <ChatInputModes />
+          {type === "playground" && <ChatModel />}
         </PromptInputTools>
 
         <PromptInputSubmit
           className="h-8"
           status={status}
-          disabled={input.length === 0}
+          disabled={input.length === 0 || status === "submitted"}
         />
       </PromptInputFooter>
     </PromptInput>

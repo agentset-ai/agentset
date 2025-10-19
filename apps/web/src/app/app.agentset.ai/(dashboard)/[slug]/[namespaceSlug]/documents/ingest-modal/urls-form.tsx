@@ -7,9 +7,9 @@ import { Trash2Icon } from "lucide-react";
 import { useForm } from "react-hook-form";
 import { z } from "zod/v4";
 
+import { Button } from "@agentset/ui/button";
+import { DialogFooter } from "@agentset/ui/dialog";
 import {
-  Button,
-  DialogFooter,
   Form,
   FormControl,
   FormDescription,
@@ -17,8 +17,8 @@ import {
   FormItem,
   FormLabel,
   FormMessage,
-  Input,
-} from "@agentset/ui";
+} from "@agentset/ui/form";
+import { Input } from "@agentset/ui/input";
 import { configSchema } from "@agentset/validation";
 
 import IngestConfig from "./config";

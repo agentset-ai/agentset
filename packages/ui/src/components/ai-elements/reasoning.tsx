@@ -5,12 +5,12 @@ import { createContext, memo, useContext, useEffect, useState } from "react";
 import { BrainIcon, ChevronDownIcon } from "lucide-react";
 import { useControllableState } from "radix-ui/internal";
 
+import { cn } from "@agentset/ui/cn";
 import {
   Collapsible,
   CollapsibleContent,
   CollapsibleTrigger,
 } from "@agentset/ui/collapsible";
-import { cn } from "@agentset/ui/utils";
 
 import { Response } from "./response";
 

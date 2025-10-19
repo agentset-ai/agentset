@@ -574,6 +574,9 @@ importers:
 
   packages/ui:
     dependencies:
+      '@agentset/utils':
+        specifier: workspace:*
+        version: link:../utils
       '@origin-space/image-cropper':
         specifier: ^0.1.9
         version: 0.1.9(react-dom@19.1.1(react@19.1.1))(react@19.1.1)

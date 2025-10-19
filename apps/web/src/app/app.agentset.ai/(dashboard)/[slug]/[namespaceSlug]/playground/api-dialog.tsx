@@ -6,19 +6,16 @@ import { useOrganization } from "@/hooks/use-organization";
 import { prefixId } from "@/lib/api/ids";
 import { ArrowUpRightIcon, Code2Icon } from "lucide-react";
 
+import { Button } from "@agentset/ui/button";
 import {
-  Button,
   Dialog,
   DialogContent,
   DialogDescription,
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-  Tabs,
-  TabsContent,
-  TabsList,
-  TabsTrigger,
-} from "@agentset/ui";
+} from "@agentset/ui/dialog";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@agentset/ui/tabs";
 
 export default function ApiDialog({
   trigger,

@@ -1,4 +1,4 @@
-import { cn } from "@agentset/ui/utils";
+import { cn } from "@agentset/ui/cn";
 
 function Card({ className, ...props }: React.ComponentProps<"div">) {
   return (

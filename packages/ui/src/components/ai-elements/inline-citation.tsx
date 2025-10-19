@@ -13,12 +13,12 @@ import { ArrowLeftIcon, ArrowRightIcon } from "lucide-react";
 import type { CarouselApi } from "@agentset/ui/carousel";
 import { Badge } from "@agentset/ui/badge";
 import { Carousel, CarouselContent, CarouselItem } from "@agentset/ui/carousel";
+import { cn } from "@agentset/ui/cn";
 import {
   HoverCard,
   HoverCardContent,
   HoverCardTrigger,
 } from "@agentset/ui/hover-card";
-import { cn } from "@agentset/ui/utils";
 
 export type InlineCitationProps = ComponentProps<"span">;
 

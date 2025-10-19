@@ -7,7 +7,7 @@ import { AnimatePresence, motion } from "motion/react";
 import { StickToBottom, useStickToBottomContext } from "use-stick-to-bottom";
 
 import { Button } from "@agentset/ui/button";
-import { cn } from "@agentset/ui/utils";
+import { cn } from "@agentset/ui/cn";
 
 export type ConversationProps = ComponentProps<typeof StickToBottom>;
 

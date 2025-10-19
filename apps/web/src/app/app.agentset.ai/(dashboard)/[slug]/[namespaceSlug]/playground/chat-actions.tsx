@@ -9,8 +9,9 @@ import {
 } from "@/lib/code-examples/playground";
 import { Code2Icon, PlusIcon, Settings2Icon } from "lucide-react";
 
-import { Tooltip, TooltipContent, TooltipTrigger } from "@agentset/ui";
-import { Action } from "@agentset/ui/components/ai-elements/actions";
+import { Action } from "@agentset/ui/ai/actions";
+import { Button } from "@agentset/ui/button";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@agentset/ui/tooltip";
 
 import ApiDialog from "./api-dialog";
 import ChatSettings from "./chat-settings";
@@ -27,9 +28,9 @@ export default function ChatActions() {
     <div className="flex items-center gap-2 pr-5">
       <Tooltip>
         <TooltipTrigger asChild>
-          <Action onClick={resetChat}>
+          <Button variant="ghost" size="icon" onClick={resetChat}>
             <PlusIcon className="size-4" />
-          </Action>
+          </Button>
         </TooltipTrigger>
         <TooltipContent>New Chat</TooltipContent>
       </Tooltip>
@@ -38,9 +39,9 @@ export default function ChatActions() {
         <ChatSettings
           trigger={
             <TooltipTrigger asChild>
-              <Action onClick={resetChat}>
+              <Button variant="ghost" size="icon" onClick={resetChat}>
                 <Settings2Icon className="size-4" />
-              </Action>
+              </Button>
             </TooltipTrigger>
           }
         />
@@ -57,9 +58,9 @@ export default function ChatActions() {
           ]}
           trigger={
             <TooltipTrigger asChild>
-              <Action>
+              <Button variant="ghost" size="icon" onClick={resetChat}>
                 <Code2Icon className="size-4" />
-              </Action>
+              </Button>
             </TooltipTrigger>
           }
         />

@@ -1,7 +1,7 @@
 import { useState } from "react";
 
 import type { QueryVectorStoreResult } from "@agentset/engine";
-import { Button } from "@agentset/ui";
+import { Button } from "@agentset/ui/button";
 
 import { CodeBlock } from "./chat/code-block";
 

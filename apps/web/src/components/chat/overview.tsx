@@ -1,26 +1,27 @@
-import { Logo } from "@agentset/ui";
-
 export const Overview = ({
-  message = "Try chatting with your data here!",
+  title = "Try chatting with your data here!",
+  description = "This is a description of the overview.",
   logo,
 }: {
-  message?: string | null;
+  title?: string | null;
+  description?: string | null;
   logo?: string | null;
 }) => {
   return (
-    <div className="mx-auto w-full pb-6 md:max-w-3xl">
-      <div className="flex w-full gap-4 px-4 leading-relaxed">
+    <div className="mx-auto w-full px-4 pb-6 md:max-w-3xl">
+      <div className="flex w-full flex-col leading-relaxed">
         {logo ? (
           <img
             src={logo}
             alt="Logo"
-            className="size-8 rounded-md object-cover"
+            className="mb-4 size-8 rounded-md object-cover"
           />
-        ) : (
-          <Logo className="size-8" />
-        )}
+        ) : null}
 
-        <h3 className="text-2xl font-semibold">{message}</h3>
+        {title && <h3 className="text-2xl font-semibold">{title}</h3>}
+        {description && (
+          <p className="text-muted-foreground mt-2">{description}</p>
+        )}
       </div>
     </div>
   );

@@ -8,13 +8,13 @@ import { useMutation } from "@tanstack/react-query";
 import { CalendarSyncIcon, MoreVerticalIcon, XIcon } from "lucide-react";
 import { toast } from "sonner";
 
+import { Button } from "@agentset/ui/button";
 import {
-  Button,
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
-} from "@agentset/ui";
+} from "@agentset/ui/dropdown-menu";
 
 export default function SubscriptionMenu() {
   const [isOpen, setIsOpen] = useState(false);

@@ -5,19 +5,15 @@ import { CodeBlock } from "@/components/chat/code-block";
 import { prefixId } from "@/lib/api/ids";
 import { InfoIcon } from "lucide-react";
 
+import { Alert, AlertDescription } from "@agentset/ui/alert";
 import {
-  Alert,
-  AlertDescription,
   Dialog,
   DialogContent,
   DialogDescription,
   DialogHeader,
   DialogTitle,
-  Tabs,
-  TabsContent,
-  TabsList,
-  TabsTrigger,
-} from "@agentset/ui";
+} from "@agentset/ui/dialog";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@agentset/ui/tabs";
 
 import type { JobsTableMeta } from "./columns";
 import { columns } from "./columns";

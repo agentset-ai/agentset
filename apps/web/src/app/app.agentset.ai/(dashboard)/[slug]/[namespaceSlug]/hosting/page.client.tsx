@@ -6,7 +6,8 @@ import { useTRPC } from "@/trpc/react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 
-import { Separator, Skeleton } from "@agentset/ui";
+import { Separator } from "@agentset/ui/separator";
+import { Skeleton } from "@agentset/ui/skeleton";
 
 import { CustomDomainConfigurator } from "./domain-card";
 import { EmptyState } from "./empty-state";

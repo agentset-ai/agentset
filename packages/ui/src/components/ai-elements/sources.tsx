@@ -3,12 +3,12 @@
 import type { ComponentProps } from "react";
 import { BookIcon, ChevronDownIcon } from "lucide-react";
 
+import { cn } from "@agentset/ui/cn";
 import {
   Collapsible,
   CollapsibleContent,
   CollapsibleTrigger,
 } from "@agentset/ui/collapsible";
-import { cn } from "@agentset/ui/utils";
 
 export type SourcesProps = ComponentProps<"div">;
 

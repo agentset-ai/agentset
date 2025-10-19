@@ -3,13 +3,11 @@
 import { CreditCardIcon, LandmarkIcon } from "lucide-react";
 
 import type { Stripe } from "@agentset/stripe";
-import {
-  CardAmex,
-  CardDiscover,
-  CardMastercard,
-  CardVisa,
-  StripeLink,
-} from "@agentset/ui";
+import { CardAmex } from "@agentset/ui/icons/card-amex";
+import { CardDiscover } from "@agentset/ui/icons/card-discover";
+import { CardMastercard } from "@agentset/ui/icons/card-mastercard";
+import { CardVisa } from "@agentset/ui/icons/card-visa";
+import { StripeLink } from "@agentset/ui/icons/stripe-link";
 import { capitalize } from "@agentset/utils";
 
 export const PaymentMethodTypesList = (paymentMethod?: Stripe.PaymentMethod) =>

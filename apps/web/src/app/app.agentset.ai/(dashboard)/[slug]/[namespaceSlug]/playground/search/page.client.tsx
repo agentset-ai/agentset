@@ -10,24 +10,22 @@ import { useQuery } from "@tanstack/react-query";
 import { SearchIcon } from "lucide-react";
 
 import type { RerankingModel } from "@agentset/validation";
+import { Badge } from "@agentset/ui/badge";
+import { Button } from "@agentset/ui/button";
+import { Card, CardContent, CardTitle } from "@agentset/ui/card";
+import { DataWrapper } from "@agentset/ui/data-wrapper";
+import { EmptyState } from "@agentset/ui/empty-state";
+import { Input } from "@agentset/ui/input";
+import { Label } from "@agentset/ui/label";
 import {
-  Badge,
-  Button,
-  Card,
-  CardContent,
-  CardTitle,
-  DataWrapper,
-  EmptyState,
-  Input,
-  Label,
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-  Skeleton,
-  Switch,
-} from "@agentset/ui";
+} from "@agentset/ui/select";
+import { Skeleton } from "@agentset/ui/skeleton";
+import { Switch } from "@agentset/ui/switch";
 import { DEFAULT_RERANKER } from "@agentset/validation";
 
 export default function ChunkExplorerPageClient() {

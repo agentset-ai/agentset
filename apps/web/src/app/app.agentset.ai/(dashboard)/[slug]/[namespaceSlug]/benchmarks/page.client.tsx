@@ -9,16 +9,11 @@ import { Loader2Icon } from "lucide-react";
 import { toast } from "sonner";
 
 import type { QueryVectorStoreResult } from "@agentset/engine";
-import {
-  Button,
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-  cn,
-  Input,
-  Separator,
-} from "@agentset/ui";
+import { Button } from "@agentset/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@agentset/ui/card";
+import { cn } from "@agentset/ui/cn";
+import { Input } from "@agentset/ui/input";
+import { Separator } from "@agentset/ui/separator";
 
 export default function BenchmarksPageClient() {
   const namespace = useNamespace();

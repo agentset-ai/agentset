@@ -6,17 +6,16 @@ import {
   AccordionContent,
   AccordionItem,
   AccordionTrigger,
+} from "@agentset/ui/accordion";
+import {
   Dialog,
   DialogContent,
   DialogDescription,
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-  Tabs,
-  TabsContent,
-  TabsList,
-  TabsTrigger,
-} from "@agentset/ui";
+} from "@agentset/ui/dialog";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@agentset/ui/tabs";
 
 import { CodeBlock } from "../code-block";
 

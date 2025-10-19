@@ -14,22 +14,18 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 
+import { Button } from "@agentset/ui/button";
 import {
-  Button,
   Card,
   CardContent,
   CardDescription,
   CardFooter,
   CardHeader,
   CardTitle,
-  Input,
-  Tabs,
-  TabsList,
-  TabsTrigger,
-  Tooltip,
-  TooltipContent,
-  TooltipTrigger,
-} from "@agentset/ui";
+} from "@agentset/ui/card";
+import { Input } from "@agentset/ui/input";
+import { Tabs, TabsList, TabsTrigger } from "@agentset/ui/tabs";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@agentset/ui/tooltip";
 
 import { DnsRecord } from "./dns-record";
 

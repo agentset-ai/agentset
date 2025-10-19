@@ -10,7 +10,7 @@ import { LaptopIcon, SmartphoneIcon } from "lucide-react";
 import { toast } from "sonner";
 import { UAParser } from "ua-parser-js";
 
-import { Button } from "@agentset/ui";
+import { Button } from "@agentset/ui/button";
 
 const SessionItem = ({ session }: { session: Session["session"] }) => {
   const { session: activeSession } = useSession();

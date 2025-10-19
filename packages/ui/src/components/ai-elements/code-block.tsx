@@ -10,7 +10,7 @@ import {
 } from "react-syntax-highlighter/dist/esm/styles/prism";
 
 import { Button } from "@agentset/ui/button";
-import { cn } from "@agentset/ui/utils";
+import { cn } from "@agentset/ui/cn";
 
 type CodeBlockContextType = {
   code: string;

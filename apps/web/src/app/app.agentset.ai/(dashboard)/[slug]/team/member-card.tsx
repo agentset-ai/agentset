@@ -7,7 +7,7 @@ import { useTRPC } from "@/trpc/react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 
-import { EntityAvatar } from "@agentset/ui";
+import { EntityAvatar } from "@agentset/ui/avatar";
 
 import RoleSelector from "./role-selector";
 

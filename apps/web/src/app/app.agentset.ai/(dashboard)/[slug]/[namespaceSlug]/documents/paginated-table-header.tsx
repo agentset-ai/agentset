@@ -1,12 +1,12 @@
 import { FilterIcon, RefreshCcwIcon } from "lucide-react";
 
+import { Button } from "@agentset/ui/button";
 import {
-  Button,
   DropdownMenu,
   DropdownMenuCheckboxItem,
   DropdownMenuContent,
   DropdownMenuTrigger,
-} from "@agentset/ui";
+} from "@agentset/ui/dropdown-menu";
 
 interface PaginatedTableHeaderProps<T extends string> {
   statuses: T[];

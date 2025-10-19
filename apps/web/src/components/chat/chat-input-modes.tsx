@@ -22,7 +22,7 @@ const PureChatInputModes = () => {
   return (
     <>
       <PromptInputButton
-        variant={mode === "agentic" ? "default" : "outline"}
+        variant={mode === "agentic" ? "default" : "ghost"}
         onClick={() => toggleMode("agentic")}
         disabled={!isClient}
       >
@@ -32,7 +32,7 @@ const PureChatInputModes = () => {
 
       {isAdmin && (
         <PromptInputButton
-          variant={mode === "deepResearch" ? "default" : "outline"}
+          variant={mode === "deepResearch" ? "default" : "ghost"}
           onClick={() => toggleMode("deepResearch")}
           disabled={!isClient}
         >

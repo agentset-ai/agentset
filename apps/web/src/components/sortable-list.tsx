@@ -23,16 +23,16 @@ import { CSS } from "@dnd-kit/utilities";
 import { GripVerticalIcon, PlusIcon, XIcon } from "lucide-react";
 import { useFieldArray } from "react-hook-form";
 
+import { Button } from "@agentset/ui/button";
+import { cn } from "@agentset/ui/cn";
 import {
-  Button,
-  cn,
   FormControl,
   FormField,
   FormItem,
   FormLabel,
   FormMessage,
-  Input,
-} from "@agentset/ui";
+} from "@agentset/ui/form";
+import { Input } from "@agentset/ui/input";
 
 // Virtual ID type for sortable items
 type VirtualId = string;

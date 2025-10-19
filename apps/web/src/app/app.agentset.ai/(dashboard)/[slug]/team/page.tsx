@@ -1,7 +1,7 @@
 import DashboardPageWrapper from "@/components/dashboard-page-wrapper";
 import { constructMetadata } from "@/lib/metadata";
 
-import { Separator } from "@agentset/ui";
+import { Separator } from "@agentset/ui/separator";
 
 import InviteMemberDialog from "./invite-dialog";
 import TeamSettingsPage from "./page.client";

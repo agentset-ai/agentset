@@ -3,7 +3,7 @@
 import CreateNamespaceDialog from "@/components/create-namespace";
 import { useOrganization } from "@/hooks/use-organization";
 
-import { Skeleton } from "@agentset/ui";
+import { Skeleton } from "@agentset/ui/skeleton";
 
 export default function CreateNamespacePage() {
   const organization = useOrganization();

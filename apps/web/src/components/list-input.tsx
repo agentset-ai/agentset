@@ -6,16 +6,16 @@ import type {
 import { PlusIcon, XIcon } from "lucide-react";
 import { useFieldArray } from "react-hook-form";
 
+import { Button } from "@agentset/ui/button";
 import {
-  Button,
   FormControl,
   FormDescription,
   FormField,
   FormItem,
   FormLabel,
   FormMessage,
-  Input,
-} from "@agentset/ui";
+} from "@agentset/ui/form";
+import { Input } from "@agentset/ui/input";
 
 export default function ListInput<
   T extends object,

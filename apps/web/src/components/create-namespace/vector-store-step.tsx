@@ -3,25 +3,27 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { z } from "zod/v4";
 
+import { Button } from "@agentset/ui/button";
+import { DialogFooter } from "@agentset/ui/dialog";
 import {
-  Button,
-  DialogFooter,
   Form,
   FormControl,
   FormField,
   FormItem,
   FormLabel,
   FormMessage,
-  Input,
-  Logo,
-  RadioButton,
-  RadioGroup,
+} from "@agentset/ui/form";
+import { Input } from "@agentset/ui/input";
+import { Logo } from "@agentset/ui/logo";
+import { RadioButton } from "@agentset/ui/radio-button";
+import { RadioGroup } from "@agentset/ui/radio-group";
+import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@agentset/ui";
+} from "@agentset/ui/select";
 import { camelCaseToWords, capitalize } from "@agentset/utils";
 import {
   CreateVectorStoreConfig,

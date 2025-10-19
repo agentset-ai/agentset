@@ -11,7 +11,7 @@ import { toast } from "sonner";
 
 import { getStripe } from "@agentset/stripe/client";
 import { SELF_SERVE_PAID_PLANS } from "@agentset/stripe/plans";
-import { Button } from "@agentset/ui";
+import { Button } from "@agentset/ui/button";
 import { capitalize } from "@agentset/utils";
 
 export function UpgradePlanButton({

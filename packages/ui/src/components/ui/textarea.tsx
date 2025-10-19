@@ -1,4 +1,4 @@
-import { cn } from "@agentset/ui/utils";
+import { cn } from "@agentset/ui/cn";
 
 function Textarea({ className, ...props }: React.ComponentProps<"textarea">) {
   return (

@@ -1,14 +1,14 @@
 import { useMemo } from "react";
 import { useHosting, useIsHosting } from "@/contexts/hosting-context";
 
+import { cn } from "@agentset/ui/cn";
 import {
-  cn,
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-} from "@agentset/ui";
+} from "@agentset/ui/dialog";
 
 import { CodeBlock } from "./code-block";
 

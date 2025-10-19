@@ -3,14 +3,14 @@ import { useNamespace } from "@/hooks/use-namespace";
 import { useTRPC } from "@/trpc/react";
 import { useQuery } from "@tanstack/react-query";
 
+import { Button } from "@agentset/ui/button";
 import {
-  Button,
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-} from "@agentset/ui";
+} from "@agentset/ui/dialog";
 
 export function ConfigModal({ jobId }: { jobId: string }) {
   const [open, setOpen] = useState(false);

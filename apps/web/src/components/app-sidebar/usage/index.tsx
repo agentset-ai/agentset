@@ -5,7 +5,9 @@ import { useCal } from "@/hooks/use-cal";
 import { useOrganization } from "@/hooks/use-organization";
 import { formatNumber } from "@/lib/utils";
 
-import { Button, Progress, Skeleton } from "@agentset/ui";
+import { Button } from "@agentset/ui/button";
+import { Progress } from "@agentset/ui/progress";
+import { Skeleton } from "@agentset/ui/skeleton";
 import { INFINITY_NUMBER } from "@agentset/utils";
 
 export function Usage() {

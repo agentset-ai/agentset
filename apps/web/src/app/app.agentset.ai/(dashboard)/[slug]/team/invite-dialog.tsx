@@ -10,8 +10,8 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { PlusIcon } from "lucide-react";
 import { toast } from "sonner";
 
+import { Button } from "@agentset/ui/button";
 import {
-  Button,
   Dialog,
   DialogContent,
   DialogDescription,
@@ -19,14 +19,16 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-  Input,
-  Label,
+} from "@agentset/ui/dialog";
+import { Input } from "@agentset/ui/input";
+import { Label } from "@agentset/ui/label";
+import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@agentset/ui";
+} from "@agentset/ui/select";
 
 function InviteMemberDialog() {
   const [open, setOpen] = useState(false);

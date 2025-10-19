@@ -3,7 +3,7 @@ import { logEvent } from "@/lib/analytics";
 import { useChatMessageCount, useChatSendMessage } from "ai-sdk-zustand";
 import { motion } from "motion/react";
 
-import { Button } from "@agentset/ui";
+import { Button } from "@agentset/ui/button";
 
 interface SuggestedActionsProps {
   exampleMessages: string[];

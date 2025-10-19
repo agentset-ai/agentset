@@ -3,13 +3,13 @@
 import type { ComponentProps } from "react";
 
 import { Button } from "@agentset/ui/button";
+import { cn } from "@agentset/ui/cn";
 import {
   Tooltip,
   TooltipContent,
   TooltipProvider,
   TooltipTrigger,
 } from "@agentset/ui/tooltip";
-import { cn } from "@agentset/ui/utils";
 
 export type ActionsProps = ComponentProps<"div">;
 

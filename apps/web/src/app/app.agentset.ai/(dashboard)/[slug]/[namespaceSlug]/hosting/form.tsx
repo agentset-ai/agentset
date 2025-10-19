@@ -10,9 +10,9 @@ import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { z } from "zod/v4";
 
+import { AvatarUploader } from "@agentset/ui/avatar-uploader";
+import { Button } from "@agentset/ui/button";
 import {
-  AvatarUploader,
-  Button,
   Form,
   FormControl,
   FormDescription,
@@ -20,11 +20,11 @@ import {
   FormItem,
   FormLabel,
   FormMessage,
-  Input,
-  Separator,
-  Switch,
-  Textarea,
-} from "@agentset/ui";
+} from "@agentset/ui/form";
+import { Input } from "@agentset/ui/input";
+import { Separator } from "@agentset/ui/separator";
+import { Switch } from "@agentset/ui/switch";
+import { Textarea } from "@agentset/ui/textarea";
 import {
   DEFAULT_LLM,
   DEFAULT_RERANKER,

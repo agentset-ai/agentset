@@ -7,6 +7,7 @@ import { authClient } from "@/lib/auth-client";
 import { useRouter } from "@bprogress/next/app";
 import { BadgeCheckIcon, LogOutIcon } from "lucide-react";
 
+import { EntityAvatar } from "@agentset/ui/avatar";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -14,9 +15,8 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-  EntityAvatar,
-  Skeleton,
-} from "@agentset/ui";
+} from "@agentset/ui/dropdown-menu";
+import { Skeleton } from "@agentset/ui/skeleton";
 
 export function NavUser() {
   const { session, isLoading } = useSession();

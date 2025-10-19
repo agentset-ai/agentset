@@ -1,7 +1,8 @@
 import Link from "next/link";
 import { CheckIcon } from "lucide-react";
 
-import { cn, Skeleton } from "@agentset/ui";
+import { cn } from "@agentset/ui/cn";
+import { Skeleton } from "@agentset/ui/skeleton";
 
 export type OnboardingStatus = "complete" | "current" | "upcoming";
 

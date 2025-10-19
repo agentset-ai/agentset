@@ -4,7 +4,8 @@ import { extractTextFromParts } from "@/lib/string-utils";
 import { MyUIMessage } from "@/types/ai";
 import { useChatProperty } from "ai-sdk-zustand";
 
-import { Button, Textarea } from "@agentset/ui";
+import { Button } from "@agentset/ui/button";
+import { Textarea } from "@agentset/ui/textarea";
 
 export type MessageEditorProps = {
   message: MyUIMessage;

@@ -5,15 +5,11 @@ import { formatDuration } from "@/lib/utils";
 import { ChevronDownIcon, ChevronRightIcon } from "lucide-react";
 
 import type { IngestJob } from "@agentset/db";
-import type { BadgeProps } from "@agentset/ui";
+import type { BadgeProps } from "@agentset/ui/badge";
 import { IngestJobStatus } from "@agentset/db";
-import {
-  Badge,
-  Button,
-  Tooltip,
-  TooltipContent,
-  TooltipTrigger,
-} from "@agentset/ui";
+import { Badge } from "@agentset/ui/badge";
+import { Button } from "@agentset/ui/button";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@agentset/ui/tooltip";
 import { capitalize } from "@agentset/utils";
 
 import { JobActions } from "./actions";

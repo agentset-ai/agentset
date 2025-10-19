@@ -5,15 +5,11 @@ import { useChatProperty, useChatStatus } from "ai-sdk-zustand";
 import { PencilIcon } from "lucide-react";
 import { AnimatePresence, motion } from "motion/react";
 
-import {
-  cn,
-  Logo,
-  ShinyText,
-  Tooltip,
-  TooltipContent,
-  TooltipTrigger,
-} from "@agentset/ui";
-import { Action } from "@agentset/ui/components/ai-elements/actions";
+import { Action } from "@agentset/ui/ai/actions";
+import { cn } from "@agentset/ui/cn";
+import { Logo } from "@agentset/ui/logo";
+import { ShinyText } from "@agentset/ui/shiny-text";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@agentset/ui/tooltip";
 
 import { Markdown } from "./markdown";
 import { MessageActions } from "./message-actions";

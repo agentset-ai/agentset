@@ -2,7 +2,8 @@
 
 import { Inter } from "next/font/google";
 
-import { Button, cn } from "@agentset/ui";
+import { Button } from "@agentset/ui/button";
+import { cn } from "@agentset/ui/cn";
 
 const inter = Inter({
   subsets: ["latin"],

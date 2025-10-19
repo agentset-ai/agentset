@@ -7,8 +7,8 @@ import { CopyIcon, LogsIcon, RefreshCcwIcon } from "lucide-react";
 import { toast } from "sonner";
 import { useCopyToClipboard } from "usehooks-ts";
 
-import { Tooltip, TooltipContent, TooltipTrigger } from "@agentset/ui";
 import { Action, Actions } from "@agentset/ui/ai/actions";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@agentset/ui/tooltip";
 
 import MessageLogs from "./logs";
 
