@@ -1,6 +1,7 @@
 import { useMemo } from "react";
 import { useHosting, useIsHosting } from "@/contexts/hosting-context";
 
+import { CodeBlock, CodeBlockCopyButton } from "@agentset/ui/ai/code-block";
 import { cn } from "@agentset/ui/cn";
 import {
   Dialog,
@@ -9,8 +10,6 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@agentset/ui/dialog";
-
-import { CodeBlock } from "./code-block";
 
 interface CitationModalProps {
   source: { text: string; metadata?: Record<string, unknown> };
@@ -114,7 +113,9 @@ export function CitationModal({
             <div className="border-border mt-6 border-t pt-6">
               <h3 className="text-xs font-medium">Metadata</h3>
               <div className="mt-2">
-                <CodeBlock>{stringifiedMetadata}</CodeBlock>
+                <CodeBlock code={stringifiedMetadata} language="json">
+                  <CodeBlockCopyButton />
+                </CodeBlock>
               </div>
             </div>
           )}

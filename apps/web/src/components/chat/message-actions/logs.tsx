@@ -7,6 +7,7 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from "@agentset/ui/accordion";
+import { CodeBlock, CodeBlockCopyButton } from "@agentset/ui/ai/code-block";
 import {
   Dialog,
   DialogContent,
@@ -16,8 +17,6 @@ import {
   DialogTrigger,
 } from "@agentset/ui/dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@agentset/ui/tabs";
-
-import { CodeBlock } from "../code-block";
 
 export default function MessageLogs({
   message,
@@ -51,7 +50,9 @@ export default function MessageLogs({
               <Accordion type="multiple" className="flex flex-col gap-10">
                 {sources.map((source, queryIdx) => (
                   <div key={queryIdx}>
-                    <CodeBlock>{source.query}</CodeBlock>
+                    <CodeBlock code={source.query} language="txt">
+                      <CodeBlockCopyButton />
+                    </CodeBlock>
 
                     <AccordionItem value={`query-${queryIdx}`}>
                       <AccordionTrigger>View Chunks</AccordionTrigger>
@@ -66,7 +67,9 @@ export default function MessageLogs({
                           </TabsList>
 
                           <TabsContent value="query">
-                            <CodeBlock>{source.query}</CodeBlock>
+                            <CodeBlock code={source.query} language="txt">
+                              <CodeBlockCopyButton />
+                            </CodeBlock>
                           </TabsContent>
 
                           <TabsContent
@@ -122,7 +125,9 @@ export default function MessageLogs({
                 </TabsList>
 
                 <TabsContent value="query">
-                  <CodeBlock>{sources.query}</CodeBlock>
+                  <CodeBlock code={sources.query} language="txt">
+                    <CodeBlockCopyButton />
+                  </CodeBlock>
                 </TabsContent>
 
                 <TabsContent value="chunks" className="flex flex-col gap-6">

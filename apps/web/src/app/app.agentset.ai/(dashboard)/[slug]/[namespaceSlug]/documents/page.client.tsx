@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import { CodeBlock } from "@/components/chat/code-block";
 import { prefixId } from "@/lib/api/ids";
 import { InfoIcon } from "lucide-react";
 
@@ -161,8 +160,7 @@ function DocumentsDialog({
         <DialogHeader>
           <DialogTitle>Documents</DialogTitle>
           <DialogDescription>
-            Documents for the ingest job{" "}
-            <CodeBlock inline>{prefixId(jobId, "job_")}</CodeBlock>
+            Documents for the ingest job <span>{prefixId(jobId, "job_")}</span>
           </DialogDescription>
         </DialogHeader>
 

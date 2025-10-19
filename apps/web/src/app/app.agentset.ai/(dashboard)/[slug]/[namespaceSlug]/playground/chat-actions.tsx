@@ -9,7 +9,6 @@ import {
 } from "@/lib/code-examples/playground";
 import { Code2Icon, PlusIcon, Settings2Icon } from "lucide-react";
 
-import { Action } from "@agentset/ui/ai/actions";
 import { Button } from "@agentset/ui/button";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@agentset/ui/tooltip";
 
@@ -56,13 +55,18 @@ export default function ChatActions() {
             { title: "Javascript", code: tsSdkExample },
             { title: "AI SDK", code: aiSdkExample },
           ]}
-          trigger={
+          trigger={(props) => (
             <TooltipTrigger asChild>
-              <Button variant="ghost" size="icon" onClick={resetChat}>
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={resetChat}
+                {...props}
+              >
                 <Code2Icon className="size-4" />
               </Button>
             </TooltipTrigger>
-          }
+          )}
         />
         <TooltipContent>API</TooltipContent>
       </Tooltip>
