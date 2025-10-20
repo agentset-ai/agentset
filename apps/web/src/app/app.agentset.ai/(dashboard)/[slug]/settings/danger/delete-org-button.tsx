@@ -7,7 +7,7 @@ import { useRouter } from "@bprogress/next/app";
 import { useMutation } from "@tanstack/react-query";
 import { toast } from "sonner";
 
-import { Button } from "@agentset/ui";
+import { Button } from "@agentset/ui/button";
 
 export function DeleteOrgButton() {
   const organization = useOrganization();

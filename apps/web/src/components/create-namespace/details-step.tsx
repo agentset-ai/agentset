@@ -7,17 +7,17 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { z } from "zod/v4";
 
+import { Button } from "@agentset/ui/button";
+import { DialogFooter } from "@agentset/ui/dialog";
 import {
-  Button,
-  DialogFooter,
   Form,
   FormControl,
   FormField,
   FormItem,
   FormLabel,
   FormMessage,
-  Input,
-} from "@agentset/ui";
+} from "@agentset/ui/form";
+import { Input } from "@agentset/ui/input";
 import { toSlug } from "@agentset/utils";
 
 const createFormSchema = (orgId: string) =>

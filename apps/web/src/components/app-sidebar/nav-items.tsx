@@ -10,6 +10,8 @@ import {
   Collapsible,
   CollapsibleContent,
   CollapsibleTrigger,
+} from "@agentset/ui/collapsible";
+import {
   SidebarGroup,
   SidebarGroupLabel,
   SidebarMenu,
@@ -18,7 +20,7 @@ import {
   SidebarMenuSub,
   SidebarMenuSubButton,
   SidebarMenuSubItem,
-} from "@agentset/ui";
+} from "@agentset/ui/sidebar";
 
 import type { SidebarItemType } from ".";
 

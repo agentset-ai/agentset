@@ -9,10 +9,10 @@ import {
   BreadcrumbItem,
   BreadcrumbList,
   BreadcrumbSeparator,
-  Button,
-  cn,
-  SidebarTrigger,
-} from "@agentset/ui";
+} from "@agentset/ui/breadcrumb";
+import { Button } from "@agentset/ui/button";
+import { cn } from "@agentset/ui/cn";
+import { SidebarTrigger } from "@agentset/ui/sidebar";
 
 import { NavUser } from "../app-sidebar/nav-user";
 import LayoutLoader from "../layout/layout-loader";

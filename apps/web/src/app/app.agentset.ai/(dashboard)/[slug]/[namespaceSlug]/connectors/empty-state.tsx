@@ -2,18 +2,16 @@
 
 import { logEvent } from "@/lib/analytics";
 
-import {
-  Button,
-  DiscordIcon,
-  DropboxIcon,
-  GmailIcon,
-  GoogleDriveIcon,
-  NotionIcon,
-  OneDriveIcon,
-  OrbitingCircles,
-  S3Icon,
-  SlackIcon,
-} from "@agentset/ui";
+import { Button } from "@agentset/ui/button";
+import { DiscordIcon } from "@agentset/ui/icons/discord";
+import { DropboxIcon } from "@agentset/ui/icons/dropbox";
+import { GmailIcon } from "@agentset/ui/icons/gmail";
+import { GoogleDriveIcon } from "@agentset/ui/icons/google-drive";
+import { NotionIcon } from "@agentset/ui/icons/notion";
+import { OneDriveIcon } from "@agentset/ui/icons/onedrive";
+import { S3Icon } from "@agentset/ui/icons/s3";
+import { SlackIcon } from "@agentset/ui/icons/slack";
+import { OrbitingCircles } from "@agentset/ui/orbiting-circles";
 
 export default function EmptyState() {
   return (

@@ -6,7 +6,7 @@ import {
   SidebarFooter,
   SidebarHeader,
   SidebarSeparator,
-} from "@agentset/ui";
+} from "@agentset/ui/sidebar";
 
 import { OrganizationSwitcher } from "./org-switcher";
 import { SidebarLinks } from "./sidebar-links";

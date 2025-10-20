@@ -3,18 +3,16 @@ import { useState } from "react";
 import { useOrganization } from "@/hooks/use-organization";
 import { ChevronDownIcon } from "lucide-react";
 
+import { Button } from "@agentset/ui/button";
 import {
-  Button,
   Dialog,
   DialogContent,
   DialogDescription,
   DialogFooter,
   DialogHeader,
   DialogTitle,
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@agentset/ui";
+} from "@agentset/ui/dialog";
+import { Popover, PopoverContent, PopoverTrigger } from "@agentset/ui/popover";
 
 const roles = [
   {

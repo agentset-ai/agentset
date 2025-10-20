@@ -1,7 +1,7 @@
 import { AppSidebar } from "@/components/app-sidebar";
 import { ModalProvider } from "@/components/modals";
 
-import { SidebarInset, SidebarProvider } from "@agentset/ui";
+import { SidebarInset, SidebarProvider } from "@agentset/ui/sidebar";
 
 export const dynamic = "force-static";
 

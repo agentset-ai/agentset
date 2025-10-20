@@ -7,13 +7,13 @@ import { createContext, useContext } from "react";
 import { estimateCost } from "tokenlens";
 
 import { Button } from "@agentset/ui/button";
+import { cn } from "@agentset/ui/cn";
 import {
   HoverCard,
   HoverCardContent,
   HoverCardTrigger,
 } from "@agentset/ui/hover-card";
 import { Progress } from "@agentset/ui/progress";
-import { cn } from "@agentset/ui/utils";
 
 const PERCENT_MAX = 100;
 const ICON_RADIUS = 10;

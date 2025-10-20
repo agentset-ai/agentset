@@ -3,8 +3,8 @@
 import type { ComponentProps } from "react";
 
 import { Button } from "@agentset/ui/button";
+import { cn } from "@agentset/ui/cn";
 import { ScrollArea, ScrollBar } from "@agentset/ui/scroll-area";
-import { cn } from "@agentset/ui/utils";
 
 export type SuggestionsProps = ComponentProps<typeof ScrollArea>;
 

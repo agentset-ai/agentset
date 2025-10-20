@@ -1,6 +1,6 @@
 import Link from "next/link";
 
-import { Button } from "@agentset/ui";
+import { Button } from "@agentset/ui/button";
 
 export default function NotFound() {
   return (

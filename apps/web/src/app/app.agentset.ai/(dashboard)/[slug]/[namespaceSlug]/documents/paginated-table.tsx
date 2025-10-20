@@ -1,6 +1,8 @@
 import type { ColumnDef, TableMeta } from "@tanstack/react-table";
 
-import { Button, cn, DataTable } from "@agentset/ui";
+import { Button } from "@agentset/ui/button";
+import { cn } from "@agentset/ui/cn";
+import { DataTable } from "@agentset/ui/data-table";
 
 interface PaginatedTableProps<T> {
   columns: ColumnDef<T>[];

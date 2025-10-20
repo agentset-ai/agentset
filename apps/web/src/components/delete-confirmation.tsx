@@ -2,8 +2,8 @@
 
 import { useState } from "react";
 
+import { Button } from "@agentset/ui/button";
 import {
-  Button,
   Dialog,
   DialogContent,
   DialogDescription,
@@ -11,8 +11,8 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-  Input,
-} from "@agentset/ui";
+} from "@agentset/ui/dialog";
+import { Input } from "@agentset/ui/input";
 
 interface DeleteConfirmationProps {
   trigger: React.ReactNode;

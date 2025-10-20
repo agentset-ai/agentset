@@ -2,13 +2,13 @@ import { useNamespace } from "@/hooks/use-namespace";
 import { logEvent } from "@/lib/analytics";
 import { useTRPC } from "@/trpc/react";
 
+import { Button } from "@agentset/ui/button";
 import {
-  Button,
   Card,
   CardDescription,
   CardHeader,
   CardTitle,
-} from "@agentset/ui";
+} from "@agentset/ui/card";
 
 import "@dnd-kit/core";
 

@@ -8,13 +8,13 @@ import { CopyIcon, EllipsisVerticalIcon, Trash2Icon } from "lucide-react";
 import { toast } from "sonner";
 
 import { DocumentStatus } from "@agentset/db";
+import { Button } from "@agentset/ui/button";
 import {
-  Button,
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
-} from "@agentset/ui";
+} from "@agentset/ui/dropdown-menu";
 
 import type { DocumentCol } from "./documents-columns";
 

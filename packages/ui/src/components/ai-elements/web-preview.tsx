@@ -5,6 +5,7 @@ import { createContext, useContext, useState } from "react";
 import { ChevronDownIcon } from "lucide-react";
 
 import { Button } from "@agentset/ui/button";
+import { cn } from "@agentset/ui/cn";
 import {
   Collapsible,
   CollapsibleContent,
@@ -17,7 +18,6 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@agentset/ui/tooltip";
-import { cn } from "@agentset/ui/utils";
 
 export type WebPreviewContextValue = {
   url: string;

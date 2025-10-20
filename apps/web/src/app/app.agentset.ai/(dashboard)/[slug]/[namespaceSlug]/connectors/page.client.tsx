@@ -3,16 +3,17 @@
 import { DeleteConfirmation } from "@/components/delete-confirmation";
 import { TrashIcon } from "lucide-react";
 
-// import { Skeleton } from "@agentset/ui";
+import { Button } from "@agentset/ui/button";
 import {
-  Button,
   Card,
   CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
-  cn,
-} from "@agentset/ui";
+} from "@agentset/ui/card";
+import { cn } from "@agentset/ui/cn";
+
+// import { Skeleton } from "@agentset/ui/skeleton";
 
 // Mock data for connectors
 const mockConnectors = [

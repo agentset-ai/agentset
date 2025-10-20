@@ -8,18 +8,17 @@ import { useMutation } from "@tanstack/react-query";
 import { AlertCircleIcon, BuildingIcon, CheckIcon, XIcon } from "lucide-react";
 import { toast } from "sonner";
 
+import { Avatar, AvatarFallback } from "@agentset/ui/avatar";
+import { Badge } from "@agentset/ui/badge";
+import { Button } from "@agentset/ui/button";
 import {
-  Avatar,
-  AvatarFallback,
-  Badge,
-  Button,
   Card,
   CardContent,
   CardDescription,
   CardFooter,
   CardHeader,
   CardTitle,
-} from "@agentset/ui";
+} from "@agentset/ui/card";
 
 import { InvitationStatus } from "./invitation-status";
 

@@ -2,15 +2,17 @@ import { memo } from "react";
 import { useIsHosting } from "@/contexts/hosting-context";
 import { extractTextFromParts } from "@/lib/string-utils";
 import { MyUIMessage } from "@/types/ai";
-import { CopyIcon } from "lucide-react";
+import { useChatProperty } from "ai-sdk-zustand";
+import { CopyIcon, LogsIcon, RefreshCcwIcon } from "lucide-react";
 import { toast } from "sonner";
 import { useCopyToClipboard } from "usehooks-ts";
 
-import { Button, Tooltip, TooltipContent, TooltipTrigger } from "@agentset/ui";
+import { Action, Actions } from "@agentset/ui/ai/actions";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@agentset/ui/tooltip";
 
 import MessageLogs from "./logs";
 
-export function PureMessageActions({
+function PureMessageActions({
   message,
   isLoading,
 }: {
@@ -19,37 +21,63 @@ export function PureMessageActions({
 }) {
   const [_, copyToClipboard] = useCopyToClipboard();
   const isHosting = useIsHosting();
+  const regenerate = useChatProperty((a) => a.regenerate);
 
-  if (isLoading) return null;
   if (message.role === "user") return null;
 
+  const handleCopy = async () => {
+    const textFromParts = extractTextFromParts(message.parts);
+
+    if (!textFromParts) {
+      toast.error("There's no text to copy!");
+      return;
+    }
+
+    await copyToClipboard(textFromParts);
+    toast.success("Copied to clipboard!");
+  };
+
+  const handleRegenerate = async () => {
+    await regenerate();
+  };
+
   return (
-    <div className="flex flex-row gap-2">
+    <Actions className="mt-2">
       <Tooltip>
         <TooltipTrigger asChild>
-          <Button
-            className="text-muted-foreground h-fit px-2 py-1"
-            variant="outline"
-            onClick={async () => {
-              const textFromParts = extractTextFromParts(message.parts);
-
-              if (!textFromParts) {
-                toast.error("There's no text to copy!");
-                return;
-              }
-
-              await copyToClipboard(textFromParts);
-              toast.success("Copied to clipboard!");
-            }}
-          >
+          <Action disabled={isLoading} onClick={handleCopy}>
             <CopyIcon className="size-4" />
-          </Button>
+          </Action>
         </TooltipTrigger>
         <TooltipContent>Copy</TooltipContent>
       </Tooltip>
 
-      {!isHosting && <MessageLogs message={message} />}
-    </div>
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <Action disabled={isLoading} onClick={handleRegenerate}>
+            <RefreshCcwIcon className="size-4" />
+          </Action>
+        </TooltipTrigger>
+        <TooltipContent>Regenerate</TooltipContent>
+      </Tooltip>
+
+      {!isHosting && (
+        <Tooltip>
+          <MessageLogs
+            message={message}
+            trigger={
+              <TooltipTrigger asChild>
+                <Action disabled={isLoading}>
+                  <LogsIcon className="size-4" />
+                </Action>
+              </TooltipTrigger>
+            }
+          />
+
+          <TooltipContent>Logs</TooltipContent>
+        </Tooltip>
+      )}
+    </Actions>
   );
 }
 

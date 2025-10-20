@@ -6,8 +6,8 @@ import { PlusIcon } from "lucide-react";
 import { useForm } from "react-hook-form";
 import { z } from "zod/v4";
 
+import { Button } from "@agentset/ui/button";
 import {
-  Button,
   Dialog,
   DialogContent,
   DialogDescription,
@@ -15,19 +15,21 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-  DropboxIcon,
+} from "@agentset/ui/dialog";
+import {
   Form,
   FormControl,
   FormField,
   FormItem,
   FormMessage,
-  GoogleDriveIcon,
-  NotionIcon,
-  OneDriveIcon,
-  RadioButton,
-  RadioGroup,
-  S3Icon,
-} from "@agentset/ui";
+} from "@agentset/ui/form";
+import { DropboxIcon } from "@agentset/ui/icons/dropbox";
+import { GoogleDriveIcon } from "@agentset/ui/icons/google-drive";
+import { NotionIcon } from "@agentset/ui/icons/notion";
+import { OneDriveIcon } from "@agentset/ui/icons/onedrive";
+import { S3Icon } from "@agentset/ui/icons/s3";
+import { RadioButton } from "@agentset/ui/radio-button";
+import { RadioGroup } from "@agentset/ui/radio-group";
 import { capitalize } from "@agentset/utils";
 
 const formSchema = z.object({

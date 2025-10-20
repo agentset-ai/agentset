@@ -1,6 +1,6 @@
 import type { Experimental_GeneratedImage } from "ai";
 
-import { cn } from "@agentset/ui/utils";
+import { cn } from "@agentset/ui/cn";
 
 export type ImageProps = Experimental_GeneratedImage & {
   className?: string;

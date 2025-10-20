@@ -7,8 +7,10 @@ import { FileTextIcon, UploadIcon, XIcon } from "lucide-react";
 import Dropzone from "react-dropzone";
 import { toast } from "sonner";
 
+import { formatBytes } from "@agentset/utils";
+
 import { useControllableState } from "../hooks/use-controllable-state";
-import { cn, formatBytes } from "../lib/utils";
+import { cn } from "../lib/utils";
 import { Button } from "./ui/button";
 import { Progress } from "./ui/progress";
 import { ScrollArea } from "./ui/scroll-area";

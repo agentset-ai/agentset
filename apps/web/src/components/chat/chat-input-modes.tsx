@@ -2,57 +2,48 @@ import { memo } from "react";
 import { useNamespace } from "@/hooks/use-namespace";
 import { useSession } from "@/hooks/use-session";
 import { BoxIcon, TelescopeIcon } from "lucide-react";
+import { useIsClient } from "usehooks-ts";
 
-import { Button, cn } from "@agentset/ui";
+import { PromptInputButton } from "@agentset/ui/ai/prompt-input";
 
 import { useNamespaceChatSettings } from "./chat-settings.store";
 
-const ChatInputModes = memo(() => {
+const PureChatInputModes = () => {
   const { isAdmin } = useSession();
-
   const namespace = useNamespace();
   const [settings, setSettings] = useNamespaceChatSettings(namespace.id);
-
   const mode = settings.mode ?? "normal";
+  const isClient = useIsClient();
 
   const toggleMode = (newMode: typeof mode) => {
-    console.log({ newMode, mode });
     setSettings({ mode: newMode === mode ? "normal" : newMode });
   };
 
   return (
-    <div className="absolute bottom-0 left-0 flex w-fit flex-row justify-end gap-2 p-2">
-      <Button
-        variant={mode === "agentic" ? "default" : "outline"}
-        className={cn(
-          "rounded-full",
-          mode === "agentic" ? "border border-transparent" : "",
-        )}
+    <>
+      <PromptInputButton
+        variant={mode === "agentic" ? "default" : "ghost"}
         onClick={() => toggleMode("agentic")}
-        size="sm"
-        type="button"
+        disabled={!isClient}
       >
         <BoxIcon className="size-4" />
-        Agentic
-      </Button>
+        <span>Agentic</span>
+      </PromptInputButton>
 
       {isAdmin && (
-        <Button
-          variant={mode === "deepResearch" ? "default" : "outline"}
-          className={cn(
-            "rounded-full",
-            mode === "deepResearch" ? "border border-transparent" : "",
-          )}
+        <PromptInputButton
+          variant={mode === "deepResearch" ? "default" : "ghost"}
           onClick={() => toggleMode("deepResearch")}
-          size="sm"
-          type="button"
+          disabled={!isClient}
         >
           <TelescopeIcon className="size-4" />
-          Deep Research
-        </Button>
+          <span>Deep Research</span>
+        </PromptInputButton>
       )}
-    </div>
+    </>
   );
-});
+};
+
+const ChatInputModes = memo(PureChatInputModes);
 
 export default ChatInputModes;

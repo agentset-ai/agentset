@@ -7,12 +7,12 @@ import { BrainIcon, ChevronDownIcon, DotIcon } from "lucide-react";
 import { useControllableState } from "radix-ui/internal";
 
 import { Badge } from "@agentset/ui/badge";
+import { cn } from "@agentset/ui/cn";
 import {
   Collapsible,
   CollapsibleContent,
   CollapsibleTrigger,
 } from "@agentset/ui/collapsible";
-import { cn } from "@agentset/ui/utils";
 
 type ChainOfThoughtContextValue = {
   isOpen: boolean;

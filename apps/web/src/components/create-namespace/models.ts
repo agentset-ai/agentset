@@ -1,15 +1,13 @@
 import z from "zod/v4";
 
-import {
-  AnthropicIcon,
-  GoogleIcon,
-  MicrosoftAzureIcon,
-  OpenAIIcon,
-  PineconeIcon,
-  QdrantIcon,
-  TurbopufferIcon,
-  UpstashIcon,
-} from "@agentset/ui";
+import { AnthropicIcon } from "@agentset/ui/icons/anthropic";
+import { MicrosoftAzureIcon } from "@agentset/ui/icons/azure";
+import { GoogleIcon } from "@agentset/ui/icons/google";
+import { OpenAIIcon } from "@agentset/ui/icons/openai";
+import { PineconeIcon } from "@agentset/ui/icons/pinecone";
+import { QdrantIcon } from "@agentset/ui/icons/qdrant";
+import { TurbopufferIcon } from "@agentset/ui/icons/turbopuffer";
+import { UpstashIcon } from "@agentset/ui/icons/upstash";
 import {
   AzureEmbeddingConfigSchema,
   createVectorStoreSchema,

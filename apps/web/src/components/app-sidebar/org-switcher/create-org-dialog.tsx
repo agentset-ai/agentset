@@ -8,7 +8,7 @@ import {
   DialogHeader,
   DialogPortal,
   DialogTitle,
-} from "@agentset/ui";
+} from "@agentset/ui/dialog";
 
 function CreateOrganizationDialog({
   open,

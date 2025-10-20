@@ -15,7 +15,7 @@ import {
   DialogDescription,
   DialogHeader,
   DialogTitle,
-} from "@agentset/ui";
+} from "@agentset/ui/dialog";
 import { toSlug } from "@agentset/utils";
 
 import CreateNamespaceDetailsStep from "./details-step";

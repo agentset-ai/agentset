@@ -6,19 +6,23 @@ import {
   AccordionContent,
   AccordionItem,
   AccordionTrigger,
+} from "@agentset/ui/accordion";
+import {
   FormControl,
   FormField,
   FormItem,
   FormLabel,
   FormMessage,
-  Input,
+} from "@agentset/ui/form";
+import { Input } from "@agentset/ui/input";
+import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-  Textarea,
-} from "@agentset/ui";
+} from "@agentset/ui/select";
+import { Textarea } from "@agentset/ui/textarea";
 
 export default function IngestConfig({
   form,

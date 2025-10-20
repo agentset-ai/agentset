@@ -8,16 +8,12 @@ import { useTRPC } from "@/trpc/react";
 import { useQuery } from "@tanstack/react-query";
 import { ChevronLeftIcon, DollarSignIcon, ReceiptTextIcon } from "lucide-react";
 
-import {
-  Button,
-  DataWrapper,
-  EmptyState,
-  Separator,
-  Skeleton,
-  Tooltip,
-  TooltipContent,
-  TooltipTrigger,
-} from "@agentset/ui";
+import { Button } from "@agentset/ui/button";
+import { DataWrapper } from "@agentset/ui/data-wrapper";
+import { EmptyState } from "@agentset/ui/empty-state";
+import { Separator } from "@agentset/ui/separator";
+import { Skeleton } from "@agentset/ui/skeleton";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@agentset/ui/tooltip";
 
 export default function OrganizationInvoicesClient() {
   const organization = useOrganization();

@@ -3,15 +3,13 @@ import {
   useChatSettings,
   useNamespaceChatSettings,
 } from "@/components/chat/chat-settings.store";
-import { LLMSelector } from "@/components/llm-selector";
 import { RerankerSelector } from "@/components/reranker-selector";
 import { useNamespace } from "@/hooks/use-namespace";
 import { DEFAULT_SYSTEM_PROMPT } from "@/lib/prompts";
-import { Settings2Icon } from "lucide-react";
 import { toast } from "sonner";
 
+import { Button } from "@agentset/ui/button";
 import {
-  Button,
   Dialog,
   DialogContent,
   DialogDescription,
@@ -19,14 +17,18 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-  Input,
-  Label,
-  Textarea,
-} from "@agentset/ui";
+} from "@agentset/ui/dialog";
+import { Input } from "@agentset/ui/input";
+import { Label } from "@agentset/ui/label";
+import { Textarea } from "@agentset/ui/textarea";
 
 const defaultPrompt = DEFAULT_SYSTEM_PROMPT.compile().trim();
 
-export default function ChatSettings() {
+export default function ChatSettings({
+  trigger,
+}: {
+  trigger: React.ReactNode;
+}) {
   const namespace = useNamespace();
   const [open, setOpen] = useState(false);
 
@@ -38,7 +40,6 @@ export default function ChatSettings() {
   const [systemPrompt, setSystemPrompt] = useState(settings.systemPrompt);
   const [temperature, setTemperature] = useState(settings.temperature);
   const [rerankModel, setRerankModel] = useState(settings.rerankModel);
-  const [llmModel, setLlmModel] = useState(settings.llmModel);
 
   const handleSave = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -54,7 +55,6 @@ export default function ChatSettings() {
       systemPrompt: systemPrompt && systemPrompt !== "" ? systemPrompt : null,
       temperature,
       rerankModel,
-      llmModel,
     });
 
     setOpen(false);
@@ -68,17 +68,11 @@ export default function ChatSettings() {
     setSystemPrompt(newState.systemPrompt);
     setTemperature(newState.temperature);
     setRerankModel(newState.rerankModel);
-    setLlmModel(newState.llmModel);
   };
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger asChild>
-        <Button variant="outline">
-          <Settings2Icon className="size-4" />
-          Parameters
-        </Button>
-      </DialogTrigger>
+      <DialogTrigger asChild>{trigger}</DialogTrigger>
 
       <DialogContent className="overflow-y-auto sm:max-w-xl">
         <DialogHeader>
@@ -128,11 +122,6 @@ export default function ChatSettings() {
               step={0.1}
               onChange={(e) => setTemperature(Number(e.target.value))}
             />
-          </div>
-
-          <div className="grid gap-2">
-            <Label>LLM Model</Label>
-            <LLMSelector value={llmModel} onValueChange={setLlmModel} />
           </div>
 
           <div className="grid gap-2">

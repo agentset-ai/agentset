@@ -3,15 +3,15 @@ import { useCallback, useMemo, useState } from "react";
 import { useRouterStuff } from "@/hooks/use-router-stuff";
 
 import { PLANS, PRO_PLAN } from "@agentset/stripe/plans";
+import { Button } from "@agentset/ui/button";
 import {
-  Button,
   Dialog,
   DialogContent,
   DialogDescription,
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from "@agentset/ui";
+} from "@agentset/ui/dialog";
 
 function WelcomeModal({
   showWelcomeModal,

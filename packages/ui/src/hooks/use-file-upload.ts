@@ -3,7 +3,7 @@
 import type { ChangeEvent, DragEvent, InputHTMLAttributes } from "react";
 import { useCallback, useRef, useState } from "react";
 
-import { formatBytes } from "../lib/utils";
+import { formatBytes } from "@agentset/utils";
 
 export type FileMetadata = {
   name: string;

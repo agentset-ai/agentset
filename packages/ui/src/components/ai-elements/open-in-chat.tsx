@@ -7,6 +7,7 @@ import {
 } from "lucide-react";
 
 import { Button } from "@agentset/ui/button";
+import { cn } from "@agentset/ui/cn";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -15,7 +16,6 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@agentset/ui/dropdown-menu";
-import { cn } from "@agentset/ui/utils";
 
 const providers = {
   github: {

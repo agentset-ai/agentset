@@ -1,33 +1,30 @@
 "use client";
 
-import { CodeBlock } from "@/components/chat/code-block";
 import { useNamespace } from "@/hooks/use-namespace";
 import { useOrganization } from "@/hooks/use-organization";
 import { prefixId } from "@/lib/api/ids";
-import { ArrowUpRightIcon, Code2Icon } from "lucide-react";
+import { ArrowUpRightIcon } from "lucide-react";
 
+import { CodeBlock, CodeBlockCopyButton } from "@agentset/ui/ai/code-block";
+import { Button } from "@agentset/ui/button";
 import {
-  Button,
   Dialog,
   DialogContent,
   DialogDescription,
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-  Tabs,
-  TabsContent,
-  TabsList,
-  TabsTrigger,
-} from "@agentset/ui";
+} from "@agentset/ui/dialog";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@agentset/ui/tabs";
 
 export default function ApiDialog({
-  variant = "outline",
-  label = "API",
+  trigger,
+  title = "API",
   description = "Use the api",
   tabs,
 }: {
-  variant?: "ghost" | "outline";
-  label?: string;
+  trigger: (props: { disabled: boolean }) => React.ReactNode;
+  title?: string;
   description?: React.ReactNode;
   tabs: {
     title: string;
@@ -43,28 +40,20 @@ export default function ApiDialog({
   };
 
   if (organization.isLoading || namespace.isLoading)
-    return (
-      <Button variant={variant} disabled>
-        <Code2Icon className="size-4" />
-        {label}
-      </Button>
-    );
+    return trigger({ disabled: true });
 
   return (
     <Dialog>
-      <DialogTrigger asChild>
-        <Button variant={variant}>
-          <Code2Icon className="size-4" />
-          {label}
-        </Button>
+      <DialogTrigger asChild disabled>
+        {trigger({ disabled: false })}
       </DialogTrigger>
       <DialogContent className="sm:max-w-2xl">
         <DialogHeader>
-          <DialogTitle>{label}</DialogTitle>
+          <DialogTitle>{title}</DialogTitle>
           <DialogDescription>{description}</DialogDescription>
         </DialogHeader>
 
-        <Tabs>
+        <Tabs className="max-w-full overflow-x-auto">
           <div className="flex items-center justify-between">
             <TabsList className="my-3">
               {tabs.map((tab) => (
@@ -87,7 +76,9 @@ export default function ApiDialog({
 
           {tabs.map((tab) => (
             <TabsContent key={tab.title} value={tab.title}>
-              <CodeBlock>{prepareExample(tab.code)}</CodeBlock>
+              <CodeBlock code={prepareExample(tab.code)} language="typescript">
+                <CodeBlockCopyButton />
+              </CodeBlock>
             </TabsContent>
           ))}
         </Tabs>

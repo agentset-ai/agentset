@@ -9,10 +9,10 @@ import { useForm } from "react-hook-form";
 import { z } from "zod/v4";
 
 import { MAX_UPLOAD_SIZE } from "@agentset/storage/constants";
+import { Button } from "@agentset/ui/button";
+import { DialogFooter } from "@agentset/ui/dialog";
+import { FileUploader } from "@agentset/ui/file-uploader";
 import {
-  Button,
-  DialogFooter,
-  FileUploader,
   Form,
   FormControl,
   FormDescription,
@@ -20,8 +20,8 @@ import {
   FormItem,
   FormLabel,
   FormMessage,
-  Input,
-} from "@agentset/ui";
+} from "@agentset/ui/form";
+import { Input } from "@agentset/ui/input";
 import { configSchema } from "@agentset/validation";
 
 import IngestConfig from "./config";

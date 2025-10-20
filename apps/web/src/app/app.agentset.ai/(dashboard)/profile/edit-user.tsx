@@ -8,14 +8,10 @@ import { useRouter } from "@bprogress/next/app";
 import { Loader2Icon, XIcon } from "lucide-react";
 import { toast } from "sonner";
 
-import {
-  Alert,
-  AlertDescription,
-  AlertTitle,
-  Button,
-  Input,
-  Label,
-} from "@agentset/ui";
+import { Alert, AlertDescription, AlertTitle } from "@agentset/ui/alert";
+import { Button } from "@agentset/ui/button";
+import { Input } from "@agentset/ui/input";
+import { Label } from "@agentset/ui/label";
 
 async function convertImageToBase64(file: File): Promise<string> {
   return new Promise((resolve, reject) => {

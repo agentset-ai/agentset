@@ -1,7 +1,6 @@
 import { InfoIcon } from "lucide-react";
 
-import { cn } from "@agentset/ui/utils";
-
+import { cn } from "../lib/utils";
 import { Label } from "./ui/label";
 import { RadioGroupItem } from "./ui/radio-group";
 import { Tooltip, TooltipContent, TooltipTrigger } from "./ui/tooltip";

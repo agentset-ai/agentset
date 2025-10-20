@@ -7,15 +7,15 @@ import { useQuery } from "@tanstack/react-query";
 import { ChevronsUpDownIcon, PlusIcon } from "lucide-react";
 
 import type { Namespace } from "@agentset/db";
+import { Button } from "@agentset/ui/button";
 import {
-  Button,
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-  Skeleton,
-} from "@agentset/ui";
+} from "@agentset/ui/dropdown-menu";
+import { Skeleton } from "@agentset/ui/skeleton";
 
 import CreateNamespaceDialog from "../create-namespace";
 

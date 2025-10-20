@@ -12,13 +12,13 @@ import {
 import { toast } from "sonner";
 
 import { IngestJobStatus } from "@agentset/db";
+import { Button } from "@agentset/ui/button";
 import {
-  Button,
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
-} from "@agentset/ui";
+} from "@agentset/ui/dropdown-menu";
 
 import type { JobCol } from "./columns";
 

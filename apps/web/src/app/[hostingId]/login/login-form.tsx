@@ -3,7 +3,11 @@
 import { useMagicAuth } from "@/hooks/use-auth";
 import { CheckCircle2Icon } from "lucide-react";
 
-import { Button, cn, Input, Label, Logo } from "@agentset/ui";
+import { Button } from "@agentset/ui/button";
+import { cn } from "@agentset/ui/cn";
+import { Input } from "@agentset/ui/input";
+import { Label } from "@agentset/ui/label";
+import { Logo } from "@agentset/ui/logo";
 
 export function LoginForm({
   className,

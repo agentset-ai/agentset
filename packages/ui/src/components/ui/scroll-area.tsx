@@ -2,7 +2,7 @@
 
 import { ScrollArea as ScrollAreaPrimitive } from "radix-ui";
 
-import { cn } from "@agentset/ui/utils";
+import { cn } from "@agentset/ui/cn";
 
 function ScrollArea({
   className,

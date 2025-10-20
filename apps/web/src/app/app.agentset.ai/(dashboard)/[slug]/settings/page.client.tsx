@@ -11,18 +11,18 @@ import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { z } from "zod/v4";
 
+import { EntityAvatar } from "@agentset/ui/avatar";
+import { Button } from "@agentset/ui/button";
 import {
-  Button,
-  EntityAvatar,
   Form,
   FormControl,
   FormField,
   FormItem,
   FormLabel,
   FormMessage,
-  Input,
-  Skeleton,
-} from "@agentset/ui";
+} from "@agentset/ui/form";
+import { Input } from "@agentset/ui/input";
+import { Skeleton } from "@agentset/ui/skeleton";
 
 const makeFormSchema = (currentSlug: string) =>
   z.object({

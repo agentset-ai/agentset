@@ -11,6 +11,7 @@ import { useMutation, useQuery } from "@tanstack/react-query";
 import { ChevronsUpDownIcon, PlusIcon, SettingsIcon } from "lucide-react";
 import { toast } from "sonner";
 
+import { EntityAvatar } from "@agentset/ui/avatar";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -18,12 +19,13 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-  EntityAvatar,
+} from "@agentset/ui/dropdown-menu";
+import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
   useSidebar,
-} from "@agentset/ui";
+} from "@agentset/ui/sidebar";
 
 import CreateOrganizationDialog from "./create-org-dialog";
 import { OrganizationSwitcherSkeleton } from "./skeleton";

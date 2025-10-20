@@ -1,4 +1,4 @@
-import { cn } from "@agentset/ui";
+import { cn } from "@agentset/ui/cn";
 
 export function GradientBackground() {
   return (

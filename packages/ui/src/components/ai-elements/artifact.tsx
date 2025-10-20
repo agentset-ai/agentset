@@ -5,13 +5,13 @@ import type { ComponentProps, HTMLAttributes } from "react";
 import { XIcon } from "lucide-react";
 
 import { Button } from "@agentset/ui/button";
+import { cn } from "@agentset/ui/cn";
 import {
   Tooltip,
   TooltipContent,
   TooltipProvider,
   TooltipTrigger,
 } from "@agentset/ui/tooltip";
-import { cn } from "@agentset/ui/utils";
 
 export type ArtifactProps = HTMLAttributes<HTMLDivElement>;
 

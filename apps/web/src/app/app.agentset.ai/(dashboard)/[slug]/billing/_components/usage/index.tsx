@@ -7,15 +7,12 @@ import { formatNumber } from "@/lib/utils";
 import NumberFlow from "@number-flow/react";
 import { BookIcon, FoldersIcon, PlugIcon, SearchIcon } from "lucide-react";
 
-import {
-  Button,
-  Card,
-  CardDescription,
-  cn,
-  Progress,
-  Separator,
-  Skeleton,
-} from "@agentset/ui";
+import { Button } from "@agentset/ui/button";
+import { Card, CardDescription } from "@agentset/ui/card";
+import { cn } from "@agentset/ui/cn";
+import { Progress } from "@agentset/ui/progress";
+import { Separator } from "@agentset/ui/separator";
+import { Skeleton } from "@agentset/ui/skeleton";
 import {
   capitalize,
   getFirstAndLastDay,

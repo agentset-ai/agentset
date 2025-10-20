@@ -6,7 +6,7 @@ import {
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@agentset/ui";
+} from "@agentset/ui/select";
 import { LLM, LLM_MODELS } from "@agentset/validation";
 
 interface LLMSelectorProps {

@@ -2,10 +2,12 @@
 
 import { useHosting } from "@/contexts/hosting-context";
 
-import { cn } from "@agentset/ui";
+import { cn } from "@agentset/ui/cn";
 
 import { MultimodalInput } from "./chat-input";
 import { Messages } from "./messages";
+import { Overview } from "./overview";
+import { SuggestedActions } from "./suggested-actions";
 import { useNamespaceChat } from "./use-chat";
 import { useHostingChat } from "./use-hosting-chat";
 
@@ -18,43 +20,56 @@ export default function Chat({
 }
 
 const PlaygroundChat = () => {
-  useNamespaceChat();
+  const { messages } = useNamespaceChat();
 
   return (
     <div
       className={cn(
         "bg-background flex min-w-0 flex-col",
         "h-[calc(100dvh-calc(var(--spacing)*20))]",
+        // messages.length === 0 && "items-center justify-center",
       )}
     >
-      <Messages />
+      {messages.length === 0 ? (
+        <div className="flex flex-1 items-center justify-center">
+          <Overview />
+        </div>
+      ) : (
+        <Messages />
+      )}
 
-      <form className="bg-background mx-auto flex w-full gap-2 px-4 pb-4 md:max-w-3xl md:pb-6">
+      <div className="mx-auto flex w-full flex-col gap-4 px-4 pb-4 md:max-w-3xl md:pb-6">
         <MultimodalInput type="playground" />
-      </form>
+      </div>
     </div>
   );
 };
 
 const HostingChat = () => {
   const { exampleQuestions, welcomeMessage, logo } = useHosting();
-  useHostingChat();
+  const { messages } = useHostingChat();
 
   return (
     <div
       className={cn(
         "bg-background flex min-w-0 flex-col",
         "h-[calc(100dvh-64px)]",
+        messages.length === 0 && "items-center justify-center",
       )}
     >
-      <Messages
-        overviewMessage={welcomeMessage ?? undefined}
-        logo={logo ?? undefined}
-      />
+      {messages.length === 0 ? (
+        <Overview
+          title={welcomeMessage ?? "Start a conversation!"}
+          logo={logo}
+        />
+      ) : (
+        <Messages />
+      )}
 
-      <form className="bg-background mx-auto flex w-full gap-2 px-4 pb-4 md:max-w-3xl md:pb-6">
-        <MultimodalInput type="hosted" exampleMessages={exampleQuestions} />
-      </form>
+      <div className="mx-auto flex w-full flex-col gap-4 px-4 pb-4 md:max-w-3xl md:pb-6">
+        <MultimodalInput type="hosted" />
+        <SuggestedActions exampleMessages={["one", "two", "three", "four"]} />
+      </div>
     </div>
   );
 };

@@ -1,6 +1,8 @@
 import Link from "next/link";
 
-import { Button, Card, CardContent, CardFooter, cn } from "@agentset/ui";
+import { Button } from "@agentset/ui/button";
+import { Card, CardContent, CardFooter } from "@agentset/ui/card";
+import { cn } from "@agentset/ui/cn";
 
 export const InvitationStatus = ({
   icon: Icon,

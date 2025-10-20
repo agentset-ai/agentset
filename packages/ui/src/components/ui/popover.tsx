@@ -2,7 +2,7 @@
 
 import { Popover as PopoverPrimitive } from "radix-ui";
 
-import { cn } from "@agentset/ui/utils";
+import { cn } from "@agentset/ui/cn";
 
 function Popover({
   ...props

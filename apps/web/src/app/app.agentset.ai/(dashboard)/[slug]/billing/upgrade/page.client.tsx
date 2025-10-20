@@ -12,7 +12,7 @@ import {
   isDowngradePlan,
   PRO_PLAN,
 } from "@agentset/stripe/plans";
-import { Tabs, TabsList, TabsTrigger } from "@agentset/ui";
+import { Tabs, TabsList, TabsTrigger } from "@agentset/ui/tabs";
 
 import PlanCard from "./plan-card";
 

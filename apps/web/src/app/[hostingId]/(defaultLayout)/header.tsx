@@ -8,7 +8,8 @@ import { logEvent } from "@/lib/analytics";
 import { HOSTING_PREFIX } from "@/lib/constants";
 import { PlusIcon } from "lucide-react";
 
-import { Button, Tabs, TabsList, TabsTrigger } from "@agentset/ui";
+import { Button } from "@agentset/ui/button";
+import { Tabs, TabsList, TabsTrigger } from "@agentset/ui/tabs";
 
 export default function Header() {
   const { title, searchEnabled } = useHosting();

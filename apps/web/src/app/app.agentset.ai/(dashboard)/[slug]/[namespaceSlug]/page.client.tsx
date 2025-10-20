@@ -5,17 +5,17 @@ import { useNamespace } from "@/hooks/use-namespace";
 import { prefixId } from "@/lib/api/ids";
 import { formatNumber } from "@/lib/utils";
 
+import { Badge } from "@agentset/ui/badge";
+import { Button } from "@agentset/ui/button";
 import {
-  Badge,
-  Button,
   Card,
   CardContent,
   CardDescription,
   CardHeader,
-  CopyButton,
-  Separator,
-  Skeleton,
-} from "@agentset/ui";
+} from "@agentset/ui/card";
+import { CopyButton } from "@agentset/ui/copy-button";
+import { Separator } from "@agentset/ui/separator";
+import { Skeleton } from "@agentset/ui/skeleton";
 
 const SensitiveInfo = ({ info }: { info: unknown }) => {
   const [show, setShow] = useState(false);

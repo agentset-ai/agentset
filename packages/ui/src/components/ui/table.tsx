@@ -1,6 +1,6 @@
 "use client";
 
-import { cn } from "@agentset/ui/utils";
+import { cn } from "@agentset/ui/cn";
 
 function Table({ className, ...props }: React.ComponentProps<"table">) {
   return (

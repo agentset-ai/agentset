@@ -6,7 +6,7 @@ import {
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@agentset/ui";
+} from "@agentset/ui/select";
 import { RERANKER_MODELS, RerankingModel } from "@agentset/validation";
 
 interface RerankerSelectorProps {

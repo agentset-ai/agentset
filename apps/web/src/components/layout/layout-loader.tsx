@@ -1,4 +1,5 @@
-import { cn, Spinner } from "@agentset/ui";
+import { cn } from "@agentset/ui/cn";
+import { Spinner } from "@agentset/ui/spinner";
 
 export default function LayoutLoader({ className }: { className?: string }) {
   return (

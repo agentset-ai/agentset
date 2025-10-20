@@ -1,9 +1,8 @@
 import { useState } from "react";
 
 import type { QueryVectorStoreResult } from "@agentset/engine";
-import { Button } from "@agentset/ui";
-
-import { CodeBlock } from "./chat/code-block";
+import { CodeBlock, CodeBlockCopyButton } from "@agentset/ui/ai/code-block";
+import { Button } from "@agentset/ui/button";
 
 const CollapsibleMetadata = ({ metadata }: { metadata: unknown }) => {
   const [open, setOpen] = useState(false);
@@ -24,8 +23,8 @@ const CollapsibleMetadata = ({ metadata }: { metadata: unknown }) => {
 
       {open ? (
         <div className="mt-2">
-          <CodeBlock inline={false} className="bg-white">
-            {JSON.stringify(metadata, null, 2)}
+          <CodeBlock code={JSON.stringify(metadata, null, 2)} language="json">
+            <CodeBlockCopyButton />
           </CodeBlock>
         </div>
       ) : null}

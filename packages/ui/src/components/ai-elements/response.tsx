@@ -4,7 +4,7 @@ import type { ComponentProps } from "react";
 import { memo } from "react";
 import { Streamdown } from "streamdown";
 
-import { cn } from "@agentset/ui/utils";
+import { cn } from "@agentset/ui/cn";
 
 type ResponseProps = ComponentProps<typeof Streamdown>;
 

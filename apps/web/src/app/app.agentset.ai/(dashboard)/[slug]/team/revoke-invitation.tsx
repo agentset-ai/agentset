@@ -5,7 +5,7 @@ import { useTRPC } from "@/trpc/react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 
-import { Button } from "@agentset/ui";
+import { Button } from "@agentset/ui/button";
 
 export const RevokeInvitationButton = ({
   invitationId,
