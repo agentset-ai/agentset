@@ -27,9 +27,6 @@ type AgenticPipelineOptions = {
   tokenBudget?: number;
 };
 
-const STATUS_PART_ID = "agentset_status";
-const QUERIES_PART_ID = "agentset_queries";
-
 const agenticPipeline = ({
   model,
   queryOptions,
@@ -64,9 +61,8 @@ const agenticPipeline = ({
       });
 
       writer.write({
-        id: STATUS_PART_ID,
         type: "data-status",
-        data: "generating-queries",
+        data: { value: "generating-queries" },
       });
 
       // step 1. generate queries
@@ -79,15 +75,11 @@ const agenticPipeline = ({
         tokenBudget,
         onQueries: (newQueries) => {
           writer.write({
-            id: STATUS_PART_ID,
             type: "data-status",
-            data: "searching",
-          });
-
-          writer.write({
-            id: QUERIES_PART_ID,
-            type: "data-queries",
-            data: newQueries.map((q) => q.query),
+            data: {
+              value: "searching",
+              queries: newQueries.map((q) => q.query),
+            },
           });
         },
       });
@@ -95,9 +87,8 @@ const agenticPipeline = ({
       afterQueries?.(totalQueries);
 
       writer.write({
-        id: STATUS_PART_ID,
         type: "data-status",
-        data: "generating-answer",
+        data: { value: "generating-answer" },
       });
 
       // TODO: shrink chunks and only select relevant ones to pass to the LLM

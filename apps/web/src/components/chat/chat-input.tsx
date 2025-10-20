@@ -80,7 +80,9 @@ function PureMultimodalInput({ type }: { type: "playground" | "hosted" }) {
         <PromptInputSubmit
           className="h-8"
           status={status}
-          disabled={input.length === 0 || status === "submitted"}
+          disabled={
+            (status === "ready" && input.length === 0) || status === "submitted"
+          }
         />
       </PromptInputFooter>
     </PromptInput>

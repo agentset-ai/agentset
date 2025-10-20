@@ -1,72 +1,19 @@
 import { useState } from "react";
 import { sanitizeText } from "@/lib/string-utils";
 import { MyUIMessage } from "@/types/ai";
-import { useChatProperty, useChatStatus } from "ai-sdk-zustand";
 import { PencilIcon } from "lucide-react";
 import { AnimatePresence, motion } from "motion/react";
 
 import { Action } from "@agentset/ui/ai/actions";
 import { cn } from "@agentset/ui/cn";
 import { Logo } from "@agentset/ui/logo";
-import { ShinyText } from "@agentset/ui/shiny-text";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@agentset/ui/tooltip";
 
 import { Markdown } from "./markdown";
 import { MessageActions } from "./message-actions";
 import { MessageEditor } from "./message-editor";
 import { MessageReasoning } from "./message-reasoning";
-
-const MessageStatus = ({
-  message,
-  isLoading,
-}: {
-  message: MyUIMessage;
-  isLoading: boolean;
-}) => {
-  if (message.role === "user") return null;
-
-  // get the last item with type status
-  const status = message.parts.find((p) => p.type === "data-status");
-  const queries = message.parts.find((p) => p.type === "data-queries");
-
-  if (!status)
-    return (
-      <ShinyText
-        className="w-fit font-medium"
-        shimmerWidth={40}
-        disabled={!isLoading}
-      >
-        {isLoading ? "Generating answer..." : "Done!"}
-      </ShinyText>
-    );
-
-  const queryString = queries
-    ? queries.data.map((q, idx) => (
-        <i key={idx}>
-          {q}
-          {idx < queries.data.length - 1 && ", "}
-        </i>
-      ))
-    : null;
-
-  // TODO: Searched for 1, 2, 3, +x other terms
-  return (
-    <ShinyText
-      className="w-fit font-medium"
-      shimmerWidth={status.data === "searching" ? 40 : 100}
-      disabled={!isLoading}
-    >
-      {isLoading
-        ? {
-            "generating-queries": "Generating queries...",
-            searching: "Searching for ",
-            "generating-answer": "Searched for ",
-          }[status.data]
-        : "Searched for "}
-      {queryString}
-    </ShinyText>
-  );
-};
+import { MessageStatus } from "./message-status";
 
 export const PreviewMessage = ({
   message,
@@ -91,17 +38,17 @@ export const PreviewMessage = ({
             mode === "edit" ? "w-full" : "group-data-[role=user]/message:w-fit",
           )}
         >
-          <div className="flex items-center gap-2">
-            {message.role === "assistant" && (
+          {message.role === "assistant" && (
+            <div className="mb-2 flex flex-col">
               <div className="ring-border bg-background flex size-8 shrink-0 items-center justify-center rounded-full ring-1">
                 <div className="translate-y-px">
                   <Logo className="size-3.5" />
                 </div>
               </div>
-            )}
 
-            <MessageStatus message={message} isLoading={isLoading} />
-          </div>
+              <MessageStatus message={message} isLoading={isLoading} />
+            </div>
+          )}
 
           <div className="flex w-full flex-col gap-4">
             {message.parts.map((part, index) => {
@@ -171,29 +118,5 @@ export const PreviewMessage = ({
         </div>
       </motion.div>
     </AnimatePresence>
-  );
-};
-
-export const ThinkingMessage = () => {
-  const status = useChatStatus();
-  const isLastMessageFromUser = useChatProperty(
-    (s) =>
-      s.messages.length > 0 &&
-      s.messages[s.messages.length - 1]!.role === "user",
-  );
-
-  const shouldShow = status === "submitted" && isLastMessageFromUser;
-
-  if (!shouldShow) return null;
-
-  return (
-    <PreviewMessage
-      message={{
-        id: "1",
-        role: "assistant",
-        parts: [],
-      }}
-      isLoading={true}
-    />
   );
 };

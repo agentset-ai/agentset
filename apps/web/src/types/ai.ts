@@ -11,9 +11,14 @@ type MyUIMessageParts = {
     | (Pick<QueryVectorStoreResult, "results"> & {
         logs?: QueryVectorStoreResult[];
       });
-
-  queries: string[];
-  status: "generating-queries" | "searching" | "generating-answer";
+  status:
+    | {
+        value: "generating-queries" | "generating-answer";
+      }
+    | {
+        value: "searching";
+        queries: string[];
+      };
 };
 
 // Create a new custom message type with your own metadata

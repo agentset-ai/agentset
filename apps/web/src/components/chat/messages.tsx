@@ -7,7 +7,7 @@ import {
   ConversationScrollButton,
 } from "@agentset/ui/ai/conversation";
 
-import { PreviewMessage, ThinkingMessage } from "./message";
+import { PreviewMessage } from "./message";
 
 export function Messages() {
   const messages = useChatMessages<MyUIMessage>();
@@ -23,8 +23,6 @@ export function Messages() {
             isLoading={status === "streaming" && messages.length - 1 === index}
           />
         ))}
-
-        <ThinkingMessage />
       </ConversationContent>
 
       <ConversationScrollButton />

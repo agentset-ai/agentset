@@ -13,6 +13,7 @@ import {
   CollapsibleContent,
   CollapsibleTrigger,
 } from "@agentset/ui/collapsible";
+import { ShinyText } from "@agentset/ui/shiny-text";
 
 type ChainOfThoughtContextValue = {
   isOpen: boolean;
@@ -56,10 +57,7 @@ export const ChainOfThought = memo(
 
     return (
       <ChainOfThoughtContext.Provider value={{ isOpen, setIsOpen }}>
-        <div
-          className={cn("not-prose max-w-prose space-y-4", className)}
-          {...props}
-        >
+        <div className={cn("not-prose max-w-prose", className)} {...props}>
           {children}
         </div>
       </ChainOfThoughtContext.Provider>
@@ -69,25 +67,33 @@ export const ChainOfThought = memo(
 
 export type ChainOfThoughtHeaderProps = ComponentProps<
   typeof CollapsibleTrigger
->;
+> & {
+  isLoading?: boolean;
+};
 
 export const ChainOfThoughtHeader = memo(
-  ({ className, children, ...props }: ChainOfThoughtHeaderProps) => {
+  ({ className, children, isLoading, ...props }: ChainOfThoughtHeaderProps) => {
     const { isOpen, setIsOpen } = useChainOfThought();
 
     return (
       <Collapsible onOpenChange={setIsOpen} open={isOpen}>
         <CollapsibleTrigger
           className={cn(
-            "text-muted-foreground hover:text-foreground flex w-full items-center gap-2 text-sm transition-colors",
+            "text-muted-foreground hover:text-foreground group flex w-full items-center text-sm transition-colors",
             className,
           )}
           {...props}
         >
-          <BrainIcon className="size-4" />
-          <span className="flex-1 text-left">
-            {children ?? "Chain of Thought"}
-          </span>
+          <div className="flex flex-1 items-center gap-2">
+            <BrainIcon className="size-4 opacity-70 group-hover:opacity-100" />
+            <ShinyText
+              className="group-hover:text-foreground! w-fit text-left"
+              shimmerWidth={20}
+              disabled={!isLoading}
+            >
+              {children ?? "Chain of Thought"}
+            </ShinyText>
+          </div>
           <ChevronDownIcon
             className={cn(
               "size-4 transition-transform",
@@ -183,7 +189,7 @@ export const ChainOfThoughtContent = memo(
       <Collapsible open={isOpen}>
         <CollapsibleContent
           className={cn(
-            "mt-2 space-y-3",
+            "mt-4 space-y-3",
             "data-[state=closed]:fade-out-0 data-[state=closed]:slide-out-to-top-2 data-[state=open]:slide-in-from-top-2 text-popover-foreground data-[state=closed]:animate-out data-[state=open]:animate-in outline-none",
             className,
           )}
