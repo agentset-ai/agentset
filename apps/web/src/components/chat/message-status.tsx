@@ -63,7 +63,7 @@ export const MessageStatus = ({
               status={isLoading && isLast ? "active" : "complete"}
             >
               {data.value === "searching" ? (
-                <ChainOfThoughtSearchResults>
+                <ChainOfThoughtSearchResults className="flex-wrap">
                   {data.queries.map((query) => (
                     <ChainOfThoughtSearchResult key={query}>
                       {query}
