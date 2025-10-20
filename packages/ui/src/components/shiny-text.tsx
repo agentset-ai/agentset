@@ -26,7 +26,7 @@ export const ShinyText = ({
 
         // Shine effect
         !disabled &&
-          "animate-shiny-text [background-size:var(--shiny-width)_100%] bg-clip-text [background-position:0_0] bg-no-repeat [transition:background-position_1s_cubic-bezier(.6,.6,0,1)_infinite]",
+          "animate-shiny-text [background-size:var(--shiny-width)_100%] bg-clip-text [background-position:0_0] bg-no-repeat",
 
         // Shine gradient
         !disabled &&

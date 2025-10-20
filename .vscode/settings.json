@@ -31,7 +31,9 @@
   "search.exclude": {
     "**/node_modules": true,
     "**/dist": true,
-    "pnpm-lock.yaml": true,
-    ".git/**": true
+    "**/.next": true,
+    "**/.turbo": true,
+    ".git/**": true,
+    "pnpm-lock.yaml": true
   }
 }

@@ -38,7 +38,7 @@ export default function ChatActions() {
         <ChatSettings
           trigger={
             <TooltipTrigger asChild>
-              <Button variant="ghost" size="icon" onClick={resetChat}>
+              <Button variant="ghost" size="icon">
                 <Settings2Icon className="size-4" />
               </Button>
             </TooltipTrigger>

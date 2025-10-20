@@ -1,6 +1,7 @@
 "use client";
 
 import { useHosting } from "@/contexts/hosting-context";
+import { useChatProperty } from "ai-sdk-zustand";
 
 import { cn } from "@agentset/ui/cn";
 
@@ -9,7 +10,6 @@ import { Messages } from "./messages";
 import { Overview } from "./overview";
 import { SuggestedActions } from "./suggested-actions";
 import { useNamespaceChat } from "./use-chat";
-import { useHostingChat } from "./use-hosting-chat";
 
 export default function Chat({
   type = "playground",
@@ -20,19 +20,17 @@ export default function Chat({
 }
 
 const PlaygroundChat = () => {
-  const { messages } = useNamespaceChat();
+  useNamespaceChat();
+  const isEmpty = useChatProperty((s) => s.messages.length === 0);
 
   return (
-    <div
-      className={cn(
-        "bg-background flex min-w-0 flex-col",
-        "h-[calc(100dvh-calc(var(--spacing)*20))]",
-        // messages.length === 0 && "items-center justify-center",
-      )}
-    >
-      {messages.length === 0 ? (
+    <div className="bg-background flex h-[calc(100dvh-calc(var(--spacing)*20))] min-w-0 flex-col">
+      {isEmpty ? (
         <div className="flex flex-1 items-center justify-center">
-          <Overview />
+          <Overview
+            title="Welcome to the playground"
+            description="Try chatting with your data here"
+          />
         </div>
       ) : (
         <Messages />
@@ -47,28 +45,20 @@ const PlaygroundChat = () => {
 
 const HostingChat = () => {
   const { exampleQuestions, welcomeMessage, logo } = useHosting();
-  const { messages } = useHostingChat();
+  const isEmpty = useChatProperty((s) => s.messages.length === 0);
 
   return (
     <div
       className={cn(
-        "bg-background flex min-w-0 flex-col",
-        "h-[calc(100dvh-64px)]",
-        messages.length === 0 && "items-center justify-center",
+        "bg-background flex h-[calc(100dvh-64px)] min-w-0 flex-col",
+        isEmpty && "items-center justify-center",
       )}
     >
-      {messages.length === 0 ? (
-        <Overview
-          title={welcomeMessage ?? "Start a conversation!"}
-          logo={logo}
-        />
-      ) : (
-        <Messages />
-      )}
+      {isEmpty ? <Overview title={welcomeMessage} logo={logo} /> : <Messages />}
 
       <div className="mx-auto flex w-full flex-col gap-4 px-4 pb-4 md:max-w-3xl md:pb-6">
         <MultimodalInput type="hosted" />
-        <SuggestedActions exampleMessages={["one", "two", "three", "four"]} />
+        <SuggestedActions exampleMessages={exampleQuestions} />
       </div>
     </div>
   );
