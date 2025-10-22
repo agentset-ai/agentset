@@ -12,7 +12,7 @@ import { createIngestJob } from "@/services/ingest-jobs/create";
 import { getPaginationArgs, paginateResults } from "@/services/pagination";
 
 import { db, Prisma } from "@agentset/db";
-import { isProPlan } from "@agentset/stripe/plans";
+import { isFreePlan } from "@agentset/stripe/plans";
 
 export const GET = withNamespaceApiHandler(
   async ({ searchParams, namespace, tenantId, headers }) => {
@@ -65,7 +65,7 @@ export const POST = withNamespaceApiHandler(
     // if it's not a pro plan, check if the user has exceeded the limit
     // pro plan is unlimited with usage based billing
     if (
-      !isProPlan(organization.plan) &&
+      isFreePlan(organization.plan) &&
       organization.totalPages >= organization.pagesLimit
     ) {
       throw new AgentsetApiError({
@@ -87,6 +87,7 @@ export const POST = withNamespaceApiHandler(
         data: body,
         namespaceId: namespace.id,
         tenantId,
+        plan: organization.plan,
       });
 
       return makeApiSuccessResponse({

@@ -5,7 +5,7 @@ import {
   createMeterEventSessionToken,
   meterDocumentsPages,
 } from "@agentset/stripe";
-import { isProPlan } from "@agentset/stripe/plans";
+import { isFreePlan } from "@agentset/stripe/plans";
 import { chunkArray } from "@agentset/utils";
 
 import { getDb } from "../db";
@@ -41,7 +41,7 @@ export const meterOrgDocuments = schemaTask({
     }
 
     const stripeCustomerId = organization.stripeId;
-    if (!isProPlan(organization.plan) || !stripeCustomerId) {
+    if (isFreePlan(organization.plan) || !stripeCustomerId) {
       // Not a pro plan or no stripe id, so we don't need to meter anything
       return {
         organizationId,

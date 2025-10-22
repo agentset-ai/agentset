@@ -8,7 +8,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { PlusIcon } from "lucide-react";
 import { toast } from "sonner";
 
-import { isProPlan } from "@agentset/stripe/plans";
+import { isFreePlan } from "@agentset/stripe/plans";
 import { Button } from "@agentset/ui/button";
 import {
   Dialog,
@@ -59,7 +59,7 @@ export function IngestModal() {
   // if it's not a pro plan, check if the user has exceeded the limit
   // pro plan is unlimited with usage based billing
   const isOverLimit =
-    !isProPlan(organization.plan) &&
+    isFreePlan(organization.plan) &&
     organization.totalPages >= organization.pagesLimit;
 
   return (
