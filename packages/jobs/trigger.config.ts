@@ -25,5 +25,5 @@ export default defineConfig({
       }),
     ],
   },
-  dirs: ["./src/tasks", "./src/cron"],
+  dirs: ["./src/tasks", "./src/cron", "./src/queues"],
 });

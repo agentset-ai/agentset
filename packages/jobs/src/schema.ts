@@ -2,6 +2,7 @@ import type { BatchItem } from "@trigger.dev/sdk";
 import { tasks } from "@trigger.dev/sdk";
 import { z } from "zod/v4";
 
+import { isEnterprisePlan } from "@agentset/stripe/plans";
 import {
   configSchema,
   EmbeddingConfigSchema,
@@ -14,9 +15,11 @@ export const triggerIngestionJobBodySchema = z.object({
 });
 export const triggerIngestionJob = (
   body: z.infer<typeof triggerIngestionJobBodySchema>,
+  plan: string,
 ) =>
   tasks.trigger(TRIGGER_INGESTION_JOB_ID, body, {
     tags: [`job_${body.jobId}`],
+    queue: isEnterprisePlan(plan) ? "enterprise" : "regular",
   });
 
 export const TRIGGER_DOCUMENT_JOB_ID = "trigger-document-job";

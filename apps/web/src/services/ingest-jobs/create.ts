@@ -9,10 +9,12 @@ import { checkFileExists } from "@agentset/storage";
 import { validateNamespaceFileKey } from "../uploads";
 
 export const createIngestJob = async ({
+  plan,
   namespaceId,
   tenantId,
   data,
 }: {
+  plan: string;
   namespaceId: string;
   tenantId?: string;
   data: z.infer<typeof createIngestJobSchema>;
@@ -121,9 +123,12 @@ export const createIngestJob = async ({
     }),
   ]);
 
-  const handle = await triggerIngestionJob({
-    jobId: job.id,
-  });
+  const handle = await triggerIngestionJob(
+    {
+      jobId: job.id,
+    },
+    plan,
+  );
 
   await db.ingestJob.update({
     where: { id: job.id },

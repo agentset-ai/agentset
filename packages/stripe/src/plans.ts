@@ -174,3 +174,11 @@ export const planToOrganizationFields = (plan: (typeof PLANS)[number]) => {
 export const isProPlan = (plan: string) => {
   return plan.toLowerCase() === "pro";
 };
+
+export const isFreePlan = (plan: string) => {
+  return plan.toLowerCase() === "free";
+};
+
+export const isEnterprisePlan = (plan: string) => {
+  return plan.toLowerCase() === "enterprise";
+};

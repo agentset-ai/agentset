@@ -1,7 +1,7 @@
 import { schedules } from "@trigger.dev/sdk";
 
 import { isProPlan } from "@agentset/stripe/plans";
-import { capitalize, getAdjustedBillingCycleStart } from "@agentset/utils";
+import { getAdjustedBillingCycleStart } from "@agentset/utils";
 
 import { getDb } from "../db";
 import { meterOrgDocuments } from "../tasks/meter-org-documents";
@@ -12,7 +12,7 @@ export const usageCronJob = schedules.task({
   // This route is used to update the usage stats of each organization.
   // Runs once every day at noon UTC (0 12 * * *)
   cron: "0 12 * * *",
-  run: async (payload) => {
+  run: async () => {
     const db = getDb();
 
     while (true) {
@@ -111,10 +111,10 @@ export const usageCronJob = schedules.task({
       }
 
       // Get all organizations that have exceeded usage
-      const exceedingUsage = organizations.filter(
-        ({ searchUsage, searchLimit, pagesLimit, totalPages }) =>
-          searchUsage > searchLimit || totalPages > pagesLimit,
-      );
+      // const exceedingUsage = organizations.filter(
+      //   ({ searchUsage, searchLimit, pagesLimit, totalPages }) =>
+      //     searchUsage > searchLimit || totalPages > pagesLimit,
+      // );
 
       // if (exceedingUsage.length > 0) {
       //   // TODO: notify via email that they're exceeding the usage
