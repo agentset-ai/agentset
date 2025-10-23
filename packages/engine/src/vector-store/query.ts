@@ -10,11 +10,13 @@ export type QueryVectorStoreOptions = Omit<VectorStoreQueryOptions, "mode"> & {
   embeddingModel: EmbeddingModel;
   vectorStore: VectorStore;
   rerank?: false | { model?: RerankingModel; limit?: number };
+  mode?: VectorStoreQueryOptions["mode"]["type"];
 };
 
 export const queryVectorStore = async ({
   embeddingModel,
   vectorStore,
+  mode = "semantic",
   ...options
 }: QueryVectorStoreOptions) => {
   const embedding = await embed({
@@ -25,7 +27,7 @@ export const queryVectorStore = async ({
   // TODO: track usage
   const results = await vectorStore.query({
     mode: {
-      type: "hybrid",
+      type: mode,
       vector: embedding.embedding,
       text: options.query,
     },

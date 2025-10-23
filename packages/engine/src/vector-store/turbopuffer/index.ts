@@ -249,4 +249,8 @@ export class Turbopuffer implements VectorStore<TurbopufferVectorFilter> {
 
     return "ANY" as const;
   }
+
+  supportsKeyword() {
+    return true;
+  }
 }
