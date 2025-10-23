@@ -55,7 +55,7 @@ export async function agenticSearch({
             ? [
                 {
                   query: lastMessage,
-                  type: "semantic",
+                  type: "semantic" as const,
                 },
               ]
             : []),
@@ -77,6 +77,9 @@ export async function agenticSearch({
 
           const queryResult = await queryVectorStore({
             query: query.query,
+            mode: queryOptions.vectorStore.supportsKeyword()
+              ? query.type
+              : undefined,
             rerank: { model: "cohere:rerank-v3.5", limit: 15 },
             includeMetadata: true,
             ...queryOptions,

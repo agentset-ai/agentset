@@ -41,7 +41,12 @@ export const POST = withNamespaceApiHandler(
       await parseRequestBody(req),
     );
 
-    if (!namespace.keywordEnabled && body.mode === "keyword") {
+    const isPinecone =
+      namespace.vectorStoreConfig?.provider === "MANAGED_PINECONE" ||
+      namespace.vectorStoreConfig?.provider === "MANAGED_PINECONE_OLD" ||
+      namespace.vectorStoreConfig?.provider === "PINECONE";
+
+    if (body.mode === "keyword" && isPinecone && !namespace.keywordEnabled) {
       throw new AgentsetApiError({
         code: "bad_request",
         message: "Keyword search is not enabled for this namespace",
@@ -56,12 +61,24 @@ export const POST = withNamespaceApiHandler(
     let results: QueryVectorStoreResult["results"] | undefined = [];
 
     // TODO: track the usage
-    if (body.mode === "semantic") {
+    if (body.mode === "keyword" && isPinecone) {
+      const store = new KeywordStore(namespace.id, tenantId);
+      results = (
+        await store.search(body.query, {
+          limit: body.topK,
+          minScore: body.minScore,
+          includeMetadata: body.includeMetadata,
+          includeRelationships: body.includeRelationships,
+          filter: body.keywordFilter,
+        })
+      ).results;
+    } else {
       results = (
         await queryVectorStore({
           embeddingModel,
           vectorStore,
           query: body.query,
+          mode: body.mode,
           topK: body.topK,
           minScore: body.minScore,
           filter: body.filter,
@@ -75,17 +92,6 @@ export const POST = withNamespaceApiHandler(
             : false,
         })
       )?.results;
-    } else if (body.mode === "keyword") {
-      const store = new KeywordStore(namespace.id, tenantId);
-      results = (
-        await store.search(body.query, {
-          limit: body.topK,
-          minScore: body.minScore,
-          includeMetadata: body.includeMetadata,
-          includeRelationships: body.includeRelationships,
-          filter: body.keywordFilter,
-        })
-      ).results;
     }
 
     if (!results) {

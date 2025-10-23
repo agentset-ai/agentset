@@ -117,4 +117,8 @@ export class Pinecone implements VectorStore<PineconeVectorFilter> {
     const response = await this.client.describeIndexStats();
     return response.dimension!;
   }
+
+  supportsKeyword() {
+    return false;
+  }
 }
