@@ -5,8 +5,8 @@ import { makeApiSuccessResponse } from "@/lib/api/response";
 import { getNamespaceVectorStore } from "@agentset/engine";
 
 export const POST = withNamespaceApiHandler(
-  async ({ namespace, headers }) => {
-    const vectorStore = await getNamespaceVectorStore(namespace);
+  async ({ namespace, headers, tenantId }) => {
+    const vectorStore = await getNamespaceVectorStore(namespace, tenantId);
     const result = await vectorStore.warmCache();
 
     if (result === "UNSUPPORTED") {
