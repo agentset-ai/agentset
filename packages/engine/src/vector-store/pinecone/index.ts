@@ -1,5 +1,9 @@
 import { MetadataMode } from "@llamaindex/core/schema";
-import { Index, Pinecone as PineconeClient } from "@pinecone-database/pinecone";
+import {
+  Index,
+  Pinecone as PineconeClient,
+  Errors as PineconeErrors,
+} from "@pinecone-database/pinecone";
 
 import { filterFalsy } from "@agentset/utils";
 
@@ -93,24 +97,49 @@ export class Pinecone implements VectorStore<PineconeVectorFilter> {
   }
 
   async deleteByIds(idOrIds: string | string[]) {
-    if (Array.isArray(idOrIds)) {
-      await this.client.deleteMany(idOrIds);
-      return { deleted: undefined };
-    }
+    try {
+      if (Array.isArray(idOrIds)) {
+        await this.client.deleteMany(idOrIds);
+        return { deleted: undefined };
+      }
 
-    await this.client.deleteOne(idOrIds);
-    return { deleted: undefined };
+      await this.client.deleteOne(idOrIds);
+      return { deleted: undefined };
+    } catch (error) {
+      if (error instanceof PineconeErrors.PineconeNotFoundError)
+        return { deleted: undefined };
+
+      throw error;
+    }
   }
 
   async deleteByFilter(filter: PineconeVectorFilter) {
     const translatedFilter = this.filterTranslator.translate(filter);
-    await this.client.deleteMany((translatedFilter as any) ?? undefined);
-    return { deleted: undefined };
+    try {
+      await this.client.deleteMany((translatedFilter as any) ?? undefined);
+      return { deleted: undefined };
+    } catch (error) {
+      if (error instanceof PineconeErrors.PineconeNotFoundError)
+        return { deleted: undefined };
+
+      throw error;
+    }
   }
 
   async deleteNamespace() {
-    await this.client.deleteAll();
-    return { deleted: undefined };
+    try {
+      await this.client.deleteAll();
+      return { deleted: undefined };
+    } catch (error) {
+      if (error instanceof PineconeErrors.PineconeNotFoundError)
+        return { deleted: undefined };
+
+      throw error;
+    }
+  }
+
+  async warmCache() {
+    return "UNSUPPORTED" as const;
   }
 
   async getDimensions() {
