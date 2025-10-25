@@ -7,7 +7,7 @@ import { db, IngestJobStatus } from "@agentset/db";
 import { triggerReIngestJob } from "@agentset/jobs";
 
 export const POST = withNamespaceApiHandler(
-  async ({ params, namespace, headers }) => {
+  async ({ params, namespace, headers, organization }) => {
     const jobId = normalizeId(params.jobId ?? "", "job_");
     if (!jobId) {
       throw new AgentsetApiError({
@@ -54,9 +54,12 @@ export const POST = withNamespaceApiHandler(
       });
     }
 
-    const handle = await triggerReIngestJob({
-      jobId: ingestJob.id,
-    });
+    const handle = await triggerReIngestJob(
+      {
+        jobId: ingestJob.id,
+      },
+      organization.plan,
+    );
 
     await db.ingestJob.update({
       where: { id: ingestJob.id },

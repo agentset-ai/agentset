@@ -35,7 +35,7 @@ export const reIngestJob = schemaTask({
       select: { id: true },
     });
   },
-  run: async ({ jobId }) => {
+  run: async ({ jobId }, { ctx }) => {
     const db = getDb();
 
     // Get ingest job configuration
@@ -111,6 +111,7 @@ export const reIngestJob = schemaTask({
           },
           options: {
             tags: [`doc_${document.id}`],
+            priority: ctx.run.priority,
           },
         })),
       );

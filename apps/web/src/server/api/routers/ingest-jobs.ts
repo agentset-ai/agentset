@@ -174,15 +174,21 @@ export const ingestJobRouter = createTRPCRouter({
         throw new TRPCError({ code: "NOT_FOUND" });
       }
 
-      const ingestJob = await ctx.db.ingestJob.findUnique({
-        where: {
-          id: input.jobId,
-          namespaceId: namespace.id,
-        },
-        select: { id: true, status: true },
-      });
+      const [ingestJob, organization] = await Promise.all([
+        ctx.db.ingestJob.findUnique({
+          where: {
+            id: input.jobId,
+            namespaceId: namespace.id,
+          },
+          select: { id: true, status: true },
+        }),
+        ctx.db.organization.findUnique({
+          where: { id: namespace.organizationId },
+          select: { plan: true },
+        }),
+      ]);
 
-      if (!ingestJob) {
+      if (!ingestJob || !organization) {
         throw new TRPCError({ code: "NOT_FOUND" });
       }
 
@@ -196,9 +202,12 @@ export const ingestJobRouter = createTRPCRouter({
         });
       }
 
-      const handle = await triggerReIngestJob({
-        jobId: ingestJob.id,
-      });
+      const handle = await triggerReIngestJob(
+        {
+          jobId: ingestJob.id,
+        },
+        organization.plan,
+      );
 
       await ctx.db.ingestJob.update({
         where: { id: ingestJob.id },
