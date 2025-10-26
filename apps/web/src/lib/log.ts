@@ -28,7 +28,7 @@ export const log = async ({
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        content: `${type === "alerts" || type === "errors" ? ":alert: " : ""}${message}`,
+        content: `${type === "alerts" || type === "errors" ? "🚨 " : ""}${message}`,
       }),
     });
   } catch (e) {
