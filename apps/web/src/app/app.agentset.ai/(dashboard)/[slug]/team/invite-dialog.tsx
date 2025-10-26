@@ -30,12 +30,20 @@ import {
   SelectValue,
 } from "@agentset/ui/select";
 
+// Email validation helper
+const isValidEmail = (email: string): boolean => {
+  if (!email) return false;
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  return emailRegex.test(email);
+};
+
 function InviteMemberDialog() {
   const [open, setOpen] = useState(false);
   const { id, isAdmin } = useOrganization();
 
   const [email, setEmail] = useState("");
   const [role, setRole] = useState("member");
+  const [emailError, setEmailError] = useState("");
 
   const trpc = useTRPC();
   const queryClient = useQueryClient();
@@ -69,6 +77,12 @@ function InviteMemberDialog() {
   });
 
   const handleInvite = () => {
+    
+    if (!email || !isValidEmail(email)) {
+      setEmailError("Please enter a valid email address");
+      return;
+    }
+
     logEvent("team_invite_member_clicked", {
       organizationId: id,
       email,
@@ -82,8 +96,18 @@ function InviteMemberDialog() {
     });
   };
 
+  const handleOpenChange = (isOpen: boolean) => {
+    setOpen(isOpen);
+
+    if (!isOpen) {
+      setEmail("");
+      setEmailError("");
+      setRole("member");
+    }
+  };
+
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
+    <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogTrigger asChild disabled={!isAdmin}>
         <Button>
           <PlusIcon className="size-4" />
@@ -102,10 +126,24 @@ function InviteMemberDialog() {
           <div className="flex flex-col gap-2">
             <Label>Email</Label>
             <Input
+              type="email"
               placeholder="Email"
               value={email}
-              onChange={(e) => setEmail(e.target.value)}
+              onChange={(e) => {
+                const newEmail = e.target.value;
+                setEmail(newEmail);
+
+                if (newEmail && !isValidEmail(newEmail)) {
+                  setEmailError("Please enter a valid email address");
+                } else {
+                  setEmailError("");
+                }
+              }}
+              className={emailError ? "border-red-500" : ""}
             />
+            {emailError && (
+              <p className="text-sm text-red-500">{emailError}</p>
+            )}
           </div>
 
           <div className="flex flex-col gap-2">
@@ -122,7 +160,11 @@ function InviteMemberDialog() {
           </div>
         </div>
         <DialogFooter>
-          <Button isLoading={isPending} onClick={handleInvite}>
+          <Button
+            isLoading={isPending}
+            onClick={handleInvite}
+            disabled={!email || !!emailError || isPending}
+          >
             Invite
           </Button>
         </DialogFooter>
