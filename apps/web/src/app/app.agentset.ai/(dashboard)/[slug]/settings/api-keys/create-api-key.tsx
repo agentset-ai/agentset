@@ -33,7 +33,7 @@ export default function CreateApiKey({ orgId }: { orgId: string }) {
   const trpc = useTRPC();
   const queryClient = useQueryClient();
 
-  const { isPending, mutateAsync, data } = useMutation(
+  const { isPending, mutateAsync, data, reset } = useMutation(
     trpc.apiKey.createApiKey.mutationOptions({
       onSuccess: (newKey) => {
         logEvent("api_key_created", {
@@ -72,6 +72,12 @@ export default function CreateApiKey({ orgId }: { orgId: string }) {
       onOpenChange={(newOpen) => {
         if (isPending) return;
         setIsOpen(newOpen);
+        if (!newOpen) {
+          // Reset form and mutation state when modal closes
+          setLabel("");
+          setScope("all");
+          reset();
+        }
       }}
     >
       <div>
