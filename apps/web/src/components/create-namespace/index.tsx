@@ -117,7 +117,7 @@ export default function CreateNamespaceDialog({
         setOpen(newOpen);
       }}
     >
-      <DialogContent className="sm:max-w-xl">
+      <DialogContent className="sm:max-w-xl" scrollableOverlay>
         <DialogHeader>
           <DialogTitle>
             {step === "details"

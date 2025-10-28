@@ -5,6 +5,7 @@ import { useOrganization } from "@/hooks/use-organization";
 import { logEvent } from "@/lib/analytics";
 import { authClient } from "@/lib/auth-client";
 import { useTRPC } from "@/trpc/react";
+import { useRouter } from "@bprogress/next/app";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useForm } from "react-hook-form";
@@ -49,6 +50,7 @@ const makeFormSchema = (currentSlug: string) =>
 
 export default function SettingsPage() {
   const organization = useOrganization();
+  const router = useRouter();
   const formSchema = useMemo(
     () => makeFormSchema(organization.slug),
     [organization.slug],
@@ -89,6 +91,11 @@ export default function SettingsPage() {
         }),
       );
       toast.success("Organization updated");
+
+      // if slug changed, redirect to the new slug
+      if (organization.slug !== data.slug) {
+        router.replace(`/${data.slug}/settings`);
+      }
     },
     onError: () => {
       toast.error("Failed to update organization");

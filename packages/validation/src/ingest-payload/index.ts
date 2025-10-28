@@ -76,7 +76,7 @@ const fileNameSchema = z
 export const textPayloadSchema = z
   .object({
     type: z.literal("TEXT"),
-    text: z.string().describe("The text to ingest."),
+    text: z.string().min(1).describe("The text to ingest."),
     fileName: fileNameSchema,
     // externalId: documentExternalIdSchema,
   })
@@ -88,7 +88,7 @@ export const textPayloadSchema = z
 export const filePayloadSchema = z
   .object({
     type: z.literal("FILE"),
-    fileUrl: z.string().describe("The URL of the file to ingest."),
+    fileUrl: z.url().describe("The URL of the file to ingest."),
     fileName: fileNameSchema,
     // externalId: documentExternalIdSchema,
   })

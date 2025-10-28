@@ -1,9 +1,9 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
 import { useOrganization } from "@/hooks/use-organization";
 import { useTRPC } from "@/trpc/react";
+import { useRouter } from "@bprogress/next/app";
 import { useMutation } from "@tanstack/react-query";
 import { CalendarSyncIcon, MoreVerticalIcon, XIcon } from "lucide-react";
 import { toast } from "sonner";
