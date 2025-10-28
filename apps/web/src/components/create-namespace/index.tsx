@@ -115,13 +115,6 @@ export default function CreateNamespaceDialog({
       onOpenChange={(newOpen) => {
         if (isPending) return;
         setOpen(newOpen);
-        if (!newOpen) {
-          // Reset form state when modal closes
-          setName(defaultName);
-          setSlug(defaultSlug);
-          setEmbeddingModel(undefined);
-          setStep("details");
-        }
       }}
     >
       <DialogContent className="sm:max-w-xl" scrollableOverlay>

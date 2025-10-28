@@ -1,8 +1,8 @@
 "use client";
 
-import { useRouter } from "next/navigation";
 import { useOrganization } from "@/hooks/use-organization";
 import { useTRPC } from "@/trpc/react";
+import { useRouter } from "@bprogress/next/app";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { CreditCardIcon } from "lucide-react";
 import { toast } from "sonner";
