@@ -2,6 +2,7 @@ import { z } from "zod/v4";
 
 import { DocumentStatus } from "@agentset/db";
 import {
+  documentConfigSchema,
   // documentExternalIdSchema,
   documentPayloadSchema,
   documentPropertiesSchema,
@@ -41,6 +42,7 @@ export const DocumentSchema = z
       ),
     source: documentPayloadSchema,
     properties: documentPropertiesSchema.nullable().default(null),
+    config: documentConfigSchema.nullable().default(null),
     totalChunks: z.number().describe("The total number of chunks."),
     totalTokens: z.number().describe("The total number of tokens."),
     totalCharacters: z.number().describe("The total number of characters."),
