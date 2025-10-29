@@ -24,39 +24,44 @@ export const ingestJobNameSchema = z
   .optional()
   .describe("The name of the ingest job.");
 
-export const configSchema = z
-  .object({
-    chunkSize: z.coerce.number().describe("Soft chunk size.").optional(),
-    maxChunkSize: z.coerce.number().describe("Hard chunk size.").optional(),
-    chunkOverlap: z.coerce
-      .number()
-      .describe("Custom chunk overlap.")
-      .optional(),
-    metadata: z
-      .record(z.string(), z.union([z.string(), z.number(), z.boolean()]))
-      .describe(
-        "Custom metadata to be added to the ingested documents. It cannot contain nested objects; only primitive types (string, number, boolean) are allowed.",
-      )
-      .optional(),
-    chunkingStrategy: z
-      .enum(["basic", "by_title"])
-      .meta({
-        id: "chunking-strategy",
-        description: "The chunking strategy to use. Defaults to `basic`.",
-      })
-      .optional(),
-    strategy: z
-      .enum(["auto", "fast", "hi_res", "ocr_only"])
-      .meta({
-        id: "strategy",
-        description: "The strategy to use. Defaults to `auto`.",
-      })
-      .optional(),
-    // languages: z.array(z.string()).optional().describe("The languages to use."),
-  })
-  .meta({ id: "ingest-job-config", description: "The ingest job config." });
+const baseConfigSchema = z.object({
+  chunkSize: z.coerce.number().describe("Soft chunk size.").optional(),
+  maxChunkSize: z.coerce.number().describe("Hard chunk size.").optional(),
+  chunkOverlap: z.coerce.number().describe("Custom chunk overlap.").optional(),
+  metadata: z
+    .record(z.string(), z.union([z.string(), z.number(), z.boolean()]))
+    .describe(
+      "Custom metadata to be added to the ingested documents. It cannot contain nested objects; only primitive types (string, number, boolean) are allowed.",
+    )
+    .optional(),
+  chunkingStrategy: z
+    .enum(["basic", "by_title"])
+    .meta({
+      id: "chunking-strategy",
+      description: "The chunking strategy to use. Defaults to `basic`.",
+    })
+    .optional(),
+  strategy: z
+    .enum(["auto", "fast", "hi_res", "ocr_only"])
+    .meta({
+      id: "strategy",
+      description: "The strategy to use. Defaults to `auto`.",
+    })
+    .optional(),
+  // languages: z.array(z.string()).optional().describe("The languages to use."),
+});
+
+export const configSchema = baseConfigSchema.meta({
+  id: "ingest-job-config",
+  description: "The ingest job config.",
+});
 
 export type IngestJobConfig = z.infer<typeof configSchema>;
+
+export const documentConfigSchema = configSchema.meta({
+  id: "document-config",
+  description: "The document config.",
+});
 
 const fileNameSchema = z
   .string()
@@ -115,9 +120,11 @@ export const batchPayloadSchema = z
     items: z
       .array(
         z.discriminatedUnion("type", [
-          textPayloadSchema.extend({ config: configSchema.optional() }),
-          filePayloadSchema.extend({ config: configSchema.optional() }),
-          managedFilePayloadSchema.extend({ config: configSchema.optional() }),
+          textPayloadSchema.extend({ config: documentConfigSchema.optional() }),
+          filePayloadSchema.extend({ config: documentConfigSchema.optional() }),
+          managedFilePayloadSchema.extend({
+            config: documentConfigSchema.optional(),
+          }),
         ]),
       )
       .describe("The items to ingest.")
