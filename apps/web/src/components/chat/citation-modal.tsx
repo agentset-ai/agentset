@@ -10,6 +10,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@agentset/ui/dialog";
+import { truncate } from "@agentset/utils";
 
 interface CitationModalProps {
   source: { text: string; metadata?: Record<string, unknown> };
@@ -17,10 +18,15 @@ interface CitationModalProps {
   triggerProps: React.ComponentProps<"button">;
 }
 
-const HostingCitation = ({
+const useHostingCitationName = ({
   source,
   sourceIndex,
 }: Pick<CitationModalProps, "source" | "sourceIndex">) => {
+  const isHosting = useIsHosting();
+
+  // it's fine to call hooks conditionally here because we'll never get a different value for `isHosting` within the same render
+  if (!isHosting) return null;
+
   const hosting = useHosting();
   const citationName = useMemo(() => {
     if (!hosting.citationMetadataPath || !source.metadata) return null;
@@ -45,7 +51,7 @@ const HostingCitation = ({
     return null;
   }, [hosting, source.metadata]);
 
-  return <>{citationName ? citationName : `[${sourceIndex}]`}</>;
+  return citationName ? citationName : `[${sourceIndex}]`;
 };
 
 export function CitationModal({
@@ -53,8 +59,7 @@ export function CitationModal({
   sourceIndex,
   triggerProps,
 }: CitationModalProps) {
-  const isHosting = useIsHosting();
-
+  const hostingCitation = useHostingCitationName({ source, sourceIndex });
   const stringifiedMetadata = useMemo(() => {
     if (!source.metadata) return null;
     try {
@@ -63,10 +68,6 @@ export function CitationModal({
       return "Failed to parse metadata!";
     }
   }, [source]);
-
-  const hostingCitation = isHosting ? (
-    <HostingCitation source={source} sourceIndex={sourceIndex} />
-  ) : null;
 
   return (
     <Dialog>
@@ -79,7 +80,7 @@ export function CitationModal({
               "bg-muted text-muted-foreground hover:bg-primary hover:text-primary-foreground mx-0.5 cursor-pointer rounded-full px-2 py-0.5 text-sm font-medium hover:no-underline",
             )}
           >
-            {hostingCitation}
+            {truncate(hostingCitation, 35, "...")}
           </button>
         ) : (
           <button
