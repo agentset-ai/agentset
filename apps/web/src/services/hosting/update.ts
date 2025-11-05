@@ -22,6 +22,7 @@ export const updateHosting = async ({
       id: true,
       namespaceId: true,
       logo: true,
+      rerankConfig: true,
     },
   });
 
@@ -40,6 +41,13 @@ export const updateHosting = async ({
           logo,
         )
       : logo;
+
+  const newRerankConfig = hosting.rerankConfig
+    ? structuredClone(hosting.rerankConfig)
+    : ({} as PrismaJson.HostingRerankConfig);
+
+  if (input.rerankModel) newRerankConfig.model = input.rerankModel;
+  if (input.rerankLimit) newRerankConfig.limit = input.rerankLimit;
 
   try {
     const updatedHosting = await db.hosting.update({
@@ -61,12 +69,11 @@ export const updateHosting = async ({
         welcomeMessage: input.welcomeMessage,
         citationMetadataPath: input.citationMetadataPath,
         searchEnabled: input.searchEnabled,
-        ...(input.rerankModel && {
-          rerankConfig: { model: input.rerankModel },
-        }),
+        ...(newRerankConfig && { rerankConfig: newRerankConfig }),
         ...(input.llmModel && {
           llmConfig: { model: input.llmModel },
         }),
+        ...(input.topK && { topK: input.topK }),
       },
     });
 

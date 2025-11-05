@@ -70,6 +70,9 @@ model Hosting {
   /// [HostingLLMConfig]
   llmConfig    Json?
 
+  // retrieval configuration
+  topK Int @default(50) // Number of documents to retrieve from vector store
+
   protected           Boolean  @default(true) // Whether the namespace is protected from public access
   allowedEmails       String[] @default([]) // relevant when protected is true
   allowedEmailDomains String[] @default([]) // relevant when protected is true

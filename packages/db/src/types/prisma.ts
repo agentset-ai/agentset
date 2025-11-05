@@ -37,7 +37,7 @@ declare global {
     type NamespaceEmbeddingConfig = EmbeddingConfig;
     type DocumentProperties = _DocumentProperties;
 
-    type HostingRerankConfig = { model: RerankingModel };
+    type HostingRerankConfig = { model: RerankingModel; limit?: number };
     type HostingLLMConfig = { model: LLM };
 
     type DocumentSource = _DocumentPayload;
