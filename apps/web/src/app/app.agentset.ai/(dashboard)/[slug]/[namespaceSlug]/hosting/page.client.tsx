@@ -97,7 +97,7 @@ export default function HostingPage() {
           allowedEmails: data.allowedEmails,
           allowedEmailDomains: data.allowedEmailDomains,
           systemPrompt: data.systemPrompt || "",
-          examplesQuestions: data.exampleQuestions,
+          exampleQuestions: data.exampleQuestions,
           exampleSearchQueries: data.exampleSearchQueries,
           welcomeMessage: data.welcomeMessage || "",
           citationMetadataPath: data.citationMetadataPath || "",

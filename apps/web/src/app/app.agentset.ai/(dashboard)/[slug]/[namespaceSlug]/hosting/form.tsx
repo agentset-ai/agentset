@@ -41,7 +41,7 @@ type FormSubmissionData = {
   allowedEmails: string[];
   allowedEmailDomains: string[];
   systemPrompt: string;
-  examplesQuestions: string[];
+  exampleQuestions: string[];
   exampleSearchQueries: string[];
   welcomeMessage: string;
   citationMetadataPath?: string;
@@ -58,7 +58,7 @@ export const schema = z.object({
   allowedEmails: z.array(z.string().email()),
   allowedEmailDomains: z.array(z.string()),
   systemPrompt: z.string().min(1, "System prompt cannot be empty"),
-  examplesQuestions: z
+  exampleQuestions: z
     .array(z.string().min(1, "Example cannot be empty"))
     .max(4),
   exampleSearchQueries: z
@@ -91,7 +91,7 @@ export default function HostingForm({
       allowedEmails: [],
       allowedEmailDomains: [],
       systemPrompt: DEFAULT_SYSTEM_PROMPT.compile(),
-      examplesQuestions: [],
+      exampleQuestions: [],
       exampleSearchQueries: [],
       welcomeMessage: "",
       citationMetadataPath: "",
@@ -111,7 +111,7 @@ export default function HostingForm({
       allowedEmails: data.allowedEmails,
       allowedEmailDomains: data.allowedEmailDomains,
       systemPrompt: data.systemPrompt,
-      examplesQuestions: data.examplesQuestions,
+      exampleQuestions: data.exampleQuestions,
       exampleSearchQueries: data.exampleSearchQueries,
       welcomeMessage: data.welcomeMessage,
       citationMetadataPath: data.citationMetadataPath,
@@ -391,7 +391,7 @@ export default function HostingForm({
 
               <SortableList
                 form={form}
-                name="examplesQuestions"
+                name="exampleQuestions"
                 label="Examples"
                 maxItems={4}
               />

@@ -67,10 +67,10 @@ export default function SortableList<T extends object>({
 
   const handleAdd = () => {
     // Check if the last example is empty
-    const examplesQuestions = form.getValues(typedName);
-    const lastExample = examplesQuestions.at(-1);
-    if (lastExample === "") {
-      form.setError(`${typedName}.${examplesQuestions.length - 1}`, {
+    const values = form.getValues(typedName);
+    const lastValue = values.at(-1);
+    if (lastValue === "") {
+      form.setError(`${typedName}.${values.length - 1}`, {
         type: "manual",
         message: "Please fill in the current item before adding a new one",
       });
