@@ -31,8 +31,8 @@ interface ChatActions {
 type ChatSettings = ChatState & ChatActions;
 
 const defaultState: NamespaceState = {
-  topK: 15,
-  rerankLimit: 5,
+  topK: 50,
+  rerankLimit: 15,
   systemPrompt: null,
   temperature: 0,
   mode: "agentic",
@@ -69,7 +69,7 @@ export const useChatSettings = create<ChatSettings>()(
     }),
     {
       name: "chat-settings",
-      version: 2,
+      version: 3,
       migrate(persistedState: unknown, version: number) {
         if (version < 2) {
           // Add default model values for version 1 -> 2 migration
@@ -87,6 +87,24 @@ export const useChatSettings = create<ChatSettings>()(
             ),
           };
         }
+
+        if (version < 3) {
+          // Add default values for version 2 -> 3 migration
+          const oldState = persistedState as ChatState;
+          return {
+            namespaces: Object.fromEntries(
+              Object.entries(oldState.namespaces).map(([id, state]) => [
+                id,
+                {
+                  ...state,
+                  topK: state.topK === 15 ? 50 : state.topK,
+                  rerankLimit: state.rerankLimit === 5 ? 15 : state.rerankLimit,
+                },
+              ]),
+            ),
+          };
+        }
+
         return persistedState;
       },
     },
