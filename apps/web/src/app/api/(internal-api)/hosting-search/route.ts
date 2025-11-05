@@ -46,6 +46,7 @@ export const POST = withPublicApiHandler(
         searchEnabled: true,
         rerankConfig: true,
         llmConfig: true,
+        topK: true,
         namespace: {
           select: {
             id: true,
@@ -84,15 +85,14 @@ export const POST = withPublicApiHandler(
       : undefined;
 
     const result = await agenticSearch({
-      // TODO: get from hosting
       model: languageModel,
       queryOptions: {
         embeddingModel,
         vectorStore,
-        topK: 50,
+        topK: hosting.topK,
         rerank: {
           model: hosting.rerankConfig?.model,
-          limit: 15,
+          limit: hosting.rerankConfig?.limit ?? 15,
         },
         includeMetadata: true,
       },

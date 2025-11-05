@@ -2,9 +2,13 @@ import ListInput from "@/components/list-input";
 import { LLMSelector } from "@/components/llm-selector";
 import { RerankerSelector } from "@/components/reranker-selector";
 import SortableList from "@/components/sortable-list";
+import { useNamespace } from "@/hooks/use-namespace";
+import { logEvent } from "@/lib/analytics";
 import { APP_DOMAIN, HOSTING_PREFIX } from "@/lib/constants";
 import { DEFAULT_SYSTEM_PROMPT } from "@/lib/prompts";
+import { RouterOutputs, useTRPC } from "@/trpc/react";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { ArrowUpRightIcon, CopyIcon } from "lucide-react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
@@ -32,24 +36,6 @@ import {
   rerankerSchema,
 } from "@agentset/validation";
 
-// Separate type for API submission
-type FormSubmissionData = {
-  title: string;
-  slug: string;
-  logo?: string | null;
-  protected: boolean;
-  allowedEmails: string[];
-  allowedEmailDomains: string[];
-  systemPrompt: string;
-  exampleQuestions: string[];
-  exampleSearchQueries: string[];
-  welcomeMessage: string;
-  citationMetadataPath?: string;
-  searchEnabled: boolean;
-  rerankConfig?: PrismaJson.HostingRerankConfig | null;
-  llmConfig?: PrismaJson.HostingLLMConfig | null;
-};
-
 export const schema = z.object({
   title: z.string().min(1, "Title is required"),
   slug: z.string().min(1, "Slug is required"),
@@ -69,59 +55,102 @@ export const schema = z.object({
   searchEnabled: z.boolean(),
   rerankModel: rerankerSchema,
   llmModel: llmSchema,
+  topK: z.number().int().min(1).max(100),
+  rerankLimit: z.number().int().min(1).max(100),
 });
 
 type FormValues = z.infer<typeof schema>;
 
-export default function HostingForm({
-  isPending,
-  onSubmit,
-  defaultValues,
-}: {
-  isPending: boolean;
-  onSubmit: (data: FormSubmissionData) => void;
-  defaultValues?: Partial<FormSubmissionData>;
-}) {
+type Data = NonNullable<RouterOutputs["hosting"]["get"]>;
+
+export default function HostingForm({ data }: { data: Data }) {
+  const namespace = useNamespace();
+  const trpc = useTRPC();
+  const queryClient = useQueryClient();
+  const { mutateAsync: updateHosting, isPending: isUpdating } = useMutation(
+    trpc.hosting.update.mutationOptions({
+      onSuccess: (result) => {
+        logEvent("hosting_updated", {
+          namespaceId: namespace.id,
+          slug: result.slug,
+          protected: result.protected,
+          searchEnabled: result.searchEnabled,
+          hasCustomPrompt: !!result.systemPrompt,
+          hasWelcomeMessage: !!result.welcomeMessage,
+          exampleQuestionsCount: result.exampleQuestions?.length || 0,
+          exampleSearchQueriesCount: result.exampleSearchQueries?.length || 0,
+        });
+        toast.success("Hosting updated");
+        queryClient.setQueryData(
+          trpc.hosting.get.queryKey({
+            namespaceId: namespace.id,
+          }),
+          (old) => {
+            return {
+              ...(old ?? {}),
+              ...result,
+              domain: old?.domain || null,
+            };
+          },
+        );
+
+        queryClient.invalidateQueries(
+          trpc.hosting.get.queryOptions({
+            namespaceId: namespace.id,
+          }),
+        );
+      },
+      onError: (error) => {
+        toast.error(error.message);
+      },
+    }),
+  );
+
   const form = useForm({
     resolver: zodResolver(schema),
     defaultValues: {
-      title: "",
-      slug: "",
-      protected: false,
-      allowedEmails: [],
-      allowedEmailDomains: [],
-      systemPrompt: DEFAULT_SYSTEM_PROMPT.compile(),
-      exampleQuestions: [],
-      exampleSearchQueries: [],
-      welcomeMessage: "",
-      citationMetadataPath: "",
-      searchEnabled: true,
-      rerankModel: DEFAULT_RERANKER,
-      llmModel: DEFAULT_LLM,
-      ...defaultValues,
-    },
-  });
-
-  const handleSubmit = async (data: FormValues) => {
-    onSubmit({
-      title: data.title,
-      slug: data.slug,
-      logo: defaultValues?.logo === data.logo ? undefined : data.logo,
+      title: data.title || "",
+      slug: data.slug || "",
+      logo: data.logo || null,
       protected: data.protected,
       allowedEmails: data.allowedEmails,
       allowedEmailDomains: data.allowedEmailDomains,
-      systemPrompt: data.systemPrompt,
+      systemPrompt: data.systemPrompt || DEFAULT_SYSTEM_PROMPT.compile(),
       exampleQuestions: data.exampleQuestions,
       exampleSearchQueries: data.exampleSearchQueries,
-      welcomeMessage: data.welcomeMessage,
-      citationMetadataPath: data.citationMetadataPath,
+      welcomeMessage: data.welcomeMessage || "",
+      citationMetadataPath: data.citationMetadataPath || "",
       searchEnabled: data.searchEnabled,
-      rerankConfig: { model: data.rerankModel },
-      llmConfig: { model: data.llmModel },
+      rerankModel: data.rerankConfig?.model ?? DEFAULT_RERANKER,
+      rerankLimit: data.rerankConfig?.limit ?? 15,
+      llmModel: data.llmConfig?.model ?? DEFAULT_LLM,
+      topK: data.topK,
+    },
+  });
+
+  const handleSubmit = async (newData: FormValues) => {
+    updateHosting({
+      namespaceId: namespace.id,
+      title: newData.title,
+      slug: newData.slug,
+      logo: data?.logo === newData.logo ? undefined : newData.logo,
+      protected: newData.protected,
+      allowedEmails: newData.allowedEmails,
+      allowedEmailDomains: newData.allowedEmailDomains,
+      systemPrompt: newData.systemPrompt,
+      exampleQuestions: newData.exampleQuestions,
+      exampleSearchQueries: newData.exampleSearchQueries,
+      welcomeMessage: newData.welcomeMessage,
+      citationMetadataPath: newData.citationMetadataPath,
+      searchEnabled: newData.searchEnabled,
+      rerankModel: newData.rerankModel,
+      llmModel: newData.llmModel,
+      topK: newData.topK,
+      rerankLimit: newData.rerankLimit,
     });
   };
 
-  const url = `${APP_DOMAIN}${HOSTING_PREFIX}${defaultValues?.slug}`;
+  const url = `${APP_DOMAIN}${HOSTING_PREFIX}${data?.slug}`;
 
   const handleCopy = () => {
     void navigator.clipboard.writeText(url);
@@ -223,7 +252,7 @@ export default function HostingForm({
 
                     <AvatarUploader
                       onImageChange={field.onChange}
-                      defaultImageUrl={defaultValues?.logo}
+                      defaultImageUrl={data?.logo}
                     />
 
                     <FormMessage />
@@ -325,6 +354,58 @@ export default function HostingForm({
                       />
                     </FormControl>
 
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="topK"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Top K</FormLabel>
+                    <FormControl>
+                      <Input
+                        {...field}
+                        type="number"
+                        min={1}
+                        max={100}
+                        onChange={(e) =>
+                          field.onChange(parseInt(e.target.value))
+                        }
+                        className="max-w-sm"
+                      />
+                    </FormControl>
+                    <FormDescription>
+                      Number of documents to retrieve from vector store (1-100)
+                    </FormDescription>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="rerankLimit"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Re-rank Limit</FormLabel>
+                    <FormControl>
+                      <Input
+                        {...field}
+                        type="number"
+                        min={1}
+                        max={100}
+                        onChange={(e) =>
+                          field.onChange(parseInt(e.target.value))
+                        }
+                        className="max-w-sm"
+                      />
+                    </FormControl>
+                    <FormDescription>
+                      Number of documents after reranking (1-100)
+                    </FormDescription>
                     <FormMessage />
                   </FormItem>
                 )}
@@ -442,7 +523,7 @@ export default function HostingForm({
           </div>
 
           <div className="flex justify-end">
-            <Button type="submit" isLoading={isPending}>
+            <Button type="submit" isLoading={isUpdating}>
               Save
             </Button>
           </div>

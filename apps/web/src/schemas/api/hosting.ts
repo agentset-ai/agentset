@@ -53,7 +53,16 @@ export const HostingSchema = z
       .default(true)
       .describe("Whether search functionality is enabled."),
     rerankConfig: z
-      .object({ model: rerankerSchema })
+      .object({
+        model: rerankerSchema,
+        limit: z
+          .number()
+          .int()
+          .min(1)
+          .max(100)
+          .default(15)
+          .describe("Number of documents after reranking."),
+      })
       .nullable()
       .default(null)
       .describe("Configuration for the reranking model."),
@@ -62,6 +71,13 @@ export const HostingSchema = z
       .nullable()
       .default(null)
       .describe("Configuration for the LLM model."),
+    topK: z
+      .number()
+      .int()
+      .min(1)
+      .max(100)
+      .default(50)
+      .describe("Number of documents to retrieve from vector store."),
     protected: z
       .boolean()
       .default(true)
@@ -99,4 +115,6 @@ export const updateHostingSchema = z.object({
   searchEnabled: z.boolean().optional(),
   rerankModel: rerankerSchema.optional(),
   llmModel: llmSchema.optional(),
+  topK: z.number().int().min(1).max(100).optional(),
+  rerankLimit: z.number().int().min(1).max(100).optional(),
 });
