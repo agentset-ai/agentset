@@ -1,3 +1,4 @@
+import { revalidateTag } from "next/cache";
 import { NextResponse } from "next/server";
 import { log } from "@/lib/log";
 
@@ -53,7 +54,7 @@ export async function customerSubscriptionUpdated(event: Stripe.Event) {
           },
         },
         where: {
-          role: "owner",
+          OR: [{ role: "owner" }, { role: "admin" }],
         },
       },
     },
@@ -67,6 +68,8 @@ export async function customerSubscriptionUpdated(event: Stripe.Event) {
     );
     return NextResponse.json({ received: true });
   }
+
+  revalidateTag(`org:${organization.id}`);
 
   const newPlan = plan.name.toLowerCase();
   // const shouldDisableWebhooks = newPlan === "free" || newPlan === "pro";

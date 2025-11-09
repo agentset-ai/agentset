@@ -1,3 +1,4 @@
+import { revalidateTag } from "next/cache";
 import { limiter } from "@/lib/bottleneck";
 import { APP_DOMAIN } from "@/lib/constants";
 import { log } from "@/lib/log";
@@ -85,11 +86,13 @@ export async function checkoutSessionCompleted(event: Stripe.Event) {
           },
         },
         where: {
-          role: "owner",
+          OR: [{ role: "owner" }, { role: "admin" }],
         },
       },
     },
   });
+
+  revalidateTag(`org:${organizationId}`);
 
   await Promise.allSettled([
     ...organization.members.map(({ user }) =>

@@ -1,3 +1,4 @@
+import { revalidateTag } from "next/cache";
 import { NextResponse } from "next/server";
 import { log } from "@/lib/log";
 
@@ -33,7 +34,7 @@ export async function customerSubscriptionDeleted(event: Stripe.Event) {
           },
         },
         where: {
-          role: "owner",
+          OR: [{ role: "owner" }, { role: "admin" }],
         },
       },
     },
@@ -48,6 +49,8 @@ export async function customerSubscriptionDeleted(event: Stripe.Event) {
     return NextResponse.json({ received: true });
   }
 
+  revalidateTag(`org:${organization.id}`);
+
   await Promise.allSettled([
     db.organization.update({
       where: {
@@ -58,7 +61,6 @@ export async function customerSubscriptionDeleted(event: Stripe.Event) {
         ...planToOrganizationFields(FREE_PLAN),
       },
     }),
-
     log({
       message:
         ":cry: Organization *`" +

@@ -1,3 +1,4 @@
+import { revalidateTag } from "next/cache";
 import { createTRPCRouter, protectedProcedure } from "@/server/api/trpc";
 import { TRPCError } from "@trpc/server";
 import { z } from "zod/v4";
@@ -77,6 +78,8 @@ export const apiKeysRouter = createTRPCRouter({
         },
       });
 
+      revalidateTag(`apiKey:${apiKey.key}`);
+
       return apiKey;
     }),
   deleteApiKey: protectedProcedure
@@ -93,11 +96,13 @@ export const apiKeysRouter = createTRPCRouter({
         throw new TRPCError({ code: "UNAUTHORIZED" });
       }
 
-      await ctx.db.organizationApiKey.delete({
+      const apiKey = await ctx.db.organizationApiKey.delete({
         where: {
           id: input.id,
         },
       });
+
+      revalidateTag(`apiKey:${apiKey.key}`);
 
       return { success: true };
     }),
