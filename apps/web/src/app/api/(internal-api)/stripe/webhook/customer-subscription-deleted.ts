@@ -1,4 +1,3 @@
-import { revalidateTag } from "next/cache";
 import { NextResponse } from "next/server";
 import { log } from "@/lib/log";
 
@@ -6,7 +5,7 @@ import type { Stripe } from "@agentset/stripe";
 import { db } from "@agentset/db";
 import { FREE_PLAN, planToOrganizationFields } from "@agentset/stripe/plans";
 
-import { sendCancellationFeedback } from "./utils";
+import { revalidateOrganizationCache, sendCancellationFeedback } from "./utils";
 
 export async function customerSubscriptionDeleted(event: Stripe.Event) {
   const subscriptionDeleted = event.data.object as Stripe.Subscription;
@@ -49,7 +48,7 @@ export async function customerSubscriptionDeleted(event: Stripe.Event) {
     return NextResponse.json({ received: true });
   }
 
-  revalidateTag(`org:${organization.id}`);
+  revalidateOrganizationCache(organization.id);
 
   await Promise.allSettled([
     db.organization.update({

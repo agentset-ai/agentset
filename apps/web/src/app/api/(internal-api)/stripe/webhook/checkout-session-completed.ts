@@ -1,4 +1,3 @@
-import { revalidateTag } from "next/cache";
 import { limiter } from "@/lib/bottleneck";
 import { APP_DOMAIN } from "@/lib/constants";
 import { log } from "@/lib/log";
@@ -14,6 +13,8 @@ import {
   planToOrganizationFields,
   PRO_PLAN_METERED,
 } from "@agentset/stripe/plans";
+
+import { revalidateOrganizationCache } from "./utils";
 
 export async function checkoutSessionCompleted(event: Stripe.Event) {
   const checkoutSession = event.data.object as Stripe.Checkout.Session;
@@ -92,7 +93,7 @@ export async function checkoutSessionCompleted(event: Stripe.Event) {
     },
   });
 
-  revalidateTag(`org:${organizationId}`);
+  revalidateOrganizationCache(organizationId);
 
   await Promise.allSettled([
     ...organization.members.map(({ user }) =>

@@ -1,6 +1,9 @@
+import { revalidateTag } from "next/cache";
 import { sendEmail } from "@/lib/resend";
+import { waitUntil } from "@vercel/functions";
 
 import type { Stripe } from "@agentset/stripe";
+import { db } from "@agentset/db";
 
 const cancellationReasonMap = {
   customer_service: "you had a bad experience with our customer service",
@@ -40,5 +43,26 @@ export async function sendCancellationFeedback({
           text: `Hey ${owner.name ? owner.name.split(" ")[0] : "there"}!\n\nSaw you canceled your Agentset subscription${reasonText ? ` and mentioned that ${reasonText}` : ""} – do you mind sharing if there's anything we could've done better on our side?\n\nWe're always looking to improve our product offering so any feedback would be greatly appreciated!\n\nThank you so much in advance!\n\nBest,\nAbdellatif\nCo-founder, Agentset.ai`,
         }),
     ),
+  );
+}
+
+export function revalidateOrganizationCache(organizationId: string) {
+  waitUntil(
+    (async () => {
+      revalidateTag(`org:${organizationId}`);
+
+      const apiKeys = await db.organizationApiKey.findMany({
+        where: {
+          organizationId,
+        },
+        select: {
+          key: true,
+        },
+      });
+
+      for (const apiKey of apiKeys) {
+        revalidateTag(`apiKey:${apiKey.key}`);
+      }
+    })(),
   );
 }

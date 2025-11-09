@@ -1,4 +1,3 @@
-import { revalidateTag } from "next/cache";
 import { NextResponse } from "next/server";
 import { log } from "@/lib/log";
 
@@ -10,7 +9,7 @@ import {
   PRO_PLAN_METERED,
 } from "@agentset/stripe/plans";
 
-import { sendCancellationFeedback } from "./utils";
+import { revalidateOrganizationCache, sendCancellationFeedback } from "./utils";
 
 export async function customerSubscriptionUpdated(event: Stripe.Event) {
   const subscriptionUpdated = event.data.object as Stripe.Subscription;
@@ -69,7 +68,7 @@ export async function customerSubscriptionUpdated(event: Stripe.Event) {
     return NextResponse.json({ received: true });
   }
 
-  revalidateTag(`org:${organization.id}`);
+  revalidateOrganizationCache(organization.id);
 
   const newPlan = plan.name.toLowerCase();
   // const shouldDisableWebhooks = newPlan === "free" || newPlan === "pro";
