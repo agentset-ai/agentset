@@ -9,7 +9,7 @@ import {
   PRO_PLAN_METERED,
 } from "@agentset/stripe/plans";
 
-import { sendCancellationFeedback } from "./utils";
+import { revalidateOrganizationCache, sendCancellationFeedback } from "./utils";
 
 export async function customerSubscriptionUpdated(event: Stripe.Event) {
   const subscriptionUpdated = event.data.object as Stripe.Subscription;
@@ -53,7 +53,7 @@ export async function customerSubscriptionUpdated(event: Stripe.Event) {
           },
         },
         where: {
-          role: "owner",
+          OR: [{ role: "owner" }, { role: "admin" }],
         },
       },
     },
@@ -67,6 +67,8 @@ export async function customerSubscriptionUpdated(event: Stripe.Event) {
     );
     return NextResponse.json({ received: true });
   }
+
+  revalidateOrganizationCache(organization.id);
 
   const newPlan = plan.name.toLowerCase();
   // const shouldDisableWebhooks = newPlan === "free" || newPlan === "pro";

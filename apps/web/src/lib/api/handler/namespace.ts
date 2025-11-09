@@ -21,7 +21,13 @@ interface NamespaceHandler {
   ): Promise<Response>;
 }
 
-const getNamespace = async (namespaceId: string, organizationId: string) => {
+const getNamespace = async ({
+  namespaceId,
+  organizationId,
+}: {
+  namespaceId: string;
+  organizationId: string;
+}) => {
   return unstable_cache(
     async () => {
       return await db.namespace.findUnique({
@@ -35,7 +41,7 @@ const getNamespace = async (namespaceId: string, organizationId: string) => {
     ["namespace", namespaceId, organizationId],
     {
       revalidate: 60 * 5, // 5 minutes
-      tags: [`org:${organizationId}_ns:${namespaceId}`],
+      tags: [`org:${organizationId}`, `ns:${namespaceId}`],
     },
   )();
 };
@@ -54,7 +60,10 @@ export const withNamespaceApiHandler = (
         });
       }
 
-      const namespace = await getNamespace(namespaceId, params.organization.id);
+      const namespace = await getNamespace({
+        namespaceId,
+        organizationId: params.organization.id,
+      });
 
       if (!namespace) {
         throw new AgentsetApiError({

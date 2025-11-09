@@ -4,6 +4,7 @@ import { IngestJobStatus } from "@agentset/db";
 import {
   configSchema,
   ingestJobNameSchema,
+  ingestJobPayloadInputSchema,
   ingestJobPayloadSchema,
 } from "@agentset/validation";
 
@@ -105,7 +106,7 @@ export const getIngestionJobsSchema = IngestJobsQuerySchema.extend(
 
 export const createIngestJobSchema = z.object({
   name: ingestJobNameSchema,
-  payload: ingestJobPayloadSchema,
+  payload: ingestJobPayloadInputSchema,
   config: configSchema.optional(),
   externalId: externalIdSchema,
 });

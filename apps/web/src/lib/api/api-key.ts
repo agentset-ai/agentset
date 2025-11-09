@@ -2,7 +2,7 @@ import { unstable_cache } from "next/cache";
 
 import { db } from "@agentset/db";
 
-export const getApiKeyInfo = (apiKey: string) => {
+export const getApiKeyInfo = async (apiKey: string) => {
   return unstable_cache(
     async () => {
       const data = await db.organizationApiKey.findUnique({
@@ -31,7 +31,7 @@ export const getApiKeyInfo = (apiKey: string) => {
     ["apiKey", apiKey],
     {
       tags: [`apiKey:${apiKey}`],
-      revalidate: 60 * 5, // 5 min
+      revalidate: 60 * 5, // 5 minutes
     },
   )();
 };

@@ -14,6 +14,8 @@ import {
   PRO_PLAN_METERED,
 } from "@agentset/stripe/plans";
 
+import { revalidateOrganizationCache } from "./utils";
+
 export async function checkoutSessionCompleted(event: Stripe.Event) {
   const checkoutSession = event.data.object as Stripe.Checkout.Session;
 
@@ -85,11 +87,13 @@ export async function checkoutSessionCompleted(event: Stripe.Event) {
           },
         },
         where: {
-          role: "owner",
+          OR: [{ role: "owner" }, { role: "admin" }],
         },
       },
     },
   });
+
+  revalidateOrganizationCache(organizationId);
 
   await Promise.allSettled([
     ...organization.members.map(({ user }) =>

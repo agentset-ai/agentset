@@ -5,7 +5,7 @@ import type { Stripe } from "@agentset/stripe";
 import { db } from "@agentset/db";
 import { FREE_PLAN, planToOrganizationFields } from "@agentset/stripe/plans";
 
-import { sendCancellationFeedback } from "./utils";
+import { revalidateOrganizationCache, sendCancellationFeedback } from "./utils";
 
 export async function customerSubscriptionDeleted(event: Stripe.Event) {
   const subscriptionDeleted = event.data.object as Stripe.Subscription;
@@ -33,7 +33,7 @@ export async function customerSubscriptionDeleted(event: Stripe.Event) {
           },
         },
         where: {
-          role: "owner",
+          OR: [{ role: "owner" }, { role: "admin" }],
         },
       },
     },
@@ -48,6 +48,8 @@ export async function customerSubscriptionDeleted(event: Stripe.Event) {
     return NextResponse.json({ received: true });
   }
 
+  revalidateOrganizationCache(organization.id);
+
   await Promise.allSettled([
     db.organization.update({
       where: {
@@ -58,7 +60,6 @@ export async function customerSubscriptionDeleted(event: Stripe.Event) {
         ...planToOrganizationFields(FREE_PLAN),
       },
     }),
-
     log({
       message:
         ":cry: Organization *`" +
