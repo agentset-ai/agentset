@@ -1,4 +1,5 @@
 import { schemaTask } from "@trigger.dev/sdk";
+import { Ratelimit } from "@upstash/ratelimit";
 
 import { DocumentStatus } from "@agentset/db";
 import { getNamespaceVectorStore, KeywordStore } from "@agentset/engine";
@@ -6,6 +7,7 @@ import { deleteObject } from "@agentset/storage";
 import { chunkArray } from "@agentset/utils";
 
 import { getDb } from "../db";
+import { rateLimit } from "../rate-limit";
 import { DELETE_DOCUMENT_JOB_ID, deleteDocumentBodySchema } from "../schema";
 
 const BATCH_SIZE = 50;
@@ -56,6 +58,25 @@ export const deleteDocument = schemaTask({
       },
       select: { id: true },
     });
+
+    // Pinecone has a limit of 5 requests per second per namespace
+    const vectorStoreProvider = namespace.vectorStoreConfig?.provider;
+    if (
+      vectorStoreProvider === "MANAGED_PINECONE" ||
+      vectorStoreProvider === "MANAGED_PINECONE_OLD" ||
+      vectorStoreProvider === "PINECONE"
+    ) {
+      await rateLimit(
+        {
+          queue: "delete-document",
+          // since tenants are in separate namespaces, we can rate limit them separately
+          concurrencyKey: document.tenantId
+            ? `${namespace.id}:${document.tenantId}`
+            : namespace.id,
+        },
+        Ratelimit.tokenBucket(5, "1s", 5),
+      );
+    }
 
     // Get vector store and clean up chunks
     const vectorStore = await getNamespaceVectorStore(

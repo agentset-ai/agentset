@@ -23,7 +23,8 @@
     "@agentset/stripe": "workspace:*",
     "@agentset/utils": "workspace:*",
     "@agentset/validation": "workspace:*",
-    "@trigger.dev/sdk": "^4.0.2",
+    "@trigger.dev/sdk": "^4.0.6",
+    "@upstash/ratelimit": "^2.0.5",
     "@upstash/redis": "^1.34.9",
     "ai": "catalog:",
     "zod": "catalog:"
@@ -32,11 +33,11 @@
     "@agentset/eslint-config": "workspace:*",
     "@agentset/prettier-config": "workspace:*",
     "@agentset/tsconfig": "workspace:*",
-    "@trigger.dev/build": "^4.0.2",
+    "@trigger.dev/build": "^4.0.6",
     "dotenv-cli": "^8.0.0",
     "eslint": "catalog:",
     "prettier": "catalog:",
-    "trigger.dev": "^4.0.2",
+    "trigger.dev": "^4.0.6",
     "typescript": "catalog:"
   },
   "prettier": "@agentset/prettier-config"
