@@ -1,6 +1,6 @@
 <p align="center">
   <a href="https://agentset.ai">
-    <img src=".github/assets/readme-cover.png" alt="Agentset — Build frontier RAG apps" />
+    <img width="120" height="120" alt="Frame 26" src="https://github.com/user-attachments/assets/2dd23f69-c0f0-4c73-91df-db529f709f2c" />
   </a>
   
 </p>
