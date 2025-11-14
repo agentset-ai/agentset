@@ -31,7 +31,7 @@
 </p>
 
 <p>
-Agentset is the open-source platform to build, evaluate, and ship production-ready RAG and agentic applications. It provides end-to-end tooling: ingestion, vector indexing, evaluation/benchmarks, chat playground, hosting, and a clean API with first-class developer experience.
+Agentset is the open-source platform to build, evaluate, and ship production-ready RAG and agentic applications. It provides end-to-end tooling: ingestion, vector indexing, evaluation/benchmarks, chat playground, hosting, and a clean API.
 </p>
 
 <img width="2800" height="2044" alt="CleanShot 2025-11-12 at 16 39 31@2x" src="https://github.com/user-attachments/assets/cc103cd4-d447-431d-ba69-214753c39083" />
