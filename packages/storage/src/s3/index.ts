@@ -24,10 +24,10 @@ const s3Client = new S3Client({
 const DOWNLOAD_EXPIRATION = 60 * 60 * 24; // 24 hours
 const UPLOAD_EXPIRATION = 60 * 60 * 1; // 1 hour
 
-const presignUploadOptions: NonNullable<Parameters<typeof getSignedUrl>[2]> = {
+const presignUploadOptions = {
   expiresIn: UPLOAD_EXPIRATION,
   signableHeaders: new Set(["content-type"]),
-};
+} satisfies NonNullable<Parameters<typeof getSignedUrl>[2]>;
 
 export const presignUploadUrl = async ({
   key,
@@ -42,18 +42,13 @@ export const presignUploadUrl = async ({
     throw new Error("File size is too large");
   }
 
-  const result = await getSignedUrl(
-    s3Client,
-    new PutObjectCommand({
-      Bucket: env.S3_BUCKET,
-      Key: key,
-      ContentType: contentType,
-      ContentLength: fileSize,
-    }),
-    presignUploadOptions,
-  );
-
-  return result;
+  return await presignPutUrl({
+    key,
+    contentType,
+    fileSize,
+    expiresIn: presignUploadOptions.expiresIn,
+    signableHeaders: presignUploadOptions.signableHeaders,
+  });
 };
 
 export async function presignGetUrl(
@@ -79,6 +74,36 @@ export async function presignGetUrl(
 
   return { url, key };
 }
+
+export const presignPutUrl = async ({
+  key,
+  contentType,
+  fileSize,
+  expiresIn,
+  signableHeaders,
+}: {
+  key: string;
+  contentType?: string;
+  fileSize?: number;
+  expiresIn?: number;
+  signableHeaders?: Set<string>;
+}) => {
+  const result = await getSignedUrl(
+    s3Client,
+    new PutObjectCommand({
+      Bucket: env.S3_BUCKET,
+      Key: key,
+      ContentType: contentType,
+      ContentLength: fileSize,
+    }),
+    {
+      expiresIn,
+      signableHeaders,
+    },
+  );
+
+  return result;
+};
 
 export async function getFileMetadata(key: string) {
   const data = await s3Client.send(

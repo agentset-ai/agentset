@@ -44,10 +44,12 @@ export default function TextForm({ onSuccess }: { onSuccess: () => void }) {
           type: "text",
           namespaceId: namespace.id,
           chunkSize: doc.config?.chunkSize,
-          maxChunkSize: doc.config?.maxChunkSize,
-          chunkOverlap: doc.config?.chunkOverlap,
-          strategy: doc.config?.strategy,
-          chunkingStrategy: doc.config?.chunkingStrategy,
+          languageCode: doc.config?.languageCode,
+          forceOcr: doc.config?.forceOcr,
+          mode: doc.config?.mode,
+          disableImageExtraction: doc.config?.disableImageExtraction,
+          disableOcrMath: doc.config?.disableOcrMath,
+          useLlm: doc.config?.useLlm,
           hasMetadata: !!doc.config?.metadata,
         });
         onSuccess();
@@ -64,18 +66,17 @@ export default function TextForm({ onSuccess }: { onSuccess: () => void }) {
         fileName: data.name,
         text: data.text,
       },
-      config:
-        data.chunkSize ||
-        data.maxChunkSize ||
-        data.chunkOverlap ||
-        data.metadata
-          ? {
-              chunkSize: data.chunkSize,
-              maxChunkSize: data.maxChunkSize,
-              chunkOverlap: data.chunkOverlap,
-              metadata: data.metadata,
-            }
-          : undefined,
+      config: {
+        chunkSize: data.chunkSize,
+        chunkOverlap: data.chunkOverlap,
+        languageCode: data.languageCode,
+        forceOcr: data.forceOcr,
+        mode: data.mode,
+        disableImageExtraction: data.disableImageExtraction,
+        disableOcrMath: data.disableOcrMath,
+        useLlm: data.useLlm,
+        metadata: data.metadata,
+      },
     });
   };
 

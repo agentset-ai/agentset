@@ -230,7 +230,13 @@ export const processDocument = schemaTask({
 
       const chunks = chunkBatch.map((chunk, idx) => ({
         documentId: document.id,
-        chunk,
+        chunk: {
+          ...chunk,
+          metadata: {
+            ...partitionBody.extra_metadata,
+            ...chunk.metadata,
+          },
+        },
         embedding: results.embeddings[idx]!,
       }));
 

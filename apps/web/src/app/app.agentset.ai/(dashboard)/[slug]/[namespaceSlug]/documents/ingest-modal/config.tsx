@@ -7,6 +7,7 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from "@agentset/ui/accordion";
+import { Checkbox } from "@agentset/ui/checkbox";
 import {
   FormControl,
   FormField,
@@ -57,27 +58,12 @@ export default function IngestConfig({
 
             <FormField
               control={form.control}
-              name="maxChunkSize"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Max chunk size (optional)</FormLabel>
-                  <FormControl>
-                    <Input placeholder="1024" {...field} />
-                  </FormControl>
-
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={form.control}
               name="chunkOverlap"
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Chunk overlap (optional)</FormLabel>
                   <FormControl>
-                    <Input placeholder="32" {...field} />
+                    <Input placeholder="128" {...field} />
                   </FormControl>
 
                   <FormMessage />
@@ -87,24 +73,12 @@ export default function IngestConfig({
 
             <FormField
               control={form.control}
-              name="chunkingStrategy"
+              name="minSentencesPerChunk"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Chunking strategy</FormLabel>
+                  <FormLabel>Min sentences per chunk (optional)</FormLabel>
                   <FormControl>
-                    <Select
-                      onValueChange={field.onChange}
-                      defaultValue={field.value ?? "basic"}
-                    >
-                      <SelectTrigger className="w-full">
-                        <SelectValue placeholder="Select a strategy" />
-                      </SelectTrigger>
-
-                      <SelectContent>
-                        <SelectItem value="basic">Basic</SelectItem>
-                        <SelectItem value="by_title">By title</SelectItem>
-                      </SelectContent>
-                    </Select>
+                    <Input placeholder="1" {...field} />
                   </FormControl>
 
                   <FormMessage />
@@ -114,27 +88,140 @@ export default function IngestConfig({
 
             <FormField
               control={form.control}
-              name="strategy"
+              name="languageCode"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Strategy</FormLabel>
+                  <FormLabel>Language code (optional)</FormLabel>
+                  <FormControl>
+                    <Input placeholder="en, fr, pt-BR, ..." {...field} />
+                  </FormControl>
+
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="mode"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Processing mode (optional)</FormLabel>
                   <FormControl>
                     <Select
-                      onValueChange={field.onChange}
-                      defaultValue={field.value ?? "auto"}
+                      onValueChange={(value) =>
+                        field.onChange(value === "default" ? undefined : value)
+                      }
+                      value={field.value ?? "default"}
                     >
                       <SelectTrigger className="w-full">
-                        <SelectValue placeholder="Select a strategy" />
+                        <SelectValue placeholder="Select a mode" />
                       </SelectTrigger>
 
                       <SelectContent>
-                        <SelectItem value="auto">Auto</SelectItem>
+                        <SelectItem value="default">Use default</SelectItem>
                         <SelectItem value="fast">Fast</SelectItem>
-                        <SelectItem value="hi_res">Hi-res</SelectItem>
-                        <SelectItem value="ocr_only">OCR only</SelectItem>
+                        <SelectItem value="balanced">Balanced</SelectItem>
+                        <SelectItem value="accurate">Accurate</SelectItem>
                       </SelectContent>
                     </Select>
                   </FormControl>
+
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="forceOcr"
+              render={({ field }) => (
+                <FormItem>
+                  <div className="flex items-center gap-2">
+                    <FormControl>
+                      <Checkbox
+                        checked={!!field.value}
+                        onCheckedChange={(checked) =>
+                          field.onChange(checked ? true : undefined)
+                        }
+                      />
+                    </FormControl>
+                    <FormLabel className="font-normal">
+                      Force OCR (leave unchecked to use default)
+                    </FormLabel>
+                  </div>
+
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="disableImageExtraction"
+              render={({ field }) => (
+                <FormItem>
+                  <div className="flex items-center gap-2">
+                    <FormControl>
+                      <Checkbox
+                        checked={!!field.value}
+                        onCheckedChange={(checked) =>
+                          field.onChange(checked ? true : undefined)
+                        }
+                      />
+                    </FormControl>
+                    <FormLabel className="font-normal">
+                      Disable image extraction (leave unchecked to use default)
+                    </FormLabel>
+                  </div>
+
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="disableOcrMath"
+              render={({ field }) => (
+                <FormItem>
+                  <div className="flex items-center gap-2">
+                    <FormControl>
+                      <Checkbox
+                        checked={!!field.value}
+                        onCheckedChange={(checked) =>
+                          field.onChange(checked ? true : undefined)
+                        }
+                      />
+                    </FormControl>
+                    <FormLabel className="font-normal">
+                      Disable OCR math (leave unchecked to use default)
+                    </FormLabel>
+                  </div>
+
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="useLlm"
+              render={({ field }) => (
+                <FormItem>
+                  <div className="flex items-center gap-2">
+                    <FormControl>
+                      <Checkbox
+                        checked={!!field.value}
+                        onCheckedChange={(checked) =>
+                          field.onChange(checked ? true : undefined)
+                        }
+                      />
+                    </FormControl>
+                    <FormLabel className="font-normal">
+                      Use LLM-enhanced parsing (leave unchecked to use default)
+                    </FormLabel>
+                  </div>
 
                   <FormMessage />
                 </FormItem>
