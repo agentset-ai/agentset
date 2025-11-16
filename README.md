@@ -1,11 +1,15 @@
 <p align="center">
   <a href="https://agentset.ai">
-    <img src=".github/assets/readme-cover.png" alt="Agentset — Build frontier RAG apps" />
+    <img width="100" height="100" alt="Agentset Logo" src="https://github.com/user-attachments/assets/2dd23f69-c0f0-4c73-91df-db529f709f2c" style="border-radius: 2px;" />
   </a>
   
 </p>
 
 <h1 align="center">Agentset</h1>
+
+<p align="center">
+  <strong>RAG. Optimized for maximum performance.</strong>
+</p>
 
 <p align="center">
   <a href="https://docs.agentset.ai">Docs</a> ·
@@ -15,13 +19,8 @@
 </p>
 
 <p align="center">
-  We hang out on Discord — <a href="https://discord.gg/agentset" target="_blank">join us</a>.
-</p>
-
-<p align="center">
   <a href="LICENSE.md"><img src="https://img.shields.io/github/license/agentset-ai/agentset?label=license&logo=github" alt="License" /></a>
   <a href="https://github.com/agentset-ai/agentset/issues"><img src="https://img.shields.io/github/issues/agentset-ai/agentset" alt="Issues" /></a>
-  <a href="https://github.com/agentset-ai/agentset/graphs/contributors"><img src="https://img.shields.io/github/contributors/agentset-ai/agentset" alt="Contributors" /></a>
   <a href="https://github.com/agentset-ai/agentset/commits/main"><img src="https://img.shields.io/github/last-commit/agentset-ai/agentset" alt="Last Commit" /></a>
   <a href="https://github.com/agentset-ai/agentset"><img src="https://img.shields.io/github/commit-activity/m/agentset-ai/agentset?label=commit%20activity" alt="Commit activity" /></a>
   <!-- Live online count badge (enable when widget is on)
@@ -31,13 +30,11 @@
   <!-- <a href="https://agentset.ai"><img src="https://img.shields.io/badge/visit-agentset.ai-0A0A0A" alt="Visit agentset.ai" /></a> -->
 </p>
 
-Agentset is the open-source platform to build, evaluate, and ship production-ready RAG and agentic applications. It provides end-to-end tooling: ingestion, vector indexing, evaluation/benchmarks, chat playground, hosting, and a clean API with first-class developer experience.
-
-<!-- Screenshot (scaled down) -->
-<br/>
-<p align="center">
-  <img src=".github/assets/screenshot.png" alt="Agentset screenshot" width="600" />
+<p>
+Agentset is the open-source platform to build, evaluate, and ship production-ready RAG and agentic applications. It provides end-to-end tooling: ingestion, vector indexing, evaluation/benchmarks, chat playground, hosting, and a developer-friendly API.
 </p>
+
+<img width="2800" height="2044" alt="CleanShot 2025-11-12 at 16 39 31@2x" src="https://github.com/user-attachments/assets/cc103cd4-d447-431d-ba69-214753c39083" />
 
 ## Features
 
