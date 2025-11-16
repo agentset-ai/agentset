@@ -73,21 +73,6 @@ export default function IngestConfig({
 
             <FormField
               control={form.control}
-              name="minSentencesPerChunk"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Min sentences per chunk (optional)</FormLabel>
-                  <FormControl>
-                    <Input placeholder="1" {...field} />
-                  </FormControl>
-
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={form.control}
               name="languageCode"
               render={({ field }) => (
                 <FormItem>
@@ -109,17 +94,14 @@ export default function IngestConfig({
                   <FormLabel>Processing mode (optional)</FormLabel>
                   <FormControl>
                     <Select
-                      onValueChange={(value) =>
-                        field.onChange(value === "default" ? undefined : value)
-                      }
-                      value={field.value ?? "default"}
+                      onValueChange={(value) => field.onChange(value)}
+                      value={field.value}
                     >
                       <SelectTrigger className="w-full">
                         <SelectValue placeholder="Select a mode" />
                       </SelectTrigger>
 
                       <SelectContent>
-                        <SelectItem value="default">Use default</SelectItem>
                         <SelectItem value="fast">Fast</SelectItem>
                         <SelectItem value="balanced">Balanced</SelectItem>
                         <SelectItem value="accurate">Accurate</SelectItem>
@@ -141,14 +123,10 @@ export default function IngestConfig({
                     <FormControl>
                       <Checkbox
                         checked={!!field.value}
-                        onCheckedChange={(checked) =>
-                          field.onChange(checked ? true : undefined)
-                        }
+                        onCheckedChange={(checked) => field.onChange(checked)}
                       />
                     </FormControl>
-                    <FormLabel className="font-normal">
-                      Force OCR (leave unchecked to use default)
-                    </FormLabel>
+                    <FormLabel className="font-normal">Force OCR</FormLabel>
                   </div>
 
                   <FormMessage />
@@ -165,13 +143,11 @@ export default function IngestConfig({
                     <FormControl>
                       <Checkbox
                         checked={!!field.value}
-                        onCheckedChange={(checked) =>
-                          field.onChange(checked ? true : undefined)
-                        }
+                        onCheckedChange={(checked) => field.onChange(checked)}
                       />
                     </FormControl>
                     <FormLabel className="font-normal">
-                      Disable image extraction (leave unchecked to use default)
+                      Disable image extraction
                     </FormLabel>
                   </div>
 
@@ -189,13 +165,11 @@ export default function IngestConfig({
                     <FormControl>
                       <Checkbox
                         checked={!!field.value}
-                        onCheckedChange={(checked) =>
-                          field.onChange(checked ? true : undefined)
-                        }
+                        onCheckedChange={(checked) => field.onChange(checked)}
                       />
                     </FormControl>
                     <FormLabel className="font-normal">
-                      Disable OCR math (leave unchecked to use default)
+                      Disable OCR math
                     </FormLabel>
                   </div>
 
@@ -213,13 +187,11 @@ export default function IngestConfig({
                     <FormControl>
                       <Checkbox
                         checked={!!field.value}
-                        onCheckedChange={(checked) =>
-                          field.onChange(checked ? true : undefined)
-                        }
+                        onCheckedChange={(checked) => field.onChange(checked)}
                       />
                     </FormControl>
                     <FormLabel className="font-normal">
-                      Use LLM-enhanced parsing (leave unchecked to use default)
+                      Use LLM-enhanced parsing
                     </FormLabel>
                   </div>
 

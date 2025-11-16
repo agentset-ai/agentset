@@ -35,6 +35,16 @@ export default function TextForm({ onSuccess }: { onSuccess: () => void }) {
 
   const form = useForm({
     resolver: zodResolver(schema),
+    defaultValues: {
+      chunkSize: 2048,
+      chunkOverlap: 128,
+      languageCode: "en",
+      forceOcr: false,
+      mode: "balanced",
+      disableImageExtraction: false,
+      disableOcrMath: false,
+      useLlm: true,
+    },
   });
 
   const { mutateAsync, isPending } = useMutation(

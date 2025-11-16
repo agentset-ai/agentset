@@ -40,6 +40,14 @@ export default function UrlsForm({ onSuccess }: { onSuccess: () => void }) {
     resolver: zodResolver(schema),
     defaultValues: {
       urls: [""],
+      chunkSize: 2048,
+      chunkOverlap: 128,
+      languageCode: "en",
+      forceOcr: false,
+      mode: "balanced",
+      disableImageExtraction: false,
+      disableOcrMath: false,
+      useLlm: true,
     },
   });
 

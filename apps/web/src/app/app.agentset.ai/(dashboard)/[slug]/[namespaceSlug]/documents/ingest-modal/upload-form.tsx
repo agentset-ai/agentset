@@ -45,6 +45,14 @@ export default function UploadForm({ onSuccess }: { onSuccess: () => void }) {
     defaultValues: {
       name: "",
       files: [],
+      chunkSize: 2048,
+      chunkOverlap: 128,
+      languageCode: "en",
+      forceOcr: false,
+      mode: "balanced",
+      disableImageExtraction: false,
+      disableOcrMath: false,
+      useLlm: true,
     },
   });
 
