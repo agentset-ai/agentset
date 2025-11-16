@@ -6,6 +6,7 @@ import { TRPCError } from "@trpc/server";
 import { z } from "zod/v4";
 
 import { DocumentStatus } from "@agentset/db";
+import { checkFileExists, presignGetUrl } from "@agentset/storage";
 
 import { getNamespaceByUser } from "../auth";
 
@@ -101,5 +102,56 @@ export const documentsRouter = createTRPCRouter({
       const updatedDocument = await deleteDocument(input.documentId);
 
       return updatedDocument;
+    }),
+  getChunksDownloadUrl: protectedProcedure
+    .input(
+      z.object({
+        documentId: z.string(),
+        namespaceId: z.string(),
+      }),
+    )
+    .mutation(async ({ ctx, input }) => {
+      const namespace = await getNamespaceByUser(ctx, {
+        id: input.namespaceId,
+      });
+
+      if (!namespace) {
+        throw new TRPCError({ code: "NOT_FOUND" });
+      }
+
+      const document = await ctx.db.document.findUnique({
+        where: {
+          id: input.documentId,
+          namespaceId: namespace.id,
+        },
+        select: { id: true, status: true },
+      });
+
+      if (!document) {
+        throw new TRPCError({ code: "NOT_FOUND" });
+      }
+
+      if (document.status !== DocumentStatus.COMPLETED) {
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          message: "Chunks are only available for completed documents",
+        });
+      }
+
+      const key = `namespaces/${namespace.id}/documents/${document.id}/chunks.json`;
+
+      const exists = await checkFileExists(key);
+      if (!exists) {
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: "Chunks file not found",
+        });
+      }
+
+      const { url } = await presignGetUrl(key, {
+        fileName: `${document.id}-chunks.json`,
+      });
+
+      return { url };
     }),
 });
