@@ -1,7 +1,6 @@
 import { schemaTask } from "@trigger.dev/sdk";
 
-import type { Prisma } from "@agentset/db";
-import { DocumentStatus, IngestJobStatus } from "@agentset/db";
+import { DocumentStatus, IngestJobStatus, Prisma } from "@agentset/db";
 import { chunkArray } from "@agentset/utils";
 
 import { getDb } from "../db";
@@ -25,15 +24,26 @@ export const reIngestJob = schemaTask({
 
     const errorMessage =
       (error instanceof Error ? error.message : null) || "Unknown error";
-    await db.ingestJob.update({
-      where: { id: payload.jobId },
-      data: {
-        status: IngestJobStatus.FAILED,
-        error: errorMessage,
-        failedAt: new Date(),
-      },
-      select: { id: true },
-    });
+
+    try {
+      await db.ingestJob.update({
+        where: { id: payload.jobId },
+        data: {
+          status: IngestJobStatus.FAILED,
+          error: errorMessage,
+          failedAt: new Date(),
+        },
+        select: { id: true },
+      });
+    } catch (e) {
+      // skip not found errors
+      if (
+        e instanceof Prisma.PrismaClientKnownRequestError &&
+        e.code === "P2025"
+      )
+        return;
+      throw e;
+    }
   },
   run: async ({ jobId }, { ctx }) => {
     const db = getDb();

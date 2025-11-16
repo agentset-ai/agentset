@@ -1,8 +1,9 @@
 import { schemaTask, wait } from "@trigger.dev/sdk";
+import { Ratelimit } from "@upstash/ratelimit";
 import { embedMany } from "ai";
 
 import type { PartitionBatch, PartitionResult } from "@agentset/engine";
-import { DocumentStatus } from "@agentset/db";
+import { DocumentStatus, Prisma } from "@agentset/db";
 import {
   getNamespaceEmbeddingModel,
   getNamespaceVectorStore,
@@ -16,6 +17,7 @@ import { isProPlan } from "@agentset/stripe/plans";
 import { chunkArray } from "@agentset/utils";
 
 import { getDb } from "../db";
+import { rateLimit } from "../rate-limit";
 import { redis } from "../redis";
 import {
   TRIGGER_DOCUMENT_JOB_ID,
@@ -39,15 +41,27 @@ export const processDocument = schemaTask({
 
     const errorMessage =
       (error instanceof Error ? error.message : null) || "Unknown error";
-    await db.document.update({
-      where: { id: payload.documentId },
-      data: {
-        status: DocumentStatus.FAILED,
-        error: errorMessage,
-        failedAt: new Date(),
-      },
-      select: { id: true },
-    });
+
+    try {
+      await db.document.update({
+        where: { id: payload.documentId },
+        data: {
+          status: DocumentStatus.FAILED,
+          error: errorMessage,
+          failedAt: new Date(),
+        },
+        select: { id: true },
+      });
+    } catch (e) {
+      // skip not found errors
+      if (
+        e instanceof Prisma.PrismaClientKnownRequestError &&
+        e.code === "P2025"
+      )
+        return;
+
+      throw e;
+    }
   },
   run: async ({ documentId, ingestJob, cleanup: shouldCleanup }) => {
     const db = getDb();
@@ -148,6 +162,24 @@ export const processDocument = schemaTask({
 
     // Clean up existing chunks if requested
     if (shouldCleanup) {
+      // pinecone has a limit of 5 requests per second per namespace
+      const provider = ingestJob.namespace.vectorStoreConfig?.provider;
+      if (
+        provider === "MANAGED_PINECONE" ||
+        provider === "MANAGED_PINECONE_OLD" ||
+        provider === "PINECONE"
+      ) {
+        await rateLimit(
+          {
+            queue: "process-document-cleanup",
+            concurrencyKey: document.tenantId
+              ? `${ingestJob.namespace.id}:${document.tenantId}`
+              : ingestJob.namespace.id,
+          },
+          Ratelimit.tokenBucket(5, "1s", 5),
+        );
+      }
+
       await vectorStore.deleteByFilter({
         documentId: document.id,
       });
