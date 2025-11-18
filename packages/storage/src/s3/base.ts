@@ -4,10 +4,13 @@ import {
   DeleteObjectsCommand,
   GetObjectCommand,
   HeadObjectCommand,
+  ListObjectsV2Command,
   PutObjectCommand,
   S3Client,
 } from "@aws-sdk/client-s3";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
+
+import { filterFalsy } from "@agentset/utils";
 
 import { MAX_UPLOAD_SIZE } from "../constants";
 import { env } from "../env";
@@ -51,18 +54,44 @@ export const presignUploadUrl = async ({
   });
 };
 
+export function uploadObject(
+  key: string,
+  body: string | Uint8Array | Buffer | ReadableStream,
+  {
+    contentType,
+    fileSize,
+    bucket = env.S3_BUCKET,
+  }: {
+    contentType?: string;
+    fileSize?: number;
+    bucket?: string;
+  } = {},
+) {
+  return s3Client.send(
+    new PutObjectCommand({
+      Bucket: bucket,
+      Key: key,
+      Body: body,
+      ContentLength: fileSize,
+      ContentType: contentType,
+    }),
+  );
+}
+
 export async function presignGetUrl(
   key: string,
   {
     expiresIn = DOWNLOAD_EXPIRATION,
     fileName,
+    bucket = env.S3_BUCKET,
   }: {
     expiresIn?: number;
     fileName?: string;
+    bucket?: string;
   } = {},
 ) {
   const command: GetObjectCommandInput = {
-    Bucket: env.S3_BUCKET,
+    Bucket: bucket,
     Key: key,
   };
   if (fileName)
@@ -81,17 +110,19 @@ export const presignPutUrl = async ({
   fileSize,
   expiresIn,
   signableHeaders,
+  bucket = env.S3_BUCKET,
 }: {
   key: string;
   contentType?: string;
   fileSize?: number;
   expiresIn?: number;
   signableHeaders?: Set<string>;
+  bucket?: string;
 }) => {
   const result = await getSignedUrl(
     s3Client,
     new PutObjectCommand({
-      Bucket: env.S3_BUCKET,
+      Bucket: bucket,
       Key: key,
       ContentType: contentType,
       ContentLength: fileSize,
@@ -105,11 +136,18 @@ export const presignPutUrl = async ({
   return result;
 };
 
-export async function getFileMetadata(key: string) {
+export async function getFileMetadata(
+  key: string,
+  {
+    bucket = env.S3_BUCKET,
+  }: {
+    bucket?: string;
+  } = {},
+) {
   const data = await s3Client.send(
     new HeadObjectCommand({
       Key: key,
-      Bucket: env.S3_BUCKET,
+      Bucket: bucket,
     }),
   );
 
@@ -121,9 +159,14 @@ export async function getFileMetadata(key: string) {
   };
 }
 
-export async function checkFileExists(key: string) {
+export async function checkFileExists(
+  key: string,
+  options: {
+    bucket?: string;
+  } = {},
+) {
   try {
-    await getFileMetadata(key);
+    await getFileMetadata(key, options);
   } catch (e: any) {
     if (e?.code === "NotFound" || e?.$metadata.httpStatusCode === 404) {
       return false; // File does not exist
@@ -135,22 +178,85 @@ export async function checkFileExists(key: string) {
   return true;
 }
 
-export function deleteObject(key: string) {
+export function deleteObject(
+  key: string,
+  {
+    bucket = env.S3_BUCKET,
+  }: {
+    bucket?: string;
+  } = {},
+) {
   return s3Client.send(
     new DeleteObjectCommand({
-      Bucket: env.S3_BUCKET,
+      Bucket: bucket,
       Key: key,
     }),
   );
 }
 
-export function deleteManyObjects(keys: string[]) {
+export function deleteManyObjects(
+  keys: string[],
+  {
+    bucket = env.S3_BUCKET,
+  }: {
+    bucket?: string;
+  } = {},
+) {
   return s3Client.send(
     new DeleteObjectsCommand({
-      Bucket: env.S3_BUCKET,
+      Bucket: bucket,
       Delete: {
         Objects: keys.map((key) => ({ Key: key })),
       },
     }),
   );
+}
+
+export async function* listByPrefix(
+  prefix: string,
+  {
+    bucket = env.S3_BUCKET,
+    maxKeys = 1000,
+  }: {
+    bucket?: string;
+    maxKeys?: number;
+  } = {},
+) {
+  let continuationToken: string | undefined;
+
+  do {
+    const listedObjects = await s3Client.send(
+      new ListObjectsV2Command({
+        Bucket: bucket,
+        Prefix: prefix,
+        ContinuationToken: continuationToken,
+        MaxKeys: maxKeys,
+      }),
+    );
+
+    const keys = listedObjects.Contents
+      ? filterFalsy(listedObjects.Contents.map((object) => object.Key))
+      : [];
+
+    yield keys;
+
+    continuationToken = listedObjects.IsTruncated
+      ? listedObjects.NextContinuationToken
+      : undefined;
+  } while (continuationToken);
+}
+
+export async function deleteObjectsByPrefix(
+  prefix: string,
+  {
+    bucket = env.S3_BUCKET,
+  }: {
+    bucket?: string;
+  } = {},
+) {
+  for await (const keys of listByPrefix(prefix, { bucket })) {
+    if (keys.length > 0) {
+      await deleteManyObjects(keys, { bucket });
+    }
+  }
 }

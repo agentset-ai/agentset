@@ -1,5 +1,5 @@
 import type { Document, IngestJob } from "@agentset/db";
-import { presignGetUrl, presignPutUrl } from "@agentset/storage";
+import { presignChunksUploadUrl, presignGetUrl } from "@agentset/storage";
 
 import type { ChunkOptions, ParseOptions, PartitionBody } from "./types";
 
@@ -89,10 +89,10 @@ export const getPartitionDocumentBody = async ({
 
   if (Object.keys(chunkOptions).length > 0) body.chunk_options = chunkOptions;
 
-  body.upload_presigned_url = await presignPutUrl({
-    key: `namespaces/${namespaceId}/documents/${document.id}/chunks.json`,
-    contentType: "application/json",
-  });
+  body.upload_presigned_url = await presignChunksUploadUrl(
+    namespaceId,
+    document.id,
+  );
 
   return body as PartitionBody;
 };

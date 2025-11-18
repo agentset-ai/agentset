@@ -1,12 +1,7 @@
-import {
-  DeleteObjectCommand,
-  PutObjectCommand,
-  S3Client,
-} from "@aws-sdk/client-s3";
-
 import { fetchWithTimeout } from "@agentset/utils";
 
 import { env } from "../env";
+import { deleteObject, uploadObject } from "./base";
 
 interface ImageOptions {
   contentType?: string;
@@ -14,22 +9,8 @@ interface ImageOptions {
   height?: number;
 }
 
-const s3Client = new S3Client({
-  region: "auto",
-  endpoint: env.ASSETS_S3_ENDPOINT,
-  credentials: {
-    accessKeyId: env.ASSETS_S3_ACCESS_KEY,
-    secretAccessKey: env.ASSETS_S3_SECRET_KEY,
-  },
-});
-
 export function deleteAsset(key: string) {
-  return s3Client.send(
-    new DeleteObjectCommand({
-      Bucket: env.ASSETS_S3_BUCKET,
-      Key: key,
-    }),
-  );
+  return deleteObject(key, { bucket: env.ASSETS_S3_BUCKET });
 }
 
 const isBase64 = (str: string) => {
@@ -116,15 +97,11 @@ export async function uploadImage(
   const uint8Array = new Uint8Array(buffer);
 
   try {
-    await s3Client.send(
-      new PutObjectCommand({
-        Bucket: env.ASSETS_S3_BUCKET,
-        Key: key,
-        Body: uint8Array,
-        ContentLength: uploadBody.size,
-        ContentType: opts?.contentType,
-      }),
-    );
+    await uploadObject(key, uint8Array, {
+      bucket: env.ASSETS_S3_BUCKET,
+      fileSize: uploadBody.size,
+      contentType: opts?.contentType,
+    });
 
     return {
       url: `${env.ASSETS_S3_URL}/${key}`,
@@ -134,5 +111,3 @@ export async function uploadImage(
     throw new Error(`Failed to upload file: ${error.message}`);
   }
 }
-
-export default s3Client;

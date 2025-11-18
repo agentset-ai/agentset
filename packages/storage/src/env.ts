@@ -8,11 +8,10 @@ export const env = createEnv({
     S3_ENDPOINT: z.url(),
     S3_BUCKET: z.string(),
 
-    ASSETS_S3_ACCESS_KEY: z.string(),
-    ASSETS_S3_SECRET_KEY: z.string(),
-    ASSETS_S3_ENDPOINT: z.url(),
     ASSETS_S3_BUCKET: z.string(),
     ASSETS_S3_URL: z.url(),
+
+    IMAGES_S3_BUCKET: z.string(),
   },
   runtimeEnv: {
     S3_ACCESS_KEY: process.env.S3_ACCESS_KEY,
@@ -20,11 +19,10 @@ export const env = createEnv({
     S3_ENDPOINT: process.env.S3_ENDPOINT,
     S3_BUCKET: process.env.S3_BUCKET,
 
-    ASSETS_S3_ACCESS_KEY: process.env.ASSETS_S3_ACCESS_KEY,
-    ASSETS_S3_SECRET_KEY: process.env.ASSETS_S3_SECRET_KEY,
-    ASSETS_S3_ENDPOINT: process.env.ASSETS_S3_ENDPOINT,
     ASSETS_S3_BUCKET: process.env.ASSETS_S3_BUCKET,
     ASSETS_S3_URL: process.env.ASSETS_S3_URL,
+
+    IMAGES_S3_BUCKET: process.env.IMAGES_S3_BUCKET,
   },
   skipValidation: !!process.env.SKIP_ENV_VALIDATION,
   emptyStringAsUndefined: true,

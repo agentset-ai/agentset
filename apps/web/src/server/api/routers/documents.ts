@@ -6,7 +6,7 @@ import { TRPCError } from "@trpc/server";
 import { z } from "zod/v4";
 
 import { DocumentStatus } from "@agentset/db";
-import { checkFileExists, presignGetUrl } from "@agentset/storage";
+import { presignChunksDownloadUrl } from "@agentset/storage";
 
 import { getNamespaceByUser } from "../auth";
 
@@ -138,19 +138,10 @@ export const documentsRouter = createTRPCRouter({
         });
       }
 
-      const key = `namespaces/${namespace.id}/documents/${document.id}/chunks.json`;
-
-      const exists = await checkFileExists(key);
-      if (!exists) {
-        throw new TRPCError({
-          code: "NOT_FOUND",
-          message: "Chunks file not found",
-        });
+      const url = await presignChunksDownloadUrl(namespace.id, document.id);
+      if (!url) {
+        throw new TRPCError({ code: "NOT_FOUND" });
       }
-
-      const { url } = await presignGetUrl(key, {
-        fileName: `${document.id}-chunks.json`,
-      });
 
       return { url };
     }),
