@@ -2,6 +2,7 @@ import { useEffect } from "react";
 import { useNamespace } from "@/hooks/use-namespace";
 import { useUploadFiles } from "@/hooks/use-upload";
 import { logEvent } from "@/lib/analytics";
+import { SUPPORTED_TYPES } from "@/lib/file-types";
 import { useTRPC } from "@/trpc/react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation } from "@tanstack/react-query";
@@ -35,6 +36,28 @@ const schema = z
       .max(100, { message: "Maximum 100 files" }),
   })
   .extend(configSchema.shape);
+
+const ACCEPT = SUPPORTED_TYPES.reduce(
+  (acc, type) => {
+    if (type.mimeTypesPrefixes) {
+      type.mimeTypesPrefixes.forEach((prefix) => {
+        acc[`${prefix}/*`] = [
+          ...(acc[`${prefix}/*`] ?? []),
+          ...type.extensions,
+        ];
+      });
+    }
+
+    if (type.mimeTypes) {
+      type.mimeTypes.forEach((mimeType) => {
+        acc[mimeType] = [...(acc[mimeType] ?? []), ...type.extensions];
+      });
+    }
+
+    return acc;
+  },
+  {} as Record<string, string[]>,
+);
 
 export default function UploadForm({ onSuccess }: { onSuccess: () => void }) {
   const namespace = useNamespace();
@@ -155,7 +178,7 @@ export default function UploadForm({ onSuccess }: { onSuccess: () => void }) {
                     multiple
                     maxSize={MAX_UPLOAD_SIZE}
                     progresses={progresses}
-                    accept={{}}
+                    accept={ACCEPT}
                     disabled={isPending}
                   />
                 </FormControl>

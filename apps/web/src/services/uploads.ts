@@ -1,75 +1,22 @@
 import { extname } from "node:path";
+import {
+  SUPPORTED_EXTENSIONS,
+  SUPPORTED_MIME_TYPES,
+  SUPPORTED_MIME_TYPES_PREFIXES,
+} from "@/lib/file-types";
 import { batchUploadSchema, uploadFileSchema } from "@/schemas/api/upload";
 import z from "zod/v4";
 
 import { presignUploadUrl } from "@agentset/storage";
 import { filenamize, tryCatch } from "@agentset/utils";
 
-const SUPPORTED_EXTENSIONS = [
-  ".bmp",
-  ".csv",
-  ".doc",
-  ".docx",
-  ".eml",
-  ".epub",
-  ".heic",
-  ".html",
-  ".jpeg",
-  ".png",
-  ".md",
-  ".msg",
-  ".odt",
-  ".org",
-  ".p7s",
-  ".pdf",
-  ".png",
-  ".ppt",
-  ".pptx",
-  ".rst",
-  ".rtf",
-  ".tiff",
-  ".txt",
-  ".tsv",
-  ".xls",
-  ".xlsx",
-  ".xml",
-];
-
-const SUPPORTED_MIME_TYPES = [
-  "image/bmp", // .bmp
-  "text/csv", // .csv
-  "application/msword", // .doc
-  "application/vnd.openxmlformats-officedocument.wordprocessingml.document", // .docx
-  "message/rfc822", // .eml
-  "application/epub", // .epub
-  "application/epub+zip", // .epub
-  "image/heif",
-  "image/heif-sequence",
-  "image/heic",
-  "image/heic-sequence",
-  "text/html", // .html
-  "image/jpeg", // .jpeg
-  "image/png", // .png
-  "text/markdown", // .md
-  "application/vnd.ms-outlook", // .msg (sometimes message/rfc822)
-  "application/vnd.oasis.opendocument.text", // .odt
-  "text/x-org", // .org (not official, but often used)
-  "application/pkcs7-signature", // .p7s
-  "application/pdf", // .pdf
-  "application/vnd.ms-powerpoint", // .ppt
-  "application/vnd.openxmlformats-officedocument.presentationml.presentation", // .pptx
-  "text/x-rst", // .rst (not official; sometimes text/plain)
-  "application/rtf", // .rtf
-  "image/tiff", // .tiff
-  "text/plain", // .txt
-  "text/tab-separated-values", // .tsv
-  "application/vnd.ms-excel", // .xls
-  "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", // .xlsx
-  "application/xml", // .xml
-];
-
 export const isContentTypeSupported = (contentType: string): boolean => {
-  return SUPPORTED_MIME_TYPES.includes(contentType);
+  return (
+    SUPPORTED_MIME_TYPES.includes(contentType) ||
+    SUPPORTED_MIME_TYPES_PREFIXES.some((prefix) =>
+      contentType.startsWith(prefix),
+    )
+  );
 };
 
 export const isFileExtensionSupported = (fileName: string): boolean => {
