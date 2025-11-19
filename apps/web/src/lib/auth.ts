@@ -4,7 +4,7 @@ import { betterAuth } from "better-auth";
 import { prismaAdapter } from "better-auth/adapters/prisma";
 import { admin, magicLink, organization } from "better-auth/plugins";
 
-import { db } from "@agentset/db";
+import { db } from "@agentset/db/client";
 import { InviteUserEmail, LoginEmail, WelcomeEmail } from "@agentset/emails";
 
 import { env } from "../env";

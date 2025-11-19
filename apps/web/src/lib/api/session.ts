@@ -1,7 +1,7 @@
 import type { NextRequest } from "next/server";
 
 import type { Namespace } from "@agentset/db";
-import { db } from "@agentset/db";
+import { db } from "@agentset/db/client";
 
 import type { Session } from "../auth-types";
 import { AgentsetApiError } from "../api/errors";

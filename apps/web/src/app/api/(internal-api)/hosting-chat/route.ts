@@ -8,7 +8,7 @@ import { extractTextFromParts } from "@/lib/string-utils";
 import { waitUntil } from "@vercel/functions";
 import { convertToModelMessages } from "ai";
 
-import { db } from "@agentset/db";
+import { db } from "@agentset/db/client";
 import {
   getNamespaceEmbeddingModel,
   getNamespaceLanguageModel,

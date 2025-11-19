@@ -6,7 +6,8 @@ import {
 } from "@/lib/analytics-server";
 
 import type { Namespace } from "@agentset/db";
-import { db, NamespaceStatus } from "@agentset/db";
+import { NamespaceStatus } from "@agentset/db";
+import { db } from "@agentset/db/client";
 
 import type { HandlerParams } from "./base";
 import { AgentsetApiError } from "../errors";

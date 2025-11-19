@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { log } from "@/lib/log";
 
 import type { Stripe } from "@agentset/stripe";
-import { db } from "@agentset/db";
+import { db } from "@agentset/db/client";
 import { FREE_PLAN, planToOrganizationFields } from "@agentset/stripe/plans";
 
 import { revalidateOrganizationCache, sendCancellationFeedback } from "./utils";

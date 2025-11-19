@@ -1,6 +1,6 @@
 import { unstable_cache } from "next/cache";
 
-import { db } from "@agentset/db";
+import { db } from "@agentset/db/client";
 
 export const getApiKeyInfo = async (apiKey: string) => {
   return unstable_cache(

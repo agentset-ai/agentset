@@ -7,8 +7,14 @@
 // }
 
 generator client {
-    provider = "prisma-client-js"
-    output   = "../../generated/client"
+    provider = "prisma-client"
+    output   = "../../generated"
+}
+
+generator clientEdge {
+    provider = "prisma-client"
+    output   = "../../generated-edge"
+    runtime  = "vercel-edge"
 }
 
 generator json {
@@ -16,7 +22,5 @@ generator json {
 }
 
 datasource db {
-    provider  = "postgresql"
-    url       = env("DATABASE_URL")
-    directUrl = env("DIRECT_URL")
+    provider = "postgresql"
 }

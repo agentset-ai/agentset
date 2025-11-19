@@ -1,7 +1,7 @@
 import type { NextRequest } from "next/server";
 
 import type { Hosting } from "@agentset/db";
-import { db } from "@agentset/db";
+import { db } from "@agentset/db/client";
 
 import { auth } from "../auth";
 import { AgentsetApiError } from "./errors";

@@ -9,7 +9,7 @@ import { waitUntil } from "@vercel/functions";
 import { generateText } from "ai";
 
 import type { QueryVectorStoreResult } from "@agentset/engine";
-import { db } from "@agentset/db";
+import { db } from "@agentset/db/client";
 import {
   getNamespaceEmbeddingModel,
   getNamespaceLanguageModel,

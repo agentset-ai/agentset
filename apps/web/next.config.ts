@@ -4,8 +4,6 @@
  */
 import { fileURLToPath } from "node:url";
 import type { NextConfig } from "next";
-// @ts-expect-error - no types
-import { PrismaPlugin } from "@prisma/nextjs-monorepo-workaround-plugin";
 
 const makeConfig = async (): Promise<NextConfig> => {
   const { createJiti } = await import("jiti");
@@ -38,11 +36,6 @@ const makeConfig = async (): Promise<NextConfig> => {
     /** We already do linting and typechecking as separate tasks in CI */
     eslint: { ignoreDuringBuilds: true },
     typescript: { ignoreBuildErrors: true },
-
-    webpack: (config, { isServer }) => {
-      if (isServer) config.plugins = [...config.plugins, new PrismaPlugin()];
-      return config;
-    },
 
     async rewrites() {
       return [

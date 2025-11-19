@@ -5,7 +5,8 @@ import { makeApiSuccessResponse } from "@/lib/api/response";
 import { IngestJobSchema } from "@/schemas/api/ingest-job";
 import { deleteIngestJob } from "@/services/ingest-jobs/delete";
 
-import { db, IngestJobStatus } from "@agentset/db";
+import { IngestJobStatus } from "@agentset/db";
+import { db } from "@agentset/db/client";
 
 export const GET = withNamespaceApiHandler(
   async ({ params, namespace, headers }) => {

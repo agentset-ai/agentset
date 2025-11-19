@@ -1,6 +1,6 @@
 import { waitUntil } from "@vercel/functions";
 
-import { db } from "@agentset/db";
+import { db } from "@agentset/db/client";
 
 export const incrementSearchUsage = (namespaceId: string, queries: number) => {
   // track usage

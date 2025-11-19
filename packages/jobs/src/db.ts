@@ -1,15 +1,16 @@
 import { locals, tasks } from "@trigger.dev/sdk";
 
-import { PrismaClient } from "@agentset/db";
+import { createTriggerPrisma } from "@agentset/db/trigger";
 
-const DbLocal = locals.create<PrismaClient>("db");
+type Db = ReturnType<typeof createTriggerPrisma>;
+const DbLocal = locals.create<Db>("db");
 
-export function getDb(): PrismaClient {
+export function getDb(): Db {
   return locals.getOrThrow(DbLocal);
 }
 
 tasks.middleware("db", async ({ next }) => {
-  const db = locals.set(DbLocal, new PrismaClient());
+  const db = locals.set(DbLocal, createTriggerPrisma());
 
   await db.$connect();
   await next();

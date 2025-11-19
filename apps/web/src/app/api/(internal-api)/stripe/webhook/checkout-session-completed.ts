@@ -4,7 +4,7 @@ import { log } from "@/lib/log";
 import { sendEmail } from "@/lib/resend";
 
 import type { Stripe } from "@agentset/stripe";
-import { db } from "@agentset/db";
+import { db } from "@agentset/db/client";
 import { UpgradeEmail } from "@agentset/emails";
 import { triggerMeterOrgDocuments } from "@agentset/jobs";
 import { stripe } from "@agentset/stripe";

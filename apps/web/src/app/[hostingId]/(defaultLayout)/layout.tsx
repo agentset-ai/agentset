@@ -3,7 +3,7 @@ import { notFound } from "next/navigation";
 import { HostingProvider } from "@/contexts/hosting-context";
 import { constructMetadata } from "@/lib/metadata";
 
-import { db } from "@agentset/db";
+import { db } from "@agentset/db/client";
 
 import Header from "./header";
 

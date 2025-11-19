@@ -1,39 +1,16 @@
-import { neonConfig } from "@neondatabase/serverless";
-import { PrismaNeon } from "@prisma/adapter-neon";
-
-// import ws from "ws";
+import { PrismaPg } from "@prisma/adapter-pg";
+import { attachDatabasePool } from "@vercel/functions";
+import { Pool } from "pg";
 
 import { PrismaClient } from "../generated/client";
 
 const createPrismaClient = () => {
-  if (typeof WebSocket === "undefined") {
-    return new PrismaClient({
-      log:
-        process.env.NODE_ENV === "development"
-          ? ["query", "error", "warn"]
-          : ["error"],
-    });
-  }
+  const connectionString = process.env.DATABASE_URL!;
+  const pool = new Pool({ connectionString });
+  attachDatabasePool(pool);
 
-  // Supabase pooled connection string (must use Supavisor)
-  const connectionString = process.env.DATABASE_URL ?? "";
-
-  if (connectionString.includes("@localhost")) {
-    // Disable SSL for local connections
-    neonConfig.useSecureWebSocket = false;
-    // WebSocket proxy is hosted on `4000` locally, so add port. Does not work in production.
-    neonConfig.wsProxy = (host) => `${host}:4000/v2`;
-  }
-
-  // Only Neon hosts support this -- non-deterministic errors otherwise
-  neonConfig.pipelineConnect = false;
-
-  // So it can also work in Node.js
-  neonConfig.webSocketConstructor = WebSocket;
-
-  const adapter = new PrismaNeon({ connectionString });
   return new PrismaClient({
-    adapter,
+    adapter: new PrismaPg(pool),
     log:
       process.env.NODE_ENV === "development"
         ? ["query", "error", "warn"]
