@@ -1,11 +1,3 @@
-// generator client {
-//     provider     = "prisma-client" // ESM-first
-//     engineType   = "client" // No rust engines
-//     output       = "../../generated"
-//     runtime      = "vercel-edge"
-//     moduleFormat = "esm"
-// }
-
 generator client {
     provider = "prisma-client"
     output   = "../../generated"
