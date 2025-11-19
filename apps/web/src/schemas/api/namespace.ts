@@ -39,7 +39,7 @@ export const createNamespaceSchema = z.object({
     model: "text-embedding-3-large",
   }),
   vectorStoreConfig: createVectorStoreSchema.optional().default({
-    provider: "MANAGED_PINECONE",
+    provider: "MANAGED_TURBOPUFFER",
   }),
 });
 

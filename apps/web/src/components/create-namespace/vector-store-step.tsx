@@ -57,7 +57,7 @@ export default function CreateNamespaceVectorStoreStep({
     resolver: zodResolver(formSchema, undefined),
     defaultValues: {
       vectorStore: {
-        provider: "MANAGED_PINECONE",
+        provider: "MANAGED_TURBOPUFFER",
       },
     },
   });
