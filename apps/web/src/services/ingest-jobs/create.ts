@@ -2,7 +2,8 @@ import type { createIngestJobSchema } from "@/schemas/api/ingest-job";
 import type { z } from "zod/v4";
 
 import type { IngestJobBatchItem } from "@agentset/validation";
-import { db, IngestJobStatus } from "@agentset/db";
+import { IngestJobStatus } from "@agentset/db";
+import { db } from "@agentset/db/client";
 import { triggerIngestionJob } from "@agentset/jobs";
 import { checkFileExists } from "@agentset/storage";
 

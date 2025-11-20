@@ -4,9 +4,9 @@ import type { ColumnDef } from "@tanstack/react-table";
 import { formatDuration } from "@/lib/utils";
 import { ChevronDownIcon, ChevronRightIcon } from "lucide-react";
 
-import type { IngestJob } from "@agentset/db";
+import type { IngestJob } from "@agentset/db/browser";
 import type { BadgeProps } from "@agentset/ui/badge";
-import { IngestJobStatus } from "@agentset/db";
+import { IngestJobStatus } from "@agentset/db/browser";
 import { Badge } from "@agentset/ui/badge";
 import { Button } from "@agentset/ui/button";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@agentset/ui/tooltip";

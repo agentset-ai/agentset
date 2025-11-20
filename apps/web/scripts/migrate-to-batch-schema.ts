@@ -1,4 +1,4 @@
-import { db } from "@agentset/db";
+import { db } from "@agentset/db/client";
 import { chunkArray } from "@agentset/utils";
 
 type OldJobSchema = {

@@ -11,7 +11,7 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 
-import { IngestJobStatus } from "@agentset/db";
+import { IngestJobStatus } from "@agentset/db/browser";
 import { Button } from "@agentset/ui/button";
 import {
   DropdownMenu,

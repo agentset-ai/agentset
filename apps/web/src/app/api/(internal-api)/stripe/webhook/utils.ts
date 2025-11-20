@@ -3,7 +3,7 @@ import { sendEmail } from "@/lib/resend";
 import { waitUntil } from "@vercel/functions";
 
 import type { Stripe } from "@agentset/stripe";
-import { db } from "@agentset/db";
+import { db } from "@agentset/db/client";
 
 const cancellationReasonMap = {
   customer_service: "you had a bad experience with our customer service",

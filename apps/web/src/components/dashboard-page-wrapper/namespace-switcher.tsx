@@ -7,7 +7,7 @@ import { useRouter } from "@bprogress/next/app";
 import { useQuery } from "@tanstack/react-query";
 import { ChevronsUpDownIcon, PlusIcon } from "lucide-react";
 
-import type { Namespace } from "@agentset/db";
+import type { Namespace } from "@agentset/db/browser";
 import { Button } from "@agentset/ui/button";
 import {
   DropdownMenu,

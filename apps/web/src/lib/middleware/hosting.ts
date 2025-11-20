@@ -5,7 +5,7 @@ import { getCache } from "@vercel/functions";
 import { getSessionCookie } from "better-auth/cookies";
 
 import type { Prisma } from "@agentset/db";
-import { db } from "@agentset/db";
+import { db } from "@agentset/db/edge";
 
 import { HOSTING_PREFIX } from "../constants";
 import { getMiddlewareSession } from "./get-session";

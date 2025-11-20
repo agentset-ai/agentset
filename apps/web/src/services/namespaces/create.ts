@@ -1,4 +1,4 @@
-import { db } from "@agentset/db";
+import { db } from "@agentset/db/client";
 
 export const createNamespace = async ({
   name,

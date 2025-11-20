@@ -1,6 +1,7 @@
 import z from "zod/v4";
 
-import { db, Prisma } from "@agentset/db";
+import { Prisma } from "@agentset/db";
+import { db } from "@agentset/db/client";
 import { openaiEmbeddingModelEnum } from "@agentset/validation";
 
 /**

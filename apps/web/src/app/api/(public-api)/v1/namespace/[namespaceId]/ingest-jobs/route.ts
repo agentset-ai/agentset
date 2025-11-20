@@ -11,7 +11,8 @@ import {
 import { createIngestJob } from "@/services/ingest-jobs/create";
 import { getPaginationArgs, paginateResults } from "@/services/pagination";
 
-import { db, Prisma } from "@agentset/db";
+import { Prisma } from "@agentset/db";
+import { db } from "@agentset/db/client";
 import { isFreePlan } from "@agentset/stripe/plans";
 
 export const GET = withNamespaceApiHandler(

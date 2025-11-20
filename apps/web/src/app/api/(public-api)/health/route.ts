@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 
-import { db } from "@agentset/db";
+import { db } from "@agentset/db/client";
 
 export const preferredRegion = "iad1"; // closest region to the DB
 

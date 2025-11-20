@@ -3,7 +3,8 @@ import { withNamespaceApiHandler } from "@/lib/api/handler";
 import { normalizeId, prefixId } from "@/lib/api/ids";
 import { makeApiSuccessResponse } from "@/lib/api/response";
 
-import { db, IngestJobStatus } from "@agentset/db";
+import { IngestJobStatus } from "@agentset/db";
+import { db } from "@agentset/db/client";
 import { triggerReIngestJob } from "@agentset/jobs";
 
 export const POST = withNamespaceApiHandler(

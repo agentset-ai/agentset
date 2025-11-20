@@ -3,7 +3,7 @@ import { NextResponse } from "next/server";
 import { parse } from "@/lib/middleware/utils";
 import { getSessionCookie } from "better-auth/cookies";
 
-import { db } from "@agentset/db";
+import { db } from "@agentset/db/edge";
 
 import { HOSTING_PREFIX } from "../constants";
 import { getMiddlewareSession } from "./get-session";

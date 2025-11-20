@@ -5,7 +5,8 @@ import { makeApiSuccessResponse } from "@/lib/api/response";
 import { DocumentSchema } from "@/schemas/api/document";
 import { deleteDocument } from "@/services/documents/delete";
 
-import { db, DocumentStatus } from "@agentset/db";
+import { DocumentStatus } from "@agentset/db";
+import { db } from "@agentset/db/client";
 
 export const GET = withNamespaceApiHandler(
   async ({ params, namespace, headers }) => {

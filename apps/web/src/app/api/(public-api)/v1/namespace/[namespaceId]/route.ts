@@ -9,7 +9,8 @@ import {
 } from "@/schemas/api/namespace";
 import { deleteNamespace } from "@/services/namespaces/delete";
 
-import { db, Prisma } from "@agentset/db";
+import { Prisma } from "@agentset/db";
+import { db } from "@agentset/db/client";
 
 export const GET = withNamespaceApiHandler(
   async ({ namespace, headers }) => {

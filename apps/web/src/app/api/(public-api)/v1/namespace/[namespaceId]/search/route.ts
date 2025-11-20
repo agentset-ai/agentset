@@ -6,7 +6,7 @@ import { queryVectorStoreSchema } from "@/schemas/api/query";
 import { waitUntil } from "@vercel/functions";
 
 import type { QueryVectorStoreResult } from "@agentset/engine";
-import { db } from "@agentset/db";
+import { db } from "@agentset/db/client";
 import {
   getNamespaceEmbeddingModel,
   getNamespaceVectorStore,
