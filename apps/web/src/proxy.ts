@@ -20,7 +20,7 @@ export const config = {
   ],
 };
 
-export function middleware(request: NextRequest, event: NextFetchEvent) {
+export function proxy(request: NextRequest, event: NextFetchEvent) {
   const { domain } = parse(request);
 
   // for App
