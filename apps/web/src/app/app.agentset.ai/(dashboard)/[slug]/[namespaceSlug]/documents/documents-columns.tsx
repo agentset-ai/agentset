@@ -2,9 +2,9 @@ import type { ColumnDef } from "@tanstack/react-table";
 import { formatDuration, formatNumber } from "@/lib/utils";
 import { BookTextIcon, Code2Icon, FileTextIcon, ImageIcon } from "lucide-react";
 
-import type { Document } from "@agentset/db";
+import type { Document } from "@agentset/db/browser";
 import type { BadgeProps } from "@agentset/ui/badge";
-import { DocumentStatus } from "@agentset/db";
+import { DocumentStatus } from "@agentset/db/browser";
 import { Badge } from "@agentset/ui/badge";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@agentset/ui/tooltip";
 import { capitalize, formatBytes } from "@agentset/utils";

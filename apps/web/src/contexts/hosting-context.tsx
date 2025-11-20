@@ -2,7 +2,7 @@
 
 import { createContext, use } from "react";
 
-import type { Hosting } from "@agentset/db";
+import type { Hosting } from "@agentset/db/browser";
 
 export const HostingContext = createContext<Hosting | null>(null);
 

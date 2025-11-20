@@ -7,7 +7,8 @@
     "./types": "./src/types/prisma.ts",
     "./trigger": "./src/trigger.ts",
     "./client": "./src/client.ts",
-    "./edge": "./src/edge.ts"
+    "./edge": "./src/edge.ts",
+    "./browser": "./src/browser.ts"
   },
   "scripts": {
     "postinstall": "pnpm db:generate",
