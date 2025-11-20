@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import { cache } from "react";
 import { notFound } from "next/navigation";
 import { HostingProvider } from "@/contexts/hosting-context";
@@ -28,9 +29,7 @@ const getHosting = cache(async (id: string) => {
 
 export async function generateMetadata({
   params,
-}: {
-  params: Promise<{ hostingId: string }>;
-}) {
+}: LayoutProps<"/[hostingId]">): Promise<Metadata> {
   const { hostingId } = await params;
   const hosting = await getHosting(hostingId);
 
@@ -42,10 +41,7 @@ export async function generateMetadata({
 export default async function CustomDomainLayout({
   params,
   children,
-}: {
-  params: Promise<{ hostingId: string }>;
-  children: React.ReactNode;
-}) {
+}: LayoutProps<"/[hostingId]">) {
   const { hostingId } = await params;
   const hosting = await getHosting(hostingId);
 
