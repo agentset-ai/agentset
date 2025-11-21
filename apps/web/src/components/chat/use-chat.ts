@@ -4,7 +4,7 @@ import { DefaultChatTransport } from "ai";
 import { useChat } from "ai-sdk-zustand";
 import { toast } from "sonner";
 
-import { useChatSettings } from "./chat-settings.store";
+import { DEFAULT_CHAT_SETTINGS, useChatSettings } from "./chat-settings.store";
 
 export function useNamespaceChat() {
   const namespace = useNamespace();
@@ -14,7 +14,9 @@ export function useNamespaceChat() {
     transport: new DefaultChatTransport({
       api: `/api/chat?namespaceId=${namespace.id}`,
       prepareSendMessagesRequest({ messages, body }) {
-        const settings = useChatSettings.getState().namespaces[namespace.id];
+        const settings =
+          useChatSettings.getState().namespaces[namespace.id] ??
+          DEFAULT_CHAT_SETTINGS;
 
         return {
           body: {
@@ -22,13 +24,13 @@ export function useNamespaceChat() {
             ...body,
             rerank: true,
             includeMetadata: true,
-            topK: settings?.topK,
-            rerankLimit: settings?.rerankLimit,
-            rerankModel: settings?.rerankModel,
-            llmModel: settings?.llmModel,
-            temperature: settings?.temperature,
-            mode: settings?.mode ?? "normal",
-            systemPrompt: settings?.systemPrompt ?? undefined,
+            topK: settings.topK,
+            rerankLimit: settings.rerankLimit,
+            rerankModel: settings.rerankModel,
+            llmModel: settings.llmModel,
+            temperature: settings.temperature,
+            mode: settings.mode,
+            systemPrompt: settings.systemPrompt ?? undefined,
           },
         };
       },
