@@ -3,8 +3,8 @@ import {
   checkFileExists,
   deleteObject,
   deleteObjectsByPrefix,
+  getObject,
   presignGetUrl,
-  presignPutUrl,
 } from "./base";
 
 export function deleteDocumentImages(namespaceId: string, documentId: string) {
@@ -32,16 +32,6 @@ export async function deleteDocumentChunksFile(
   return false;
 }
 
-export async function presignChunksUploadUrl(
-  namespaceId: string,
-  documentId: string,
-) {
-  return presignPutUrl({
-    key: makeChunksKey(namespaceId, documentId),
-    contentType: "application/json",
-  });
-}
-
 export async function presignChunksDownloadUrl(
   namespaceId: string,
   documentId: string,
@@ -55,4 +45,22 @@ export async function presignChunksDownloadUrl(
   });
 
   return url;
+}
+
+export async function getChunksJsonFromS3<T>(
+  namespaceId: string,
+  documentId: string,
+): Promise<T | null> {
+  const key = makeChunksKey(namespaceId, documentId);
+  const exists = await checkFileExists(key);
+  if (!exists) return null;
+
+  const file = await (await getObject(key)).Body?.transformToString();
+  if (!file) return null;
+
+  try {
+    return JSON.parse(file) as T;
+  } catch (error) {
+    return null;
+  }
 }

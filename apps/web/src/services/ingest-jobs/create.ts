@@ -62,6 +62,12 @@ export const createIngestJob = async ({
       type: "BATCH",
       items: finalItems,
     };
+  } else if (data.payload.type === "CRAWL") {
+    finalPayload = {
+      type: "CRAWL",
+      url: data.payload.url,
+      ...(data.payload.options && { options: data.payload.options }),
+    };
   } else {
     const commonPayload = {
       ...(data.payload.fileName && { fileName: data.payload.fileName }),

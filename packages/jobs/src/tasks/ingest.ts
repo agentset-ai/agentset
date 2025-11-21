@@ -1,11 +1,11 @@
-import { schemaTask } from "@trigger.dev/sdk";
+import { schemaTask, wait } from "@trigger.dev/sdk";
 
-import {
-  Document,
-  DocumentStatus,
-  IngestJobStatus,
-  Prisma,
-} from "@agentset/db";
+import type {
+  CrawlPartitionBody,
+  CrawlPartitionResult,
+} from "@agentset/engine";
+import { DocumentStatus, IngestJobStatus, Prisma } from "@agentset/db";
+import { env } from "@agentset/engine/env";
 import { chunkArray } from "@agentset/utils";
 
 import { getDb } from "../db";
@@ -101,9 +101,76 @@ export const ingestJob = schemaTask({
       namespaceId: ingestionJob.namespace.id,
     } satisfies Partial<Prisma.DocumentCreateArgs["data"]>;
 
-    let documents: Pick<Document, "id">[] = [];
+    let documentsIds: string[] = [];
 
-    if (
+    if (ingestionJob.payload.type === "CRAWL") {
+      const token = await wait.createToken({ timeout: "2h" });
+
+      const body: CrawlPartitionBody = {
+        url: ingestionJob.payload.url,
+        extra_metadata: ingestionJob.config?.metadata,
+        crawl_options: {
+          max_depth: ingestionJob.payload.options?.maxDepth,
+          limit: ingestionJob.payload.options?.limit,
+          exclude_paths: ingestionJob.payload.options?.excludePaths,
+          include_paths: ingestionJob.payload.options?.includePaths,
+          headers: ingestionJob.payload.options?.headers,
+        },
+        chunk_options: {
+          chunk_size: ingestionJob.config?.chunkSize,
+        },
+        trigger_token_id: token.id,
+        trigger_access_token: token.publicAccessToken,
+        namespace_id: ingestionJob.namespace.id,
+      };
+
+      const response = await fetch(`${env.PARTITION_API_URL}/crawl`, {
+        method: "POST",
+        headers: {
+          "api-key": env.PARTITION_API_KEY,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(body),
+      });
+
+      const initialBody = (await response.json()) as { call_id: string };
+      if (response.status !== 200 || !initialBody.call_id) {
+        throw new Error("Partition Error");
+      }
+
+      const result = await wait
+        .forToken<CrawlPartitionResult | undefined>(token.id)
+        .unwrap();
+
+      if (!result || result.status !== 200) {
+        throw new Error("Partition Error");
+      }
+
+      const batchDocuments = chunkArray(result.documents, 20);
+      for (const batch of batchDocuments) {
+        const batchDocuments = await db.document.createManyAndReturn({
+          select: { id: true },
+          data: batch.map((doc) => ({
+            ...commonData,
+            id: doc.id,
+            status: DocumentStatus.QUEUED,
+            name: doc.url,
+            source: {
+              type: "CRAWLED_PAGE",
+            },
+            totalCharacters: doc.total_characters,
+            totalChunks: doc.total_chunks,
+            totalPages: doc.total_characters / 1000,
+            documentProperties: {
+              fileSize: doc.total_bytes,
+              mimeType: "text/html",
+            },
+          })),
+        });
+
+        documentsIds = documentsIds.concat(batchDocuments.map((doc) => doc.id));
+      }
+    } else if (
       ingestionJob.payload.type === "FILE" ||
       ingestionJob.payload.type === "TEXT" ||
       ingestionJob.payload.type === "MANAGED_FILE"
@@ -130,7 +197,7 @@ export const ingestJob = schemaTask({
           select: { id: true },
         });
 
-        documents = [document];
+        documentsIds = [document.id];
       } else if (ingestionJob.payload.type === "FILE") {
         const { fileUrl } = ingestionJob.payload;
         const document = await db.document.create({
@@ -145,7 +212,7 @@ export const ingestJob = schemaTask({
           select: { id: true },
         });
 
-        documents = [document];
+        documentsIds = [document.id];
       } else if (ingestionJob.payload.type === "MANAGED_FILE") {
         const { key } = ingestionJob.payload;
         const document = await db.document.create({
@@ -160,7 +227,7 @@ export const ingestJob = schemaTask({
           select: { id: true },
         });
 
-        documents = [document];
+        documentsIds = [document.id];
       }
     } else {
       // Handle batch document creation for multi-file types
@@ -187,7 +254,7 @@ export const ingestJob = schemaTask({
           ),
         });
 
-        documents = documents.concat(batchResult);
+        documentsIds = documentsIds.concat(batchResult.map((doc) => doc.id));
       }
     }
 
@@ -196,14 +263,14 @@ export const ingestJob = schemaTask({
       db.namespace.update({
         where: { id: ingestionJob.namespace.id },
         data: {
-          totalDocuments: { increment: documents.length },
+          totalDocuments: { increment: documentsIds.length },
         },
         select: { id: true },
       }),
       db.organization.update({
         where: { id: ingestionJob.namespace.organization.id },
         data: {
-          totalDocuments: { increment: documents.length },
+          totalDocuments: { increment: documentsIds.length },
         },
         select: { id: true },
       }),
@@ -218,18 +285,18 @@ export const ingestJob = schemaTask({
       }),
     ]);
 
-    const chunks = chunkArray(documents, BATCH_SIZE);
+    const chunks = chunkArray(documentsIds, BATCH_SIZE);
     let success = true;
     let totalPages = 0;
     for (const chunk of chunks) {
       const handles = await processDocument.batchTriggerAndWait(
-        chunk.map((document) => ({
+        chunk.map((documentId) => ({
           payload: {
-            documentId: document.id,
+            documentId: documentId,
             ingestJob: ingestionJob,
           },
           options: {
-            tags: [`doc_${document.id}`],
+            tags: [`doc_${documentId}`],
             priority: ctx.run.priority,
           },
         })),
@@ -300,7 +367,7 @@ export const ingestJob = schemaTask({
 
     return {
       ingestionJobId: ingestionJob.id,
-      documentsCreated: documents.length,
+      documentsCreated: documentsIds.length,
     };
   },
 });

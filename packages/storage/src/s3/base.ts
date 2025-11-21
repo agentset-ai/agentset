@@ -260,3 +260,14 @@ export async function deleteObjectsByPrefix(
     }
   }
 }
+
+export async function getObject(
+  key: string,
+  {
+    bucket = env.S3_BUCKET,
+  }: {
+    bucket?: string;
+  } = {},
+) {
+  return s3Client.send(new GetObjectCommand({ Bucket: bucket, Key: key }));
+}

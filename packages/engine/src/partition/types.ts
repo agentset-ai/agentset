@@ -132,7 +132,6 @@ export interface PartitionBody {
   trigger_token_id: string;
   trigger_access_token: string;
 
-  upload_presigned_url: string;
   namespace_id: string;
   document_id: string;
 }
@@ -142,7 +141,7 @@ export type PartitionResult = {
   metadata: {
     filename: string;
     filetype: string;
-    sizeInBytes: number;
+    size_in_bytes: number;
   };
   total_characters: number;
   total_chunks: number;

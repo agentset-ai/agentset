@@ -1,9 +1,20 @@
 import type { Document, IngestJob } from "@agentset/db";
-import { presignChunksUploadUrl, presignGetUrl } from "@agentset/storage";
+import { presignGetUrl } from "@agentset/storage";
 
 import type { ChunkOptions, ParseOptions, PartitionBody } from "./types";
 
 export * from "./types";
+
+const filterUndefined = <T extends object>(obj: T): T => {
+  return Object.fromEntries(
+    Object.entries(obj).filter(([_, value]) => value !== undefined),
+  ) as T;
+};
+
+type DocumentToPartition = Pick<
+  Document,
+  "id" | "name" | "config" | "tenantId"
+> & { source: Exclude<Document["source"], { type: "CRAWLED_PAGE" }> };
 
 export const getPartitionDocumentBody = async ({
   document,
@@ -12,7 +23,7 @@ export const getPartitionDocumentBody = async ({
   triggerTokenId,
   triggerAccessToken,
 }: {
-  document: Pick<Document, "id" | "name" | "source" | "config" | "tenantId">;
+  document: DocumentToPartition;
   ingestJobConfig: IngestJob["config"];
   namespaceId: string;
   triggerTokenId: string;
@@ -70,29 +81,21 @@ export const getPartitionDocumentBody = async ({
     ...documentConfig,
   };
 
-  const chunkOptions: ChunkOptions = {};
-  chunkOptions.chunk_size = mergedConfig.chunkSize;
-  chunkOptions.language_code = mergedConfig.languageCode;
+  const chunkOptions: ChunkOptions = filterUndefined({
+    chunk_size: mergedConfig.chunkSize,
+    language_code: mergedConfig.languageCode,
+  });
 
-  const parseOptions: ParseOptions = {};
-  parseOptions.force_ocr = mergedConfig.forceOcr;
-  parseOptions.disable_image_extraction = mergedConfig.disableImageExtraction;
-  parseOptions.disable_ocr_math = mergedConfig.disableOcrMath;
-  parseOptions.use_llm = mergedConfig.useLlm;
-  parseOptions.mode = mergedConfig.mode;
-
-  // if (mergedConfig.maxChunkSize)
-  //   chunkOptions.min_sentences_per_chunk = mergedConfig.maxChunkSize;
-  // if (mergedConfig.chunkingStrategy)
-  //   unstructuredArgs.chunking_strategy = mergedConfig.chunkingStrategy;
-  // if (mergedConfig.strategy) unstructuredArgs.strategy = mergedConfig.strategy;
+  const parseOptions: ParseOptions = filterUndefined({
+    force_ocr: mergedConfig.forceOcr,
+    disable_image_extraction: mergedConfig.disableImageExtraction,
+    disable_ocr_math: mergedConfig.disableOcrMath,
+    use_llm: mergedConfig.useLlm,
+    mode: mergedConfig.mode,
+  });
 
   if (Object.keys(chunkOptions).length > 0) body.chunk_options = chunkOptions;
-
-  body.upload_presigned_url = await presignChunksUploadUrl(
-    namespaceId,
-    document.id,
-  );
+  if (Object.keys(parseOptions).length > 0) body.parse_options = parseOptions;
 
   return body as PartitionBody;
 };
