@@ -23,6 +23,7 @@ import { Tooltip, TooltipContent, TooltipTrigger } from "@agentset/ui/tooltip";
 import TextForm from "./text-form";
 import UploadForm from "./upload-form";
 import UrlsForm from "./urls-form";
+import CrawlForm from "./crawl-form";
 
 export function IngestModal() {
   const [isOpen, setIsOpen] = useState(false);
@@ -51,6 +52,11 @@ export function IngestModal() {
   const onUrlSuccess = () => {
     onSuccess();
     toast.success("URL ingestion job created");
+  };
+
+  const onCrawlSuccess = () => {
+    onSuccess();
+    toast.success("Crawl ingestion job created");
   };
 
   const isPending =
@@ -110,6 +116,9 @@ export function IngestModal() {
             <TabsTrigger value="urls" className="flex-1">
               URLs
             </TabsTrigger>
+            <TabsTrigger value="crawl" className="flex-1">
+              Crawl
+            </TabsTrigger>
           </TabsList>
 
           <TabsContent value="text">
@@ -122,6 +131,10 @@ export function IngestModal() {
 
           <TabsContent value="urls">
             <UrlsForm onSuccess={onUrlSuccess} />
+          </TabsContent>
+
+          <TabsContent value="crawl">
+            <CrawlForm onSuccess={onCrawlSuccess} />
           </TabsContent>
         </Tabs>
       </DialogContent>

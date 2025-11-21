@@ -27,8 +27,10 @@ import { Textarea } from "@agentset/ui/textarea";
 
 export default function IngestConfig({
   form,
+  minimal = false,
 }: {
   form: UseFormReturn<any, any, any>;
+  minimal?: boolean;
 }) {
   const [metadata, setMetadata] = useState<string>("");
 
@@ -36,11 +38,11 @@ export default function IngestConfig({
     <>
       <Accordion type="single" collapsible>
         <AccordionItem value="item-1">
-          <AccordionTrigger className="hover:bg-muted/70 items-center justify-start rounded-none duration-75 hover:no-underline">
+          <AccordionTrigger className="hover:bg-muted/70 items-center justify-start rounded-none px-2 duration-75 hover:no-underline">
             Chunking Settings
           </AccordionTrigger>
 
-          <AccordionContent className="mt-6 flex flex-col gap-6">
+          <AccordionContent className="mt-6 flex flex-col gap-6 px-2">
             <FormField
               control={form.control}
               name="chunkSize"
@@ -48,7 +50,7 @@ export default function IngestConfig({
                 <FormItem>
                   <FormLabel>Chunk size (optional)</FormLabel>
                   <FormControl>
-                    <Input placeholder="512" {...field} />
+                    <Input placeholder="2048" {...field} />
                   </FormControl>
 
                   <FormMessage />
@@ -56,149 +58,146 @@ export default function IngestConfig({
               )}
             />
 
-            <FormField
-              control={form.control}
-              name="chunkOverlap"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Chunk overlap (optional)</FormLabel>
-                  <FormControl>
-                    <Input placeholder="128" {...field} />
-                  </FormControl>
+            {!minimal && (
+              <>
+                <FormField
+                  control={form.control}
+                  name="languageCode"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Language code (optional)</FormLabel>
+                      <FormControl>
+                        <Input placeholder="en, fr, pt-BR, ..." {...field} />
+                      </FormControl>
 
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
 
-            <FormField
-              control={form.control}
-              name="languageCode"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Language code (optional)</FormLabel>
-                  <FormControl>
-                    <Input placeholder="en, fr, pt-BR, ..." {...field} />
-                  </FormControl>
+                <FormField
+                  control={form.control}
+                  name="mode"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Processing mode (optional)</FormLabel>
+                      <FormControl>
+                        <Select
+                          onValueChange={(value) => field.onChange(value)}
+                          value={field.value}
+                        >
+                          <SelectTrigger className="w-full">
+                            <SelectValue placeholder="Balanced (default)" />
+                          </SelectTrigger>
 
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+                          <SelectContent>
+                            <SelectItem value="fast">Fast</SelectItem>
+                            <SelectItem value="balanced">Balanced</SelectItem>
+                            <SelectItem value="accurate">Accurate</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </FormControl>
 
-            <FormField
-              control={form.control}
-              name="mode"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Processing mode (optional)</FormLabel>
-                  <FormControl>
-                    <Select
-                      onValueChange={(value) => field.onChange(value)}
-                      value={field.value}
-                    >
-                      <SelectTrigger className="w-full">
-                        <SelectValue placeholder="Select a mode" />
-                      </SelectTrigger>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
 
-                      <SelectContent>
-                        <SelectItem value="fast">Fast</SelectItem>
-                        <SelectItem value="balanced">Balanced</SelectItem>
-                        <SelectItem value="accurate">Accurate</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </FormControl>
+                <FormField
+                  control={form.control}
+                  name="forceOcr"
+                  render={({ field }) => (
+                    <FormItem>
+                      <div className="flex items-center gap-2">
+                        <FormControl>
+                          <Checkbox
+                            checked={!!field.value}
+                            onCheckedChange={(checked) =>
+                              field.onChange(checked)
+                            }
+                          />
+                        </FormControl>
+                        <FormLabel className="font-normal">Force OCR</FormLabel>
+                      </div>
 
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
 
-            <FormField
-              control={form.control}
-              name="forceOcr"
-              render={({ field }) => (
-                <FormItem>
-                  <div className="flex items-center gap-2">
-                    <FormControl>
-                      <Checkbox
-                        checked={!!field.value}
-                        onCheckedChange={(checked) => field.onChange(checked)}
-                      />
-                    </FormControl>
-                    <FormLabel className="font-normal">Force OCR</FormLabel>
-                  </div>
+                <FormField
+                  control={form.control}
+                  name="disableImageExtraction"
+                  render={({ field }) => (
+                    <FormItem>
+                      <div className="flex items-center gap-2">
+                        <FormControl>
+                          <Checkbox
+                            checked={!!field.value}
+                            onCheckedChange={(checked) =>
+                              field.onChange(checked)
+                            }
+                          />
+                        </FormControl>
+                        <FormLabel className="font-normal">
+                          Disable image extraction
+                        </FormLabel>
+                      </div>
 
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
 
-            <FormField
-              control={form.control}
-              name="disableImageExtraction"
-              render={({ field }) => (
-                <FormItem>
-                  <div className="flex items-center gap-2">
-                    <FormControl>
-                      <Checkbox
-                        checked={!!field.value}
-                        onCheckedChange={(checked) => field.onChange(checked)}
-                      />
-                    </FormControl>
-                    <FormLabel className="font-normal">
-                      Disable image extraction
-                    </FormLabel>
-                  </div>
+                <FormField
+                  control={form.control}
+                  name="disableOcrMath"
+                  render={({ field }) => (
+                    <FormItem>
+                      <div className="flex items-center gap-2">
+                        <FormControl>
+                          <Checkbox
+                            checked={!!field.value}
+                            onCheckedChange={(checked) =>
+                              field.onChange(checked)
+                            }
+                          />
+                        </FormControl>
+                        <FormLabel className="font-normal">
+                          Disable OCR math
+                        </FormLabel>
+                      </div>
 
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
 
-            <FormField
-              control={form.control}
-              name="disableOcrMath"
-              render={({ field }) => (
-                <FormItem>
-                  <div className="flex items-center gap-2">
-                    <FormControl>
-                      <Checkbox
-                        checked={!!field.value}
-                        onCheckedChange={(checked) => field.onChange(checked)}
-                      />
-                    </FormControl>
-                    <FormLabel className="font-normal">
-                      Disable OCR math
-                    </FormLabel>
-                  </div>
+                <FormField
+                  control={form.control}
+                  name="useLlm"
+                  render={({ field }) => (
+                    <FormItem>
+                      <div className="flex items-center gap-2">
+                        <FormControl>
+                          <Checkbox
+                            checked={!!field.value}
+                            onCheckedChange={(checked) =>
+                              field.onChange(checked)
+                            }
+                          />
+                        </FormControl>
+                        <FormLabel className="font-normal">
+                          Use LLM-enhanced parsing
+                        </FormLabel>
+                      </div>
 
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={form.control}
-              name="useLlm"
-              render={({ field }) => (
-                <FormItem>
-                  <div className="flex items-center gap-2">
-                    <FormControl>
-                      <Checkbox
-                        checked={!!field.value}
-                        onCheckedChange={(checked) => field.onChange(checked)}
-                      />
-                    </FormControl>
-                    <FormLabel className="font-normal">
-                      Use LLM-enhanced parsing
-                    </FormLabel>
-                  </div>
-
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </>
+            )}
 
             <FormField
               control={form.control}

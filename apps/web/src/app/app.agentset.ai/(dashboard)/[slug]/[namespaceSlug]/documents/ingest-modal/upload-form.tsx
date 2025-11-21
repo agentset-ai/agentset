@@ -68,14 +68,8 @@ export default function UploadForm({ onSuccess }: { onSuccess: () => void }) {
     defaultValues: {
       name: "",
       files: [],
-      chunkSize: 2048,
-      chunkOverlap: 128,
-      languageCode: "en",
-      forceOcr: false,
-      mode: "balanced",
-      disableImageExtraction: false,
-      disableOcrMath: false,
-      useLlm: true,
+      // config fields intentionally left undefined so we rely on
+      // partition API defaults; defaults are shown as placeholders
     },
   });
 
@@ -117,6 +111,17 @@ export default function UploadForm({ onSuccess }: { onSuccess: () => void }) {
     const uploadedFiles = await onUpload(data.files);
     if (uploadedFiles.length === 0) return;
 
+    const config = {
+      chunkSize: data.chunkSize,
+      languageCode: data.languageCode,
+      forceOcr: data.forceOcr,
+      mode: data.mode,
+      disableImageExtraction: data.disableImageExtraction,
+      disableOcrMath: data.disableOcrMath,
+      useLlm: data.useLlm,
+      metadata: data.metadata,
+    };
+
     await mutateAsync({
       namespaceId: namespace.id,
       name: data.name,
@@ -128,17 +133,7 @@ export default function UploadForm({ onSuccess }: { onSuccess: () => void }) {
           fileName: file.name,
         })),
       },
-      config: {
-        chunkSize: data.chunkSize,
-        chunkOverlap: data.chunkOverlap,
-        languageCode: data.languageCode,
-        forceOcr: data.forceOcr,
-        mode: data.mode,
-        disableImageExtraction: data.disableImageExtraction,
-        disableOcrMath: data.disableOcrMath,
-        useLlm: data.useLlm,
-        metadata: data.metadata,
-      },
+      config: Object.keys(config).length > 0 ? config : undefined,
     });
   };
 
