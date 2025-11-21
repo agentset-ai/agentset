@@ -242,7 +242,11 @@ export const processDocument = schemaTask({
           vectorStore,
           keywordStore,
           documentId: document.id,
-          extraMetadata: ingestJob.config?.metadata,
+          extraMetadata: {
+            url: documentJson.url,
+            ...documentJson.page_metadata,
+            ...ingestJob.config?.metadata,
+          },
         });
 
         totalTokens += tokens;
@@ -330,7 +334,7 @@ export const processDocument = schemaTask({
           vectorStore,
           keywordStore,
           documentId: document.id,
-          extraMetadata: ingestJob.config?.metadata,
+          extraMetadata: partitionBody.extra_metadata,
         });
 
         totalTokens += tokens;
