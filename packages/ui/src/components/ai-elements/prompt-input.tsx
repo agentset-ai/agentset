@@ -21,7 +21,6 @@ import {
   useCallback,
   useContext,
   useEffect,
-  useLayoutEffect,
   useMemo,
   useRef,
   useState,
@@ -30,6 +29,7 @@ import {
   ArrowUpIcon,
   ImageIcon,
   Loader2Icon,
+  MicIcon,
   PaperclipIcon,
   PlusIcon,
   SquareIcon,
@@ -72,7 +72,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@agentset/ui/select";
-import { Tooltip, TooltipContent, TooltipTrigger } from "@agentset/ui/tooltip";
 
 // ============================================================================
 // Provider Context & Types
@@ -269,58 +268,87 @@ export function PromptInputAttachment({
 }: PromptInputAttachmentProps) {
   const attachments = usePromptInputAttachments();
 
+  const filename = data.filename || "";
+
   const mediaType =
     data.mediaType?.startsWith("image/") && data.url ? "image" : "file";
+  const isImage = mediaType === "image";
+
+  const attachmentLabel = filename || (isImage ? "Image" : "Attachment");
 
   return (
-    <div
-      className={cn(
-        "group relative h-14 w-14 rounded-md border",
-        className,
-        mediaType === "image" ? "h-14 w-14" : "h-8 w-auto max-w-full",
-      )}
-      key={data.id}
-      {...props}
-    >
-      {mediaType === "image" ? (
-        <img
-          alt={data.filename || "attachment"}
-          className="size-full rounded-md object-cover"
-          height={56}
-          src={data.url}
-          width={56}
-        />
-      ) : (
-        <div className="text-muted-foreground flex size-full max-w-full cursor-pointer items-center justify-start gap-2 overflow-hidden px-2">
-          <PaperclipIcon className="size-4 shrink-0" />
-          <Tooltip delayDuration={400}>
-            <TooltipTrigger className="min-w-0 flex-1">
-              <h4 className="w-full truncate text-left text-sm font-medium">
-                {data.filename || "Unknown file"}
-              </h4>
-            </TooltipTrigger>
-            <TooltipContent>
-              <div className="text-muted-foreground text-xs">
-                <h4 className="max-w-[240px] overflow-hidden text-left text-sm font-semibold break-words whitespace-normal">
-                  {data.filename || "Unknown file"}
-                </h4>
-                {data.mediaType && <div>{data.mediaType}</div>}
-              </div>
-            </TooltipContent>
-          </Tooltip>
+    <PromptInputHoverCard>
+      <HoverCardTrigger asChild>
+        <div
+          className={cn(
+            "group border-border hover:bg-accent hover:text-accent-foreground dark:hover:bg-accent/50 relative flex h-8 cursor-default items-center gap-1.5 rounded-md border px-1.5 text-sm font-medium transition-all select-none",
+            className,
+          )}
+          key={data.id}
+          {...props}
+        >
+          <div className="relative size-5 shrink-0">
+            <div className="bg-background absolute inset-0 flex size-5 items-center justify-center overflow-hidden rounded transition-opacity group-hover:opacity-0">
+              {isImage ? (
+                <img
+                  alt={filename || "attachment"}
+                  className="size-5 object-cover"
+                  height={20}
+                  src={data.url}
+                  width={20}
+                />
+              ) : (
+                <div className="text-muted-foreground flex size-5 items-center justify-center">
+                  <PaperclipIcon className="size-3" />
+                </div>
+              )}
+            </div>
+            <Button
+              aria-label="Remove attachment"
+              className="absolute inset-0 size-5 cursor-pointer rounded p-0 opacity-0 transition-opacity group-hover:pointer-events-auto group-hover:opacity-100 [&>svg]:size-2.5"
+              onClick={(e) => {
+                e.stopPropagation();
+                attachments.remove(data.id);
+              }}
+              type="button"
+              variant="ghost"
+            >
+              <XIcon />
+              <span className="sr-only">Remove</span>
+            </Button>
+          </div>
+
+          <span className="flex-1 truncate">{attachmentLabel}</span>
         </div>
-      )}
-      <Button
-        aria-label="Remove attachment"
-        className="absolute -top-1.5 -right-1.5 h-6 w-6 rounded-full opacity-0 group-hover:opacity-100"
-        onClick={() => attachments.remove(data.id)}
-        size="icon"
-        type="button"
-        variant="outline"
-      >
-        <XIcon className="h-3 w-3" />
-      </Button>
-    </div>
+      </HoverCardTrigger>
+      <PromptInputHoverCardContent className="w-auto p-2">
+        <div className="w-auto space-y-3">
+          {isImage && (
+            <div className="flex max-h-96 w-96 items-center justify-center overflow-hidden rounded-md border">
+              <img
+                alt={filename || "attachment preview"}
+                className="max-h-full max-w-full object-contain"
+                height={384}
+                src={data.url}
+                width={448}
+              />
+            </div>
+          )}
+          <div className="flex items-center gap-2.5">
+            <div className="min-w-0 flex-1 space-y-1 px-0.5">
+              <h4 className="truncate text-sm leading-none font-semibold">
+                {filename || (isImage ? "Image" : "Attachment")}
+              </h4>
+              {data.mediaType && (
+                <p className="text-muted-foreground truncate font-mono text-xs">
+                  {data.mediaType}
+                </p>
+              )}
+            </div>
+          </div>
+        </div>
+      </PromptInputHoverCardContent>
+    </PromptInputHoverCard>
   );
 }
 
@@ -332,68 +360,25 @@ export type PromptInputAttachmentsProps = Omit<
 };
 
 export function PromptInputAttachments({
-  className,
   children,
+  className,
   ...props
 }: PromptInputAttachmentsProps) {
   const attachments = usePromptInputAttachments();
-  const [height, setHeight] = useState(0);
-  const contentRef = useRef<HTMLDivElement>(null);
 
-  useLayoutEffect(() => {
-    const el = contentRef.current;
-    if (!el) {
-      return;
-    }
-    const ro = new ResizeObserver(() => {
-      setHeight(el.getBoundingClientRect().height);
-    });
-    ro.observe(el);
-    setHeight(el.getBoundingClientRect().height);
-    return () => ro.disconnect();
-  }, []);
-
-  // biome-ignore lint/correctness/useExhaustiveDependencies: Force height measurement when attachments change
-  useLayoutEffect(() => {
-    const el = contentRef.current;
-    if (!el) {
-      return;
-    }
-    setHeight(el.getBoundingClientRect().height);
-  }, [attachments.files.length]);
-
-  if (attachments.files.length === 0) {
+  if (!attachments.files.length) {
     return null;
   }
 
   return (
-    <InputGroupAddon
-      align="block-start"
-      aria-live="polite"
-      className={cn(
-        "overflow-hidden transition-[height] duration-200 ease-out",
-        className,
-      )}
-      style={{ height: attachments.files.length ? height : 0 }}
+    <div
+      className={cn("flex flex-wrap items-center gap-2 p-3", className)}
       {...props}
     >
-      <div className="space-y-2 py-1" ref={contentRef}>
-        <div className="flex flex-wrap gap-2">
-          {attachments.files
-            .filter((f) => !(f.mediaType?.startsWith("image/") && f.url))
-            .map((file) => (
-              <Fragment key={file.id}>{children(file)}</Fragment>
-            ))}
-        </div>
-        <div className="flex flex-wrap gap-2">
-          {attachments.files
-            .filter((f) => f.mediaType?.startsWith("image/") && f.url)
-            .map((file) => (
-              <Fragment key={file.id}>{children(file)}</Fragment>
-            ))}
-        </div>
-      </div>
-    </InputGroupAddon>
+      {attachments.files.map((file) => (
+        <Fragment key={file.id}>{children(file)}</Fragment>
+      ))}
+    </div>
   );
 }
 
@@ -423,8 +408,8 @@ export const PromptInputActionAddAttachments = ({
 };
 
 export type PromptInputMessage = {
-  text?: string;
-  files?: FileUIPart[];
+  text: string;
+  files: FileUIPart[];
 };
 
 export type PromptInputProps = Omit<
@@ -764,7 +749,7 @@ export const PromptInput = ({
         onSubmit={handleSubmit}
         {...props}
       >
-        <InputGroup>{children}</InputGroup>
+        <InputGroup className="overflow-hidden">{children}</InputGroup>
       </form>
     </>
   );
@@ -810,7 +795,17 @@ export const PromptInputTextarea = ({
         return;
       }
       e.preventDefault();
-      e.currentTarget.form?.requestSubmit();
+
+      // Check if the submit button is disabled before submitting
+      const form = e.currentTarget.form;
+      const submitButton = form?.querySelector(
+        'button[type="submit"]',
+      ) as HTMLButtonElement | null;
+      if (submitButton?.disabled) {
+        return;
+      }
+
+      form?.requestSubmit();
     }
 
     // Remove last attachment when Backspace is pressed and textarea is empty
@@ -889,7 +884,7 @@ export const PromptInputHeader = ({
 }: PromptInputHeaderProps) => (
   <InputGroupAddon
     align="block-end"
-    className={cn("order-first gap-1", className)}
+    className={cn("order-first flex-wrap gap-1", className)}
     {...props}
   />
 );
@@ -1017,58 +1012,56 @@ export const PromptInputSubmit = ({
   );
 };
 
-export type PromptInputModelSelectProps = ComponentProps<typeof Select>;
+export type PromptInputSelectProps = ComponentProps<typeof Select>;
 
-export const PromptInputModelSelect = (props: PromptInputModelSelectProps) => (
+export const PromptInputSelect = (props: PromptInputSelectProps) => (
   <Select {...props} />
 );
 
-export type PromptInputModelSelectTriggerProps = ComponentProps<
+export type PromptInputSelectTriggerProps = ComponentProps<
   typeof SelectTrigger
 >;
 
-export const PromptInputModelSelectTrigger = ({
+export const PromptInputSelectTrigger = ({
   className,
   ...props
-}: PromptInputModelSelectTriggerProps) => (
+}: PromptInputSelectTriggerProps) => (
   <SelectTrigger
     className={cn(
       "text-muted-foreground border-none bg-transparent font-medium shadow-none transition-colors",
-      'hover:bg-accent hover:text-foreground [&[aria-expanded="true"]]:bg-accent [&[aria-expanded="true"]]:text-foreground',
+      "hover:bg-accent hover:text-foreground aria-expanded:bg-accent aria-expanded:text-foreground",
       className,
     )}
     {...props}
   />
 );
 
-export type PromptInputModelSelectContentProps = ComponentProps<
+export type PromptInputSelectContentProps = ComponentProps<
   typeof SelectContent
 >;
 
-export const PromptInputModelSelectContent = ({
+export const PromptInputSelectContent = ({
   className,
   ...props
-}: PromptInputModelSelectContentProps) => (
+}: PromptInputSelectContentProps) => (
   <SelectContent className={cn(className)} {...props} />
 );
 
-export type PromptInputModelSelectItemProps = ComponentProps<typeof SelectItem>;
+export type PromptInputSelectItemProps = ComponentProps<typeof SelectItem>;
 
-export const PromptInputModelSelectItem = ({
+export const PromptInputSelectItem = ({
   className,
   ...props
-}: PromptInputModelSelectItemProps) => (
+}: PromptInputSelectItemProps) => (
   <SelectItem className={cn(className)} {...props} />
 );
 
-export type PromptInputModelSelectValueProps = ComponentProps<
-  typeof SelectValue
->;
+export type PromptInputSelectValueProps = ComponentProps<typeof SelectValue>;
 
-export const PromptInputModelSelectValue = ({
+export const PromptInputSelectValue = ({
   className,
   ...props
-}: PromptInputModelSelectValueProps) => (
+}: PromptInputSelectValueProps) => (
   <SelectValue className={cn(className)} {...props} />
 );
 

@@ -50,7 +50,7 @@ export const MessageStatus = ({
   if (statusParts.length === 0) return null;
 
   return (
-    <ChainOfThought open={open} onOpenChange={setOpen} className="mt-4">
+    <ChainOfThought open={open} onOpenChange={setOpen}>
       <ChainOfThoughtHeader isLoading={isLoading} />
       <ChainOfThoughtContent>
         {statusParts.map(({ data }, index) => {

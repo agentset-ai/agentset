@@ -15,7 +15,7 @@ export function Messages() {
 
   return (
     <Conversation className="relative flex min-w-0 flex-1 pt-4">
-      <ConversationContent className="flex flex-col gap-6 pb-32">
+      <ConversationContent className="gap-6 pb-32">
         {messages.map((message, index) => (
           <PreviewMessage
             key={message.id}
