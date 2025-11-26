@@ -169,7 +169,11 @@ const youtubePayloadSchema = z
   .object({
     type: z.literal("YOUTUBE"),
     urls: z
-      .array(z.url().startsWith("https://www.youtube.com/"))
+      .array(
+        z.url({
+          hostname: /^(www\.youtube\.com|youtu\.be)$/,
+        }),
+      )
       .describe("The URLs of videos, channels, or playlists to ingest."),
     options: youtubeOptionsSchema.optional(),
   })
