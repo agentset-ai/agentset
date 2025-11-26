@@ -8,13 +8,15 @@ import remarkCitations from "./remark-citations";
 interface MarkdownProps {
   children: string;
   message?: MyUIMessage;
+  isLoading?: boolean;
 }
 
 const remarkPlugins = [remarkCitations];
 
-export const Markdown = ({ children, message }: MarkdownProps) => {
+export const Markdown = ({ children, isLoading, message }: MarkdownProps) => {
   return (
     <Response
+      isAnimating={isLoading && message?.role === "assistant"}
       remarkPlugins={remarkPlugins}
       components={{
         // @ts-ignore

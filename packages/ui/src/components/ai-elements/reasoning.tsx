@@ -4,6 +4,7 @@ import type { ComponentProps } from "react";
 import { createContext, memo, useContext, useEffect, useState } from "react";
 import { BrainIcon, ChevronDownIcon } from "lucide-react";
 import { useControllableState } from "radix-ui/internal";
+import { Streamdown } from "streamdown";
 
 import { cn } from "@agentset/ui/cn";
 import {
@@ -12,13 +13,13 @@ import {
   CollapsibleTrigger,
 } from "@agentset/ui/collapsible";
 
-import { Response } from "./response";
+import { Shimmer } from "./shimmer";
 
 type ReasoningContextValue = {
   isStreaming: boolean;
   isOpen: boolean;
   setIsOpen: (open: boolean) => void;
-  duration: number;
+  duration: number | undefined;
 };
 
 const ReasoningContext = createContext<ReasoningContextValue | null>(null);
@@ -60,7 +61,7 @@ export const Reasoning = memo(
     });
     const [duration, setDuration] = useControllableState({
       prop: durationProp,
-      defaultProp: 0,
+      defaultProp: undefined,
     });
 
     const [hasAutoClosed, setHasAutoClosed] = useState(false);
@@ -116,7 +117,7 @@ export type ReasoningTriggerProps = ComponentProps<typeof CollapsibleTrigger>;
 
 const getThinkingMessage = (isStreaming: boolean, duration?: number) => {
   if (isStreaming || duration === 0) {
-    return <p>Thinking...</p>;
+    return <Shimmer duration={1}>Thinking...</Shimmer>;
   }
   if (duration === undefined) {
     return <p>Thought for a few seconds</p>;
@@ -169,7 +170,7 @@ export const ReasoningContent = memo(
       )}
       {...props}
     >
-      <Response className="grid gap-2">{children}</Response>
+      <Streamdown {...props}>{children}</Streamdown>
     </CollapsibleContent>
   ),
 );

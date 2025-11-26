@@ -1,8 +1,8 @@
 "use client";
 
 import type { LucideIcon } from "lucide-react";
-import type { ComponentProps } from "react";
-import { createContext, memo, useContext } from "react";
+import type { ComponentProps, ReactNode } from "react";
+import { createContext, memo, useContext, useMemo } from "react";
 import { BrainIcon, ChevronDownIcon, DotIcon } from "lucide-react";
 import { useControllableState } from "radix-ui/internal";
 
@@ -55,9 +55,17 @@ export const ChainOfThought = memo(
       onChange: onOpenChange,
     });
 
+    const chainOfThoughtContext = useMemo(
+      () => ({ isOpen, setIsOpen }),
+      [isOpen, setIsOpen],
+    );
+
     return (
-      <ChainOfThoughtContext.Provider value={{ isOpen, setIsOpen }}>
-        <div className={cn("not-prose max-w-prose", className)} {...props}>
+      <ChainOfThoughtContext.Provider value={chainOfThoughtContext}>
+        <div
+          className={cn("not-prose max-w-prose space-y-4", className)}
+          {...props}
+        >
           {children}
         </div>
       </ChainOfThoughtContext.Provider>
@@ -108,8 +116,8 @@ export const ChainOfThoughtHeader = memo(
 
 export type ChainOfThoughtStepProps = ComponentProps<"div"> & {
   icon?: LucideIcon;
-  label: string;
-  description?: string;
+  label: ReactNode;
+  description?: ReactNode;
   status?: "complete" | "active" | "pending";
 };
 
@@ -209,7 +217,7 @@ export type ChainOfThoughtImageProps = ComponentProps<"div"> & {
 export const ChainOfThoughtImage = memo(
   ({ className, children, caption, ...props }: ChainOfThoughtImageProps) => (
     <div className={cn("mt-2 space-y-2", className)} {...props}>
-      <div className="bg-muted relative flex max-h-[22rem] items-center justify-center overflow-hidden rounded-lg p-3">
+      <div className="bg-muted relative flex max-h-88 items-center justify-center overflow-hidden rounded-lg p-3">
         {children}
       </div>
       {caption && <p className="text-muted-foreground text-xs">{caption}</p>}
