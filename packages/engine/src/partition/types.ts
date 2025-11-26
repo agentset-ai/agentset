@@ -123,7 +123,7 @@ export interface PartitionBody {
   // one of url or text is required
   url?: string;
   text?: string;
-  filename: string;
+  filename?: string;
   extra_metadata?: Record<string, unknown>;
   parse_options?: ParseOptions;
   chunk_options?: ChunkOptions;

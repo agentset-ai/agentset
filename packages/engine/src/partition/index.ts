@@ -52,13 +52,14 @@ export const getPartitionDocumentBody = async ({
     }
     case "FILE": {
       body.url = document.source.fileUrl;
-      body.filename = document.name || document.id;
+      if (document.name) body.filename = document.name;
       break;
     }
+
     case "MANAGED_FILE": {
       const url = await presignGetUrl(document.source.key);
       body.url = url.url;
-      body.filename = document.name || document.id;
+      if (document.name) body.filename = document.name;
       break;
     }
 
@@ -74,6 +75,7 @@ export const getPartitionDocumentBody = async ({
     document.config ?? {};
 
   body.extra_metadata = {
+    ...(document.name && { filename: document.name }),
     ...(ingestJobMetadata ?? {}),
     ...(documentMetadata ?? {}), // document metadata overrides ingest job metadata
     ...(document.tenantId && { tenantId: document.tenantId }),
