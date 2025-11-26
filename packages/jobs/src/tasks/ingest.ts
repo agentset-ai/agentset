@@ -3,6 +3,8 @@ import { schemaTask, wait } from "@trigger.dev/sdk";
 import type {
   CrawlPartitionBody,
   CrawlPartitionResult,
+  YoutubePartitionBody,
+  YoutubePartitionResult,
 } from "@agentset/engine";
 import { DocumentStatus, IngestJobStatus, Prisma } from "@agentset/db";
 import { env } from "@agentset/engine/env";
@@ -164,6 +166,68 @@ export const ingestJob = schemaTask({
             documentProperties: {
               fileSize: doc.total_bytes,
               mimeType: "text/html",
+            },
+          })),
+        });
+
+        documentsIds = documentsIds.concat(batchDocuments.map((doc) => doc.id));
+      }
+    } else if (ingestionJob.payload.type === "YOUTUBE") {
+      const token = await wait.createToken({ timeout: "2h" });
+
+      const body: YoutubePartitionBody = {
+        urls: ingestionJob.payload.urls,
+        transcript_languages: ingestionJob.payload.options?.transcriptLanguages,
+        extra_metadata: ingestionJob.config?.metadata,
+        chunk_options: {
+          chunk_size: ingestionJob.config?.chunkSize,
+        },
+        trigger_token_id: token.id,
+        trigger_access_token: token.publicAccessToken,
+        namespace_id: ingestionJob.namespace.id,
+      };
+
+      const response = await fetch(`${env.PARTITION_API_URL}/youtube`, {
+        method: "POST",
+        headers: {
+          "api-key": env.PARTITION_API_KEY,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(body),
+      });
+
+      const initialBody = (await response.json()) as { call_id: string };
+      if (response.status !== 200 || !initialBody.call_id) {
+        throw new Error("Partition Error");
+      }
+
+      const result = await wait
+        .forToken<YoutubePartitionResult | undefined>(token.id)
+        .unwrap();
+
+      if (!result || result.status !== 200) {
+        throw new Error("Partition Error");
+      }
+
+      const batchDocuments = chunkArray(result.documents, 20);
+      for (const batch of batchDocuments) {
+        const batchDocuments = await db.document.createManyAndReturn({
+          select: { id: true },
+          data: batch.map((doc) => ({
+            ...commonData,
+            id: doc.id,
+            status: DocumentStatus.QUEUED,
+            name: doc.title,
+            source: {
+              type: "YOUTUBE_VIDEO",
+              videoId: doc.video_id,
+            },
+            totalCharacters: doc.total_characters,
+            totalChunks: doc.total_chunks,
+            totalPages: doc.total_characters / 1000,
+            documentProperties: {
+              fileSize: doc.total_bytes,
+              mimeType: "text/markdown",
             },
           })),
         });

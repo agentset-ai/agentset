@@ -50,6 +50,7 @@ export const documentsRouter = createTRPCRouter({
           totalTokens: true,
           totalChunks: true,
           totalCharacters: true,
+          source: true,
           totalPages: true,
           documentProperties: true,
           createdAt: true,

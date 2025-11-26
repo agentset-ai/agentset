@@ -151,6 +151,33 @@ const crawlPayloadSchema = z
     title: "Crawl Payload",
   });
 
+const youtubeOptionsSchema = z
+  .object({
+    transcriptLanguages: z
+      .array(z.string())
+      .describe(
+        "We will try to fetch the first available transcript in the given languages. Default is `en`.",
+      )
+      .optional(),
+  })
+  .meta({
+    id: "youtube-options",
+    description: "Options to control how the youtube ingestion behaves.",
+  });
+
+const youtubePayloadSchema = z
+  .object({
+    type: z.literal("YOUTUBE"),
+    urls: z
+      .array(z.url().startsWith("https://www.youtube.com/"))
+      .describe("The URLs of videos, channels, or playlists to ingest."),
+    options: youtubeOptionsSchema.optional(),
+  })
+  .meta({
+    id: "youtube-payload",
+    title: "Youtube Payload",
+  });
+
 // Schema for reading existing batch jobs (lenient validation)
 export const batchPayloadSchema = z
   .object({
@@ -204,6 +231,7 @@ export const ingestJobPayloadSchema = z
     filePayloadSchema,
     managedFilePayloadSchema,
     crawlPayloadSchema,
+    youtubePayloadSchema,
     batchPayloadSchema,
   ])
   .meta({ id: "ingest-job-payload", description: "The ingest job payload." });
@@ -215,6 +243,7 @@ export const ingestJobPayloadInputSchema = z
     filePayloadSchema,
     managedFilePayloadSchema,
     crawlPayloadSchema,
+    youtubePayloadSchema,
     batchPayloadInputSchema,
   ])
   .meta({

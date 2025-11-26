@@ -68,6 +68,12 @@ export const createIngestJob = async ({
       url: data.payload.url,
       ...(data.payload.options && { options: data.payload.options }),
     };
+  } else if (data.payload.type === "YOUTUBE") {
+    finalPayload = {
+      type: "YOUTUBE",
+      urls: data.payload.urls,
+      ...(data.payload.options && { options: data.payload.options }),
+    };
   } else {
     const commonPayload = {
       ...(data.payload.fileName && { fileName: data.payload.fileName }),

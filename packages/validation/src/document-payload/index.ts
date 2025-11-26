@@ -24,6 +24,14 @@ export const documentPayloadSchema = z
         .optional()
         .describe("The language of the crawled page."),
     }),
+    z.object({
+      type: z.literal("YOUTUBE_VIDEO"),
+      videoId: z.string().describe("The ID of the youtube video."),
+      duration: z
+        .number()
+        .optional()
+        .describe("The duration of the youtube video in seconds."),
+    }),
   ])
   .describe("The source of the document.");
 

@@ -24,6 +24,7 @@ import TextForm from "./text-form";
 import UploadForm from "./upload-form";
 import UrlsForm from "./urls-form";
 import CrawlForm from "./crawl-form";
+import YoutubeForm from "./youtube-form";
 
 export function IngestModal() {
   const [isOpen, setIsOpen] = useState(false);
@@ -57,6 +58,11 @@ export function IngestModal() {
   const onCrawlSuccess = () => {
     onSuccess();
     toast.success("Crawl ingestion job created");
+  };
+
+  const onYoutubeSuccess = () => {
+    onSuccess();
+    toast.success("YouTube ingestion job created");
   };
 
   const isPending =
@@ -119,6 +125,9 @@ export function IngestModal() {
             <TabsTrigger value="crawl" className="flex-1">
               Crawl
             </TabsTrigger>
+            <TabsTrigger value="youtube" className="flex-1">
+              YouTube
+            </TabsTrigger>
           </TabsList>
 
           <TabsContent value="text">
@@ -135,6 +144,10 @@ export function IngestModal() {
 
           <TabsContent value="crawl">
             <CrawlForm onSuccess={onCrawlSuccess} />
+          </TabsContent>
+
+          <TabsContent value="youtube">
+            <YoutubeForm onSuccess={onYoutubeSuccess} />
           </TabsContent>
         </Tabs>
       </DialogContent>

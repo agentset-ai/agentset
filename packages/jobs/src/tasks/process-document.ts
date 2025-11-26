@@ -6,6 +6,7 @@ import type {
   CrawlPartitionResultDocument,
   PartitionBatch,
   PartitionResult,
+  YoutubePartitionResultDocument,
 } from "@agentset/engine";
 import { DocumentStatus, Prisma } from "@agentset/db";
 import {
@@ -205,16 +206,32 @@ export const processDocument = schemaTask({
     let totalTokens = 0;
     let totalChunks = 0;
 
-    if (document.source.type === "CRAWLED_PAGE") {
+    if (
+      document.source.type === "CRAWLED_PAGE" ||
+      document.source.type === "YOUTUBE_VIDEO"
+    ) {
       // get document json from s3
-      const documentJson =
-        await getChunksJsonFromS3<CrawlPartitionResultDocument>(
-          ingestJob.namespace.id,
-          document.id,
-        );
+      const documentJson = await getChunksJsonFromS3<
+        CrawlPartitionResultDocument | YoutubePartitionResultDocument
+      >(ingestJob.namespace.id, document.id);
 
       if (!documentJson) {
         throw new Error("Document JSON not found");
+      }
+
+      const newDocumentFields: Prisma.DocumentUpdateInput = {};
+      if ("video_metadata" in documentJson) {
+        newDocumentFields.source = {
+          ...document.source,
+          duration: documentJson.video_metadata.duration,
+        } as Extract<PrismaJson.DocumentSource, { type: "YOUTUBE_VIDEO" }>;
+      } else {
+        newDocumentFields.source = {
+          ...document.source,
+          title: documentJson.page_metadata.title,
+          description: documentJson.page_metadata.description,
+          language: documentJson.page_metadata.language,
+        } as Extract<PrismaJson.DocumentSource, { type: "CRAWLED_PAGE" }>;
       }
 
       await db.document.update({
@@ -222,12 +239,7 @@ export const processDocument = schemaTask({
         data: {
           status: DocumentStatus.PROCESSING,
           processingAt: new Date(),
-          source: {
-            ...document.source,
-            title: documentJson.page_metadata.title,
-            description: documentJson.page_metadata.description,
-            language: documentJson.page_metadata.language,
-          },
+          ...newDocumentFields,
         },
         select: { id: true },
       });
@@ -243,8 +255,18 @@ export const processDocument = schemaTask({
           keywordStore,
           documentId: document.id,
           extraMetadata: {
-            url: documentJson.url,
-            ...documentJson.page_metadata,
+            ...("video_metadata" in documentJson
+              ? {
+                  video_id: documentJson.video_metadata.video_id,
+                  title: documentJson.video_metadata.title,
+                  description: documentJson.video_metadata.description,
+                  duration: documentJson.video_metadata.duration,
+                  timestamp: documentJson.video_metadata.timestamp,
+                }
+              : {
+                  url: documentJson.url,
+                  ...documentJson.page_metadata,
+                }),
             ...ingestJob.config?.metadata,
           },
         });

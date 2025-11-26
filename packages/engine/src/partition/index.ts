@@ -14,7 +14,12 @@ const filterUndefined = <T extends object>(obj: T): T => {
 type DocumentToPartition = Pick<
   Document,
   "id" | "name" | "config" | "tenantId"
-> & { source: Exclude<Document["source"], { type: "CRAWLED_PAGE" }> };
+> & {
+  source: Exclude<
+    Document["source"],
+    { type: "CRAWLED_PAGE" } | { type: "YOUTUBE_VIDEO" }
+  >;
+};
 
 export const getPartitionDocumentBody = async ({
   document,

@@ -1,11 +1,18 @@
 import type { ColumnDef } from "@tanstack/react-table";
 import { formatDuration, formatNumber } from "@/lib/utils";
-import { BookTextIcon, Code2Icon, FileTextIcon, ImageIcon } from "lucide-react";
+import {
+  BookTextIcon,
+  Code2Icon,
+  FileTextIcon,
+  GlobeIcon,
+  ImageIcon,
+} from "lucide-react";
 
 import type { Document } from "@agentset/db/browser";
 import type { BadgeProps } from "@agentset/ui/badge";
 import { DocumentStatus } from "@agentset/db/browser";
 import { Badge } from "@agentset/ui/badge";
+import { YouTubeIcon } from "@agentset/ui/icons/youtube";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@agentset/ui/tooltip";
 import { capitalize, formatBytes } from "@agentset/utils";
 
@@ -15,6 +22,7 @@ export interface DocumentCol {
   id: string;
   status: DocumentStatus;
   name?: Document["name"];
+  source: Document["source"];
   totalChunks: number;
   totalCharacters: number;
   totalTokens: number;
@@ -27,9 +35,19 @@ export interface DocumentCol {
   error?: Document["error"];
 }
 
-const MimeType = ({ mimeType }: { mimeType: string }) => {
+const MimeType = ({
+  mimeType,
+  source,
+}: {
+  mimeType: string;
+  source: Document["source"];
+}) => {
   let Icon;
-  if (mimeType === "application/pdf") {
+  if (source.type === "YOUTUBE_VIDEO") {
+    Icon = YouTubeIcon;
+  } else if (source.type === "CRAWLED_PAGE") {
+    Icon = GlobeIcon;
+  } else if (mimeType === "application/pdf") {
     Icon = BookTextIcon;
   } else if (mimeType.startsWith("image/")) {
     Icon = ImageIcon;
@@ -107,7 +125,10 @@ export const documentColumns: ColumnDef<DocumentCol>[] = [
       return (
         <div>
           {row.original.documentProperties?.mimeType ? (
-            <MimeType mimeType={row.original.documentProperties.mimeType} />
+            <MimeType
+              mimeType={row.original.documentProperties.mimeType}
+              source={row.original.source}
+            />
           ) : (
             "-"
           )}
