@@ -1,12 +1,7 @@
 import { useEffect } from "react";
-import { useNamespace } from "@/hooks/use-namespace";
 import { useUploadFiles } from "@/hooks/use-upload";
-import { logEvent } from "@/lib/analytics";
+import { useZodForm } from "@/hooks/use-zod-form";
 import { SUPPORTED_TYPES } from "@/lib/file-types";
-import { useTRPC } from "@/trpc/react";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { useMutation } from "@tanstack/react-query";
-import { useForm } from "react-hook-form";
 import { z } from "zod/v4";
 
 import { MAX_UPLOAD_SIZE } from "@agentset/storage/constants";
@@ -25,7 +20,10 @@ import {
 import { Input } from "@agentset/ui/input";
 import { configSchema } from "@agentset/validation";
 
+import type { BaseIngestFormProps } from "./shared";
 import IngestConfig from "./config";
+import { extractConfig } from "./shared";
+import { useIngest } from "./use-ingest";
 
 const schema = z
   .object({
@@ -39,109 +37,69 @@ const schema = z
 
 const ACCEPT = SUPPORTED_TYPES.reduce(
   (acc, type) => {
-    if (type.mimeTypesPrefixes) {
-      type.mimeTypesPrefixes.forEach((prefix) => {
-        acc[`${prefix}/*`] = [
-          ...(acc[`${prefix}/*`] ?? []),
-          ...type.extensions,
-        ];
-      });
-    }
-
-    if (type.mimeTypes) {
-      type.mimeTypes.forEach((mimeType) => {
-        acc[mimeType] = [...(acc[mimeType] ?? []), ...type.extensions];
-      });
-    }
-
+    type.mimeTypesPrefixes?.forEach((prefix) => {
+      acc[`${prefix}/*`] = [...(acc[`${prefix}/*`] ?? []), ...type.extensions];
+    });
+    type.mimeTypes?.forEach((mimeType) => {
+      acc[mimeType] = [...(acc[mimeType] ?? []), ...type.extensions];
+    });
     return acc;
   },
   {} as Record<string, string[]>,
 );
 
-export default function UploadForm({ onSuccess }: { onSuccess: () => void }) {
-  const namespace = useNamespace();
-  const trpc = useTRPC();
-
-  const form = useForm({
-    resolver: zodResolver(schema),
-    defaultValues: {
-      name: "",
-      files: [],
-      // config fields intentionally left undefined so we rely on
-      // partition API defaults; defaults are shown as placeholders
-    },
+export default function UploadForm({ onSuccess }: BaseIngestFormProps) {
+  const form = useZodForm(schema, {
+    defaultValues: { name: "", files: [] },
   });
 
-  const files = form.watch("files");
-  const { setValue } = form;
-  useEffect(() => {
-    // if it's a single file, set the name to the file name
-    if (files.length === 1 && files[0]?.name) {
-      setValue("name", files[0].name);
-    }
-  }, [files, setValue]);
+  const {
+    mutateAsync,
+    isPending: isMutating,
+    namespace,
+  } = useIngest({
+    type: "BATCH",
+    onSuccess,
+    extraAnalytics: () => ({ fileCount: form.getValues("files").length }),
+  });
 
   const { onUpload, progresses, isUploading } = useUploadFiles({
     namespaceId: namespace.id,
   });
 
-  const { mutateAsync, isPending: isFilePending } = useMutation(
-    trpc.ingestJob.ingest.mutationOptions({
-      onSuccess: (doc) => {
-        logEvent("document_ingested", {
-          type: "files",
-          namespaceId: namespace.id,
-          fileCount: form.getValues("files").length,
-          chunkSize: doc.config?.chunkSize,
-          languageCode: doc.config?.languageCode,
-          forceOcr: doc.config?.forceOcr,
-          mode: doc.config?.mode,
-          disableImageExtraction: doc.config?.disableImageExtraction,
-          disableOcrMath: doc.config?.disableOcrMath,
-          useLlm: doc.config?.useLlm,
-          hasMetadata: !!doc.config?.metadata,
-        });
-        onSuccess();
-      },
-    }),
-  );
+  // Auto-set name from single file
+  const files = form.watch("files");
+  const { setValue } = form;
+  useEffect(() => {
+    if (files.length === 1 && files[0]?.name) {
+      setValue("name", files[0].name);
+    }
+  }, [files, setValue]);
 
-  const handleFileSubmit = async (data: z.infer<typeof schema>) => {
-    const uploadedFiles = await onUpload(data.files);
-    if (uploadedFiles.length === 0) return;
-
-    const config = {
-      chunkSize: data.chunkSize,
-      languageCode: data.languageCode,
-      forceOcr: data.forceOcr,
-      mode: data.mode,
-      disableImageExtraction: data.disableImageExtraction,
-      disableOcrMath: data.disableOcrMath,
-      useLlm: data.useLlm,
-      metadata: data.metadata,
-    };
+  const onSubmit = async (data: z.infer<typeof schema>) => {
+    const uploaded = await onUpload(data.files);
+    if (uploaded.length === 0) return;
 
     await mutateAsync({
       namespaceId: namespace.id,
       name: data.name,
       payload: {
         type: "BATCH",
-        items: uploadedFiles.map((file) => ({
+        items: uploaded.map((file) => ({
           type: "MANAGED_FILE",
           key: file.key,
           fileName: file.name,
         })),
       },
-      config: Object.keys(config).length > 0 ? config : undefined,
+      config: extractConfig(data),
     });
   };
 
-  const isPending = isFilePending || isUploading;
+  const isPending = isMutating || isUploading;
 
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(handleFileSubmit)}>
+      <form onSubmit={form.handleSubmit(onSubmit)}>
         <div className="flex flex-col gap-6 py-4">
           <FormField
             control={form.control}
@@ -152,7 +110,6 @@ export default function UploadForm({ onSuccess }: { onSuccess: () => void }) {
                 <FormControl>
                   <Input placeholder="2025 Reports" {...field} />
                 </FormControl>
-
                 <FormDescription>A name for this batch</FormDescription>
                 <FormMessage />
               </FormItem>
@@ -177,7 +134,6 @@ export default function UploadForm({ onSuccess }: { onSuccess: () => void }) {
                     disabled={isPending}
                   />
                 </FormControl>
-
                 <FormMessage />
               </FormItem>
             )}
@@ -188,7 +144,7 @@ export default function UploadForm({ onSuccess }: { onSuccess: () => void }) {
 
         <DialogFooter>
           <Button type="submit" isLoading={isPending}>
-            Ingest Files
+            Ingest
           </Button>
         </DialogFooter>
       </form>

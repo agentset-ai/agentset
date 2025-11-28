@@ -65,10 +65,8 @@ export const POST = withNamespaceApiHandler(
   async ({ req, namespace, tenantId, headers, organization }) => {
     // if it's not a pro plan, check if the user has exceeded the limit
     // pro plan is unlimited with usage based billing
-    if (
-      isFreePlan(organization.plan) &&
-      organization.totalPages >= organization.pagesLimit
-    ) {
+    const isFreeOrg = isFreePlan(organization.plan);
+    if (isFreeOrg && organization.totalPages >= organization.pagesLimit) {
       throw new AgentsetApiError({
         code: "rate_limit_exceeded",
         message: exceededLimitError({
@@ -82,6 +80,13 @@ export const POST = withNamespaceApiHandler(
     const body = await createIngestJobSchema.parseAsync(
       await parseRequestBody(req),
     );
+
+    if (isFreeOrg && body.config?.mode === "accurate") {
+      throw new AgentsetApiError({
+        code: "bad_request",
+        message: "Accurate mode requires a pro subscription.",
+      });
+    }
 
     try {
       const job = await createIngestJob({

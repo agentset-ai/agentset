@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useCallback, useState } from "react";
 import { useNamespace } from "@/hooks/use-namespace";
 import { useOrganization } from "@/hooks/use-organization";
 import { useTRPC } from "@/trpc/react";
@@ -20,56 +20,48 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@agentset/ui/tabs";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@agentset/ui/tooltip";
 
+import CrawlForm from "./crawl-form";
 import TextForm from "./text-form";
 import UploadForm from "./upload-form";
 import UrlsForm from "./urls-form";
-import CrawlForm from "./crawl-form";
 import YoutubeForm from "./youtube-form";
+
+const TABS = [
+  { value: "upload", label: "Upload", Component: UploadForm },
+  { value: "text", label: "Text", Component: TextForm },
+  { value: "urls", label: "URLs", Component: UrlsForm },
+  { value: "crawl", label: "Crawl", Component: CrawlForm },
+  { value: "youtube", label: "YouTube", Component: YoutubeForm },
+] as const;
+
+const SUCCESS_MESSAGES: Record<(typeof TABS)[number]["value"], string> = {
+  upload: "Upload ingestion job created",
+  text: "Text ingestion job created",
+  urls: "URL ingestion job created",
+  crawl: "Crawl ingestion job created",
+  youtube: "YouTube ingestion job created",
+};
 
 export function IngestModal() {
   const [isOpen, setIsOpen] = useState(false);
+  const [activeTab, setActiveTab] =
+    useState<(typeof TABS)[number]["value"]>("upload");
   const trpc = useTRPC();
   const queryClient = useQueryClient();
   const organization = useOrganization();
   const namespace = useNamespace();
 
-  const onSuccess = () => {
+  const handleSuccess = useCallback(() => {
     setIsOpen(false);
     void queryClient.invalidateQueries(
       trpc.ingestJob.all.queryFilter({ namespaceId: namespace.id }),
     );
-  };
-
-  const onTextSuccess = () => {
-    onSuccess();
-    toast.success("Text ingestion job created");
-  };
-
-  const onUploadSuccess = () => {
-    onSuccess();
-    toast.success("Upload ingestion job created");
-  };
-
-  const onUrlSuccess = () => {
-    onSuccess();
-    toast.success("URL ingestion job created");
-  };
-
-  const onCrawlSuccess = () => {
-    onSuccess();
-    toast.success("Crawl ingestion job created");
-  };
-
-  const onYoutubeSuccess = () => {
-    onSuccess();
-    toast.success("YouTube ingestion job created");
-  };
+    toast.success(SUCCESS_MESSAGES[activeTab]);
+  }, [queryClient, trpc.ingestJob.all, namespace.id, activeTab]);
 
   const isPending =
     queryClient.isMutating(trpc.ingestJob.ingest.mutationOptions()) > 0;
 
-  // if it's not a pro plan, check if the user has exceeded the limit
-  // pro plan is unlimited with usage based billing
   const isOverLimit =
     isFreePlan(organization.plan) &&
     organization.totalPages >= organization.pagesLimit;
@@ -111,44 +103,24 @@ export function IngestModal() {
           <DialogTitle>Ingest Content</DialogTitle>
         </DialogHeader>
 
-        <Tabs defaultValue="text" className="w-full">
+        <Tabs
+          value={activeTab}
+          onValueChange={(v) => setActiveTab(v as typeof activeTab)}
+          className="w-full"
+        >
           <TabsList className="w-full">
-            <TabsTrigger value="text" className="flex-1">
-              Text
-            </TabsTrigger>
-            <TabsTrigger value="upload" className="flex-1">
-              Upload
-            </TabsTrigger>
-            <TabsTrigger value="urls" className="flex-1">
-              URLs
-            </TabsTrigger>
-            <TabsTrigger value="crawl" className="flex-1">
-              Crawl
-            </TabsTrigger>
-            <TabsTrigger value="youtube" className="flex-1">
-              YouTube
-            </TabsTrigger>
+            {TABS.map(({ value, label }) => (
+              <TabsTrigger key={value} value={value} className="flex-1">
+                {label}
+              </TabsTrigger>
+            ))}
           </TabsList>
 
-          <TabsContent value="text">
-            <TextForm onSuccess={onTextSuccess} />
-          </TabsContent>
-
-          <TabsContent value="upload">
-            <UploadForm onSuccess={onUploadSuccess} />
-          </TabsContent>
-
-          <TabsContent value="urls">
-            <UrlsForm onSuccess={onUrlSuccess} />
-          </TabsContent>
-
-          <TabsContent value="crawl">
-            <CrawlForm onSuccess={onCrawlSuccess} />
-          </TabsContent>
-
-          <TabsContent value="youtube">
-            <YoutubeForm onSuccess={onYoutubeSuccess} />
-          </TabsContent>
+          {TABS.map(({ value, Component }) => (
+            <TabsContent key={value} value={value}>
+              <Component onSuccess={handleSuccess} />
+            </TabsContent>
+          ))}
         </Tabs>
       </DialogContent>
     </Dialog>

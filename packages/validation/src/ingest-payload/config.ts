@@ -3,8 +3,9 @@ import { z } from "zod/v4";
 import { languageCode } from "../language";
 
 export const baseConfigSchema = z.object({
-  chunkSize: z.coerce
-    .number()
+  chunkSize: z
+    .int()
+    .min(32)
     .describe(
       "Chunk size (in characters). Controls approximately how much text is included in each chunk. Defaults to `2048`.",
     )

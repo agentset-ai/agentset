@@ -1,10 +1,4 @@
-import { useNamespace } from "@/hooks/use-namespace";
-import { logEvent } from "@/lib/analytics";
-import { useTRPC } from "@/trpc/react";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { useMutation } from "@tanstack/react-query";
-import { Trash2Icon } from "lucide-react";
-import { useForm } from "react-hook-form";
+import { useZodForm } from "@/hooks/use-zod-form";
 import { z } from "zod/v4";
 
 import {
@@ -25,71 +19,41 @@ import {
   FormMessage,
 } from "@agentset/ui/form";
 import { Input } from "@agentset/ui/input";
-import { configSchema } from "@agentset/validation";
+import { configSchema, languageCode } from "@agentset/validation";
 
+import type { BaseIngestFormProps } from "./shared";
 import IngestConfig from "./config";
+import { DynamicArrayField, extractConfig } from "./shared";
+import { useIngest } from "./use-ingest";
 
 const schema = z
   .object({
     name: z.string().optional(),
     urls: z
-      .array(z.string().url("Please enter a valid YouTube URL"))
+      .array(
+        z.url({
+          hostname: /^(www\.youtube\.com|youtu\.be)$/,
+          error: "Please enter a valid YouTube URL",
+        }),
+      )
       .min(1, "At least one URL is required"),
-    transcriptLanguages: z.array(z.string()).optional(),
+    transcriptLanguages: z.array(languageCode).optional(),
   })
   .extend(configSchema.shape);
 
-export default function YoutubeForm({ onSuccess }: { onSuccess: () => void }) {
-  const namespace = useNamespace();
-  const trpc = useTRPC();
-
-  const form = useForm({
-    resolver: zodResolver(schema),
-    defaultValues: {
-      urls: [""],
-      transcriptLanguages: [""],
-    },
+export default function YoutubeForm({ onSuccess }: BaseIngestFormProps) {
+  const { mutateAsync, isPending, namespace } = useIngest({
+    type: "YOUTUBE",
+    onSuccess,
   });
 
-  const { mutateAsync, isPending } = useMutation(
-    trpc.ingestJob.ingest.mutationOptions({
-      onSuccess: (doc) => {
-        logEvent("document_ingested", {
-          type: "youtube",
-          namespaceId: namespace.id,
-          chunkSize: doc.config?.chunkSize,
-          languageCode: doc.config?.languageCode,
-          forceOcr: doc.config?.forceOcr,
-          mode: doc.config?.mode,
-          disableImageExtraction: doc.config?.disableImageExtraction,
-          disableOcrMath: doc.config?.disableOcrMath,
-          useLlm: doc.config?.useLlm,
-          hasMetadata: !!doc.config?.metadata,
-        });
-        onSuccess();
-      },
-    }),
-  );
+  const form = useZodForm(schema, {
+    defaultValues: { urls: [""], transcriptLanguages: ["en"] },
+  });
 
-  const handleYoutubeSubmit = async (data: z.infer<typeof schema>) => {
+  const onSubmit = async (data: z.infer<typeof schema>) => {
     const urls = data.urls.filter(Boolean);
     const transcriptLanguages = data.transcriptLanguages?.filter(Boolean);
-
-    const options = {
-      ...(transcriptLanguages &&
-        transcriptLanguages.length > 0 && { transcriptLanguages }),
-    };
-
-    const config = {
-      chunkSize: data.chunkSize,
-      languageCode: data.languageCode,
-      forceOcr: data.forceOcr,
-      mode: data.mode,
-      disableImageExtraction: data.disableImageExtraction,
-      disableOcrMath: data.disableOcrMath,
-      useLlm: data.useLlm,
-      metadata: data.metadata,
-    };
 
     await mutateAsync({
       namespaceId: namespace.id,
@@ -97,15 +61,18 @@ export default function YoutubeForm({ onSuccess }: { onSuccess: () => void }) {
       payload: {
         type: "YOUTUBE",
         urls,
-        ...(Object.keys(options).length > 0 && { options }),
+        ...(transcriptLanguages &&
+          transcriptLanguages.length > 0 && {
+            options: { transcriptLanguages },
+          }),
       },
-      config: Object.keys(config).length > 0 ? config : undefined,
+      config: extractConfig(data),
     });
   };
 
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(handleYoutubeSubmit)}>
+      <form onSubmit={form.handleSubmit(onSubmit)}>
         <div className="flex flex-col gap-6 py-4">
           <FormField
             control={form.control}
@@ -127,57 +94,13 @@ export default function YoutubeForm({ onSuccess }: { onSuccess: () => void }) {
             <FormDescription className="mb-2">
               Enter video, channel, or playlist URLs
             </FormDescription>
-            {form.watch("urls")?.map((_, index) => (
-              <div key={index} className="flex items-end gap-2">
-                <div className="flex-1">
-                  <FormField
-                    control={form.control}
-                    name={`urls.${index}`}
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormControl>
-                          <Input
-                            type="url"
-                            placeholder="https://www.youtube.com/watch?v=..."
-                            {...field}
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                </div>
-
-                {(form.watch("urls")?.length ?? 0) > 1 && (
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="icon"
-                    onClick={() => {
-                      const urls = form.getValues("urls") ?? [];
-                      if (urls.length <= 1) return;
-                      form.setValue(
-                        "urls",
-                        urls.filter((_, i) => i !== index),
-                      );
-                    }}
-                  >
-                    <Trash2Icon className="h-4 w-4" />
-                  </Button>
-                )}
-              </div>
-            ))}
-            <Button
-              type="button"
-              variant="ghost"
-              className="mt-1 w-fit"
-              onClick={() => {
-                const urls = form.getValues("urls") ?? [];
-                form.setValue("urls", [...urls, ""]);
-              }}
-            >
-              Add URL
-            </Button>
+            <DynamicArrayField
+              form={form}
+              name="urls"
+              placeholder="https://www.youtube.com/watch?v=..."
+              addButtonText="Add URL"
+              inputType="url"
+            />
           </div>
 
           <Accordion type="single" collapsible>
@@ -192,55 +115,12 @@ export default function YoutubeForm({ onSuccess }: { onSuccess: () => void }) {
                   <FormDescription className="mb-2">
                     Preferred languages for transcripts (e.g., en, es, fr)
                   </FormDescription>
-                  {form.watch("transcriptLanguages")?.map((_, index) => (
-                    <div key={index} className="flex items-end gap-2">
-                      <div className="flex-1">
-                        <FormField
-                          control={form.control}
-                          name={`transcriptLanguages.${index}`}
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormControl>
-                                <Input placeholder="en" {...field} />
-                              </FormControl>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
-                      </div>
-
-                      {(form.watch("transcriptLanguages")?.length ?? 0) > 1 && (
-                        <Button
-                          type="button"
-                          variant="ghost"
-                          size="icon"
-                          onClick={() => {
-                            const langs =
-                              form.getValues("transcriptLanguages") ?? [];
-                            if (langs.length <= 1) return;
-                            form.setValue(
-                              "transcriptLanguages",
-                              langs.filter((_, i) => i !== index),
-                            );
-                          }}
-                        >
-                          <Trash2Icon className="h-4 w-4" />
-                        </Button>
-                      )}
-                    </div>
-                  ))}
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    className="mt-1 w-fit"
-                    onClick={() => {
-                      const langs =
-                        form.getValues("transcriptLanguages") ?? [];
-                      form.setValue("transcriptLanguages", [...langs, ""]);
-                    }}
-                  >
-                    Add language
-                  </Button>
+                  <DynamicArrayField
+                    form={form}
+                    name="transcriptLanguages"
+                    placeholder="en"
+                    addButtonText="Add language"
+                  />
                 </div>
               </AccordionContent>
             </AccordionItem>
@@ -251,11 +131,10 @@ export default function YoutubeForm({ onSuccess }: { onSuccess: () => void }) {
 
         <DialogFooter>
           <Button type="submit" isLoading={isPending}>
-            Start Import
+            Ingest
           </Button>
         </DialogFooter>
       </form>
     </Form>
   );
 }
-
