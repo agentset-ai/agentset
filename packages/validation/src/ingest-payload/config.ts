@@ -1,68 +1,12 @@
 import { z } from "zod/v4";
 
-const languageCode = z.enum([
-  "af",
-  "am",
-  "ar",
-  "bg",
-  "bn",
-  "ca",
-  "cs",
-  "cy",
-  "da",
-  "de",
-  "en",
-  "es",
-  "et",
-  "fa",
-  "fi",
-  "fr",
-  "ga",
-  "gl",
-  "he",
-  "hi",
-  "hr",
-  "hu",
-  "id",
-  "is",
-  "it",
-  "jp",
-  "kr",
-  "lt",
-  "lv",
-  "mk",
-  "ms",
-  "mt",
-  "ne",
-  "nl",
-  "no",
-  "pl",
-  "pt",
-  "pt-BR",
-  "ro",
-  "ru",
-  "sk",
-  "sl",
-  "sr",
-  "sv",
-  "sw",
-  "ta",
-  "te",
-  "th",
-  "tl",
-  "tr",
-  "uk",
-  "ur",
-  "vi",
-  "zh",
-  "zu",
-]);
+import { languageCode } from "../language";
 
 export const baseConfigSchema = z.object({
   chunkSize: z.coerce
     .number()
     .describe(
-      "Chunk size (in characters). Controls approximately how much text is included in each chunk.",
+      "Chunk size (in characters). Controls approximately how much text is included in each chunk. Defaults to `2048`.",
     )
     .optional(),
   metadata: z
@@ -73,13 +17,13 @@ export const baseConfigSchema = z.object({
     .optional(),
   languageCode: languageCode
     .describe(
-      "Language code to use for text processing (for example, `en`, `fr`, or `pt-BR`). When omitted, the partition API will attempt to detect the language automatically.",
+      "Language code to use for text processing (for example, `en`, `ar`, or `fr`). When omitted, the partition API will attempt to detect the language automatically.",
     )
     .optional(),
   forceOcr: z
     .boolean()
     .describe(
-      "Force OCR on the document even if selectable text exists. Useful for scanned documents with unreliable embedded text.",
+      "Force OCR on the document even if selectable text exists. Useful for scanned documents with unreliable embedded text. Defaults to `false`.",
     )
     .optional(),
   mode: z
@@ -87,25 +31,25 @@ export const baseConfigSchema = z.object({
     .meta({
       id: "mode",
       description:
-        "Processing mode for the parser. `fast` favors speed, `accurate` favors quality and layout fidelity, and `balanced` offers a compromise between the two.",
+        "Processing mode for the parser. `fast` favors speed, `accurate` (pro subscription only) favors quality and layout fidelity, and `balanced` offers a compromise between the two. Defaults to `balanced`.",
     })
     .optional(),
   disableImageExtraction: z
     .boolean()
     .describe(
-      "Disable image extraction from the document. When combined with `useLlm`, images may still be automatically captioned by the partition API.",
+      "Disable image extraction from the document. When combined with `useLlm`, images may still be automatically captioned by the partition API. Defaults to `false`.",
     )
     .optional(),
   disableOcrMath: z
     .boolean()
     .describe(
-      "Disable inline math recognition in OCR. This can be useful if the document contains content that is frequently misclassified as math.",
+      "Disable inline math recognition in OCR. This can be useful if the document contains content that is frequently misclassified as math. Defaults to `false`.",
     )
     .optional(),
   useLlm: z
     .boolean()
     .describe(
-      "Enable LLM-assisted parsing to improve tables, forms, inline math, and layout detection. May increase latency and token usage.",
+      "Enable LLM-assisted parsing to improve tables, forms, inline math, and layout detection. May increase latency and token usage. Defaults to `true`.",
     )
     .optional(),
 
