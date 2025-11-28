@@ -90,6 +90,7 @@ export const namespaceItems: SidebarItemType[] = [
   {
     title: "Playground",
     icon: MessagesSquareIcon,
+    isActive: true,
     items: [
       {
         title: "Chat",

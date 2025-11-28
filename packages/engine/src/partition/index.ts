@@ -4,6 +4,7 @@ import { presignGetUrl } from "@agentset/storage";
 import type { ChunkOptions, ParseOptions, PartitionBody } from "./types";
 
 export * from "./types";
+export * from "./chunks";
 
 const filterUndefined = <T extends object>(obj: T): T => {
   return Object.fromEntries(
