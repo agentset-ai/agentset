@@ -58,94 +58,6 @@ export default function IngestConfig({
         <AccordionContent className="mt-6 flex flex-col gap-6 px-2">
           <FormField
             control={form.control}
-            name="chunkSize"
-            render={({ field }: { field: FieldValues }) => (
-              <FormItem>
-                <FormLabel>Chunk size (optional)</FormLabel>
-                <FormControl>
-                  <Input
-                    placeholder={DEFAULTS.chunkSize}
-                    {...field}
-                    value={field.value ?? ""}
-                    onChange={(e) => {
-                      const val = e.target.value;
-                      field.onChange(val === "" ? undefined : Number(val));
-                    }}
-                  />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-
-          {!minimal && (
-            <>
-              <FormField
-                control={form.control}
-                name="languageCode"
-                render={({ field }: { field: FieldValues }) => (
-                  <FormItem>
-                    <FormLabel>Language code (optional)</FormLabel>
-                    <FormControl>
-                      <Input placeholder="en, fr, ar, ..." {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name="mode"
-                render={({ field }: { field: FieldValues }) => (
-                  <FormItem>
-                    <FormLabel>Processing mode (optional)</FormLabel>
-                    <FormControl>
-                      <Select
-                        onValueChange={field.onChange}
-                        value={field.value as string | undefined}
-                      >
-                        <SelectTrigger className="w-full">
-                          <SelectValue
-                            className="capitalize"
-                            placeholder={`${DEFAULTS.mode} (default)`}
-                          />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="fast">Fast</SelectItem>
-                          <SelectItem value="balanced">Balanced</SelectItem>
-                          <SelectItem value="accurate" disabled={isFree}>
-                            Accurate
-                          </SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <CheckboxField form={form} name="forceOcr" label="Force OCR" />
-              <CheckboxField
-                form={form}
-                name="disableImageExtraction"
-                label="Disable image extraction"
-              />
-              <CheckboxField
-                form={form}
-                name="disableOcrMath"
-                label="Disable OCR math"
-              />
-              <CheckboxField
-                form={form}
-                name="useLlm"
-                label="Use LLM-enhanced parsing"
-              />
-            </>
-          )}
-
-          <FormField
-            control={form.control}
             name="metadata"
             render={({ field }: { field: FieldValues }) => (
               <FormItem>
@@ -176,6 +88,94 @@ export default function IngestConfig({
               </FormItem>
             )}
           />
+
+          <FormField
+            control={form.control}
+            name="chunkSize"
+            render={({ field }: { field: FieldValues }) => (
+              <FormItem>
+                <FormLabel>Chunk Size</FormLabel>
+                <FormControl>
+                  <Input
+                    placeholder={DEFAULTS.chunkSize}
+                    {...field}
+                    value={field.value ?? ""}
+                    onChange={(e) => {
+                      const val = e.target.value;
+                      field.onChange(val === "" ? undefined : Number(val));
+                    }}
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          {!minimal && (
+            <>
+              <FormField
+                control={form.control}
+                name="languageCode"
+                render={({ field }: { field: FieldValues }) => (
+                  <FormItem>
+                    <FormLabel>Language</FormLabel>
+                    <FormControl>
+                      <Input placeholder="en, fr, ar, ..." {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="mode"
+                render={({ field }: { field: FieldValues }) => (
+                  <FormItem>
+                    <FormLabel>Mode</FormLabel>
+                    <FormControl>
+                      <Select
+                        onValueChange={field.onChange}
+                        value={field.value ?? DEFAULTS.mode}
+                      >
+                        <SelectTrigger className="w-full">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="fast">Fast</SelectItem>
+                          <SelectItem value="balanced">Balanced</SelectItem>
+                          <SelectItem value="accurate" disabled={isFree}>
+                            Accurate
+                          </SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <CheckboxField form={form} name="forceOcr" label="Force OCR" />
+
+              <CheckboxField
+                form={form}
+                name="disableImageExtraction"
+                label="Disable image extraction"
+              />
+
+              <CheckboxField
+                form={form}
+                name="disableOcrMath"
+                label="Disable OCR math"
+              />
+
+              <CheckboxField
+                form={form}
+                name="useLlm"
+                label="Use LLM-enhanced parsing"
+              />
+            </>
+          )}
         </AccordionContent>
       </AccordionItem>
     </Accordion>
