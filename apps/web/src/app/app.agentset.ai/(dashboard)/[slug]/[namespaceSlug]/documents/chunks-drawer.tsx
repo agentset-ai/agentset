@@ -4,11 +4,12 @@ import { useMemo, useState } from "react";
 import { useNamespace } from "@/hooks/use-namespace";
 import { trpcClient } from "@/trpc/react";
 import { useQuery } from "@tanstack/react-query";
-import { Loader2Icon, SearchIcon } from "lucide-react";
+import { CopyIcon, SearchIcon } from "lucide-react";
 import { VList } from "virtua";
 
 import type { ChunksFile } from "@agentset/engine";
 import { CodeBlock, CodeBlockCopyButton } from "@agentset/ui/ai/code-block";
+import { Response } from "@agentset/ui/ai/response";
 import { Button } from "@agentset/ui/button";
 import { Input } from "@agentset/ui/input";
 import {
@@ -18,6 +19,7 @@ import {
   SheetHeader,
   SheetTitle,
 } from "@agentset/ui/sheet";
+import { Spinner } from "@agentset/ui/spinner";
 
 interface ChunksDrawerProps {
   documentId: string;
@@ -73,49 +75,34 @@ export function ChunksDrawer({
     if (!data?.chunks) return [];
     if (!search.trim()) return data.chunks;
     const lowerSearch = search.toLowerCase();
-    return data.chunks.filter((chunk) =>
-      chunk.text.toLowerCase().includes(lowerSearch),
-    );
+
+    const results: typeof data.chunks = [];
+    for (const chunk of data.chunks) {
+      if (chunk.text.toLowerCase().includes(lowerSearch)) {
+        // highlight the search term in the chunk text
+        const highlightedText = chunk.text.replace(
+          new RegExp(lowerSearch, "gi"),
+          (match) => `<span class="bg-yellow-200">${match}</span>`,
+        );
+
+        results.push({ ...chunk, text: highlightedText });
+      }
+    }
+    return results;
   }, [data?.chunks, search]);
-
-  const documentMetadata = useMemo(() => {
-    if (!data) return null;
-    const meta: Record<string, unknown> = {};
-
-    if ("url" in data && data.url) meta.url = data.url;
-    if ("page_metadata" in data && data.page_metadata) {
-      Object.assign(meta, data.page_metadata);
-    }
-    if ("video_metadata" in data && data.video_metadata) {
-      Object.assign(meta, data.video_metadata);
-    }
-    if (data.metadata && Object.keys(data.metadata).length > 0) {
-      Object.assign(meta, data.metadata);
-    }
-
-    return Object.keys(meta).length > 0 ? meta : null;
-  }, [data]);
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
       <SheetContent side="right" className="w-full sm:max-w-2xl">
         <SheetHeader>
-          <SheetTitle>Document Chunks</SheetTitle>
-          <SheetDescription>
-            {documentName ? (
-              <>
-                Chunks for <span className="font-medium">{documentName}</span>
-              </>
-            ) : (
-              "View all chunks for this document"
-            )}
-          </SheetDescription>
+          <SheetTitle>{documentName ?? "Document Chunks"}</SheetTitle>
+          <SheetDescription>View all chunks for this document</SheetDescription>
         </SheetHeader>
 
-        <div className="flex h-[calc(100vh-10rem)] flex-col p-4">
+        <div className="flex h-full">
           {isLoading ? (
             <div className="flex flex-1 items-center justify-center">
-              <Loader2Icon className="text-muted-foreground size-8 animate-spin" />
+              <Spinner className="text-muted-foreground size-8" />
             </div>
           ) : error ? (
             <div className="flex flex-1 flex-col items-center justify-center gap-4">
@@ -129,26 +116,26 @@ export function ChunksDrawer({
               <p className="text-muted-foreground text-sm">No chunks found</p>
             </div>
           ) : (
-            <>
-              {documentMetadata && (
-                <DocumentMetadata metadata={documentMetadata} />
-              )}
+            <div className="flex w-full flex-1 flex-col gap-4">
+              <div className="flex w-full flex-col gap-4 px-4">
+                <DocumentMetadata metadata={data.metadata} />
 
-              <div className="relative mb-3">
-                <SearchIcon className="text-muted-foreground pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2" />
-                <Input
-                  placeholder="Search chunks..."
-                  value={search}
-                  onChange={(e) => setSearch(e.target.value)}
-                  className="pl-9"
-                />
+                <div className="relative">
+                  <SearchIcon className="text-muted-foreground pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2" />
+                  <Input
+                    placeholder="Search chunks..."
+                    value={search}
+                    onChange={(e) => setSearch(e.target.value)}
+                    className="pl-9"
+                  />
+                </div>
+
+                <p className="text-muted-foreground text-sm">
+                  {search
+                    ? `${filteredChunks.length} of ${data.chunks.length} chunk${data.chunks.length !== 1 ? "s" : ""}`
+                    : `${data.chunks.length} chunk${data.chunks.length !== 1 ? "s" : ""}`}
+                </p>
               </div>
-
-              <p className="text-muted-foreground mb-3 text-sm">
-                {search
-                  ? `${filteredChunks.length} of ${data.chunks.length} chunk${data.chunks.length !== 1 ? "s" : ""}`
-                  : `${data.chunks.length} chunk${data.chunks.length !== 1 ? "s" : ""}`}
-              </p>
 
               {filteredChunks.length === 0 ? (
                 <div className="flex flex-1 items-center justify-center">
@@ -157,13 +144,13 @@ export function ChunksDrawer({
                   </p>
                 </div>
               ) : (
-                <VList className="flex-1">
+                <VList className="flex-1 px-4">
                   {filteredChunks.map((chunk, index) => (
                     <ChunkItem key={chunk.id} chunk={chunk} index={index} />
                   ))}
                 </VList>
               )}
-            </>
+            </div>
           )}
         </div>
       </SheetContent>
@@ -175,7 +162,7 @@ function DocumentMetadata({ metadata }: { metadata: Record<string, unknown> }) {
   const [expanded, setExpanded] = useState(false);
 
   return (
-    <div className="bg-muted/50 border-border mb-4 rounded-lg border p-3">
+    <div className="bg-muted/50 border-border flex w-full flex-col gap-2 rounded-lg border p-3">
       <div className="flex items-center justify-between">
         <h3 className="text-xs font-medium">Document Metadata</h3>
         <Button
@@ -189,7 +176,7 @@ function DocumentMetadata({ metadata }: { metadata: Record<string, unknown> }) {
       </div>
 
       {expanded && (
-        <div className="mt-2">
+        <div className="w-full flex-1">
           <CodeBlock code={JSON.stringify(metadata, null, 2)} language="json">
             <CodeBlockCopyButton />
           </CodeBlock>
@@ -210,8 +197,8 @@ function ChunkItem({
   const hasExtraMetadata = Object.keys(chunk.metadata).length > 1;
 
   return (
-    <div className="bg-secondary mr-3 mb-3 rounded-md p-4">
-      <div className="mb-2 flex items-center justify-between">
+    <>
+      <div className="border-border bg-accent sticky top-0 flex w-full items-center justify-between rounded-t-md border-b-[1.5px] px-4">
         <span className="text-muted-foreground text-xs font-medium">
           #{index + 1}
           {"page_number" in chunk.metadata && (
@@ -220,36 +207,43 @@ function ChunkItem({
             </span>
           )}
         </span>
+
+        <Button size="icon" variant="ghost">
+          <CopyIcon className="size-3" />
+        </Button>
       </div>
 
-      <p className="text-sm whitespace-pre-wrap">{chunk.text}</p>
+      <div className="bg-secondary rounded-md rounded-t-none px-4 py-4">
+        <Response mode="static">{chunk.text}</Response>
 
-      {hasExtraMetadata && (
-        <div className="border-border mt-3 border-t pt-3">
-          <div className="flex items-center gap-2">
-            <h3 className="text-xs font-medium">Metadata</h3>
-            <Button
-              variant="outline"
-              size="sm"
-              className="h-auto px-2 py-1 text-xs"
-              onClick={() => setShowMetadata(!showMetadata)}
-            >
-              {showMetadata ? "Hide" : "Show"}
-            </Button>
-          </div>
-
-          {showMetadata && (
-            <div className="mt-2">
-              <CodeBlock
-                code={JSON.stringify(chunk.metadata, null, 2)}
-                language="json"
+        {hasExtraMetadata && (
+          <div className="border-border mt-3 border-t pt-3">
+            <div className="flex items-center gap-2">
+              <h3 className="text-xs font-medium">Metadata</h3>
+              <Button
+                variant="outline"
+                size="sm"
+                className="h-auto px-2 py-1 text-xs"
+                onClick={() => setShowMetadata(!showMetadata)}
               >
-                <CodeBlockCopyButton />
-              </CodeBlock>
+                {showMetadata ? "Hide" : "Show"}
+              </Button>
             </div>
-          )}
-        </div>
-      )}
-    </div>
+
+            {showMetadata && (
+              <div className="mt-2">
+                <CodeBlock
+                  code={JSON.stringify(chunk.metadata, null, 2)}
+                  language="json"
+                >
+                  <CodeBlockCopyButton />
+                </CodeBlock>
+              </div>
+            )}
+          </div>
+        )}
+      </div>
+      <div className="h-4" />
+    </>
   );
 }

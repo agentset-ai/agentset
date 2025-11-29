@@ -17,3 +17,16 @@ export function formatBytes(
       : (sizes[i] ?? "Bytes")
   }`;
 }
+
+let formatter: Intl.DateTimeFormat | undefined;
+export function formatDate(date: Date) {
+  if (!formatter) {
+    formatter = new Intl.DateTimeFormat("en-US", {
+      year: "numeric",
+      month: "long",
+      day: "numeric",
+    });
+  }
+
+  return formatter.format(date);
+}

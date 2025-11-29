@@ -110,7 +110,10 @@ export const ingestJob = schemaTask({
 
       const body: CrawlPartitionBody = {
         url: ingestionJob.payload.url,
-        extra_metadata: ingestionJob.config?.metadata,
+        extra_metadata: {
+          ...ingestionJob.config?.metadata,
+          ...(ingestionJob.tenantId && { tenantId: ingestionJob.tenantId }),
+        },
         crawl_options: {
           max_depth: ingestionJob.payload.options?.maxDepth,
           limit: ingestionJob.payload.options?.limit,
@@ -178,7 +181,10 @@ export const ingestJob = schemaTask({
       const body: YoutubePartitionBody = {
         urls: ingestionJob.payload.urls,
         transcript_languages: ingestionJob.payload.options?.transcriptLanguages,
-        extra_metadata: ingestionJob.config?.metadata,
+        extra_metadata: {
+          ...ingestionJob.config?.metadata,
+          ...(ingestionJob.tenantId && { tenantId: ingestionJob.tenantId }),
+        },
         chunk_options: {
           chunk_size: ingestionJob.config?.chunkSize,
         },

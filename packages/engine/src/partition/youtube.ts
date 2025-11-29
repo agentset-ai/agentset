@@ -2,7 +2,9 @@ import { ChunkOptions } from "./types";
 
 export interface YoutubePartitionBody {
   urls: string[];
+
   transcript_languages?: string[];
+  include_metadata?: boolean;
 
   extra_metadata?: Record<string, unknown>;
 
@@ -30,21 +32,13 @@ export type YoutubePartitionResult = {
 
 export type YoutubePartitionResultDocument = {
   id: string;
-  metadata: Record<string, unknown>;
-  video_metadata: {
-    video_id: string;
-    url: string;
-    title: string;
-    description: string;
-    tags?: string[];
-    category?: string;
-    timestamp?: number; // in seconds
-    channel_id?: string;
-    channel_name?: string;
-    views?: number;
-    comments?: number;
-    duration?: number; // in seconds
-  };
+  metadata: {
+    youtube_id: string;
+    youtube_title: string;
+    youtube_description: string;
+    youtube_duration?: number; // in seconds
+    youtube_timestamp?: number; // in seconds
+  } & Record<string, unknown>;
   total_chunks: number;
   total_characters: number;
   chunks: {

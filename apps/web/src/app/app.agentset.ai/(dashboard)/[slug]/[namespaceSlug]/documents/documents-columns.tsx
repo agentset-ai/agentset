@@ -14,9 +14,10 @@ import { DocumentStatus } from "@agentset/db/browser";
 import { Badge } from "@agentset/ui/badge";
 import { YouTubeIcon } from "@agentset/ui/icons/youtube";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@agentset/ui/tooltip";
-import { capitalize, formatBytes } from "@agentset/utils";
+import { capitalize, formatDate, truncate } from "@agentset/utils";
 
 import DocumentActions from "./document-actions";
+import TimestampTooltip from "./document-size-tooltip";
 
 export interface DocumentCol {
   id: string;
@@ -97,27 +98,6 @@ const statusToBadgeVariant = (
 
 export const documentColumns: ColumnDef<DocumentCol>[] = [
   {
-    accessorKey: "name",
-    header: "Name",
-    cell: ({ row }) => {
-      const name = row.original.name ?? "-";
-
-      return (
-        <p title={name}>
-          {name.length > 20 ? name.slice(0, 20) + "..." : name}
-        </p>
-      );
-    },
-  },
-  // {
-  //   id: "source",
-  //   header: "Source",
-  //   accessorKey: "source",
-  //   cell: ({ row }) => {
-  //     return <p>{capitalize(row.original.source.type.split("_").join(" "))}</p>;
-  //   },
-  // },
-  {
     id: "type",
     header: "Type",
     accessorKey: "documentProperties.mimeType",
@@ -137,45 +117,36 @@ export const documentColumns: ColumnDef<DocumentCol>[] = [
     },
   },
   {
-    accessorKey: "totalChunks",
-    header: "Total Chunks",
+    accessorKey: "name",
+    header: "Name",
     cell: ({ row }) => {
-      return <p>{formatNumber(row.original.totalChunks, "compact")}</p>;
-    },
-  },
-  {
-    accessorKey: "totalCharacters",
-    header: "Total Characters",
-    cell: ({ row }) => {
-      return <p>{formatNumber(row.original.totalCharacters, "compact")}</p>;
-    },
-  },
-  {
-    accessorKey: "totalTokens",
-    header: "Total Tokens",
-    cell: ({ row }) => {
-      return <p>{formatNumber(row.original.totalTokens, "compact")}</p>;
+      const name = row.original.name ?? "-";
+      return <p title={name}>{truncate(name, 60, "...")}</p>;
     },
   },
   {
     accessorKey: "totalPages",
     header: "Total Pages",
     cell: ({ row }) => {
-      return <p>{formatNumber(row.original.totalPages, "compact")}</p>;
+      return (
+        <TimestampTooltip
+          totalCharacters={row.original.totalCharacters}
+          totalChunks={row.original.totalChunks}
+          totalBytes={row.original.documentProperties?.fileSize ?? 0}
+          totalTokens={row.original.totalTokens}
+        >
+          <p className="w-fit">
+            {formatNumber(row.original.totalPages, "compact")}
+          </p>
+        </TimestampTooltip>
+      );
     },
   },
   {
-    id: "size",
-    accessorKey: "documentProperties.fileSize",
-    header: "Size",
+    id: "uploadedAt",
+    header: "Uploaded At",
     cell: ({ row }) => {
-      return (
-        <p>
-          {row.original.documentProperties?.fileSize
-            ? formatBytes(row.original.documentProperties.fileSize)
-            : "-"}
-        </p>
-      );
+      return <p>{formatDate(row.original.createdAt)}</p>;
     },
   },
   {
@@ -200,6 +171,7 @@ export const documentColumns: ColumnDef<DocumentCol>[] = [
       );
     },
   },
+
   {
     id: "duration",
     header: "Duration",

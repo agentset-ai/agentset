@@ -220,17 +220,17 @@ export const processDocument = schemaTask({
       }
 
       const newDocumentFields: Prisma.DocumentUpdateInput = {};
-      if ("video_metadata" in documentJson) {
+      if ("youtube_duration" in documentJson.metadata) {
         newDocumentFields.source = {
           ...document.source,
-          duration: documentJson.video_metadata.duration,
+          duration: documentJson.metadata.youtube_duration,
         } as Extract<PrismaJson.DocumentSource, { type: "YOUTUBE_VIDEO" }>;
-      } else {
+      } else if ("page_url" in documentJson.metadata) {
         newDocumentFields.source = {
           ...document.source,
-          title: documentJson.page_metadata.title,
-          description: documentJson.page_metadata.description,
-          language: documentJson.page_metadata.language,
+          title: documentJson.metadata.page_title,
+          description: documentJson.metadata.page_description,
+          language: documentJson.metadata.page_language,
         } as Extract<PrismaJson.DocumentSource, { type: "CRAWLED_PAGE" }>;
       }
 
@@ -254,21 +254,7 @@ export const processDocument = schemaTask({
           vectorStore,
           keywordStore,
           documentId: document.id,
-          extraMetadata: {
-            ...("video_metadata" in documentJson
-              ? {
-                  video_id: documentJson.video_metadata.video_id,
-                  title: documentJson.video_metadata.title,
-                  description: documentJson.video_metadata.description,
-                  duration: documentJson.video_metadata.duration,
-                  timestamp: documentJson.video_metadata.timestamp,
-                }
-              : {
-                  url: documentJson.url,
-                  ...documentJson.page_metadata,
-                }),
-            ...ingestJob.config?.metadata,
-          },
+          extraMetadata: documentJson.metadata,
         });
 
         totalTokens += tokens;

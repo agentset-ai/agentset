@@ -39,15 +39,14 @@ export type CrawlPartitionResult = {
 };
 
 export type CrawlPartitionResultDocument = {
-  url: string;
   total_chunks: number;
   total_characters: number;
-  metadata: Record<string, unknown>;
-  page_metadata: {
-    title?: string;
-    description?: string;
-    language?: string;
-  };
+  metadata: {
+    page_url: string;
+    page_title?: string;
+    page_description?: string;
+    page_language?: string;
+  } & Record<string, unknown>;
   chunks: {
     id: string;
     text: string;
