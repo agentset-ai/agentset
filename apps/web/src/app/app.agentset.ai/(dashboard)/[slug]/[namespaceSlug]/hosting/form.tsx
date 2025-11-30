@@ -1,3 +1,4 @@
+import type { HostingOutputs } from "@/server/orpc/types";
 import ListInput from "@/components/list-input";
 import { LLMSelector } from "@/components/llm-selector";
 import { RerankerSelector } from "@/components/reranker-selector";
@@ -6,7 +7,7 @@ import { useNamespace } from "@/hooks/use-namespace";
 import { logEvent } from "@/lib/analytics";
 import { APP_DOMAIN, HOSTING_PREFIX } from "@/lib/constants";
 import { DEFAULT_SYSTEM_PROMPT } from "@/lib/prompts";
-import { RouterOutputs, useTRPC } from "@/trpc/react";
+import { useORPC } from "@/orpc/react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { ArrowUpRightIcon, CopyIcon } from "lucide-react";
@@ -61,14 +62,16 @@ export const schema = z.object({
 
 type FormValues = z.infer<typeof schema>;
 
-type Data = NonNullable<RouterOutputs["hosting"]["get"]>;
-
-export default function HostingForm({ data }: { data: Data }) {
+export default function HostingForm({
+  data,
+}: {
+  data: NonNullable<HostingOutputs["get"]>;
+}) {
   const namespace = useNamespace();
-  const trpc = useTRPC();
+  const orpc = useORPC();
   const queryClient = useQueryClient();
-  const { mutateAsync: updateHosting, isPending: isUpdating } = useMutation(
-    trpc.hosting.update.mutationOptions({
+  const { mutate: updateHosting, isPending: isUpdating } = useMutation(
+    orpc.hosting.update.mutationOptions({
       onSuccess: (result) => {
         logEvent("hosting_updated", {
           namespaceId: namespace.id,
@@ -81,24 +84,21 @@ export default function HostingForm({ data }: { data: Data }) {
           exampleSearchQueriesCount: result.exampleSearchQueries?.length || 0,
         });
         toast.success("Hosting updated");
-        queryClient.setQueryData(
-          trpc.hosting.get.queryKey({
-            namespaceId: namespace.id,
-          }),
-          (old) => {
-            return {
-              ...(old ?? {}),
-              ...result,
-              domain: old?.domain || null,
-            };
-          },
-        );
 
-        queryClient.invalidateQueries(
-          trpc.hosting.get.queryOptions({
-            namespaceId: namespace.id,
-          }),
-        );
+        const queryKey = orpc.hosting.get.key({
+          input: { namespaceId: namespace.id },
+        });
+        queryClient.setQueryData(queryKey, (old?: HostingOutputs["get"]) => {
+          if (!old) return old;
+
+          return {
+            ...old,
+            ...result,
+            domain: old.domain || null,
+          };
+        });
+
+        void queryClient.invalidateQueries({ queryKey });
       },
       onError: (error) => {
         toast.error(error.message);

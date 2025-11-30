@@ -1,6 +1,7 @@
+import type { ApiKeyOutputs } from "@/server/orpc/types";
 import { useState } from "react";
 import { logEvent } from "@/lib/analytics";
-import { useTRPC } from "@/trpc/react";
+import { useORPC } from "@/orpc/react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { PlusIcon } from "lucide-react";
 import { toast } from "sonner";
@@ -30,26 +31,34 @@ export default function CreateApiKey({ orgId }: { orgId: string }) {
   const [isOpen, setIsOpen] = useState(false);
   const [label, setLabel] = useState("");
   const [scope, setScope] = useState<"all">("all");
-  const trpc = useTRPC();
+  const orpc = useORPC();
   const queryClient = useQueryClient();
 
-  const { isPending, mutateAsync, data, reset } = useMutation(
-    trpc.apiKey.createApiKey.mutationOptions({
+  const {
+    isPending,
+    mutate: createApiKey,
+    data,
+    reset,
+  } = useMutation(
+    orpc.apiKey.createApiKey.mutationOptions({
       onSuccess: (newKey) => {
         logEvent("api_key_created", {
           orgId,
           scope: newKey.scope,
         });
 
-        const queryFilter = trpc.apiKey.getApiKeys.queryFilter({ orgId });
+        const queryKey = orpc.apiKey.getApiKeys.key({ input: { orgId } });
 
-        queryClient.setQueryData(queryFilter.queryKey, (old) => {
-          if (!old) return [];
-          return [...old, newKey];
-        });
+        queryClient.setQueryData(
+          queryKey,
+          (old?: ApiKeyOutputs["getApiKeys"]) => {
+            if (!old) return old;
+            return [...old, newKey];
+          },
+        );
 
         toast.success("API key created");
-        void queryClient.invalidateQueries(queryFilter);
+        void queryClient.invalidateQueries({ queryKey });
       },
       onError: (error) => {
         toast.error(error.message);
@@ -57,13 +66,9 @@ export default function CreateApiKey({ orgId }: { orgId: string }) {
     }),
   );
 
-  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    await mutateAsync({
-      orgId,
-      label,
-      scope,
-    });
+    createApiKey({ orgId, label, scope });
   };
 
   return (

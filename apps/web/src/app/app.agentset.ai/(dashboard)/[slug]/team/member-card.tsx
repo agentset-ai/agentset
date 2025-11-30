@@ -3,7 +3,7 @@ import { useState } from "react";
 import { useOrganization } from "@/hooks/use-organization";
 import { logEvent } from "@/lib/analytics";
 import { authClient } from "@/lib/auth-client";
-import { useTRPC } from "@/trpc/react";
+import { useORPC } from "@/orpc/react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 
@@ -33,7 +33,7 @@ export const MemberCard = ({
   const [role, setRole] = useState(initialRole);
   const { id: organizationId, currentMemberId } = useOrganization();
   const queryClient = useQueryClient();
-  const trpc = useTRPC();
+  const orpc = useORPC();
 
   const { mutateAsync: updateMemberRole, isPending: isUpdatingRole } =
     useMutation({
@@ -55,11 +55,11 @@ export const MemberCard = ({
           newRole: result.role,
         });
 
-        queryClient.invalidateQueries(
-          trpc.organization.members.queryFilter({
-            organizationId,
+        void queryClient.invalidateQueries({
+          queryKey: orpc.organization.members.key({
+            input: { organizationId },
           }),
-        );
+        });
       },
       onError: () => {
         toast.error("Failed to update member role");

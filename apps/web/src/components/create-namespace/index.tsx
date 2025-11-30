@@ -1,6 +1,7 @@
+import type { NamespaceOutputs } from "@/server/orpc/types";
 import { useEffect, useMemo, useState } from "react";
 import { logEvent } from "@/lib/analytics";
-import { useTRPC } from "@/trpc/react";
+import { useORPC } from "@/orpc/react";
 import { useRouter } from "@bprogress/next/app";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
@@ -32,7 +33,7 @@ export default function CreateNamespaceDialog({
   setOpen: (open: boolean) => void;
 }) {
   const router = useRouter();
-  const trpc = useTRPC();
+  const orpc = useORPC();
   const queryClient = useQueryClient();
 
   const [step, setStep] = useState<"details" | "embeddings" | "vector-store">(
@@ -55,8 +56,8 @@ export default function CreateNamespaceDialog({
   const [slug, setSlug] = useState(defaultSlug);
 
   const { isPending, mutateAsync: createNamespace } = useMutation(
-    trpc.namespace.createNamespace.mutationOptions({
-      onSuccess: (data) => {
+    orpc.namespace.createNamespace.mutationOptions({
+      onSuccess: (data: NamespaceOutputs["createNamespace"]) => {
         logEvent("namespace_created", {
           name: data.name,
           slug: data.slug,
@@ -83,10 +84,13 @@ export default function CreateNamespaceDialog({
         setStep("details");
 
         if (organization) {
-          const queryKey = trpc.namespace.getOrgNamespaces.queryKey({
-            slug: organization.slug,
+          const queryKey = orpc.namespace.getOrgNamespaces.key({
+            input: { slug: organization.slug },
           });
-          queryClient.setQueryData(queryKey, (old) => [data, ...(old ?? [])]);
+          queryClient.setQueryData<NamespaceOutputs["getOrgNamespaces"]>(
+            queryKey,
+            (old) => [data, ...(old ?? [])],
+          );
           void queryClient.invalidateQueries({ queryKey });
           router.push(`/${organization.slug}/${data.slug}/quick-start`);
         }
@@ -151,7 +155,7 @@ export default function CreateNamespaceDialog({
           <CreateNamespaceEmbeddingStep
             defaultValues={embeddingModel ? { embeddingModel } : undefined}
             onSubmit={(values) => {
-              setEmbeddingModel(values.embeddingModel ?? undefined);
+              setEmbeddingModel(values.embeddingModel);
               setStep("vector-store");
             }}
             onBack={() => setStep("details")}

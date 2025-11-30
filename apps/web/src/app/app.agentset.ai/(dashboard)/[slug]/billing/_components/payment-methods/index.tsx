@@ -1,7 +1,7 @@
 "use client";
 
 import { useOrganization } from "@/hooks/use-organization";
-import { useTRPC } from "@/trpc/react";
+import { useORPC } from "@/orpc/react";
 import { useRouter } from "@bprogress/next/app";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { CreditCardIcon } from "lucide-react";
@@ -31,16 +31,16 @@ export default function PaymentMethods() {
 function PaymentMethodsInner() {
   const router = useRouter();
   const organization = useOrganization();
-  const trpc = useTRPC();
+  const orpc = useORPC();
 
   const { data: paymentMethods, isLoading } = useQuery(
-    trpc.billing.getPaymentMethods.queryOptions({
-      orgId: organization.id,
+    orpc.billing.getPaymentMethods.queryOptions({
+      input: { orgId: organization.id },
     }),
   );
 
   const { mutateAsync: addPaymentMethod, isPending: isAdding } = useMutation(
-    trpc.billing.addPaymentMethod.mutationOptions({
+    orpc.billing.addPaymentMethod.mutationOptions({
       onError: (error) => {
         toast.error(error.message);
       },

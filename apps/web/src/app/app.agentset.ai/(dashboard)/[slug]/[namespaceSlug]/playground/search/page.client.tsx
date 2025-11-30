@@ -5,7 +5,7 @@ import { RerankerSelector } from "@/components/reranker-selector";
 import SearchChunk from "@/components/search-chunk";
 import { useNamespace } from "@/hooks/use-namespace";
 import { logEvent } from "@/lib/analytics";
-import { useTRPC } from "@/trpc/react";
+import { useORPC } from "@/orpc/react";
 import { useQuery } from "@tanstack/react-query";
 import { SearchIcon } from "lucide-react";
 
@@ -38,11 +38,11 @@ export default function ChunkExplorerPageClient() {
   const [rerankModel, setRerankModel] =
     useState<RerankingModel>(DEFAULT_RERANKER);
   const [rerankLimit, setRerankLimit] = useState(20);
-  const trpc = useTRPC();
+  const orpc = useORPC();
 
   const { data, isLoading, isFetching, error, isEnabled } = useQuery(
-    trpc.search.search.queryOptions(
-      {
+    orpc.search.search.queryOptions({
+      input: {
         namespaceId: namespace.id,
         query: searchQuery,
         topK,
@@ -50,12 +50,10 @@ export default function ChunkExplorerPageClient() {
         rerankModel,
         rerankLimit,
       },
-      {
-        enabled: searchQuery.length > 0,
-        refetchOnWindowFocus: false,
-        staleTime: Infinity,
-      },
-    ),
+      enabled: searchQuery.length > 0,
+      refetchOnWindowFocus: false,
+      staleTime: Infinity,
+    }),
   );
 
   const handleSubmit = (e: React.FormEvent) => {

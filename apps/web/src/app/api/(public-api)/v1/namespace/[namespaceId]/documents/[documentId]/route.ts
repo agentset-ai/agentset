@@ -4,6 +4,7 @@ import { normalizeId, prefixId } from "@/lib/api/ids";
 import { makeApiSuccessResponse } from "@/lib/api/response";
 import { DocumentSchema } from "@/schemas/api/document";
 import { deleteDocument } from "@/services/documents/delete";
+import { createPublicContext } from "@/services/shared/create-public-context";
 
 import { DocumentStatus } from "@agentset/db";
 import { db } from "@agentset/db/client";
@@ -49,7 +50,7 @@ export const GET = withNamespaceApiHandler(
 );
 
 export const DELETE = withNamespaceApiHandler(
-  async ({ params, namespace, headers }) => {
+  async ({ params, namespace, headers, req }) => {
     const documentId = normalizeId(params.documentId ?? "", "doc_");
     if (!documentId) {
       throw new AgentsetApiError({
@@ -87,7 +88,10 @@ export const DELETE = withNamespaceApiHandler(
       });
     }
 
-    const data = await deleteDocument(document.id);
+    const data = await deleteDocument(createPublicContext(req.headers), {
+      documentId: document.id,
+      namespaceId: namespace.id,
+    });
 
     return makeApiSuccessResponse({
       data: DocumentSchema.parse({

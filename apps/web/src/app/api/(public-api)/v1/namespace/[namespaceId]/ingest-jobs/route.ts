@@ -10,6 +10,7 @@ import {
 } from "@/schemas/api/ingest-job";
 import { createIngestJob } from "@/services/ingest-jobs/create";
 import { getPaginationArgs, paginateResults } from "@/services/pagination";
+import { createPublicContext } from "@/services/shared/create-public-context";
 
 import { Prisma } from "@agentset/db";
 import { db } from "@agentset/db/client";
@@ -89,11 +90,10 @@ export const POST = withNamespaceApiHandler(
     }
 
     try {
-      const job = await createIngestJob({
-        data: body,
+      const job = await createIngestJob(createPublicContext(req.headers), {
         namespaceId: namespace.id,
         tenantId,
-        plan: organization.plan,
+        data: body,
       });
 
       return makeApiSuccessResponse({

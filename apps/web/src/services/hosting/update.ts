@@ -1,24 +1,34 @@
+/**
+ * Update hosting configuration
+ *
+ * Updates hosting settings for a namespace, including logo upload.
+ */
+
+import type { updateHostingSchema } from "@/schemas/api/hosting";
+import type { z } from "zod/v4";
 import { env } from "@/env";
 import { AgentsetApiError } from "@/lib/api/errors";
 import { prefixId } from "@/lib/api/ids";
-import { updateHostingSchema } from "@/schemas/api/hosting";
 import { getCache, waitUntil } from "@vercel/functions";
 import { nanoid } from "nanoid";
-import { z } from "zod/v4";
 
 import { Prisma } from "@agentset/db";
-import { db } from "@agentset/db/client";
 import { deleteAsset, uploadImage } from "@agentset/storage";
 
-export const updateHosting = async ({
-  namespaceId,
-  input,
-}: {
-  namespaceId: string;
-  input: z.infer<typeof updateHostingSchema>;
-}) => {
-  const hosting = await db.hosting.findFirst({
-    where: { namespaceId },
+import type { AgentsetContext } from "../shared/context";
+import { getNamespace } from "../shared/namespace-access";
+
+export const updateHosting = async (
+  context: AgentsetContext,
+  input: {
+    namespaceId: string;
+    data: z.infer<typeof updateHostingSchema>;
+  },
+) => {
+  const namespace = await getNamespace(context, { id: input.namespaceId });
+
+  const hosting = await context.db.hosting.findFirst({
+    where: { namespaceId: namespace.id },
     select: {
       id: true,
       namespaceId: true,
@@ -34,11 +44,11 @@ export const updateHosting = async ({
     });
   }
 
-  const logo = input.logo;
+  const logo = input.data.logo;
   const newLogo =
     typeof logo === "string"
       ? await uploadImage(
-          `namespaces/${prefixId(namespaceId, "ns_")}/hosting/logo_${nanoid(7)}`,
+          `namespaces/${prefixId(input.namespaceId, "ns_")}/hosting/logo_${nanoid(7)}`,
           logo,
         )
       : logo;
@@ -47,34 +57,34 @@ export const updateHosting = async ({
     ? structuredClone(hosting.rerankConfig)
     : ({} as PrismaJson.HostingRerankConfig);
 
-  if (input.rerankModel) newRerankConfig.model = input.rerankModel;
-  if (input.rerankLimit) newRerankConfig.limit = input.rerankLimit;
+  if (input.data.rerankModel) newRerankConfig.model = input.data.rerankModel;
+  if (input.data.rerankLimit) newRerankConfig.limit = input.data.rerankLimit;
 
   try {
-    const updatedHosting = await db.hosting.update({
+    const updatedHosting = await context.db.hosting.update({
       where: {
         id: hosting.id,
       },
       data: {
-        title: input.title,
-        ...(input.slug && { slug: input.slug }),
+        title: input.data.title,
+        ...(input.data.slug && { slug: input.data.slug }),
         ...(newLogo !== undefined && {
           logo: newLogo ? newLogo.url : null,
         }),
-        protected: input.protected,
-        allowedEmails: input.allowedEmails ?? undefined,
-        allowedEmailDomains: input.allowedEmailDomains ?? undefined,
-        systemPrompt: input.systemPrompt,
-        exampleQuestions: input.exampleQuestions,
-        exampleSearchQueries: input.exampleSearchQueries,
-        welcomeMessage: input.welcomeMessage,
-        citationMetadataPath: input.citationMetadataPath,
-        searchEnabled: input.searchEnabled,
+        protected: input.data.protected,
+        allowedEmails: input.data.allowedEmails ?? undefined,
+        allowedEmailDomains: input.data.allowedEmailDomains ?? undefined,
+        systemPrompt: input.data.systemPrompt,
+        exampleQuestions: input.data.exampleQuestions,
+        exampleSearchQueries: input.data.exampleSearchQueries,
+        welcomeMessage: input.data.welcomeMessage,
+        citationMetadataPath: input.data.citationMetadataPath,
+        searchEnabled: input.data.searchEnabled,
         ...(newRerankConfig && { rerankConfig: newRerankConfig }),
-        ...(input.llmModel && {
-          llmConfig: { model: input.llmModel },
+        ...(input.data.llmModel && {
+          llmConfig: { model: input.data.llmModel },
         }),
-        ...(input.topK && { topK: input.topK }),
+        ...(input.data.topK && { topK: input.data.topK }),
       },
     });
 
@@ -94,7 +104,7 @@ export const updateHosting = async ({
     ) {
       throw new AgentsetApiError({
         code: "conflict",
-        message: `The slug "${input.slug}" is already in use.`,
+        message: `The slug "${input.data.slug}" is already in use.`,
       });
     }
     throw error;

@@ -1,11 +1,12 @@
 "use client";
 
-import type { Invitation, Role } from "@/lib/auth-types";
+import type { Role } from "@/lib/auth-types";
+import type { OrganizationOutputs } from "@/server/orpc/types";
 import { useState } from "react";
 import { useOrganization } from "@/hooks/use-organization";
 import { logEvent } from "@/lib/analytics";
 import { authClient } from "@/lib/auth-client";
-import { useTRPC } from "@/trpc/react";
+import { useORPC } from "@/orpc/react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { PlusIcon } from "lucide-react";
 import { toast } from "sonner";
@@ -37,7 +38,7 @@ function InviteMemberDialog() {
   const [email, setEmail] = useState("");
   const [role, setRole] = useState("member");
 
-  const trpc = useTRPC();
+  const orpc = useORPC();
   const queryClient = useQueryClient();
   const { mutateAsync: invite, isPending } = useMutation({
     mutationFn: async ({ email, role }: { email: string; role: string }) => {
@@ -49,20 +50,22 @@ function InviteMemberDialog() {
       });
     },
     onSuccess: (result) => {
-      const queryFilter = trpc.organization.members.queryFilter({
-        organizationId: id,
+      const queryKey = orpc.organization.members.key({
+        input: { organizationId: id },
       });
 
-      queryClient.setQueryData(queryFilter.queryKey, (old) => {
-        if (!old) return old;
+      queryClient.setQueryData(
+        queryKey,
+        (old?: OrganizationOutputs["members"]) => {
+          if (!old) return old;
+          return {
+            ...old,
+            invitations: [...old.invitations, result],
+          };
+        },
+      );
 
-        return {
-          ...old,
-          invitations: [...old.invitations, result as Invitation],
-        };
-      });
-
-      void queryClient.invalidateQueries(queryFilter);
+      void queryClient.invalidateQueries({ queryKey });
 
       setOpen(false);
     },

@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useOrganization } from "@/hooks/use-organization";
-import { useTRPC } from "@/trpc/react";
+import { useORPC } from "@/orpc/react";
 import { useRouter } from "@bprogress/next/app";
 import { useMutation } from "@tanstack/react-query";
 import { CalendarSyncIcon, MoreVerticalIcon, XIcon } from "lucide-react";
@@ -20,11 +20,11 @@ export default function SubscriptionMenu() {
   const [isOpen, setIsOpen] = useState(false);
   const { id } = useOrganization();
   const router = useRouter();
-  const trpc = useTRPC();
+  const orpc = useORPC();
 
   const { mutateAsync: cancelSubscription, isPending: isCancelling } =
     useMutation(
-      trpc.billing.cancel.mutationOptions({
+      orpc.billing.cancel.mutationOptions({
         onError: (error) => {
           toast.error(error.message);
         },
@@ -33,7 +33,7 @@ export default function SubscriptionMenu() {
 
   const { mutateAsync: manageSubscription, isPending: isManaging } =
     useMutation(
-      trpc.billing.manage.mutationOptions({
+      orpc.billing.manage.mutationOptions({
         onError: (error) => {
           toast.error(error.message);
         },

@@ -3,7 +3,7 @@
 import { useMemo } from "react";
 import { useOrganization } from "@/hooks/use-organization";
 import { useSession } from "@/hooks/use-session";
-import { useTRPC } from "@/trpc/react";
+import { useORPC } from "@/orpc/react";
 import { useQuery } from "@tanstack/react-query";
 
 import { CopyButton } from "@agentset/ui/copy-button";
@@ -17,11 +17,11 @@ import { RevokeInvitationButton } from "./revoke-invitation";
 export default function TeamSettingsPage() {
   const organization = useOrganization();
   const { session } = useSession();
-  const trpc = useTRPC();
+  const orpc = useORPC();
 
   const { data, isLoading: membersLoading } = useQuery(
-    trpc.organization.members.queryOptions({
-      organizationId: organization.id,
+    orpc.organization.members.queryOptions({
+      input: { organizationId: organization.id },
     }),
   );
 

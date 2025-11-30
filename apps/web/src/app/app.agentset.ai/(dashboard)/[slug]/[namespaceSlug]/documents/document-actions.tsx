@@ -2,7 +2,7 @@ import type { Row } from "@tanstack/react-table";
 import { useNamespace } from "@/hooks/use-namespace";
 import { logEvent } from "@/lib/analytics";
 import { prefixId } from "@/lib/api/ids";
-import { useTRPC } from "@/trpc/react";
+import { useORPC } from "@/orpc/react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import {
   CopyIcon,
@@ -12,7 +12,7 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 
-import { DocumentStatus } from "@agentset/db/browser";
+import { DocumentStatus } from "@agentset/db";
 import { Button } from "@agentset/ui/button";
 import {
   DropdownMenu,
@@ -25,11 +25,11 @@ import type { DocumentCol } from "./documents-columns";
 
 export default function DocumentActions({ row }: { row: Row<DocumentCol> }) {
   const namespace = useNamespace();
-  const trpc = useTRPC();
+  const orpc = useORPC();
   const queryClient = useQueryClient();
 
   const { isPending, mutate: deleteDocument } = useMutation(
-    trpc.document.delete.mutationOptions({
+    orpc.document.delete.mutationOptions({
       onSuccess: () => {
         logEvent("document_deleted", {
           documentId: row.original.id,
@@ -37,11 +37,11 @@ export default function DocumentActions({ row }: { row: Row<DocumentCol> }) {
           status: row.original.status,
         });
         toast.success("Document queued for deletion");
-        void queryClient.invalidateQueries(
-          trpc.document.all.queryFilter({
-            namespaceId: namespace.id,
+        void queryClient.invalidateQueries({
+          queryKey: orpc.document.all.key({
+            input: { namespaceId: namespace.id },
           }),
-        );
+        });
       },
       onError: (error) => {
         toast.error(error.message);
@@ -50,7 +50,7 @@ export default function DocumentActions({ row }: { row: Row<DocumentCol> }) {
   );
 
   const { isPending: isDownloading, mutate: getDownloadUrl } = useMutation(
-    trpc.document.getFileDownloadUrl.mutationOptions({
+    orpc.document.getFileDownloadUrl.mutationOptions({
       onSuccess: ({ url }) => {
         window.open(url, "_blank");
       },

@@ -1,6 +1,6 @@
 import { useMemo, useState } from "react";
 import { useNamespace } from "@/hooks/use-namespace";
-import { useTRPC } from "@/trpc/react";
+import { useORPC } from "@/orpc/react";
 import { useQuery } from "@tanstack/react-query";
 
 import { CodeBlock, CodeBlockCopyButton } from "@agentset/ui/ai/code-block";
@@ -16,17 +16,17 @@ import { Skeleton } from "@agentset/ui/skeleton";
 
 export function ConfigModal({ jobId }: { jobId: string }) {
   const [open, setOpen] = useState(false);
-  const trpc = useTRPC();
+  const orpc = useORPC();
   const namespace = useNamespace();
-  const { data: config, isLoading } = useQuery({
-    ...trpc.ingestJob.getConfig.queryOptions(
-      {
+  const { data: config, isLoading } = useQuery(
+    orpc.ingestJob.getConfig.queryOptions({
+      input: {
         jobId,
         namespaceId: namespace.id,
       },
-      { enabled: open },
-    ),
-  });
+      enabled: open,
+    }),
+  );
 
   const configStr = useMemo(() => {
     if (isLoading) return null;

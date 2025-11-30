@@ -1,19 +1,28 @@
+/**
+ * Delete hosting configuration
+ *
+ * Deletes hosting configuration for a namespace and cleans up assets.
+ */
+
 import { env } from "@/env";
 import { AgentsetApiError } from "@/lib/api/errors";
 import { getCache, waitUntil } from "@vercel/functions";
 
 import { Prisma } from "@agentset/db";
-import { db } from "@agentset/db/client";
 import { deleteAsset } from "@agentset/storage";
 
-export const deleteHosting = async ({
-  namespaceId,
-}: {
-  namespaceId: string;
-}) => {
+import type { AgentsetContext } from "../shared/context";
+import { getNamespace } from "../shared/namespace-access";
+
+export const deleteHosting = async (
+  context: AgentsetContext,
+  input: { namespaceId: string },
+) => {
+  const namespace = await getNamespace(context, { id: input.namespaceId });
+
   try {
-    const hosting = await db.hosting.delete({
-      where: { namespaceId },
+    const hosting = await context.db.hosting.delete({
+      where: { namespaceId: namespace.id },
     });
 
     // Expire cache
@@ -23,6 +32,8 @@ export const deleteHosting = async ({
     if (hosting.logo) {
       waitUntil(deleteAsset(hosting.logo.replace(`${env.ASSETS_S3_URL}/`, "")));
     }
+
+    return { success: true };
   } catch (error) {
     if (
       error instanceof Prisma.PrismaClientKnownRequestError &&

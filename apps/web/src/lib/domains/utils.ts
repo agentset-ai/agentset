@@ -91,7 +91,7 @@ export const callVercelApi = async <T>(
 ) => {
   const url = new URL(`https://api.vercel.com${path}`);
   const searchParams = url.searchParams;
-  searchParams.set("teamId", env.VERCEL_TEAM_ID);
+  searchParams.set("teamId", env.VERCEL_TEAM_ID!);
 
   const response = await fetch(url.toString(), {
     method,

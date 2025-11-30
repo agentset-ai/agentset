@@ -1,10 +1,10 @@
 "use client";
 
-import type { RouterOutputs } from "@/trpc/react";
+import type { BillingOutputs } from "@/server/orpc/types";
 import Link from "next/link";
 import { useOrganization } from "@/hooks/use-organization";
 import { formatNumber } from "@/lib/utils";
-import { useTRPC } from "@/trpc/react";
+import { useORPC } from "@/orpc/react";
 import { useQuery } from "@tanstack/react-query";
 import { ChevronLeftIcon, DollarSignIcon, ReceiptTextIcon } from "lucide-react";
 
@@ -17,10 +17,10 @@ import { Tooltip, TooltipContent, TooltipTrigger } from "@agentset/ui/tooltip";
 
 export default function OrganizationInvoicesClient() {
   const organization = useOrganization();
-  const trpc = useTRPC();
+  const orpc = useORPC();
   const { data: invoices, isLoading } = useQuery(
-    trpc.billing.invoices.queryOptions({
-      orgId: organization.id,
+    orpc.billing.invoices.queryOptions({
+      input: { orgId: organization.id },
     }),
   );
 
@@ -73,8 +73,11 @@ export default function OrganizationInvoicesClient() {
   );
 }
 
-type Invoice = RouterOutputs["billing"]["invoices"][number];
-const InvoiceCard = ({ invoice }: { invoice: Invoice }) => {
+const InvoiceCard = ({
+  invoice,
+}: {
+  invoice: BillingOutputs["invoices"][number];
+}) => {
   return (
     <div className="grid grid-cols-3 gap-4 py-4">
       <div className="text-sm">

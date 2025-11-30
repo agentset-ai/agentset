@@ -1,4 +1,8 @@
+import { useNamespace } from "@/hooks/use-namespace";
 import { useZodForm } from "@/hooks/use-zod-form";
+import { logEvent } from "@/lib/analytics";
+import { useORPC } from "@/orpc/react";
+import { useMutation } from "@tanstack/react-query";
 import { z } from "zod/v4";
 
 import { Button } from "@agentset/ui/button";
@@ -18,7 +22,6 @@ import { configSchema } from "@agentset/validation";
 import type { BaseIngestFormProps } from "./shared";
 import IngestConfig from "./config";
 import { extractConfig } from "./shared";
-import { useIngest } from "./use-ingest";
 
 const schema = z
   .object({
@@ -28,14 +31,30 @@ const schema = z
   .extend(configSchema.shape);
 
 export default function TextForm({ onSuccess }: BaseIngestFormProps) {
-  const { mutateAsync, isPending, namespace } = useIngest({
-    type: "TEXT",
-    onSuccess,
-  });
+  const namespace = useNamespace();
+  const orpc = useORPC();
 
   const form = useZodForm(schema, {
     defaultValues: {},
   });
+
+  const { mutateAsync, isPending } = useMutation(
+    orpc.ingestJob.ingest.mutationOptions({
+      onSuccess: (doc) => {
+        logEvent("document_ingested", {
+          type: "text",
+          namespaceId: namespace.id,
+          chunkSize: doc.config?.chunkSize,
+          maxChunkSize: doc.config?.maxChunkSize,
+          chunkOverlap: doc.config?.chunkOverlap,
+          strategy: doc.config?.strategy,
+          chunkingStrategy: doc.config?.chunkingStrategy,
+          hasMetadata: !!doc.config?.metadata,
+        });
+        onSuccess();
+      },
+    }),
+  );
 
   const onSubmit = async (data: z.infer<typeof schema>) => {
     await mutateAsync({

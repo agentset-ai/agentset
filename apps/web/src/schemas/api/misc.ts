@@ -31,7 +31,7 @@ export const base64ImageSchema = z
         const fileType = await fileTypeFromBuffer(buffer);
 
         return fileType && allowedImageTypes.includes(fileType.mime);
-      } catch (e) {
+      } catch {
         return false;
       }
     },
@@ -50,7 +50,7 @@ export const uploadedImageSchema = z
     z
       .url()
       .trim()
-      .refine((url) => url.startsWith(env.ASSETS_S3_URL), {
+      .refine((url) => url.startsWith(env.ASSETS_S3_URL!), {
         message: `URL must start with ${env.ASSETS_S3_URL}`,
       }),
   ])

@@ -3,7 +3,7 @@
 import { useCallback, useState } from "react";
 import { useNamespace } from "@/hooks/use-namespace";
 import { useOrganization } from "@/hooks/use-organization";
-import { useTRPC } from "@/trpc/react";
+import { useORPC } from "@/orpc/react";
 import { useQueryClient } from "@tanstack/react-query";
 import { PlusIcon } from "lucide-react";
 import { toast } from "sonner";
@@ -43,21 +43,23 @@ export function IngestModal() {
   const [isOpen, setIsOpen] = useState(false);
   const [activeTab, setActiveTab] =
     useState<(typeof TABS)[number]["value"]>("files");
-  const trpc = useTRPC();
+  const orpc = useORPC();
   const queryClient = useQueryClient();
   const organization = useOrganization();
   const namespace = useNamespace();
 
   const handleSuccess = useCallback(() => {
     setIsOpen(false);
-    void queryClient.invalidateQueries(
-      trpc.ingestJob.all.queryFilter({ namespaceId: namespace.id }),
-    );
+    void queryClient.invalidateQueries({
+      queryKey: orpc.ingestJob.all.key({
+        input: { namespaceId: namespace.id },
+      }),
+    });
     toast.success(SUCCESS_MESSAGES[activeTab]);
-  }, [queryClient, trpc.ingestJob.all, namespace.id, activeTab]);
+  }, [queryClient, orpc.ingestJob.all, namespace.id, activeTab]);
 
   const isPending =
-    queryClient.isMutating(trpc.ingestJob.ingest.mutationOptions()) > 0;
+    queryClient.isMutating(orpc.ingestJob.ingest.mutationOptions()) > 0;
 
   const isOverLimit =
     isFreePlan(organization.plan) &&

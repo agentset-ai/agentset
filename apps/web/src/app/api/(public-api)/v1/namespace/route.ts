@@ -12,6 +12,7 @@ import {
   validateEmbeddingModel,
   validateVectorStoreConfig,
 } from "@/services/namespaces/validate";
+import { createPublicContext } from "@/services/shared/create-public-context";
 
 import { Prisma } from "@agentset/db";
 import { db } from "@agentset/db/client";
@@ -70,10 +71,13 @@ export const POST = withApiHandler(
 
     try {
       // TODO: check apiScope
-      const namespace = await createNamespace({
-        ...parsed,
-        organizationId: organization.id,
-      });
+      const namespace = await createNamespace(
+        createPublicContext(req.headers),
+        {
+          ...parsed,
+          orgId: organization.id,
+        },
+      );
 
       return makeApiSuccessResponse({
         data: NamespaceSchema.parse({

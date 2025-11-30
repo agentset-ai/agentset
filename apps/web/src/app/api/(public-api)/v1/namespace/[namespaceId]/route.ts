@@ -8,6 +8,7 @@ import {
   updateNamespaceSchema,
 } from "@/schemas/api/namespace";
 import { deleteNamespace } from "@/services/namespaces/delete";
+import { createPublicContext } from "@/services/shared/create-public-context";
 
 import { Prisma } from "@agentset/db";
 import { db } from "@agentset/db/client";
@@ -72,9 +73,11 @@ export const PATCH = withNamespaceApiHandler(
 export const PUT = PATCH;
 
 export const DELETE = withNamespaceApiHandler(
-  async ({ namespace, headers }) => {
+  async ({ namespace, headers, req }) => {
     // TODO: check apiScope
-    await deleteNamespace({ namespaceId: namespace.id });
+    await deleteNamespace(createPublicContext(req.headers), {
+      namespaceId: namespace.id,
+    });
 
     return makeApiSuccessResponse({
       data: NamespaceSchema.parse({

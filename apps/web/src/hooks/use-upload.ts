@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useTRPC } from "@/trpc/react";
+import { useORPC } from "@/orpc/react";
 import { useMutation } from "@tanstack/react-query";
 import { toast } from "sonner";
 
@@ -42,9 +42,9 @@ const uploadWithProgress = (
 };
 
 export function useUploadFiles({ namespaceId }: { namespaceId: string }) {
-  const trpc = useTRPC();
+  const orpc = useORPC();
   const { mutateAsync: getPresignedUrls } = useMutation(
-    trpc.upload.getPresignedUrls.mutationOptions(),
+    orpc.upload.getPresignedUrls.mutationOptions(),
   );
 
   const [uploadedFiles, setUploadedFiles] = useState<

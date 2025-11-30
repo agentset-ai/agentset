@@ -1,6 +1,6 @@
 "use client";
 
-import { TRPCReactProvider } from "@/trpc/react";
+import { ORPCReactProvider } from "@/orpc/react";
 import { ProgressProvider } from "@bprogress/next/app";
 
 import { Toaster } from "@agentset/ui/sonner";
@@ -14,7 +14,7 @@ export default function Providers({ children }: { children: React.ReactNode }) {
         options={{ showSpinner: false }}
         shallowRouting
       >
-        <TRPCReactProvider>{children}</TRPCReactProvider>
+        <ORPCReactProvider>{children}</ORPCReactProvider>
       </ProgressProvider>
       <Toaster />
     </>

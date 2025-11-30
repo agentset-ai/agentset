@@ -4,6 +4,7 @@ import { normalizeId, prefixId } from "@/lib/api/ids";
 import { makeApiSuccessResponse } from "@/lib/api/response";
 import { IngestJobSchema } from "@/schemas/api/ingest-job";
 import { deleteIngestJob } from "@/services/ingest-jobs/delete";
+import { createPublicContext } from "@/services/shared/create-public-context";
 
 import { IngestJobStatus } from "@agentset/db";
 import { db } from "@agentset/db/client";
@@ -49,7 +50,7 @@ export const GET = withNamespaceApiHandler(
 );
 
 export const DELETE = withNamespaceApiHandler(
-  async ({ params, namespace, headers }) => {
+  async ({ params, namespace, headers, req }) => {
     const jobId = normalizeId(params.jobId ?? "", "job_");
     if (!jobId) {
       throw new AgentsetApiError({
@@ -86,7 +87,10 @@ export const DELETE = withNamespaceApiHandler(
       });
     }
 
-    const data = await deleteIngestJob(jobId);
+    const data = await deleteIngestJob(createPublicContext(req.headers), {
+      jobId,
+      namespaceId: namespace.id,
+    });
 
     return makeApiSuccessResponse({
       data: IngestJobSchema.parse({

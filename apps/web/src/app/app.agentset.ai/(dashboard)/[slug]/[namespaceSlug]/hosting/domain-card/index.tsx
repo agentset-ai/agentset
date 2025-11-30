@@ -1,13 +1,13 @@
+import type { LucideIcon } from "lucide-react";
 import { useState } from "react";
 import { useNamespace } from "@/hooks/use-namespace";
 import { logEvent } from "@/lib/analytics";
 import { SHORT_DOMAIN } from "@/lib/constants";
-import { useTRPC } from "@/trpc/react";
+import { useORPC } from "@/orpc/react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   AlertCircleIcon,
   CheckCircle2Icon,
-  LucideIcon,
   RefreshCwIcon,
   TrashIcon,
   XCircleIcon,
@@ -33,15 +33,13 @@ const CNAME_VALUE = `cname.${SHORT_DOMAIN}`;
 const A_VALUE = "76.76.21.21";
 
 export function useDomainStatus() {
-  const trpc = useTRPC();
+  const orpc = useORPC();
   const namespace = useNamespace();
   const { data, isFetching, refetch } = useQuery(
-    trpc.domain.checkStatus.queryOptions(
-      { namespaceId: namespace.id },
-      {
-        refetchInterval: 20000,
-      },
-    ),
+    orpc.domain.checkStatus.queryOptions({
+      input: { namespaceId: namespace.id },
+      refetchInterval: 20000,
+    }),
   );
 
   return {
@@ -58,13 +56,12 @@ const getSubdomain = (name: string, apexName: string) => {
   return name.slice(0, name.length - apexName.length - 1);
 };
 
-function DomainConfiguration(props: { domain: string }) {
-  const { domain } = props;
+function DomainConfiguration() {
   const { status, domainJson, configJson } = useDomainStatus();
   const subdomain = domainJson
     ? getSubdomain(domainJson.name, domainJson.apexName)
     : null;
-  const [recordType, setRecordType] = useState(!!subdomain ? "CNAME" : "A");
+  const [recordType, setRecordType] = useState(subdomain ? "CNAME" : "A");
 
   if (!status || status === "Valid Configuration" || !domainJson) return null;
 
@@ -211,7 +208,7 @@ const statues: Record<
   },
 };
 
-function DomainStatus({ domain }: { domain: string }) {
+function DomainStatus() {
   const { status } = useDomainStatus();
 
   if (!status) return null;
@@ -242,21 +239,21 @@ const DomainControls = ({
 }) => {
   const { refetch, loading } = useDomainStatus();
   const namespace = useNamespace();
-  const trpc = useTRPC();
+  const orpc = useORPC();
   const queryClient = useQueryClient();
   const { mutate: removeDomain, isPending: isRemovingDomain } = useMutation(
-    trpc.domain.remove.mutationOptions({
+    orpc.domain.remove.mutationOptions({
       onSuccess: () => {
         logEvent("domain_removed", {
           domain,
           namespaceId: namespace.id,
         });
         toast.success("Domain removed successfully");
-        void queryClient.invalidateQueries(
-          trpc.hosting.get.queryOptions({
-            namespaceId: namespace.id,
+        void queryClient.invalidateQueries({
+          queryKey: orpc.hosting.get.key({
+            input: { namespaceId: namespace.id },
           }),
-        );
+        });
         onRemove();
       },
     }),
@@ -296,11 +293,11 @@ export function CustomDomainConfigurator(props: { defaultDomain?: string }) {
     props.defaultDomain ?? "",
   );
 
-  const trpc = useTRPC();
+  const orpc = useORPC();
   const namespace = useNamespace();
 
   const { mutate: addDomain, isPending } = useMutation(
-    trpc.domain.add.mutationOptions({
+    orpc.domain.add.mutationOptions({
       onSuccess: (data) => {
         logEvent("domain_added", {
           domain: data.slug,
@@ -317,7 +314,7 @@ export function CustomDomainConfigurator(props: { defaultDomain?: string }) {
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (!domainInput) return;
-    addDomain({ domain: domainInput, namespaceId: namespace.id });
+    addDomain({ namespaceId: namespace.id, domain: domainInput });
   };
 
   return (
@@ -326,7 +323,7 @@ export function CustomDomainConfigurator(props: { defaultDomain?: string }) {
         <CardHeader className="gap-0.5">
           <CardTitle className="flex items-center gap-2 text-lg font-semibold">
             Custom Domain
-            {domain && <DomainStatus domain={domain} />}
+            {domain && <DomainStatus />}
           </CardTitle>
           <CardDescription>The custom domain for your site.</CardDescription>
         </CardHeader>
@@ -358,7 +355,7 @@ export function CustomDomainConfigurator(props: { defaultDomain?: string }) {
             )}
           </div>
         </CardContent>
-        {domain && <DomainConfiguration domain={domain} />}
+        {domain && <DomainConfiguration />}
       </form>
     </Card>
   );

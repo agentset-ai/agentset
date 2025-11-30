@@ -8,10 +8,13 @@ import { deleteHosting } from "@/services/hosting/delete";
 import { enableHosting } from "@/services/hosting/enable";
 import { getHosting } from "@/services/hosting/get";
 import { updateHosting } from "@/services/hosting/update";
+import { createPublicContext } from "@/services/shared/create-public-context";
 
 export const GET = withNamespaceApiHandler(
-  async ({ namespace, headers }) => {
-    const hosting = await getHosting({ namespaceId: namespace.id });
+  async ({ namespace, headers, req }) => {
+    const hosting = await getHosting(createPublicContext(req.headers), {
+      namespaceId: namespace.id,
+    });
 
     if (!hosting) {
       throw new AgentsetApiError({
@@ -32,8 +35,10 @@ export const GET = withNamespaceApiHandler(
 );
 
 export const POST = withNamespaceApiHandler(
-  async ({ namespace, headers }) => {
-    const hosting = await enableHosting({ namespaceId: namespace.id });
+  async ({ namespace, headers, req }) => {
+    const hosting = await enableHosting(createPublicContext(req.headers), {
+      namespaceId: namespace.id,
+    });
 
     return makeApiSuccessResponse({
       data: HostingSchema.parse({
@@ -53,10 +58,13 @@ export const PATCH = withNamespaceApiHandler(
       await parseRequestBody(req),
     );
 
-    const updatedHosting = await updateHosting({
-      namespaceId: namespace.id,
-      input: body,
-    });
+    const updatedHosting = await updateHosting(
+      createPublicContext(req.headers),
+      {
+        namespaceId: namespace.id,
+        data: body,
+      },
+    );
 
     return makeApiSuccessResponse({
       data: HostingSchema.parse({
@@ -72,8 +80,10 @@ export const PATCH = withNamespaceApiHandler(
 export const PUT = PATCH;
 
 export const DELETE = withNamespaceApiHandler(
-  async ({ namespace, headers }) => {
-    const hosting = await getHosting({ namespaceId: namespace.id });
+  async ({ namespace, headers, req }) => {
+    const hosting = await getHosting(createPublicContext(req.headers), {
+      namespaceId: namespace.id,
+    });
 
     if (!hosting) {
       throw new AgentsetApiError({
@@ -82,7 +92,9 @@ export const DELETE = withNamespaceApiHandler(
       });
     }
 
-    await deleteHosting({ namespaceId: namespace.id });
+    await deleteHosting(createPublicContext(req.headers), {
+      namespaceId: namespace.id,
+    });
 
     return makeApiSuccessResponse({
       data: HostingSchema.parse({

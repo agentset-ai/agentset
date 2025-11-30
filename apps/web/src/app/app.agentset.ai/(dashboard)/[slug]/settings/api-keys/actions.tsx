@@ -1,6 +1,7 @@
+import type { ApiKeyOutputs } from "@/server/orpc/types";
 import type { Row } from "@tanstack/react-table";
 import { DeleteConfirmation } from "@/components/delete-confirmation";
-import { useTRPC } from "@/trpc/react";
+import { useORPC } from "@/orpc/react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { EllipsisVerticalIcon, Trash2Icon } from "lucide-react";
 import { toast } from "sonner";
@@ -16,20 +17,23 @@ import {
 import type { ApiKeyDef } from "./columns";
 
 export function ApiKeyActions({ row }: { row: Row<ApiKeyDef> }) {
-  const trpc = useTRPC();
+  const orpc = useORPC();
   const queryClient = useQueryClient();
   const orgId = row.original.organizationId;
   const id = row.original.id;
 
   const { mutateAsync: deleteApiKey, isPending } = useMutation(
-    trpc.apiKey.deleteApiKey.mutationOptions({
+    orpc.apiKey.deleteApiKey.mutationOptions({
       onSuccess: () => {
-        const queryFilter = trpc.apiKey.getApiKeys.queryFilter({ orgId });
-        queryClient.setQueryData(queryFilter.queryKey, (old) => {
-          if (!old) return [];
-          return old.filter((key) => key.id !== id);
-        });
-        void queryClient.invalidateQueries(queryFilter);
+        const queryKey = orpc.apiKey.getApiKeys.key({ input: { orgId } });
+        queryClient.setQueryData(
+          queryKey,
+          (old?: ApiKeyOutputs["getApiKeys"]) => {
+            if (!old) return old;
+            return old.filter((key) => key.id !== id);
+          },
+        );
+        void queryClient.invalidateQueries({ queryKey });
 
         toast.success("API key deleted");
       },

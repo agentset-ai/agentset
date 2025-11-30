@@ -2,7 +2,7 @@ import { useState, useTransition } from "react";
 import { useParams, usePathname } from "next/navigation";
 import { useNamespace } from "@/hooks/use-namespace";
 import { useOrganization } from "@/hooks/use-organization";
-import { useTRPC } from "@/trpc/react";
+import { useORPC } from "@/orpc/react";
 import { useRouter } from "@bprogress/next/app";
 import { useQuery } from "@tanstack/react-query";
 import { ChevronsUpDownIcon, PlusIcon } from "lucide-react";
@@ -41,10 +41,10 @@ export const NamespaceSwitcher = () => {
   const [open, setOpen] = useState(false);
   const [isPending, startTransition] = useTransition();
 
-  const trpc = useTRPC();
+  const orpc = useORPC();
   const { data: namespaces, isLoading } = useQuery(
-    trpc.namespace.getOrgNamespaces.queryOptions({
-      slug: orgSlug,
+    orpc.namespace.getOrgNamespaces.queryOptions({
+      input: { slug: orgSlug },
     }),
   );
 

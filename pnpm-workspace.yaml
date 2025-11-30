@@ -16,11 +16,14 @@ catalog:
   "@t3-oss/env-nextjs": ^0.13.8
   ai: ^5.0.44
 
-  # Tanstack & tRPC
+  # Tanstack & oRPC
   "@tanstack/react-query": ^5.83.0
-  "@trpc/client": ^11.4.3
-  "@trpc/tanstack-react-query": ^11.4.3
-  "@trpc/server": ^11.4.3
+  "@orpc/client": ^1.11.3
+  "@orpc/openapi": ^1.11.3
+  "@orpc/react-query": ^1.11.3
+  "@orpc/server": ^1.11.3
+  "@orpc/shared": ^1.11.3
+  "@orpc/zod": ^1.11.3
 
   vitest: ^3.2.4
 
