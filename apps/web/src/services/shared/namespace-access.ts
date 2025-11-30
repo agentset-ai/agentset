@@ -23,8 +23,9 @@ import type { AgentsetContext } from "./context";
  *   → Always checks user membership
  *
  * - Public API routes (withApiHandler): No user session, authenticated via API key
- *   → Uses createPublicContext() → AgentsetContext (session: null)
- *   → Skips membership check (API key already verified organization access)
+ *   → Uses createPublicContext() → AgentsetContext (session: null, organizationId set)
+ *   → Automatically verifies namespace belongs to context.organizationId
+ *   → API key already verified organization access, so we verify namespace ownership
  *
  * @throws {AgentsetApiError} If namespace not found or user doesn't have access
  * @returns The namespace object if access is granted
@@ -52,7 +53,11 @@ export const getNamespace = async (
               members: { some: { userId: context.session.user.id } },
             },
           }
-        : {}),
+        : context.organizationId
+          ? {
+              organizationId: context.organizationId,
+            }
+          : {}),
     },
   });
 

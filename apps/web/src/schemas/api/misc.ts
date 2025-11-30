@@ -69,3 +69,16 @@ export const slugSchema = z
   .max(48, "Slug must be less than 48 characters")
   .transform((v) => toSlug(v))
   .refine((v) => validSlugRegex.test(v), { message: "Invalid slug format" });
+
+/**
+ * Tenant ID header schema for API requests
+ * Used for multi-tenant isolation in public API
+ */
+const tenantIdRegex = /^[A-Za-z0-9]{1,64}$/;
+export const tenantHeaderSchema = z
+  .string()
+  .regex(tenantIdRegex)
+  .optional()
+  .describe(
+    "Optional tenant id to use for the request. If not provided, the namespace will be used directly. Must be alphanumeric and up to 64 characters.",
+  );

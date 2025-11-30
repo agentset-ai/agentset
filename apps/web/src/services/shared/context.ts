@@ -7,12 +7,17 @@
 
 import type { auth } from "@/lib/auth";
 
-import type { db } from "@agentset/db";
+import type { db } from "@agentset/db/client";
 
 export type AgentsetContext = {
   db: typeof db;
   session: Awaited<ReturnType<typeof auth.api.getSession>>;
   headers: Headers;
+  /**
+   * Organization ID (for public API routes authenticated via API key)
+   * When present, namespace access will verify namespace belongs to this organization
+   */
+  organizationId?: string;
 };
 
 export type ProtectedAgentsetContext = AgentsetContext & {

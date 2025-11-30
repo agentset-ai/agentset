@@ -33,7 +33,7 @@ export const deleteApiKey = async (
     },
   });
 
-  revalidateTag(`apiKey:${apiKey.key}`);
+  revalidateTag(`apiKey:${apiKey.key}`, "max");
 
   return { success: true };
 };

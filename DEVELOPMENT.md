@@ -216,13 +216,31 @@ DISCORD_HOOK_SUBSCRIBERS=
 DISCORD_HOOK_ERRORS=
 ```
 
-### 4. Run Database Migrations
+### 4. Start Supavisor and Create Tenant
+
+Start Supavisor (database + connection pooler):
+
+```bash
+pnpm dev:supavisor
+```
+
+**Important**: After Supavisor starts, you need to create a tenant before running migrations. In a new terminal:
+
+```bash
+cd tooling/supavisor
+pnpm create-tenant
+cd ../..
+```
+
+This creates the tenant configuration in Supavisor that allows database connections.
+
+### 5. Run Database Migrations
 
 ```bash
 pnpm db:deploy
 ```
 
-### 5. Start Development Server
+### 6. Start Development Server
 
 ```bash
 # Start all services (web app + dependencies)
@@ -253,7 +271,11 @@ If you're using Supavisor (Docker):
 
 1. Make sure Docker is running
 2. Create `tooling/supavisor/.env` with database credentials
-3. The Supavisor service should start automatically with `pnpm dev`
+3. Start Supavisor: `pnpm dev:supavisor`
+4. **Create the tenant**: `cd tooling/supavisor && pnpm create-tenant`
+5. The Supavisor service should start automatically with `pnpm dev`, but you still need to create the tenant manually the first time
+
+**Error: "Tenant or user not found"**: This means the Supavisor tenant hasn't been created yet. Run `pnpm create-tenant` from the `tooling/supavisor` directory.
 
 ### Port Conflicts
 

@@ -4,7 +4,6 @@
  * Creates a new API key for an organization (admin/owner only).
  */
 
-import { revalidateTag } from "next/cache";
 import { AgentsetApiError } from "@/lib/api/errors";
 
 import type { ProtectedAgentsetContext } from "../shared/context";
@@ -50,8 +49,6 @@ export const createApiKey = async (
       key: keyGenerator("agentset_"),
     },
   });
-
-  revalidateTag(`apiKey:${apiKey.key}`);
 
   return apiKey;
 };

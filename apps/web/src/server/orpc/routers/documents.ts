@@ -9,7 +9,10 @@ import { protectedProcedure } from "@/server/orpc/orpc";
 import { deleteDocument } from "@/services/documents/delete";
 import { getAllDocuments } from "@/services/documents/getAll";
 import { toProtectedAgentsetContext } from "@/services/shared/adapters";
+import { getNamespace } from "@/services/shared/namespace-access";
 import { z } from "zod/v4";
+
+import { presignChunksDownloadUrl } from "@agentset/storage";
 
 export const documentsRouter = {
   all: protectedProcedure
@@ -33,5 +36,29 @@ export const documentsRouter = {
     .handler(async ({ context, input }) => {
       const serviceContext = toProtectedAgentsetContext(context);
       return await deleteDocument(serviceContext, input);
+    }),
+  getChunksDownloadUrl: protectedProcedure
+    .input(
+      z.object({
+        documentId: z.string(),
+        namespaceId: z.string(),
+      }),
+    )
+    .handler(async ({ context, input }) => {
+      const serviceContext = toProtectedAgentsetContext(context);
+
+      // Verify namespace access
+      await getNamespace(serviceContext, { id: input.namespaceId });
+
+      const url = await presignChunksDownloadUrl(
+        input.namespaceId,
+        input.documentId,
+      );
+
+      if (!url) {
+        return { url: null };
+      }
+
+      return { url };
     }),
 };

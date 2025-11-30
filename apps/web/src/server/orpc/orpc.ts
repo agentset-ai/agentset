@@ -8,7 +8,9 @@ import { AgentsetApiError } from "@/lib/api/errors";
 import { auth } from "@/lib/auth";
 import { ORPCError, os } from "@orpc/server";
 
-import { db } from "@agentset/db";
+import { db } from "@agentset/db/client";
+
+import { errorCodeToORPCCode } from "./utils";
 
 /**
  * 1. CONTEXT TYPES
@@ -46,42 +48,14 @@ export const createORPCContext = async (opts: {
 };
 
 /**
- * 3. ERROR HANDLING
- *
- * Map AgentsetApiError error codes to oRPC error codes
- */
-const errorCodeToORPCCode = (code: string): string => {
-  switch (code) {
-    case "bad_request":
-      return "BAD_REQUEST";
-    case "unauthorized":
-      return "UNAUTHORIZED";
-    case "forbidden":
-    case "exceeded_limit":
-      return "FORBIDDEN";
-    case "not_found":
-      return "NOT_FOUND";
-    case "conflict":
-    case "invite_pending":
-      return "CONFLICT";
-    case "rate_limit_exceeded":
-      return "TOO_MANY_REQUESTS";
-    case "unprocessable_entity":
-      return "UNPROCESSABLE_CONTENT";
-    default:
-      return "INTERNAL_SERVER_ERROR";
-  }
-};
-
-/**
- * 4. BASE SETUP
+ * 3. BASE SETUP
  *
  * Define the base oRPC instance with context type.
  */
 const base = os.$context<ORPCContext>();
 
 /**
- * 5. MIDDLEWARE
+ * 4. MIDDLEWARE
  *
  * Middleware for timing procedure execution and error handling.
  */
@@ -89,7 +63,7 @@ const timingMiddleware = base.middleware(async ({ next, path }) => {
   const start = Date.now();
 
   try {
-    const result = await next();
+    const result = next();
 
     const end = Date.now();
     const pathStr = path.join(".");

@@ -5,7 +5,7 @@
  * that authenticate via API key rather than user session.
  */
 
-import { db } from "@agentset/db";
+import { db } from "@agentset/db/client";
 
 import type { AgentsetContext } from "./context";
 
@@ -17,12 +17,17 @@ import type { AgentsetContext } from "./context";
  * support optional session.
  *
  * @param headers - Request headers (typically from NextRequest)
+ * @param organizationId - Organization ID from API key (optional, for namespace verification)
  * @returns AgentsetContext with null session
  */
-export const createPublicContext = (headers: Headers): AgentsetContext => {
+export const createPublicContext = (
+  headers: Headers,
+  organizationId?: string,
+): AgentsetContext => {
   return {
     db,
     session: null,
     headers,
+    organizationId,
   };
 };

@@ -12,7 +12,6 @@ catalog:
 
   # Misc
   zod: ^4.1.8
-  zod-openapi: ^5.4.1
   "@t3-oss/env-nextjs": ^0.13.8
   ai: ^5.0.44
 

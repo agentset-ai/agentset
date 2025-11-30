@@ -4,11 +4,11 @@ import { useState } from "react";
 import { InfoTooltip } from "@/components/info-tooltip";
 import { useNamespace } from "@/hooks/use-namespace";
 import { logEvent } from "@/lib/analytics";
+import { useORPC } from "@/orpc/react";
 import { useMutation } from "@tanstack/react-query";
 import { Loader2Icon } from "lucide-react";
 import { toast } from "sonner";
 
-import type { QueryVectorStoreResult } from "@agentset/engine";
 import { Button } from "@agentset/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@agentset/ui/card";
 import { cn } from "@agentset/ui/cn";
@@ -17,76 +17,40 @@ import { Separator } from "@agentset/ui/separator";
 
 export default function BenchmarksPageClient() {
   const namespace = useNamespace();
+  const orpc = useORPC();
   const [message, setMessage] = useState("");
   const [mode, setMode] = useState<"normal" | "agentic">("normal");
 
-  const { mutateAsync, isPending, data } = useMutation({
-    mutationFn: async ({
-      message,
-      mode,
-    }: {
-      message: string;
-      mode: "normal" | "agentic";
-    }) => {
-      const response = await fetch(
-        `/api/benchmark?namespaceId=${namespace.id}`,
-        {
-          method: "POST",
-          body: JSON.stringify({
-            message,
-            topK: 50,
-            rerankLimit: 15,
-            rerank: true,
-            temperature: 0,
-            includeMetadata: true,
-            mode,
-          }),
-        },
-      );
-
-      const json = (await response.json()) as {
-        success: boolean;
-        data: {
-          correctness: {
-            score: number;
-            maxScore: number;
-            feedback: string;
-          };
-          faithfulness: {
-            faithful: boolean;
-          };
-          relevance: {
-            relevant: boolean;
-          };
-          answer: string;
-          sources: QueryVectorStoreResult["results"];
-        };
-      };
-
-      if (!json.success) {
-        throw new Error("Failed to evaluate benchmark");
-      }
-
-      return json.data;
-    },
-    onSuccess: (data) => {
-      logEvent("benchmark_evaluated", {
-        namespaceId: namespace.id,
-        mode,
-        correctness: data.correctness.score,
-        faithfulness: data.faithfulness.faithful,
-        relevance: data.relevance.relevant,
-      });
-    },
-    onError: (error) => {
-      toast.error("Failed to evaluate benchmark");
-    },
-  });
+  const { mutateAsync, isPending, data } = useMutation(
+    orpc.benchmark.evaluate.mutationOptions({
+      onSuccess: (data) => {
+        logEvent("benchmark_evaluated", {
+          namespaceId: namespace.id,
+          mode,
+          correctness: data.correctness.score,
+          faithfulness: data.faithfulness.faithful,
+          relevance: data.relevance.relevant,
+        });
+      },
+      onError: (error) => {
+        toast.error(error.message ?? "Failed to evaluate benchmark");
+      },
+    }),
+  );
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!message.trim()) return;
-    void mutateAsync({ message, mode });
+    void mutateAsync({
+      namespaceId: namespace.id,
+      message,
+      mode,
+      topK: 50,
+      rerankLimit: 15,
+      rerank: true,
+      temperature: 0,
+      includeMetadata: true,
+    });
   };
 
   return (

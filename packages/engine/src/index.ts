@@ -1,6 +1,7 @@
 export * from "./embedding";
 export * from "./llm";
 export * from "./vector-store";
+export * from "./vector-store/common/filter";
 export * from "./vector-store/query";
 
 export * from "./rerank/cohere";

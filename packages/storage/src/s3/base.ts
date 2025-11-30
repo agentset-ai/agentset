@@ -1,4 +1,4 @@
-import type { GetObjectCommandInput } from "@aws-sdk/client-s3";
+import type { GetObjectCommandInput, S3ClientConfig } from "@aws-sdk/client-s3";
 import {
   DeleteObjectCommand,
   DeleteObjectsCommand,
@@ -15,14 +15,21 @@ import { filterFalsy } from "@agentset/utils";
 import { MAX_UPLOAD_SIZE } from "../constants";
 import { env } from "../env";
 
-const s3Client = new S3Client({
-  region: "auto",
-  endpoint: env.S3_ENDPOINT,
-  credentials: {
-    accessKeyId: env.S3_ACCESS_KEY,
-    secretAccessKey: env.S3_SECRET_KEY,
-  },
-});
+const getS3Client = (): S3Client => {
+  const s3ClientConfig: S3ClientConfig = {
+    region: "auto",
+    endpoint: env.S3_ENDPOINT,
+  };
+
+  if (env.S3_ACCESS_KEY && env.S3_SECRET_KEY) {
+    s3ClientConfig.credentials = {
+      accessKeyId: env.S3_ACCESS_KEY,
+      secretAccessKey: env.S3_SECRET_KEY,
+    };
+  }
+
+  return new S3Client(s3ClientConfig);
+};
 
 const DOWNLOAD_EXPIRATION = 60 * 60 * 24; // 24 hours
 const UPLOAD_EXPIRATION = 60 * 60 * 1; // 1 hour
@@ -67,7 +74,7 @@ export function uploadObject(
     bucket?: string;
   } = {},
 ) {
-  return s3Client.send(
+  return getS3Client().send(
     new PutObjectCommand({
       Bucket: bucket,
       Key: key,
@@ -97,7 +104,7 @@ export async function presignGetUrl(
   if (fileName)
     command.ResponseContentDisposition = `attachment; filename="${fileName}"`;
 
-  const url = await getSignedUrl(s3Client, new GetObjectCommand(command), {
+  const url = await getSignedUrl(getS3Client(), new GetObjectCommand(command), {
     expiresIn,
   });
 
@@ -120,7 +127,7 @@ export const presignPutUrl = async ({
   bucket?: string;
 }) => {
   const result = await getSignedUrl(
-    s3Client,
+    getS3Client(),
     new PutObjectCommand({
       Bucket: bucket,
       Key: key,
@@ -144,7 +151,7 @@ export async function getFileMetadata(
     bucket?: string;
   } = {},
 ) {
-  const data = await s3Client.send(
+  const data = await getS3Client().send(
     new HeadObjectCommand({
       Key: key,
       Bucket: bucket,
@@ -186,7 +193,7 @@ export function deleteObject(
     bucket?: string;
   } = {},
 ) {
-  return s3Client.send(
+  return getS3Client().send(
     new DeleteObjectCommand({
       Bucket: bucket,
       Key: key,
@@ -202,7 +209,7 @@ export function deleteManyObjects(
     bucket?: string;
   } = {},
 ) {
-  return s3Client.send(
+  return getS3Client().send(
     new DeleteObjectsCommand({
       Bucket: bucket,
       Delete: {
@@ -225,7 +232,7 @@ export async function* listByPrefix(
   let continuationToken: string | undefined;
 
   do {
-    const listedObjects = await s3Client.send(
+    const listedObjects = await getS3Client().send(
       new ListObjectsV2Command({
         Bucket: bucket,
         Prefix: prefix,
@@ -269,5 +276,5 @@ export async function getObject(
     bucket?: string;
   } = {},
 ) {
-  return s3Client.send(new GetObjectCommand({ Bucket: bucket, Key: key }));
+  return getS3Client().send(new GetObjectCommand({ Bucket: bucket, Key: key }));
 }

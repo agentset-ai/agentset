@@ -6,6 +6,7 @@
  */
 
 import { apiKeysRouter } from "./routers/api-keys";
+import { benchmarkRouter } from "./routers/benchmark";
 import { billingRouter } from "./routers/billing";
 import { documentsRouter } from "./routers/documents";
 import { domainsRouter } from "./routers/domains";
@@ -27,6 +28,7 @@ export const appRouter = {
   apiKey: apiKeysRouter,
   domain: domainsRouter,
   billing: billingRouter,
+  benchmark: benchmarkRouter,
 };
 
 export type AppRouter = typeof appRouter;

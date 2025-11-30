@@ -4,12 +4,7 @@ import { logEvent } from "@/lib/analytics";
 import { prefixId } from "@/lib/api/ids";
 import { useORPC } from "@/orpc/react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import {
-  CopyIcon,
-  DownloadIcon,
-  EllipsisVerticalIcon,
-  Trash2Icon,
-} from "lucide-react";
+import { CopyIcon, EllipsisVerticalIcon, Trash2Icon } from "lucide-react";
 import { toast } from "sonner";
 
 import { DocumentStatus } from "@agentset/db";
@@ -49,27 +44,9 @@ export default function DocumentActions({ row }: { row: Row<DocumentCol> }) {
     }),
   );
 
-  const { isPending: isDownloading, mutate: getDownloadUrl } = useMutation(
-    orpc.document.getFileDownloadUrl.mutationOptions({
-      onSuccess: ({ url }) => {
-        window.open(url, "_blank");
-      },
-      onError: (error) => {
-        toast.error(error.message);
-      },
-    }),
-  );
-
   const handleCopy = async () => {
     await navigator.clipboard.writeText(prefixId(row.original.id, "doc_"));
     toast.success("Copied ID");
-  };
-
-  const handleDownload = () => {
-    getDownloadUrl({
-      documentId: row.original.id,
-      namespaceId: namespace.id,
-    });
   };
 
   const handleDelete = () => {
@@ -97,13 +74,6 @@ export default function DocumentActions({ row }: { row: Row<DocumentCol> }) {
           <CopyIcon className="size-4" />
           Copy ID
         </DropdownMenuItem>
-
-        {row.original.source.type === "MANAGED_FILE" && (
-          <DropdownMenuItem disabled={isDownloading} onClick={handleDownload}>
-            <DownloadIcon className="size-4" />
-            Download File
-          </DropdownMenuItem>
-        )}
 
         <DropdownMenuItem disabled={isDeleteDisabled} onClick={handleDelete}>
           <Trash2Icon className="size-4" />

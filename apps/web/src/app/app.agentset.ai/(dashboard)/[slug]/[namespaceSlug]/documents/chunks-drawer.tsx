@@ -2,7 +2,7 @@
 
 import { useMemo, useState } from "react";
 import { useNamespace } from "@/hooks/use-namespace";
-import { trpcClient } from "@/trpc/react";
+import { orpcClient } from "@/orpc/react";
 import { useQuery } from "@tanstack/react-query";
 import { ChevronDownIcon, CopyIcon, SearchIcon } from "lucide-react";
 import { toast } from "sonner";
@@ -43,12 +43,10 @@ export function ChunksDrawer({
     queryKey: ["document-chunks", namespace.id, documentId],
     queryFn: async () => {
       // First fetch the presigned URL
-      const urlResponse = await trpcClient.document.getChunksDownloadUrl.mutate(
-        {
-          documentId,
-          namespaceId: namespace.id,
-        },
-      );
+      const urlResponse = await orpcClient.document.getChunksDownloadUrl({
+        documentId,
+        namespaceId: namespace.id,
+      });
 
       if (!urlResponse?.url) {
         throw new Error("Could not get chunks URL");

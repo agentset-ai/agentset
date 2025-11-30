@@ -8,7 +8,7 @@ import type { paginationSchema } from "@/schemas/api/pagination";
 import type { z } from "zod/v4";
 import { getPaginationArgs, paginateResults } from "@/services/pagination";
 
-import type { DocumentStatus } from "@agentset/db";
+import type { Document, DocumentStatus } from "@agentset/db";
 
 import type { ProtectedAgentsetContext } from "../shared/context";
 import { getNamespace } from "../shared/namespace-access";
@@ -27,11 +27,12 @@ export type GetAllDocumentsInput = {
 export type DocumentResult = {
   id: string;
   name: string | null;
+  source: Document["source"];
   totalTokens: number;
   totalChunks: number;
   totalCharacters: number;
   totalPages: number;
-  documentProperties: unknown;
+  documentProperties: Document["documentProperties"];
   createdAt: Date;
   queuedAt: Date | null;
   completedAt: Date | null;
@@ -80,6 +81,7 @@ export const getAllDocuments = async (
     select: {
       id: true,
       name: true,
+      source: true,
       totalTokens: true,
       totalChunks: true,
       totalCharacters: true,

@@ -3,8 +3,8 @@ import type {
   RelatedNodeType,
 } from "@llamaindex/core/schema";
 
-import { PartitionBatch } from "../../partition";
-import { VectorFilter } from "./filter";
+import type { PartitionBatch } from "../../partition";
+import type { VectorFilter } from "./filter";
 
 export type VectorStoreMetadata = Record<
   string,
