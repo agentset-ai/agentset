@@ -1,4 +1,5 @@
 import type { ColumnDef } from "@tanstack/react-table";
+import { useState } from "react";
 import { formatDuration, formatNumber } from "@/lib/utils";
 import {
   BookTextIcon,
@@ -6,18 +7,22 @@ import {
   FileTextIcon,
   GlobeIcon,
   ImageIcon,
+  ListIcon,
 } from "lucide-react";
 
 import type { Document } from "@agentset/db/browser";
 import type { BadgeProps } from "@agentset/ui/badge";
 import { DocumentStatus } from "@agentset/db/browser";
 import { Badge } from "@agentset/ui/badge";
+import { Button } from "@agentset/ui/button";
 import { YouTubeIcon } from "@agentset/ui/icons/youtube";
+import TimestampTooltip from "@agentset/ui/timestamp-tooltip";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@agentset/ui/tooltip";
-import { capitalize, formatDate, truncate } from "@agentset/utils";
+import { capitalize, truncate } from "@agentset/utils";
 
+import { ChunksDrawer } from "./chunks-drawer";
 import DocumentActions from "./document-actions";
-import TimestampTooltip from "./document-size-tooltip";
+import DocumentSizeTooltip from "./document-size-tooltip";
 
 export interface DocumentCol {
   id: string;
@@ -63,14 +68,12 @@ const MimeType = ({
   }
 
   return (
-    <div className="flex flex-row gap-2">
-      <Tooltip>
-        <TooltipTrigger>
-          <Icon className="size-5" />
-        </TooltipTrigger>
-        <TooltipContent>{mimeType}</TooltipContent>
-      </Tooltip>
-    </div>
+    <Tooltip>
+      <TooltipTrigger>
+        <Icon className="size-5" />
+      </TooltipTrigger>
+      <TooltipContent>{mimeType}</TooltipContent>
+    </Tooltip>
   );
 };
 
@@ -99,11 +102,11 @@ const statusToBadgeVariant = (
 export const documentColumns: ColumnDef<DocumentCol>[] = [
   {
     id: "type",
-    header: "Type",
+    header: () => <div className="w-10" />,
     accessorKey: "documentProperties.mimeType",
     cell: ({ row }) => {
       return (
-        <div>
+        <div className="flex w-10 justify-center">
           {row.original.documentProperties?.mimeType ? (
             <MimeType
               mimeType={row.original.documentProperties.mimeType}
@@ -129,7 +132,7 @@ export const documentColumns: ColumnDef<DocumentCol>[] = [
     header: "Total Pages",
     cell: ({ row }) => {
       return (
-        <TimestampTooltip
+        <DocumentSizeTooltip
           totalCharacters={row.original.totalCharacters}
           totalChunks={row.original.totalChunks}
           totalBytes={row.original.documentProperties?.fileSize ?? 0}
@@ -138,7 +141,7 @@ export const documentColumns: ColumnDef<DocumentCol>[] = [
           <p className="w-fit">
             {formatNumber(row.original.totalPages, "compact")}
           </p>
-        </TimestampTooltip>
+        </DocumentSizeTooltip>
       );
     },
   },
@@ -146,7 +149,17 @@ export const documentColumns: ColumnDef<DocumentCol>[] = [
     id: "uploadedAt",
     header: "Uploaded At",
     cell: ({ row }) => {
-      return <p>{formatDate(row.original.createdAt)}</p>;
+      return (
+        <TimestampTooltip timestamp={row.original.createdAt}>
+          <p className="w-fit">
+            {row.original.createdAt.toLocaleString("en-US", {
+              year: "numeric",
+              month: "long",
+              day: "numeric",
+            })}
+          </p>
+        </TimestampTooltip>
+      );
     },
   },
   {
@@ -158,7 +171,9 @@ export const documentColumns: ColumnDef<DocumentCol>[] = [
           variant={statusToBadgeVariant(row.original.status)}
           className="capitalize"
         >
-          {capitalize(row.original.status.split("_").join(" "))}
+          {row.original.status === DocumentStatus.COMPLETED
+            ? "Ready"
+            : capitalize(row.original.status.split("_").join(" "))}
         </Badge>
       );
       if (!row.original.error) return badge;
@@ -188,6 +203,34 @@ export const documentColumns: ColumnDef<DocumentCol>[] = [
   },
   {
     id: "actions",
-    cell: ({ row }) => <DocumentActions row={row} />, // Use the DocumentActions component
+    cell: ({ row }) => {
+      const canViewChunks = row.original.status === DocumentStatus.COMPLETED;
+      const [chunksDrawerOpen, setChunksDrawerOpen] = useState(false);
+      return (
+        <div className="flex items-center gap-2">
+          <DocumentActions row={row} />
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button
+                disabled={!canViewChunks}
+                onClick={() => setChunksDrawerOpen(true)}
+                size="icon"
+                variant="ghost"
+              >
+                <ListIcon className="size-4" />
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent>View chunks</TooltipContent>
+          </Tooltip>
+
+          <ChunksDrawer
+            documentId={row.original.id}
+            documentName={row.original.name ?? undefined}
+            open={chunksDrawerOpen}
+            onOpenChange={setChunksDrawerOpen}
+          />
+        </div>
+      );
+    },
   },
 ];

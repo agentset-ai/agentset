@@ -1,16 +1,10 @@
 import type { Row } from "@tanstack/react-table";
-import { useState } from "react";
 import { useNamespace } from "@/hooks/use-namespace";
 import { logEvent } from "@/lib/analytics";
 import { prefixId } from "@/lib/api/ids";
 import { useTRPC } from "@/trpc/react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import {
-  CopyIcon,
-  EllipsisVerticalIcon,
-  EyeIcon,
-  Trash2Icon,
-} from "lucide-react";
+import { CopyIcon, EllipsisVerticalIcon, Trash2Icon } from "lucide-react";
 import { toast } from "sonner";
 
 import { DocumentStatus } from "@agentset/db/browser";
@@ -23,13 +17,11 @@ import {
 } from "@agentset/ui/dropdown-menu";
 
 import type { DocumentCol } from "./documents-columns";
-import { ChunksDrawer } from "./chunks-drawer";
 
 export default function DocumentActions({ row }: { row: Row<DocumentCol> }) {
   const namespace = useNamespace();
   const trpc = useTRPC();
   const queryClient = useQueryClient();
-  const [chunksDrawerOpen, setChunksDrawerOpen] = useState(false);
 
   const { isPending, mutate: deleteDocument } = useMutation(
     trpc.document.delete.mutationOptions({
@@ -69,43 +61,25 @@ export default function DocumentActions({ row }: { row: Row<DocumentCol> }) {
     row.original.status === DocumentStatus.DELETING ||
     row.original.status === DocumentStatus.QUEUED_FOR_DELETE;
 
-  const canViewChunks = row.original.status === DocumentStatus.COMPLETED;
-
   return (
-    <>
-      <DropdownMenu>
-        <DropdownMenuTrigger asChild>
-          <Button size="icon" variant="ghost">
-            <EllipsisVerticalIcon className="size-4" />
-          </Button>
-        </DropdownMenuTrigger>
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>
+        <Button size="icon" variant="ghost">
+          <EllipsisVerticalIcon className="size-4" />
+        </Button>
+      </DropdownMenuTrigger>
 
-        <DropdownMenuContent>
-          <DropdownMenuItem onClick={handleCopy}>
-            <CopyIcon className="size-4" />
-            Copy ID
-          </DropdownMenuItem>
+      <DropdownMenuContent>
+        <DropdownMenuItem onClick={handleCopy}>
+          <CopyIcon className="size-4" />
+          Copy ID
+        </DropdownMenuItem>
 
-          {canViewChunks && (
-            <DropdownMenuItem onClick={() => setChunksDrawerOpen(true)}>
-              <EyeIcon className="size-4" />
-              View chunks
-            </DropdownMenuItem>
-          )}
-
-          <DropdownMenuItem disabled={isDeleteDisabled} onClick={handleDelete}>
-            <Trash2Icon className="size-4" />
-            Delete
-          </DropdownMenuItem>
-        </DropdownMenuContent>
-      </DropdownMenu>
-
-      <ChunksDrawer
-        documentId={row.original.id}
-        documentName={row.original.name ?? undefined}
-        open={chunksDrawerOpen}
-        onOpenChange={setChunksDrawerOpen}
-      />
-    </>
+        <DropdownMenuItem disabled={isDeleteDisabled} onClick={handleDelete}>
+          <Trash2Icon className="size-4" />
+          Delete
+        </DropdownMenuItem>
+      </DropdownMenuContent>
+    </DropdownMenu>
   );
 }

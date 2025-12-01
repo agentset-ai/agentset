@@ -19,6 +19,7 @@ import {
   FormMessage,
 } from "@agentset/ui/form";
 import { Input } from "@agentset/ui/input";
+import { Switch } from "@agentset/ui/switch";
 import { configSchema, languageCode } from "@agentset/validation";
 
 import type { BaseIngestFormProps } from "./shared";
@@ -38,6 +39,7 @@ const schema = z
       )
       .min(1, "At least one URL is required"),
     transcriptLanguages: z.array(languageCode).optional(),
+    includeMetadata: z.boolean().optional(),
   })
   .extend(configSchema.shape);
 
@@ -54,6 +56,7 @@ export default function YoutubeForm({ onSuccess }: BaseIngestFormProps) {
   const onSubmit = async (data: z.infer<typeof schema>) => {
     const urls = data.urls.filter(Boolean);
     const transcriptLanguages = data.transcriptLanguages?.filter(Boolean);
+    const includeMetadata = data.includeMetadata;
 
     await mutateAsync({
       namespaceId: namespace.id,
@@ -61,10 +64,10 @@ export default function YoutubeForm({ onSuccess }: BaseIngestFormProps) {
       payload: {
         type: "YOUTUBE",
         urls,
-        ...(transcriptLanguages &&
-          transcriptLanguages.length > 0 && {
-            options: { transcriptLanguages },
-          }),
+        ...(((transcriptLanguages && transcriptLanguages.length > 0) ||
+          includeMetadata) && {
+          options: { transcriptLanguages, includeMetadata },
+        }),
       },
       config: extractConfig(data),
     });
@@ -120,6 +123,29 @@ export default function YoutubeForm({ onSuccess }: BaseIngestFormProps) {
                     name="transcriptLanguages"
                     placeholder="en"
                     addButtonText="Add language"
+                  />
+                </div>
+
+                <div className="flex flex-col gap-1">
+                  <FormField
+                    control={form.control}
+                    name="includeMetadata"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Include metadata</FormLabel>
+                        <FormDescription className="mb-2">
+                          Whether to include metadata in the ingestion (like
+                          video description, tags, category, duration, etc...).
+                          Defaults to `false`.
+                        </FormDescription>
+                        <FormControl>
+                          <Switch
+                            checked={field.value}
+                            onCheckedChange={field.onChange}
+                          />
+                        </FormControl>
+                      </FormItem>
+                    )}
                   />
                 </div>
               </AccordionContent>

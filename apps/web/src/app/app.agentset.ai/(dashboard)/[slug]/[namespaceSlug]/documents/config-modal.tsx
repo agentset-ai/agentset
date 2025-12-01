@@ -3,6 +3,7 @@ import { useNamespace } from "@/hooks/use-namespace";
 import { useTRPC } from "@/trpc/react";
 import { useQuery } from "@tanstack/react-query";
 
+import { CodeBlock, CodeBlockCopyButton } from "@agentset/ui/ai/code-block";
 import { Button } from "@agentset/ui/button";
 import {
   Dialog,
@@ -11,6 +12,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@agentset/ui/dialog";
+import { Skeleton } from "@agentset/ui/skeleton";
 
 export function ConfigModal({ jobId }: { jobId: string }) {
   const [open, setOpen] = useState(false);
@@ -27,9 +29,9 @@ export function ConfigModal({ jobId }: { jobId: string }) {
   });
 
   const configStr = useMemo(() => {
-    if (isLoading) return "Loading...";
-    if (!config) return "None";
+    if (isLoading) return null;
 
+    if (!config) return "{}";
     return JSON.stringify(config, null, 2);
   }, [config, isLoading]);
 
@@ -45,9 +47,14 @@ export function ConfigModal({ jobId }: { jobId: string }) {
         <DialogHeader>
           <DialogTitle>Job Config</DialogTitle>
         </DialogHeader>
-        <pre className="bg-muted max-h-[60vh] overflow-auto rounded-md p-4">
-          {configStr}
-        </pre>
+
+        {configStr ? (
+          <CodeBlock code={configStr} language="json">
+            <CodeBlockCopyButton />
+          </CodeBlock>
+        ) : (
+          <Skeleton className="h-13 w-full" />
+        )}
       </DialogContent>
     </Dialog>
   );

@@ -177,10 +177,12 @@ export const ingestJob = schemaTask({
       }
     } else if (ingestionJob.payload.type === "YOUTUBE") {
       const token = await wait.createToken({ timeout: "2h" });
+      const options = ingestionJob.payload.options;
 
       const body: YoutubePartitionBody = {
         urls: ingestionJob.payload.urls,
-        transcript_languages: ingestionJob.payload.options?.transcriptLanguages,
+        transcript_languages: options?.transcriptLanguages,
+        include_metadata: options?.includeMetadata,
         extra_metadata: {
           ...ingestionJob.config?.metadata,
           ...(ingestionJob.tenantId && { tenantId: ingestionJob.tenantId }),

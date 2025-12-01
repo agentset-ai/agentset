@@ -9,6 +9,7 @@ import type { BadgeProps } from "@agentset/ui/badge";
 import { IngestJobStatus } from "@agentset/db/browser";
 import { Badge } from "@agentset/ui/badge";
 import { Button } from "@agentset/ui/button";
+import { TimestampTooltip } from "@agentset/ui/timestamp-tooltip";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@agentset/ui/tooltip";
 import { capitalize } from "@agentset/utils";
 
@@ -47,10 +48,6 @@ const statusToBadgeVariant = (
     default:
       return "outline";
   }
-};
-
-const formatDate = (date: Date | string) => {
-  return new Date(date).toLocaleString();
 };
 
 export const columns: ColumnDef<JobCol>[] = [
@@ -131,7 +128,9 @@ export const columns: ColumnDef<JobCol>[] = [
           variant={statusToBadgeVariant(row.original.status)}
           className="capitalize"
         >
-          {capitalize(row.original.status.split("_").join(" "))}
+          {row.original.status === IngestJobStatus.COMPLETED
+            ? "Ready"
+            : capitalize(row.original.status.split("_").join(" "))}
         </Badge>
       );
 
@@ -146,10 +145,20 @@ export const columns: ColumnDef<JobCol>[] = [
     },
   },
   {
-    accessorKey: "createdAt",
-    header: "Created At",
+    id: "uploadedAt",
+    header: "Uploaded At",
     cell: ({ row }) => {
-      return <p>{formatDate(row.original.createdAt)}</p>;
+      return (
+        <TimestampTooltip timestamp={row.original.createdAt}>
+          <p className="w-fit">
+            {row.original.createdAt.toLocaleString("en-US", {
+              year: "numeric",
+              month: "long",
+              day: "numeric",
+            })}
+          </p>
+        </TimestampTooltip>
+      );
     },
   },
   {

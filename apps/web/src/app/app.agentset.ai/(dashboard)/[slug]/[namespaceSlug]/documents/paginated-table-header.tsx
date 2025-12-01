@@ -58,8 +58,9 @@ export function PaginatedTableHeader<T extends string>({
         onClick={onRefresh}
         disabled={isRefreshing}
         className="flex items-center gap-2"
+        variant="outline"
       >
-        <RefreshCcwIcon className="h-4 w-4" />
+        <RefreshCcwIcon className="size-4" />
         Refresh
       </Button>
     </div>

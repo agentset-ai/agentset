@@ -10,6 +10,12 @@ const youtubeOptionsSchema = z
         "We will try to fetch the first available transcript in the given languages. Default is `en`.",
       )
       .optional(),
+    includeMetadata: z
+      .boolean()
+      .describe(
+        "Whether to include metadata in the ingestion (like video description, tags, category, duration, etc...). Defaults to `false`.",
+      )
+      .optional(),
   })
   .meta({
     id: "youtube-options",
@@ -25,6 +31,7 @@ export const youtubePayloadSchema = z
           hostname: /^(www\.youtube\.com|youtu\.be)$/,
         }),
       )
+      .min(1)
       .describe(
         "The URLs of videos, channels, or playlists (hostname must be www.youtube.com or youtu.be).",
       ),

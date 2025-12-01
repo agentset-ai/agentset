@@ -14,7 +14,7 @@ export type TimestampTooltipProps = {
   children: React.ReactNode;
 };
 
-export function TimestampTooltip({
+export function DocumentSizeTooltip({
   totalCharacters,
   totalChunks,
   totalBytes,
@@ -25,8 +25,8 @@ export function TimestampTooltip({
     <Tooltip>
       <TooltipTrigger asChild>{children}</TooltipTrigger>
 
-      <TooltipContent className="max-w-[360px]" side="right">
-        <TimestampTooltipContent
+      <TooltipContent className="max-w-[360px] min-w-30">
+        <DocumentSizeTooltipContent
           totalCharacters={totalCharacters}
           totalChunks={totalChunks}
           totalBytes={totalBytes}
@@ -37,7 +37,7 @@ export function TimestampTooltip({
   );
 }
 
-function TimestampTooltipContent({
+function DocumentSizeTooltipContent({
   totalCharacters,
   totalChunks,
   totalBytes,
@@ -72,11 +72,18 @@ function TimestampTooltipContent({
           {rows.map((row, idx) => (
             <tr key={idx}>
               <td className="relative py-0.5">
-                <span className={cn("truncate")} title={row.label}>
+                <span
+                  className="text-primary-foreground/70 truncate"
+                  title={row.label}
+                >
                   {row.label}
                 </span>
               </td>
-              <td className={cn("relative py-0.5 pl-3 whitespace-nowrap")}>
+              <td
+                className={cn(
+                  "relative py-0.5 pl-3 font-mono whitespace-nowrap",
+                )}
+              >
                 {row.value}
               </td>
             </tr>
@@ -87,4 +94,4 @@ function TimestampTooltipContent({
   );
 }
 
-export default TimestampTooltip;
+export default DocumentSizeTooltip;
