@@ -86,7 +86,8 @@ export const columns: ColumnDef<JobCol>[] = [
     accessorKey: "name",
     header: "Name",
     cell: ({ row }) => {
-      const name = row.original.name ?? "-";
+      const name = row.original.name || "-";
+
       return (
         <p title={name}>
           {name.length > 20 ? name.slice(0, 20) + "..." : name}
@@ -94,31 +95,6 @@ export const columns: ColumnDef<JobCol>[] = [
       );
     },
   },
-  // {
-  //   id: "type",
-  //   accessorKey: "payload",
-  //   header: "Type",
-  //   cell: ({ row }) => {
-  //     return (
-  //       <p>{capitalize(row.original.payload.type.split("_").join(" "))}</p>
-  //     );
-  //   },
-  // },
-  {
-    accessorKey: "config",
-    header: "Config",
-    cell: ({ row }) => {
-      return <ConfigModal jobId={row.original.id} />;
-    },
-  },
-  {
-    accessorKey: "tenantId",
-    header: "Tenant ID",
-    cell: ({ row }) => {
-      return <p>{row.original.tenantId ?? "-"}</p>;
-    },
-  },
-
   {
     accessorKey: "status",
     header: "Status",
@@ -144,6 +120,24 @@ export const columns: ColumnDef<JobCol>[] = [
       );
     },
   },
+  // {
+  //   id: "type",
+  //   accessorKey: "payload",
+  //   header: "Type",
+  //   cell: ({ row }) => {
+  //     return (
+  //       <p>{capitalize(row.original.payload.type.split("_").join(" "))}</p>
+  //     );
+  //   },
+  // },
+  {
+    accessorKey: "tenantId",
+    header: "Tenant ID",
+    cell: ({ row }) => {
+      return <p>{row.original.tenantId ?? "-"}</p>;
+    },
+  },
+
   {
     id: "uploadedAt",
     header: "Uploaded At",
@@ -173,6 +167,13 @@ export const columns: ColumnDef<JobCol>[] = [
             : "-"}
         </p>
       );
+    },
+  },
+  {
+    accessorKey: "config",
+    header: "Config",
+    cell: ({ row }) => {
+      return <ConfigModal jobId={row.original.id} />;
     },
   },
   {

@@ -8,7 +8,7 @@ const CollapsibleMetadata = ({ metadata }: { metadata: unknown }) => {
   const [open, setOpen] = useState(false);
 
   return (
-    <div className="border-border mt-3 border-t pt-3">
+    <div className="border-border mt-3 flex flex-col gap-2 border-t pt-3">
       <div className="flex items-center gap-2">
         <h3 className="text-xs font-medium">Metadata</h3>
         <Button
@@ -22,11 +22,13 @@ const CollapsibleMetadata = ({ metadata }: { metadata: unknown }) => {
       </div>
 
       {open ? (
-        <div className="mt-2">
-          <CodeBlock code={JSON.stringify(metadata, null, 2)} language="json">
-            <CodeBlockCopyButton />
-          </CodeBlock>
-        </div>
+        <CodeBlock
+          code={JSON.stringify(metadata, null, 2)}
+          language="json"
+          className="mt-2"
+        >
+          <CodeBlockCopyButton />
+        </CodeBlock>
       ) : null}
     </div>
   );

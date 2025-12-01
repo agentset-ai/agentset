@@ -9,6 +9,8 @@ import { codeToHtml } from "shiki";
 import { Button } from "@agentset/ui/button";
 import { cn } from "@agentset/ui/cn";
 
+import { Skeleton } from "../ui/skeleton";
+
 type CodeBlockProps = HTMLAttributes<HTMLDivElement> & {
   code: string;
   language: BundledLanguage;
@@ -102,23 +104,27 @@ export const CodeBlock = ({
         )}
         {...props}
       >
-        <div className="relative">
-          <div
-            className="[&>pre]:bg-background! [&>pre]:text-foreground! overflow-hidden dark:hidden [&_code]:font-mono [&_code]:text-sm [&>pre]:m-0 [&>pre]:overflow-x-auto [&>pre]:p-4 [&>pre]:text-sm"
-            // biome-ignore lint/security/noDangerouslySetInnerHtml: "this is needed."
-            dangerouslySetInnerHTML={{ __html: html }}
-          />
-          <div
-            className="[&>pre]:bg-background! [&>pre]:text-foreground! hidden overflow-hidden dark:block [&_code]:font-mono [&_code]:text-sm [&>pre]:m-0 [&>pre]:overflow-x-auto [&>pre]:p-4 [&>pre]:text-sm"
-            // biome-ignore lint/security/noDangerouslySetInnerHtml: "this is needed."
-            dangerouslySetInnerHTML={{ __html: darkHtml }}
-          />
-          {children && (
-            <div className="absolute top-2 right-2 flex items-center gap-2">
-              {children}
-            </div>
-          )}
-        </div>
+        {html ? (
+          <div className="relative">
+            <div
+              className="[&>pre]:bg-background! [&>pre]:text-foreground! overflow-hidden dark:hidden [&_code]:font-mono [&_code]:text-sm [&>pre]:m-0 [&>pre]:overflow-x-auto [&>pre]:p-4 [&>pre]:text-sm"
+              // biome-ignore lint/security/noDangerouslySetInnerHtml: "this is needed."
+              dangerouslySetInnerHTML={{ __html: html }}
+            />
+            <div
+              className="[&>pre]:bg-background! [&>pre]:text-foreground! hidden overflow-hidden dark:block [&_code]:font-mono [&_code]:text-sm [&>pre]:m-0 [&>pre]:overflow-x-auto [&>pre]:p-4 [&>pre]:text-sm"
+              // biome-ignore lint/security/noDangerouslySetInnerHtml: "this is needed."
+              dangerouslySetInnerHTML={{ __html: darkHtml }}
+            />
+            {children && (
+              <div className="absolute top-2 right-2 flex items-center gap-2">
+                {children}
+              </div>
+            )}
+          </div>
+        ) : (
+          <Skeleton className="h-13 w-full" />
+        )}
       </div>
     </CodeBlockContext.Provider>
   );

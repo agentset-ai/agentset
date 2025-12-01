@@ -24,7 +24,7 @@ export function PaginatedTableHeader<T extends string>({
   isRefreshing,
 }: PaginatedTableHeaderProps<T>) {
   return (
-    <div className="flex gap-4">
+    <div className="flex gap-2">
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
           <Button variant="outline">

@@ -70,7 +70,7 @@ const MimeType = ({
   return (
     <Tooltip>
       <TooltipTrigger>
-        <Icon className="size-5" />
+        <Icon className="text-muted-foreground size-5" />
       </TooltipTrigger>
       <TooltipContent>{mimeType}</TooltipContent>
     </Tooltip>
@@ -102,11 +102,10 @@ const statusToBadgeVariant = (
 export const documentColumns: ColumnDef<DocumentCol>[] = [
   {
     id: "type",
-    header: () => <div className="w-10" />,
-    accessorKey: "documentProperties.mimeType",
+    header: () => null,
     cell: ({ row }) => {
       return (
-        <div className="flex w-10 justify-center">
+        <div className="flex justify-center pl-2">
           {row.original.documentProperties?.mimeType ? (
             <MimeType
               mimeType={row.original.documentProperties.mimeType}
@@ -124,41 +123,10 @@ export const documentColumns: ColumnDef<DocumentCol>[] = [
     header: "Name",
     cell: ({ row }) => {
       const name = row.original.name ?? "-";
-      return <p title={name}>{truncate(name, 60, "...")}</p>;
-    },
-  },
-  {
-    accessorKey: "totalPages",
-    header: "Total Pages",
-    cell: ({ row }) => {
       return (
-        <DocumentSizeTooltip
-          totalCharacters={row.original.totalCharacters}
-          totalChunks={row.original.totalChunks}
-          totalBytes={row.original.documentProperties?.fileSize ?? 0}
-          totalTokens={row.original.totalTokens}
-        >
-          <p className="w-fit">
-            {formatNumber(row.original.totalPages, "compact")}
-          </p>
-        </DocumentSizeTooltip>
-      );
-    },
-  },
-  {
-    id: "uploadedAt",
-    header: "Uploaded At",
-    cell: ({ row }) => {
-      return (
-        <TimestampTooltip timestamp={row.original.createdAt}>
-          <p className="w-fit">
-            {row.original.createdAt.toLocaleString("en-US", {
-              year: "numeric",
-              month: "long",
-              day: "numeric",
-            })}
-          </p>
-        </TimestampTooltip>
+        <p title={name} className="w-48 truncate">
+          {name}
+        </p>
       );
     },
   },
@@ -186,7 +154,41 @@ export const documentColumns: ColumnDef<DocumentCol>[] = [
       );
     },
   },
-
+  {
+    accessorKey: "totalPages",
+    header: "Pages",
+    cell: ({ row }) => {
+      return (
+        <DocumentSizeTooltip
+          totalCharacters={row.original.totalCharacters}
+          totalChunks={row.original.totalChunks}
+          totalBytes={row.original.documentProperties?.fileSize ?? 0}
+          totalTokens={row.original.totalTokens}
+        >
+          <p className="w-fit">
+            {formatNumber(row.original.totalPages, "compact")}
+          </p>
+        </DocumentSizeTooltip>
+      );
+    },
+  },
+  {
+    id: "uploadedAt",
+    header: "Uploaded At",
+    cell: ({ row }) => {
+      return (
+        <TimestampTooltip timestamp={row.original.createdAt}>
+          <p className="w-fit">
+            {row.original.createdAt.toLocaleString("en-US", {
+              year: "numeric",
+              month: "short",
+              day: "numeric",
+            })}
+          </p>
+        </TimestampTooltip>
+      );
+    },
+  },
   {
     id: "duration",
     header: "Duration",
@@ -202,26 +204,23 @@ export const documentColumns: ColumnDef<DocumentCol>[] = [
     },
   },
   {
-    id: "actions",
+    id: "chunks",
+    header: "Chunks",
     cell: ({ row }) => {
       const canViewChunks = row.original.status === DocumentStatus.COMPLETED;
       const [chunksDrawerOpen, setChunksDrawerOpen] = useState(false);
+
       return (
-        <div className="flex items-center gap-2">
-          <DocumentActions row={row} />
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <Button
-                disabled={!canViewChunks}
-                onClick={() => setChunksDrawerOpen(true)}
-                size="icon"
-                variant="ghost"
-              >
-                <ListIcon className="size-4" />
-              </Button>
-            </TooltipTrigger>
-            <TooltipContent>View chunks</TooltipContent>
-          </Tooltip>
+        <>
+          <Button
+            disabled={!canViewChunks}
+            onClick={() => setChunksDrawerOpen(true)}
+            variant="outline"
+            size="sm"
+            // className="hover:text-muted-foreground h-auto p-0 hover:bg-transparent"
+          >
+            View
+          </Button>
 
           <ChunksDrawer
             documentId={row.original.id}
@@ -229,8 +228,12 @@ export const documentColumns: ColumnDef<DocumentCol>[] = [
             open={chunksDrawerOpen}
             onOpenChange={setChunksDrawerOpen}
           />
-        </div>
+        </>
       );
     },
+  },
+  {
+    id: "actions",
+    cell: ({ row }) => <DocumentActions row={row} />,
   },
 ];
