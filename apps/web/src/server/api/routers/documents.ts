@@ -6,7 +6,7 @@ import { TRPCError } from "@trpc/server";
 import { z } from "zod/v4";
 
 import { DocumentStatus } from "@agentset/db";
-import { presignChunksDownloadUrl } from "@agentset/storage";
+import { presignChunksDownloadUrl, presignGetUrl } from "@agentset/storage";
 
 import { getNamespaceByUser } from "../auth";
 
@@ -143,6 +143,47 @@ export const documentsRouter = createTRPCRouter({
       if (!url) {
         throw new TRPCError({ code: "NOT_FOUND" });
       }
+
+      return { url };
+    }),
+  getFileDownloadUrl: protectedProcedure
+    .input(
+      z.object({
+        documentId: z.string(),
+        namespaceId: z.string(),
+      }),
+    )
+    .mutation(async ({ ctx, input }) => {
+      const namespace = await getNamespaceByUser(ctx, {
+        id: input.namespaceId,
+      });
+
+      if (!namespace) {
+        throw new TRPCError({ code: "NOT_FOUND" });
+      }
+
+      const document = await ctx.db.document.findUnique({
+        where: {
+          id: input.documentId,
+          namespaceId: namespace.id,
+        },
+        select: { id: true, name: true, source: true },
+      });
+
+      if (!document) {
+        throw new TRPCError({ code: "NOT_FOUND" });
+      }
+
+      if (document.source.type !== "MANAGED_FILE") {
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          message: "File download is only available for managed files",
+        });
+      }
+
+      const { url } = await presignGetUrl(document.source.key, {
+        fileName: document.name ?? undefined,
+      });
 
       return { url };
     }),

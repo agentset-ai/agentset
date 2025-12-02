@@ -76,7 +76,8 @@ export const getPartitionDocumentBody = async ({
     document.config ?? {};
 
   body.extra_metadata = {
-    ...(document.name && { filename: document.name }),
+    ...(document.name &&
+      document.source.type !== "FILE" && { filename: document.name }),
     ...(ingestJobMetadata ?? {}),
     ...(documentMetadata ?? {}), // document metadata overrides ingest job metadata
     ...(document.tenantId && { tenantId: document.tenantId }),
