@@ -31,6 +31,6 @@ export const deleteDocument: ZodOpenApiOperationObject = {
   security: [{ token: [] }],
   ...makeCodeSamples(ts`
 await ns.documents.delete("doc_123");
-console.log("Document deleted successfully");
+console.log("Document queued for deletion");
 `),
 };

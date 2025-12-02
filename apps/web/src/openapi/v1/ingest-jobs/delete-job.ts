@@ -32,6 +32,6 @@ export const deleteIngestJob: ZodOpenApiOperationObject = {
   security: [{ token: [] }],
   ...makeCodeSamples(ts`
 await ns.ingestion.delete("job_123");
-console.log("Ingest job deleted successfully");
+console.log("Ingest job queued for deletion");
 `),
 };

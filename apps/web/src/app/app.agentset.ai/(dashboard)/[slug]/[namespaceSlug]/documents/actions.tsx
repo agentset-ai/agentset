@@ -29,7 +29,7 @@ export function JobActions({ row }: { row: Row<JobCol> }) {
   const { mutate: deleteJob, isPending: isDeletePending } = useMutation(
     trpc.ingestJob.delete.mutationOptions({
       onSuccess: () => {
-        toast.success("Job deleted successfully");
+        toast.success("Job queued for deletion");
         void queryClient.invalidateQueries(
           trpc.ingestJob.all.queryFilter({
             namespaceId: namespace.id,

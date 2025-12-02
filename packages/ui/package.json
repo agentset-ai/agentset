@@ -33,6 +33,7 @@
     "./dialog": "./src/components/ui/dialog.tsx",
     "./dropdown-menu": "./src/components/ui/dropdown-menu.tsx",
     "./form": "./src/components/ui/form.tsx",
+    "./field": "./src/components/ui/field.tsx",
     "./hover-card": "./src/components/ui/hover-card.tsx",
     "./input": "./src/components/ui/input.tsx",
     "./input-group": "./src/components/ui/input-group.tsx",

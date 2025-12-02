@@ -87,7 +87,7 @@ const processBatch = async (
 
 export const processDocument = schemaTask({
   id: TRIGGER_DOCUMENT_JOB_ID,
-  maxDuration: 60 * 60, // 1 hour
+  maxDuration: 60 * 60 * 3, // 3 hours
   queue: {
     concurrencyLimit: 90,
   },

@@ -21,23 +21,20 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@agentset/ui/tabs";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@agentset/ui/tooltip";
 
 import CrawlForm from "./crawl-form";
+import FilesForm from "./files-form";
 import TextForm from "./text-form";
-import UploadForm from "./upload-form";
-import UrlsForm from "./urls-form";
 import YoutubeForm from "./youtube-form";
 
 const TABS = [
-  { value: "upload", label: "Upload", Component: UploadForm },
+  { value: "files", label: "Files", Component: FilesForm },
   { value: "text", label: "Text", Component: TextForm },
-  { value: "urls", label: "URLs", Component: UrlsForm },
   { value: "crawl", label: "Crawl", Component: CrawlForm },
   { value: "youtube", label: "YouTube", Component: YoutubeForm },
 ] as const;
 
 const SUCCESS_MESSAGES: Record<(typeof TABS)[number]["value"], string> = {
-  upload: "Upload ingestion job created",
+  files: "File ingestion job created",
   text: "Text ingestion job created",
-  urls: "URL ingestion job created",
   crawl: "Crawl ingestion job created",
   youtube: "YouTube ingestion job created",
 };
@@ -45,7 +42,7 @@ const SUCCESS_MESSAGES: Record<(typeof TABS)[number]["value"], string> = {
 export function IngestModal() {
   const [isOpen, setIsOpen] = useState(false);
   const [activeTab, setActiveTab] =
-    useState<(typeof TABS)[number]["value"]>("upload");
+    useState<(typeof TABS)[number]["value"]>("files");
   const trpc = useTRPC();
   const queryClient = useQueryClient();
   const organization = useOrganization();

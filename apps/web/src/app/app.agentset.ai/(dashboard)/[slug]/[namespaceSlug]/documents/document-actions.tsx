@@ -36,7 +36,7 @@ export default function DocumentActions({ row }: { row: Row<DocumentCol> }) {
           namespaceId: namespace.id,
           status: row.original.status,
         });
-        toast.success("Document deleted successfully");
+        toast.success("Document queued for deletion");
         void queryClient.invalidateQueries(
           trpc.document.all.queryFilter({
             namespaceId: namespace.id,

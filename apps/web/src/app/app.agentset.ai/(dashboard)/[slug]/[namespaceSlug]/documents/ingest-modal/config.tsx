@@ -1,8 +1,7 @@
+import type { ReactNode } from "react";
 import type { FieldValues, UseFormReturn } from "react-hook-form";
 import { useState } from "react";
-import { useOrganization } from "@/hooks/use-organization";
 
-import { isFreePlan } from "@agentset/stripe/plans";
 import {
   Accordion,
   AccordionContent,
@@ -27,10 +26,42 @@ import {
 } from "@agentset/ui/select";
 import { Textarea } from "@agentset/ui/textarea";
 
+const LANGUAGES = [
+  { code: "en", name: "English" },
+  { code: "es", name: "Spanish" },
+  { code: "fr", name: "French" },
+  { code: "de", name: "German" },
+  { code: "it", name: "Italian" },
+  { code: "pt", name: "Portuguese" },
+  { code: "nl", name: "Dutch" },
+  { code: "ru", name: "Russian" },
+  { code: "zh", name: "Chinese" },
+  { code: "jp", name: "Japanese" },
+  { code: "kr", name: "Korean" },
+  { code: "ar", name: "Arabic" },
+  { code: "hi", name: "Hindi" },
+  { code: "bn", name: "Bengali" },
+  { code: "pl", name: "Polish" },
+  { code: "tr", name: "Turkish" },
+  { code: "vi", name: "Vietnamese" },
+  { code: "th", name: "Thai" },
+  { code: "sv", name: "Swedish" },
+  { code: "da", name: "Danish" },
+  { code: "no", name: "Norwegian" },
+  { code: "fi", name: "Finnish" },
+  { code: "cs", name: "Czech" },
+  { code: "ro", name: "Romanian" },
+  { code: "hu", name: "Hungarian" },
+  { code: "he", name: "Hebrew" },
+  { code: "id", name: "Indonesian" },
+  { code: "ms", name: "Malay" },
+  { code: "uk", name: "Ukrainian" },
+  { code: "fa", name: "Persian" },
+];
+
 // Default values shown in UI (not sent to API unless changed)
 const DEFAULTS = {
   chunkSize: "2048",
-  mode: "balanced",
 } as const;
 
 interface IngestConfigProps {
@@ -38,21 +69,22 @@ interface IngestConfigProps {
   form: UseFormReturn<any>;
   /** Hide file-specific options (forceOcr, mode, image extraction, etc.) */
   minimal?: boolean;
+  /** Additional settings to render at the top of the accordion */
+  extraSettings?: ReactNode;
 }
 
 export default function IngestConfig({
   form,
   minimal = false,
+  extraSettings,
 }: IngestConfigProps) {
   const [metadataStr, setMetadataStr] = useState("");
-  const { plan } = useOrganization();
-  const isFree = isFreePlan(plan);
 
   return (
     <Accordion type="single" collapsible>
       <AccordionItem value="chunking-settings">
         <AccordionTrigger className="hover:bg-muted/70 items-center justify-start rounded-none px-2 duration-75 hover:no-underline">
-          Chunking Settings
+          Additional Settings
         </AccordionTrigger>
 
         <AccordionContent className="mt-6 flex flex-col gap-6 px-2">
@@ -61,7 +93,7 @@ export default function IngestConfig({
             name="metadata"
             render={({ field }: { field: FieldValues }) => (
               <FormItem>
-                <FormLabel>Metadata JSON (optional)</FormLabel>
+                <FormLabel>Metadata</FormLabel>
                 <FormControl>
                   <Textarea
                     value={metadataStr}
@@ -120,33 +152,21 @@ export default function IngestConfig({
                   <FormItem>
                     <FormLabel>Language</FormLabel>
                     <FormControl>
-                      <Input placeholder="en, fr, ar, ..." {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name="mode"
-                render={({ field }: { field: FieldValues }) => (
-                  <FormItem>
-                    <FormLabel>Mode</FormLabel>
-                    <FormControl>
                       <Select
-                        onValueChange={field.onChange}
-                        value={field.value ?? DEFAULTS.mode}
+                        value={field.value ?? ""}
+                        onValueChange={(val) =>
+                          field.onChange(val === "" ? undefined : val)
+                        }
                       >
                         <SelectTrigger className="w-full">
-                          <SelectValue />
+                          <SelectValue placeholder="Auto-detect" />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="fast">Fast</SelectItem>
-                          <SelectItem value="balanced">Balanced</SelectItem>
-                          <SelectItem value="accurate" disabled={isFree}>
-                            Accurate
-                          </SelectItem>
+                          {LANGUAGES.map((lang) => (
+                            <SelectItem key={lang.code} value={lang.code}>
+                              {lang.name}
+                            </SelectItem>
+                          ))}
                         </SelectContent>
                       </Select>
                     </FormControl>
@@ -176,6 +196,8 @@ export default function IngestConfig({
               />
             </>
           )}
+
+          {extraSettings}
         </AccordionContent>
       </AccordionItem>
     </Accordion>

@@ -1,13 +1,9 @@
+import type { UseFormReturn } from "react-hook-form";
 import { useZodForm } from "@/hooks/use-zod-form";
 import { z } from "zod/v4";
 
-import {
-  Accordion,
-  AccordionContent,
-  AccordionItem,
-  AccordionTrigger,
-} from "@agentset/ui/accordion";
 import { Button } from "@agentset/ui/button";
+import { Checkbox } from "@agentset/ui/checkbox";
 import { DialogFooter } from "@agentset/ui/dialog";
 import {
   Form,
@@ -19,7 +15,7 @@ import {
   FormMessage,
 } from "@agentset/ui/form";
 import { Input } from "@agentset/ui/input";
-import { Switch } from "@agentset/ui/switch";
+import { Label } from "@agentset/ui/label";
 import { configSchema, languageCode } from "@agentset/validation";
 
 import type { BaseIngestFormProps } from "./shared";
@@ -106,53 +102,11 @@ export default function YoutubeForm({ onSuccess }: BaseIngestFormProps) {
             />
           </div>
 
-          <Accordion type="single" collapsible>
-            <AccordionItem value="youtube-options">
-              <AccordionTrigger className="hover:bg-muted/70 items-center justify-start rounded-none px-2 duration-75 hover:no-underline">
-                YouTube options
-              </AccordionTrigger>
-
-              <AccordionContent className="mt-6 flex flex-col gap-6 px-2">
-                <div className="flex flex-col gap-1">
-                  <FormLabel>Transcript languages (optional)</FormLabel>
-                  <FormDescription className="mb-2">
-                    Preferred languages for transcripts (e.g., en, es, fr)
-                  </FormDescription>
-                  <DynamicArrayField
-                    form={form}
-                    name="transcriptLanguages"
-                    placeholder="en"
-                    addButtonText="Add language"
-                  />
-                </div>
-
-                <div className="flex flex-col gap-1">
-                  <FormField
-                    control={form.control}
-                    name="includeMetadata"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Include metadata</FormLabel>
-                        <FormDescription className="mb-2">
-                          Whether to include metadata in the ingestion (like
-                          video description, tags, category, duration, etc...).
-                          Defaults to `false`.
-                        </FormDescription>
-                        <FormControl>
-                          <Switch
-                            checked={field.value}
-                            onCheckedChange={field.onChange}
-                          />
-                        </FormControl>
-                      </FormItem>
-                    )}
-                  />
-                </div>
-              </AccordionContent>
-            </AccordionItem>
-          </Accordion>
-
-          <IngestConfig form={form} minimal />
+          <IngestConfig
+            form={form}
+            minimal
+            extraSettings={<YoutubeSettings form={form} />}
+          />
         </div>
 
         <DialogFooter>
@@ -162,5 +116,50 @@ export default function YoutubeForm({ onSuccess }: BaseIngestFormProps) {
         </DialogFooter>
       </form>
     </Form>
+  );
+}
+
+interface YoutubeSettingsProps {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  form: UseFormReturn<any>;
+}
+
+function YoutubeSettings({ form }: YoutubeSettingsProps) {
+  return (
+    <>
+      <div className="flex flex-col gap-1">
+        <Label>Transcript languages (optional)</Label>
+        <p className="text-muted-foreground mb-2 text-sm">
+          Preferred languages for transcripts (e.g., en, es, fr)
+        </p>
+        <DynamicArrayField
+          form={form}
+          name="transcriptLanguages"
+          placeholder="en"
+          addButtonText="Add language"
+        />
+      </div>
+
+      <FormField
+        control={form.control}
+        name="includeMetadata"
+        render={({ field }) => (
+          <FormItem>
+            <div className="flex items-center gap-2">
+              <FormControl>
+                <Checkbox
+                  checked={!!field.value}
+                  onCheckedChange={field.onChange}
+                />
+              </FormControl>
+              <FormLabel className="font-normal">Include metadata</FormLabel>
+            </div>
+            <FormDescription>
+              Include video description, tags, category, duration, etc.
+            </FormDescription>
+          </FormItem>
+        )}
+      />
+    </>
   );
 }
