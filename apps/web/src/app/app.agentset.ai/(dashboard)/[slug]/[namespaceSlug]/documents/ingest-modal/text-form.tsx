@@ -59,7 +59,7 @@ export default function TextForm({ onSuccess }: BaseIngestFormProps) {
             name="name"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Name</FormLabel>
+                <FormLabel>File Name</FormLabel>
                 <FormControl>
                   <Input placeholder="example.txt" {...field} />
                 </FormControl>
@@ -86,7 +86,7 @@ export default function TextForm({ onSuccess }: BaseIngestFormProps) {
             )}
           />
 
-          <IngestConfig form={form} />
+          <IngestConfig form={form} minimal />
         </div>
 
         <DialogFooter>

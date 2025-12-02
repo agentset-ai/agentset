@@ -16,21 +16,26 @@ export interface BaseIngestFormProps {
   onSuccess: () => void;
 }
 
+// extract config and filter values if they're empty or default
 export function extractConfig<T extends IngestJobConfig>(
   data: T,
 ): IngestJobConfig | undefined {
   const config: IngestJobConfig = {};
 
-  if (data.chunkSize !== undefined) config.chunkSize = data.chunkSize;
-  if (data.languageCode !== undefined) config.languageCode = data.languageCode;
-  if (data.forceOcr !== undefined) config.forceOcr = data.forceOcr;
-  if (data.mode !== undefined) config.mode = data.mode;
-  if (data.disableImageExtraction !== undefined)
+  if (data.languageCode) config.languageCode = data.languageCode;
+
+  if (data.chunkSize && data.chunkSize !== 2048)
+    config.chunkSize = data.chunkSize;
+
+  if (data.mode && data.mode !== "balanced") config.mode = data.mode;
+  if (data.forceOcr) config.forceOcr = data.forceOcr;
+  if (data.disableImageExtraction)
     config.disableImageExtraction = data.disableImageExtraction;
-  if (data.disableOcrMath !== undefined)
-    config.disableOcrMath = data.disableOcrMath;
-  if (data.useLlm !== undefined) config.useLlm = data.useLlm;
-  if (data.metadata !== undefined) config.metadata = data.metadata;
+  if (data.disableOcrMath) config.disableOcrMath = data.disableOcrMath;
+  if (data.useLlm === false) config.useLlm = data.useLlm;
+
+  if (data.metadata && Object.keys(data.metadata).length > 0)
+    config.metadata = data.metadata;
 
   return Object.keys(config).length > 0 ? config : undefined;
 }

@@ -175,6 +175,12 @@ export default function IngestConfig({
                 )}
               />
 
+              <CheckboxField
+                form={form}
+                name="useLlm"
+                label="Use LLM-enhanced parsing"
+              />
+
               <CheckboxField form={form} name="forceOcr" label="Force OCR" />
 
               <CheckboxField
@@ -187,12 +193,6 @@ export default function IngestConfig({
                 form={form}
                 name="disableOcrMath"
                 label="Disable OCR math"
-              />
-
-              <CheckboxField
-                form={form}
-                name="useLlm"
-                label="Use LLM-enhanced parsing"
               />
             </>
           )}

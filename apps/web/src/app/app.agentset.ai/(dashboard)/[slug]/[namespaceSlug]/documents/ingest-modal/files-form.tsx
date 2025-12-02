@@ -158,7 +158,13 @@ const ModeField = ({ form }: { form: UseFormReturn<any> }) => {
 
 export default function FilesForm({ onSuccess }: BaseIngestFormProps) {
   const form = useZodForm(filesSchema, {
-    defaultValues: { name: "", sourceType: "upload", files: [], urls: [""] },
+    defaultValues: {
+      name: "",
+      sourceType: "upload",
+      files: [],
+      urls: [""],
+      useLlm: true,
+    },
   });
 
   const sourceType = form.watch("sourceType");
