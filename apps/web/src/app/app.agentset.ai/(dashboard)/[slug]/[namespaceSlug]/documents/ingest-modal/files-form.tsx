@@ -1,5 +1,5 @@
 import type { UseFormReturn } from "react-hook-form";
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { useOrganization } from "@/hooks/use-organization";
 import { useUploadFiles } from "@/hooks/use-upload";
 import { useZodForm } from "@/hooks/use-zod-form";
@@ -23,7 +23,6 @@ import { FileUploader } from "@agentset/ui/file-uploader";
 import {
   Form,
   FormControl,
-  FormDescription,
   FormField,
   FormItem,
   FormLabel,
@@ -39,26 +38,45 @@ import IngestConfig from "./config";
 import { DynamicArrayField, extractConfig } from "./shared";
 import { useIngest } from "./use-ingest";
 
-type SourceType = "upload" | "remote";
-
-const uploadSchema = z
+const filesSchema = z
   .object({
     name: z.string().optional(),
+    sourceType: z.enum(["upload", "remote"]),
     files: z
       .array(z.instanceof(File))
-      .min(1, { message: "File is required" })
       .max(100, { message: "Maximum 100 files" }),
+    urls: z.array(z.string()),
   })
-  .extend(configSchema.shape);
-
-const remoteSchema = z
-  .object({
-    name: z.string().optional(),
-    urls: z
-      .array(z.url("Please enter a valid URL"))
-      .min(1, "Add at least one URL"),
-  })
-  .extend(configSchema.shape);
+  .extend(configSchema.shape)
+  .superRefine((data, ctx) => {
+    if (data.sourceType === "upload" && data.files.length === 0) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "At least one file is required",
+        path: ["files"],
+      });
+    }
+    if (data.sourceType === "remote") {
+      const validUrls = data.urls.filter(Boolean);
+      if (validUrls.length === 0) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: "At least one URL is required",
+          path: ["urls"],
+        });
+      }
+      for (let i = 0; i < data.urls.length; i++) {
+        const url = data.urls[i];
+        if (url && !z.url().safeParse(url).success) {
+          ctx.addIssue({
+            code: z.ZodIssueCode.custom,
+            message: "Please enter a valid URL",
+            path: ["urls", i],
+          });
+        }
+      }
+    }
+  });
 
 const ACCEPT = SUPPORTED_TYPES.reduce(
   (acc, type) => {
@@ -139,15 +157,11 @@ const ModeField = ({ form }: { form: UseFormReturn<any> }) => {
 };
 
 export default function FilesForm({ onSuccess }: BaseIngestFormProps) {
-  const [sourceType, setSourceType] = useState<SourceType>("upload");
-
-  const uploadForm = useZodForm(uploadSchema, {
-    defaultValues: { name: "", files: [] },
+  const form = useZodForm(filesSchema, {
+    defaultValues: { name: "", sourceType: "upload", files: [], urls: [""] },
   });
 
-  const remoteForm = useZodForm(remoteSchema, {
-    defaultValues: { urls: [""] },
-  });
+  const sourceType = form.watch("sourceType");
 
   const {
     mutateAsync,
@@ -158,8 +172,8 @@ export default function FilesForm({ onSuccess }: BaseIngestFormProps) {
     onSuccess,
     extraAnalytics: () =>
       sourceType === "upload"
-        ? { fileCount: uploadForm.getValues("files").length }
-        : { urlCount: remoteForm.getValues("urls").length },
+        ? { fileCount: form.getValues("files").length }
+        : { urlCount: form.getValues("urls").filter(Boolean).length },
   });
 
   const { onUpload, progresses, isUploading } = useUploadFiles({
@@ -167,168 +181,145 @@ export default function FilesForm({ onSuccess }: BaseIngestFormProps) {
   });
 
   // Auto-set name from single file
-  const files = uploadForm.watch("files");
-  const { setValue } = uploadForm;
+  const files = form.watch("files");
+  const { setValue } = form;
   useEffect(() => {
     if (files.length === 1 && files[0]?.name) {
       setValue("name", files[0].name);
     }
   }, [files, setValue]);
 
-  const onUploadSubmit = async (data: z.infer<typeof uploadSchema>) => {
-    const uploaded = await onUpload(data.files);
-    if (uploaded.length === 0) return;
+  const onSubmit = async (data: z.infer<typeof filesSchema>) => {
+    if (data.sourceType === "upload") {
+      const uploaded = await onUpload(data.files);
+      if (uploaded.length === 0) return;
 
-    await mutateAsync({
-      namespaceId: namespace.id,
-      name: data.name,
-      payload: {
-        type: "BATCH",
-        items: uploaded.map((file) => ({
-          type: "MANAGED_FILE",
-          key: file.key,
-          fileName: file.name,
-        })),
-      },
-      config: extractConfig(data),
-    });
-  };
-
-  const onRemoteSubmit = async (data: z.infer<typeof remoteSchema>) => {
-    await mutateAsync({
-      namespaceId: namespace.id,
-      name: data.name,
-      payload: {
-        type: "BATCH",
-        items: data.urls.filter(Boolean).map((url) => ({
-          type: "FILE",
-          fileUrl: url,
-        })),
-      },
-      config: extractConfig(data),
-    });
+      await mutateAsync({
+        namespaceId: namespace.id,
+        name: data.name,
+        payload: {
+          type: "BATCH",
+          items: uploaded.map((file) => ({
+            type: "MANAGED_FILE",
+            key: file.key,
+            fileName: file.name,
+          })),
+        },
+        config: extractConfig(data),
+      });
+    } else {
+      await mutateAsync({
+        namespaceId: namespace.id,
+        name: data.name,
+        payload: {
+          type: "BATCH",
+          items: data.urls.filter(Boolean).map((url) => ({
+            type: "FILE",
+            fileUrl: url,
+          })),
+        },
+        config: extractConfig(data),
+      });
+    }
   };
 
   const isPending = isMutating || isUploading;
 
   return (
-    <div className="flex flex-col gap-6 py-4">
-      <div className="flex flex-col gap-3">
-        <Label>Source</Label>
-        <RadioGroup
-          value={sourceType}
-          onValueChange={(v) => setSourceType(v as SourceType)}
-          className="flex gap-4"
-        >
-          <div className="flex items-center gap-2">
-            <RadioGroupItem value="upload" id="upload" />
-            <Label htmlFor="upload" className="cursor-pointer font-normal">
-              Upload files
-            </Label>
-          </div>
-          <div className="flex items-center gap-2">
-            <RadioGroupItem value="remote" id="remote" />
-            <Label htmlFor="remote" className="cursor-pointer font-normal">
-              Remote URL
-            </Label>
-          </div>
-        </RadioGroup>
-      </div>
+    <Form {...form}>
+      <form
+        onSubmit={form.handleSubmit(onSubmit)}
+        className="flex flex-col gap-6 py-4"
+      >
+        <FormField
+          control={form.control}
+          name="name"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Name (optional)</FormLabel>
+              <FormControl>
+                <Input placeholder="2025 Reports" {...field} />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
 
-      {sourceType === "upload" ? (
-        <Form {...uploadForm}>
-          <form onSubmit={uploadForm.handleSubmit(onUploadSubmit)}>
-            <div className="flex flex-col gap-6">
-              <FormField
-                control={uploadForm.control}
-                name="name"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Name (optional)</FormLabel>
-                    <FormControl>
-                      <Input placeholder="2025 Reports" {...field} />
-                    </FormControl>
-                    <FormDescription>A name for this batch</FormDescription>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+        <div className="flex flex-col gap-3">
+          <FormLabel>Files</FormLabel>
+          <FormField
+            control={form.control}
+            name="sourceType"
+            render={({ field }) => (
+              <RadioGroup
+                value={field.value}
+                onValueChange={field.onChange}
+                className="flex gap-4"
+              >
+                <div className="flex items-center gap-2">
+                  <RadioGroupItem value="upload" id="upload" />
+                  <Label
+                    htmlFor="upload"
+                    className="cursor-pointer font-normal"
+                  >
+                    Upload
+                  </Label>
+                </div>
+                <div className="flex items-center gap-2">
+                  <RadioGroupItem value="remote" id="remote" />
+                  <Label
+                    htmlFor="remote"
+                    className="cursor-pointer font-normal"
+                  >
+                    Remote
+                  </Label>
+                </div>
+              </RadioGroup>
+            )}
+          />
 
-              <FormField
-                control={uploadForm.control}
-                name="files"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Files</FormLabel>
-                    <FormControl>
-                      <FileUploader
-                        value={field.value}
-                        onValueChange={field.onChange}
-                        maxFileCount={100}
-                        multiple
-                        maxSize={MAX_UPLOAD_SIZE}
-                        progresses={progresses}
-                        accept={ACCEPT}
-                        disabled={isPending}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+          {sourceType === "upload" ? (
+            <FormField
+              control={form.control}
+              name="files"
+              render={({ field }) => (
+                <FormItem>
+                  <FormControl>
+                    <FileUploader
+                      value={field.value}
+                      onValueChange={field.onChange}
+                      maxFileCount={100}
+                      multiple
+                      maxSize={MAX_UPLOAD_SIZE}
+                      progresses={progresses}
+                      accept={ACCEPT}
+                      disabled={isPending}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          ) : (
+            <DynamicArrayField
+              form={form}
+              name="urls"
+              placeholder="https://example.com"
+              addButtonText="Add"
+              inputType="url"
+            />
+          )}
+        </div>
 
-              <ModeField form={uploadForm} />
-              <IngestConfig form={uploadForm} />
-            </div>
+        <ModeField form={form} />
+        <IngestConfig form={form} />
 
-            <DialogFooter className="mt-6">
-              <Button type="submit" isLoading={isPending}>
-                Ingest
-              </Button>
-            </DialogFooter>
-          </form>
-        </Form>
-      ) : (
-        <Form {...remoteForm}>
-          <form onSubmit={remoteForm.handleSubmit(onRemoteSubmit)}>
-            <div className="flex flex-col gap-6">
-              <FormField
-                control={remoteForm.control}
-                name="name"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Name (optional)</FormLabel>
-                    <FormControl>
-                      <Input placeholder="2025 Reports" {...field} />
-                    </FormControl>
-                    <FormDescription>A name for this batch</FormDescription>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <DynamicArrayField
-                form={remoteForm}
-                name="urls"
-                label="URLs"
-                placeholder="https://example.com"
-                addButtonText="Add URL"
-                inputType="url"
-                showLabelOnFirstOnly
-              />
-
-              <ModeField form={remoteForm} />
-              <IngestConfig form={remoteForm} />
-            </div>
-
-            <DialogFooter className="mt-6">
-              <Button type="submit" isLoading={isPending}>
-                Ingest
-              </Button>
-            </DialogFooter>
-          </form>
-        </Form>
-      )}
-    </div>
+        <DialogFooter>
+          <Button type="submit" isLoading={isPending}>
+            Ingest
+          </Button>
+        </DialogFooter>
+      </form>
+    </Form>
   );
 }

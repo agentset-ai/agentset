@@ -1,5 +1,5 @@
 import type { FieldValues, UseFormReturn } from "react-hook-form";
-import { Trash2Icon } from "lucide-react";
+import { PlusIcon, XIcon } from "lucide-react";
 
 import type { IngestJobConfig } from "@agentset/validation";
 import { Button } from "@agentset/ui/button";
@@ -12,22 +12,10 @@ import {
 } from "@agentset/ui/form";
 import { Input } from "@agentset/ui/input";
 
-// ============================================================================
-// Types
-// ============================================================================
-
 export interface BaseIngestFormProps {
   onSuccess: () => void;
 }
 
-// ============================================================================
-// Config Utilities
-// ============================================================================
-
-/**
- * Extract config from form data, removing undefined values.
- * Only includes fields that were explicitly set by the user.
- */
 export function extractConfig<T extends IngestJobConfig>(
   data: T,
 ): IngestJobConfig | undefined {
@@ -47,10 +35,6 @@ export function extractConfig<T extends IngestJobConfig>(
   return Object.keys(config).length > 0 ? config : undefined;
 }
 
-// ============================================================================
-// Reusable Components
-// ============================================================================
-
 interface DynamicArrayFieldProps {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   form: UseFormReturn<any>;
@@ -62,9 +46,6 @@ interface DynamicArrayFieldProps {
   showLabelOnFirstOnly?: boolean;
 }
 
-/**
- * Dynamic array field for adding/removing string inputs
- */
 export function DynamicArrayField({
   form,
   name,
@@ -124,7 +105,7 @@ export function DynamicArrayField({
               size="icon"
               onClick={() => removeItem(index)}
             >
-              <Trash2Icon className="h-4 w-4" />
+              <XIcon className="size-4" />
             </Button>
           )}
         </div>
@@ -135,6 +116,7 @@ export function DynamicArrayField({
         className="mt-1 w-fit"
         onClick={addItem}
       >
+        <PlusIcon className="size-4" />
         {addButtonText}
       </Button>
     </div>

@@ -46,7 +46,7 @@ export default function YoutubeForm({ onSuccess }: BaseIngestFormProps) {
   });
 
   const form = useZodForm(schema, {
-    defaultValues: { urls: [""], transcriptLanguages: ["en"] },
+    defaultValues: { name: "", urls: [""], transcriptLanguages: ["en"] },
   });
 
   const onSubmit = async (data: z.infer<typeof schema>) => {
@@ -82,7 +82,6 @@ export default function YoutubeForm({ onSuccess }: BaseIngestFormProps) {
                 <FormControl>
                   <Input placeholder="Product tutorials" {...field} />
                 </FormControl>
-                <FormDescription>A name for this batch</FormDescription>
                 <FormMessage />
               </FormItem>
             )}
@@ -97,7 +96,7 @@ export default function YoutubeForm({ onSuccess }: BaseIngestFormProps) {
               form={form}
               name="urls"
               placeholder="https://www.youtube.com/watch?v=..."
-              addButtonText="Add URL"
+              addButtonText="Add"
               inputType="url"
             />
           </div>

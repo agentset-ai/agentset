@@ -1,5 +1,4 @@
 import type { UseFormReturn } from "react-hook-form";
-import type React from "react";
 import { useState } from "react";
 import { useZodForm } from "@/hooks/use-zod-form";
 import { z } from "zod/v4";
@@ -51,6 +50,7 @@ export default function CrawlForm({ onSuccess }: BaseIngestFormProps) {
 
   const form = useZodForm(schema, {
     defaultValues: {
+      name: "",
       url: "",
       includePaths: [""],
       excludePaths: [""],
@@ -95,7 +95,7 @@ export default function CrawlForm({ onSuccess }: BaseIngestFormProps) {
                 <FormControl>
                   <Input placeholder="Marketing site crawl" {...field} />
                 </FormControl>
-                <FormDescription>A name for this batch</FormDescription>
+
                 <FormMessage />
               </FormItem>
             )}
@@ -152,7 +152,11 @@ interface CrawlSettingsProps {
   setHeadersJson: (value: string) => void;
 }
 
-function CrawlSettings({ form, headersJson, setHeadersJson }: CrawlSettingsProps) {
+function CrawlSettings({
+  form,
+  headersJson,
+  setHeadersJson,
+}: CrawlSettingsProps) {
   return (
     <>
       <div className="grid grid-cols-1 gap-4 md:grid-cols-2">

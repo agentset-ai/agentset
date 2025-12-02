@@ -28,14 +28,14 @@ import YoutubeForm from "./youtube-form";
 const TABS = [
   { value: "files", label: "Files", Component: FilesForm },
   { value: "text", label: "Text", Component: TextForm },
-  { value: "crawl", label: "Crawl", Component: CrawlForm },
+  { value: "website", label: "Website", Component: CrawlForm },
   { value: "youtube", label: "YouTube", Component: YoutubeForm },
 ] as const;
 
 const SUCCESS_MESSAGES: Record<(typeof TABS)[number]["value"], string> = {
   files: "File ingestion job created",
   text: "Text ingestion job created",
-  crawl: "Crawl ingestion job created",
+  website: "Website ingestion job created",
   youtube: "YouTube ingestion job created",
 };
 
