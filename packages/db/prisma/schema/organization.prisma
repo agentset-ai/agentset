@@ -63,7 +63,7 @@ model Member {
   organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   userId         String
   user           User         @relation(fields: [userId], references: [id], onDelete: Cascade)
-  role           String
+  role           String       @default("member")
   createdAt      DateTime
 
   @@unique([organizationId, userId])
@@ -76,10 +76,13 @@ model Invitation {
   organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   email          String
   role           String?
-  status         String
+  status         String       @default("pending")
   expiresAt      DateTime
+  createdAt      DateTime     @default(now())
   inviterId      String
   user           User         @relation(fields: [inviterId], references: [id], onDelete: Cascade)
 
+  @@index([organizationId])
+  @@index([email])
   @@map("invitation")
 }
