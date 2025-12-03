@@ -30,7 +30,10 @@ export const makeChunk = (
 };
 
 export const metadataToChunk = (metadata?: VectorStoreMetadata) => {
-  if (!metadata || !metadata.text || !metadata.id) return null;
+  if (!metadata) return null;
+
+  // either _node_content or text and id are required
+  if (!metadata._node_content && (!metadata.text || !metadata.id)) return null;
 
   const nodeContent = metadata?._node_content;
   if (!nodeContent) {
