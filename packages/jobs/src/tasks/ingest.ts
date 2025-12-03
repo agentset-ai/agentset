@@ -104,6 +104,7 @@ export const ingestJob = schemaTask({
     } satisfies Partial<Prisma.DocumentCreateArgs["data"]>;
 
     let documentsIds: string[] = [];
+    let overLimitCount = 0;
 
     if (ingestionJob.payload.type === "CRAWL") {
       const token = await wait.createToken({ timeout: "2h" });
@@ -139,41 +140,68 @@ export const ingestJob = schemaTask({
       });
 
       const initialBody = (await response.json()) as { call_id: string };
-      if (response.status !== 200 || !initialBody.call_id) {
+      if (response.status !== 200 || !initialBody.call_id)
         throw new Error("Partition Error");
-      }
 
       const result = await wait
         .forToken<CrawlPartitionResult | undefined>(token.id)
         .unwrap();
 
-      if (!result || result.status !== 200) {
-        throw new Error("Partition Error");
-      }
+      if (!result || result.status !== 200) throw new Error("Partition Error");
+
+      // Fetch fresh org data for limit checks
+      const org = await db.organization.findUniqueOrThrow({
+        where: { id: ingestionJob.namespace.organization.id },
+        select: { plan: true, pagesLimit: true, totalPages: true },
+      });
+
+      const isPro = org.plan === "pro";
+      const availablePages = isPro ? Infinity : org.pagesLimit - org.totalPages;
+      let usedPages = 0;
 
       const batchDocuments = chunkArray(result.documents, 20);
       for (const batch of batchDocuments) {
-        const batchDocuments = await db.document.createManyAndReturn({
-          select: { id: true },
-          data: batch.map((doc) => ({
+        const docsWithStatus = batch.map((doc) => {
+          const docPages = doc.total_characters / 1000;
+          const isOverLimit = !isPro && usedPages + docPages > availablePages;
+
+          if (!isOverLimit) {
+            usedPages += docPages;
+          } else {
+            overLimitCount++;
+          }
+
+          return {
             ...commonData,
             id: doc.id,
-            status: DocumentStatus.QUEUED,
+            status: isOverLimit ? DocumentStatus.FAILED : DocumentStatus.QUEUED,
+            error: isOverLimit ? "Pages limit exceeded" : null,
             name: doc.url,
             source: {
-              type: "CRAWLED_PAGE",
+              type: "CRAWLED_PAGE" as const,
             },
             totalCharacters: doc.total_characters,
             totalChunks: doc.total_chunks,
-            totalPages: doc.total_characters / 1000,
+            totalPages: docPages,
             documentProperties: {
               fileSize: doc.total_bytes,
               mimeType: "text/html",
             },
-          })),
+            failedAt: isOverLimit ? new Date() : null,
+          };
         });
 
-        documentsIds = documentsIds.concat(batchDocuments.map((doc) => doc.id));
+        const createdDocs = await db.document.createManyAndReturn({
+          select: { id: true, status: true },
+          data: docsWithStatus,
+        });
+
+        // Only add QUEUED docs to processing queue
+        documentsIds = documentsIds.concat(
+          createdDocs
+            .filter((doc) => doc.status === DocumentStatus.QUEUED)
+            .map((doc) => doc.id),
+        );
       }
     } else if (ingestionJob.payload.type === "YOUTUBE") {
       const token = await wait.createToken({ timeout: "2h" });
@@ -217,30 +245,60 @@ export const ingestJob = schemaTask({
         throw new Error("Partition Error");
       }
 
+      // Fetch fresh org data for limit checks
+      const org = await db.organization.findUniqueOrThrow({
+        where: { id: ingestionJob.namespace.organization.id },
+        select: { plan: true, pagesLimit: true, totalPages: true },
+      });
+
+      const isPro = org.plan === "pro";
+      const availablePages = isPro ? Infinity : org.pagesLimit - org.totalPages;
+      let usedPages = 0;
+
       const batchDocuments = chunkArray(result.documents, 20);
       for (const batch of batchDocuments) {
-        const batchDocuments = await db.document.createManyAndReturn({
-          select: { id: true },
-          data: batch.map((doc) => ({
+        const docsWithStatus = batch.map((doc) => {
+          const docPages = doc.total_characters / 1000;
+          const isOverLimit = !isPro && usedPages + docPages > availablePages;
+
+          if (!isOverLimit) {
+            usedPages += docPages;
+          } else {
+            overLimitCount++;
+          }
+
+          return {
             ...commonData,
             id: doc.id,
-            status: DocumentStatus.QUEUED,
+            status: isOverLimit ? DocumentStatus.FAILED : DocumentStatus.QUEUED,
+            error: isOverLimit ? "Pages limit exceeded" : null,
             name: doc.title,
             source: {
-              type: "YOUTUBE_VIDEO",
+              type: "YOUTUBE_VIDEO" as const,
               videoId: doc.video_id,
             },
             totalCharacters: doc.total_characters,
             totalChunks: doc.total_chunks,
-            totalPages: doc.total_characters / 1000,
+            totalPages: docPages,
             documentProperties: {
               fileSize: doc.total_bytes,
               mimeType: "text/markdown",
             },
-          })),
+            failedAt: isOverLimit ? new Date() : null,
+          };
         });
 
-        documentsIds = documentsIds.concat(batchDocuments.map((doc) => doc.id));
+        const createdDocs = await db.document.createManyAndReturn({
+          select: { id: true, status: true },
+          data: docsWithStatus,
+        });
+
+        // Only add QUEUED docs to processing queue
+        documentsIds = documentsIds.concat(
+          createdDocs
+            .filter((doc) => doc.status === DocumentStatus.QUEUED)
+            .map((doc) => doc.id),
+        );
       }
     } else if (
       ingestionJob.payload.type === "FILE" ||
@@ -405,11 +463,18 @@ export const ingestJob = schemaTask({
           }
     ) satisfies Prisma.NamespaceUpdateInput | Prisma.OrganizationUpdateInput;
 
+    const jobFailed = !success || overLimitCount > 0;
+    const jobError = !success
+      ? "Failed to process documents"
+      : overLimitCount > 0
+        ? `${overLimitCount} document(s) exceeded pages limit`
+        : null;
+
     await db.$transaction([
       db.ingestJob.update({
         where: { id: ingestionJob.id },
         data: {
-          ...(success
+          ...(!jobFailed
             ? {
                 status: IngestJobStatus.COMPLETED,
                 completedAt: new Date(),
@@ -420,7 +485,7 @@ export const ingestJob = schemaTask({
                 status: IngestJobStatus.FAILED,
                 completedAt: null,
                 failedAt: new Date(),
-                error: "Failed to process documents",
+                error: jobError,
               }),
         },
         select: { id: true },
