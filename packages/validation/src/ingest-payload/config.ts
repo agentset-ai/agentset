@@ -89,7 +89,6 @@ export const baseConfigSchema = z.object({
   chunkingStrategy: z
     .enum(["basic", "by_title"])
     .meta({
-      id: "chunking-strategy",
       description:
         "[Deprecated] The legacy chunking strategy. This option is ignored by the current partition pipeline and kept only for backwards compatibility.",
       deprecated: true,
@@ -103,7 +102,6 @@ export const baseConfigSchema = z.object({
   strategy: z
     .enum(["auto", "fast", "hi_res", "ocr_only"])
     .meta({
-      id: "strategy",
       description:
         "[Deprecated] Legacy processing strategy used by the previous partition API. This option is ignored by the current pipeline and kept only for backwards compatibility.",
       deprecated: true,
