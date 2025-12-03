@@ -102,6 +102,28 @@ export const createIngestJob = async ({
     throw new Error("INVALID_PAYLOAD");
   }
 
+  let config = structuredClone(data.config);
+  if (
+    config &&
+    (finalPayload.type === "TEXT" ||
+      finalPayload.type === "CRAWL" ||
+      finalPayload.type === "YOUTUBE")
+  ) {
+    // filter fields that are not supported for the payload type
+    if (config.disableImageExtraction !== undefined)
+      delete config.disableImageExtraction;
+    if (config.disableOcrMath !== undefined) delete config.disableOcrMath;
+    if (config.forceOcr !== undefined) delete config.forceOcr;
+    if (config.mode !== undefined) delete config.mode;
+    if (config.useLlm !== undefined) delete config.useLlm;
+  }
+
+  // filter deprecated fields
+  if (config?.chunkOverlap !== undefined) delete config.chunkOverlap;
+  if (config?.maxChunkSize !== undefined) delete config.maxChunkSize;
+  if (config?.chunkingStrategy !== undefined) delete config.chunkingStrategy;
+  if (config?.strategy !== undefined) delete config.strategy;
+
   const [job] = await db.$transaction([
     db.ingestJob.create({
       data: {
@@ -109,7 +131,7 @@ export const createIngestJob = async ({
         tenantId,
         status: IngestJobStatus.QUEUED,
         name: data.name,
-        config: data.config,
+        config: config,
         externalId: data.externalId,
         payload: finalPayload,
       },
