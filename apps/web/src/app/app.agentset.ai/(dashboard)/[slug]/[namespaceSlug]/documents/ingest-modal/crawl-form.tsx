@@ -62,21 +62,17 @@ export default function CrawlForm({ onSuccess }: BaseIngestFormProps) {
     const excludePaths = data.excludePaths?.filter(Boolean);
     const hasHeaders = data.headers && Object.keys(data.headers).length > 0;
 
-    const options = {
-      ...(data.maxDepth && { maxDepth: data.maxDepth }),
-      ...(data.limit && { limit: data.limit }),
-      ...(includePaths?.length && { includePaths }),
-      ...(excludePaths?.length && { excludePaths }),
-      ...(hasHeaders && { headers: data.headers }),
-    };
-
     await mutateAsync({
       namespaceId: namespace.id,
       name: data.name,
       payload: {
         type: "CRAWL",
         url: data.url,
-        ...(Object.keys(options).length > 0 && { options }),
+        ...(data.maxDepth && { maxDepth: data.maxDepth }),
+        ...(data.limit && { limit: data.limit }),
+        ...(includePaths?.length && { includePaths }),
+        ...(excludePaths?.length && { excludePaths }),
+        ...(hasHeaders && { headers: data.headers }),
       },
       config: extractConfig(data),
     });

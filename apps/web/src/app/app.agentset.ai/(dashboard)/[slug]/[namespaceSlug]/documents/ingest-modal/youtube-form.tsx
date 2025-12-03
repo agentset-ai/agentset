@@ -60,10 +60,8 @@ export default function YoutubeForm({ onSuccess }: BaseIngestFormProps) {
       payload: {
         type: "YOUTUBE",
         urls,
-        ...(((transcriptLanguages && transcriptLanguages.length > 0) ||
-          includeMetadata) && {
-          options: { transcriptLanguages, includeMetadata },
-        }),
+        ...(transcriptLanguages?.length && { transcriptLanguages }),
+        ...(includeMetadata && { includeMetadata }),
       },
       config: extractConfig(data),
     });

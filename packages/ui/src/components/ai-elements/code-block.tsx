@@ -13,7 +13,7 @@ import { Skeleton } from "../ui/skeleton";
 
 type CodeBlockProps = HTMLAttributes<HTMLDivElement> & {
   code: string;
-  language: BundledLanguage;
+  language: BundledLanguage | "txt";
   showLineNumbers?: boolean;
 };
 
@@ -48,7 +48,7 @@ const lineNumberTransformer: ShikiTransformer = {
 
 export async function highlightCode(
   code: string,
-  language: BundledLanguage,
+  language: BundledLanguage | "txt",
   showLineNumbers = false,
 ) {
   const transformers: ShikiTransformer[] = showLineNumbers

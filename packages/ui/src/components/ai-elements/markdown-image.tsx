@@ -45,10 +45,12 @@ export const ImageComponent = ({
     }
 
     try {
+      // @ts-ignore
       const response = await fetch(src);
       const blob = await response.blob();
 
       // Extract filename from URL or use alt text with proper extension
+      // @ts-ignore
       const urlPath = new URL(src, window.location.origin).pathname;
       const originalFilename = urlPath.split("/").pop() || "";
       const extension = originalFilename.split(".").pop();
