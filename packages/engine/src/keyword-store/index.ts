@@ -3,46 +3,27 @@ import type {
   SearchResult,
   SelectFields,
 } from "@azure/search-documents";
-import {
-  AzureKeyCredential,
-  odata,
-  SearchClient,
-} from "@azure/search-documents";
+import { odata } from "@azure/search-documents";
 import { MetadataMode, TextNode } from "@llamaindex/core/schema";
 
+import type {
+  VectorStoreMetadata,
+  VectorStoreResult,
+} from "../vector-store/common/vector-store";
+import type { KeywordSearchChunk } from "./types";
 import { metadataToChunk } from "../chunk";
-import { env } from "../env";
-import { VectorStoreResult } from "../vector-store/common/vector-store";
-
-export type KeywordSearchChunk = {
-  id: string;
-  text: string;
-  namespaceId: string;
-  tenantId?: string | null;
-  documentId: string;
-  metadata: string;
-  metadata_array?: {
-    key: string;
-    value: string;
-  }[];
-};
+import { getKeywordSearchClient } from "./client";
 
 const topLevelMetadataKeys = [
   "namespaceId",
   "documentId",
   "tenantId",
-] satisfies (keyof KeywordSearchChunk)[];
-
-const keywordSearchClient = new SearchClient<KeywordSearchChunk>(
-  env.AZURE_SEARCH_URL,
-  env.AZURE_SEARCH_INDEX,
-  new AzureKeyCredential(env.AZURE_SEARCH_KEY),
-);
+] as const satisfies (keyof KeywordSearchChunk)[];
 
 const safeParse = (json: string) => {
   try {
-    return JSON.parse(json);
-  } catch (error) {
+    return JSON.parse(json) as Record<string, unknown>;
+  } catch {
     return null;
   }
 };
@@ -96,7 +77,7 @@ export class KeywordStore {
     if (documentId) filter += ` and documentId eq '${documentId}'`;
     if (extraFilter) filter += ` and ${extraFilter}`;
 
-    const results = await keywordSearchClient.search(query, {
+    const results = await getKeywordSearchClient().search(query, {
       filter,
       top: limit,
       skip: (page - 1) * limit,
@@ -139,7 +120,7 @@ export class KeywordStore {
         });
 
         const node =
-          metadataToChunk(metadata) ||
+          metadataToChunk(metadata as unknown as VectorStoreMetadata) ||
           new TextNode({ id_: id, text: document.text, metadata });
 
         return {
@@ -167,7 +148,7 @@ export class KeywordStore {
     if (this.tenantId) filter += ` and tenantId eq '${this.tenantId}'`;
     if (documentId) filter += ` and documentId eq '${documentId}'`;
 
-    const results = await keywordSearchClient.search(undefined, {
+    const results = await getKeywordSearchClient().search(undefined, {
       filter,
       top: limit,
       select: ["id"],
@@ -202,7 +183,7 @@ export class KeywordStore {
       metadata?: Record<string, unknown>;
     }[],
   ) {
-    await keywordSearchClient.mergeOrUploadDocuments(
+    await getKeywordSearchClient().mergeOrUploadDocuments(
       chunks.map((chunk) => {
         const metadata = chunk.metadata ?? {};
 
@@ -237,7 +218,7 @@ export class KeywordStore {
   }
 
   async deleteByIds(ids: string[]) {
-    await keywordSearchClient.deleteDocuments(
+    await getKeywordSearchClient().deleteDocuments(
       "id",
       ids.map((id) => this.encodeId(id)),
     );

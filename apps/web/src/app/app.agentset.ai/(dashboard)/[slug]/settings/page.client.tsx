@@ -4,7 +4,7 @@ import { useMemo } from "react";
 import { useOrganization } from "@/hooks/use-organization";
 import { logEvent } from "@/lib/analytics";
 import { authClient } from "@/lib/auth-client";
-import { useTRPC } from "@/trpc/react";
+import { useORPC } from "@/orpc/react";
 import { useRouter } from "@bprogress/next/app";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
@@ -64,7 +64,7 @@ export default function SettingsPage() {
     },
   });
 
-  const trpc = useTRPC();
+  const orpc = useORPC();
   const queryClient = useQueryClient();
   const { mutateAsync: updateOrganization, isPending } = useMutation({
     mutationFn: async (data: z.infer<typeof formSchema>) => {
@@ -83,13 +83,11 @@ export default function SettingsPage() {
         nameChanged: organization.name !== data.name,
         slugChanged: organization.slug !== data.slug,
       });
-
+      const queryKey = orpc.organization.getBySlug.key({
+        input: { slug: organization.slug },
+      });
       // Invalidate the organization query to refetch updated data
-      queryClient.invalidateQueries(
-        trpc.organization.getBySlug.queryFilter({
-          slug: organization.slug,
-        }),
-      );
+      void queryClient.invalidateQueries({ queryKey });
       toast.success("Organization updated");
 
       // if slug changed, redirect to the new slug

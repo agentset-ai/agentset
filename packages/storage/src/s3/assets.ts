@@ -1,7 +1,12 @@
+import {
+  DeleteObjectCommand,
+  PutObjectCommand,
+  S3Client,
+} from "@aws-sdk/client-s3";
+
 import { fetchWithTimeout } from "@agentset/utils";
 
 import { env } from "../env";
-import { deleteObject, uploadObject } from "./base";
 
 interface ImageOptions {
   contentType?: string;
@@ -9,8 +14,43 @@ interface ImageOptions {
   height?: number;
 }
 
+const getAssetsS3Client = (): S3Client => {
+  if (
+    !env.ASSETS_S3_ENDPOINT ||
+    !env.ASSETS_S3_ACCESS_KEY ||
+    !env.ASSETS_S3_SECRET_KEY ||
+    !env.ASSETS_S3_BUCKET ||
+    !env.ASSETS_S3_URL
+  ) {
+    throw new Error(
+      "Assets S3 is not configured. Please set ASSETS_S3_ENDPOINT, ASSETS_S3_ACCESS_KEY, ASSETS_S3_SECRET_KEY, ASSETS_S3_BUCKET, and ASSETS_S3_URL environment variables.",
+    );
+  }
+  try {
+    new URL(env.ASSETS_S3_ENDPOINT);
+    new URL(env.ASSETS_S3_URL);
+  } catch (error) {
+    throw new Error(
+      `Assets S3 URLs are not valid. ASSETS_S3_ENDPOINT: ${env.ASSETS_S3_ENDPOINT}, ASSETS_S3_URL: ${env.ASSETS_S3_URL}. Please set valid URLs.`,
+    );
+  }
+  return new S3Client({
+    region: "auto",
+    endpoint: env.ASSETS_S3_ENDPOINT,
+    credentials: {
+      accessKeyId: env.ASSETS_S3_ACCESS_KEY,
+      secretAccessKey: env.ASSETS_S3_SECRET_KEY,
+    },
+  });
+};
+
 export function deleteAsset(key: string) {
-  return deleteObject(key, { bucket: env.ASSETS_S3_BUCKET });
+  return getAssetsS3Client().send(
+    new DeleteObjectCommand({
+      Bucket: env.ASSETS_S3_BUCKET!,
+      Key: key,
+    }),
+  );
 }
 
 const isBase64 = (str: string) => {
@@ -97,11 +137,15 @@ export async function uploadImage(
   const uint8Array = new Uint8Array(buffer);
 
   try {
-    await uploadObject(key, uint8Array, {
-      bucket: env.ASSETS_S3_BUCKET,
-      fileSize: uploadBody.size,
-      contentType: opts?.contentType,
-    });
+    await getAssetsS3Client().send(
+      new PutObjectCommand({
+        Bucket: env.ASSETS_S3_BUCKET!,
+        Key: key,
+        Body: uint8Array,
+        ContentLength: uploadBody.size,
+        ContentType: opts?.contentType,
+      }),
+    );
 
     return {
       url: `${env.ASSETS_S3_URL}/${key}`,
@@ -111,3 +155,5 @@ export async function uploadImage(
     throw new Error(`Failed to upload file: ${error.message}`);
   }
 }
+
+export default getAssetsS3Client;

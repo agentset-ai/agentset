@@ -1,10 +1,11 @@
 "use client";
 
+import type { NamespaceOutputs } from "@/server/orpc/types";
 import { DeleteConfirmation } from "@/components/delete-confirmation";
 import { useNamespace } from "@/hooks/use-namespace";
 import { useOrganization } from "@/hooks/use-organization";
 import { logEvent } from "@/lib/analytics";
-import { useTRPC } from "@/trpc/react";
+import { useORPC } from "@/orpc/react";
 import { useRouter } from "@bprogress/next/app";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
@@ -15,11 +16,11 @@ export function DeleteNamespaceButton() {
   const namespace = useNamespace();
   const organization = useOrganization();
   const router = useRouter();
-  const trpc = useTRPC();
+  const orpc = useORPC();
   const queryClient = useQueryClient();
 
   const { mutate: deleteNamespace, isPending } = useMutation(
-    trpc.namespace.deleteNamespace.mutationOptions({
+    orpc.namespace.deleteNamespace.mutationOptions({
       onSuccess: () => {
         logEvent("namespace_deleted", {
           id: namespace.id,
@@ -27,14 +28,20 @@ export function DeleteNamespaceButton() {
           organizationId: organization.id,
         });
         toast.success("Namespace deleted");
-        const queryKey = trpc.namespace.getOrgNamespaces.queryKey({
-          slug: organization.slug,
+        queryClient.setQueryData(
+          orpc.namespace.getOrgNamespaces.key({
+            input: { slug: organization.slug },
+          }),
+          (old?: NamespaceOutputs["getOrgNamespaces"][number][]) => {
+            if (!old) return old;
+            return old.filter((ns) => ns.id !== namespace.id);
+          },
+        );
+        void queryClient.invalidateQueries({
+          queryKey: orpc.namespace.getOrgNamespaces.key({
+            input: { slug: organization.slug },
+          }),
         });
-        queryClient.setQueryData(queryKey, (old) => {
-          if (!old) return old;
-          return old.filter((ns) => ns.id !== namespace.id);
-        });
-        void queryClient.invalidateQueries({ queryKey });
         router.push(`/${organization.slug}`);
       },
       onError: (error) => {

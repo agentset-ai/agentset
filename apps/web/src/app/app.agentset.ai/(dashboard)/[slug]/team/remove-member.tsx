@@ -1,7 +1,8 @@
+import type { OrganizationOutputs } from "@/server/orpc/types";
 import { useOrganization } from "@/hooks/use-organization";
 import { logEvent } from "@/lib/analytics";
 import { authClient } from "@/lib/auth-client";
-import { useTRPC } from "@/trpc/react";
+import { useORPC } from "@/orpc/react";
 import { useRouter } from "@bprogress/next/app";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
@@ -18,7 +19,7 @@ export const RemoveMemberButton = ({
   const { id } = useOrganization();
   const router = useRouter();
   const isCurrentMember = currentMemberId === memberId;
-  const trpc = useTRPC();
+  const orpc = useORPC();
   const queryClient = useQueryClient();
 
   const { mutateAsync: removeMember, isPending: isRemoving } = useMutation({
@@ -30,19 +31,22 @@ export const RemoveMemberButton = ({
       });
     },
     onSuccess: () => {
-      const queryFilter = trpc.organization.members.queryFilter({
-        organizationId: id,
+      const queryKey = orpc.organization.members.key({
+        input: { organizationId: id },
       });
 
-      queryClient.setQueryData(queryFilter.queryKey, (old) => {
-        if (!old) return old;
+      queryClient.setQueryData(
+        queryKey,
+        (old?: OrganizationOutputs["members"]) => {
+          if (!old) return old;
 
-        return {
-          ...old,
-          members: old.members.filter((m) => m.id !== memberId),
-        };
-      });
-      void queryClient.invalidateQueries(queryFilter);
+          return {
+            ...old,
+            members: old.members.filter((m) => m.id !== memberId),
+          };
+        },
+      );
+      void queryClient.invalidateQueries({ queryKey });
 
       toast.success("Member removed successfully");
 

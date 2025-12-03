@@ -1,5 +1,5 @@
 import type { NextRequest } from "next/server";
-import { tenantHeaderSchema } from "@/openapi/v1/utils";
+import { tenantHeaderSchema } from "@/schemas/api/misc";
 
 import { AgentsetApiError } from "./errors";
 

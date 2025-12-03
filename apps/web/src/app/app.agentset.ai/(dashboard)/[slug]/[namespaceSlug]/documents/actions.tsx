@@ -1,7 +1,7 @@
 import type { Row } from "@tanstack/react-table";
 import { useNamespace } from "@/hooks/use-namespace";
 import { prefixId } from "@/lib/api/ids";
-import { useTRPC } from "@/trpc/react";
+import { useORPC } from "@/orpc/react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import {
   CopyIcon,
@@ -11,7 +11,7 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 
-import { IngestJobStatus } from "@agentset/db/browser";
+import { IngestJobStatus } from "@agentset/db";
 import { Button } from "@agentset/ui/button";
 import {
   DropdownMenu,
@@ -25,16 +25,16 @@ import type { JobCol } from "./columns";
 export function JobActions({ row }: { row: Row<JobCol> }) {
   const queryClient = useQueryClient();
   const namespace = useNamespace();
-  const trpc = useTRPC();
+  const orpc = useORPC();
   const { mutate: deleteJob, isPending: isDeletePending } = useMutation(
-    trpc.ingestJob.delete.mutationOptions({
+    orpc.ingestJob.delete.mutationOptions({
       onSuccess: () => {
         toast.success("Job queued for deletion");
-        void queryClient.invalidateQueries(
-          trpc.ingestJob.all.queryFilter({
-            namespaceId: namespace.id,
+        void queryClient.invalidateQueries({
+          queryKey: orpc.ingestJob.all.key({
+            input: { namespaceId: namespace.id },
           }),
-        );
+        });
       },
       onError: (error) => {
         toast.error(error.message);
@@ -43,14 +43,14 @@ export function JobActions({ row }: { row: Row<JobCol> }) {
   );
 
   const { mutate: reIngestJob, isPending: isReIngestPending } = useMutation(
-    trpc.ingestJob.reIngest.mutationOptions({
+    orpc.ingestJob.reIngest.mutationOptions({
       onSuccess: () => {
         toast.success("Job re-ingestion started");
-        void queryClient.invalidateQueries(
-          trpc.ingestJob.all.queryFilter({
-            namespaceId: namespace.id,
+        void queryClient.invalidateQueries({
+          queryKey: orpc.ingestJob.all.key({
+            input: { namespaceId: namespace.id },
           }),
-        );
+        });
       },
       onError: (error) => {
         toast.error(error.message);

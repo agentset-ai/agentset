@@ -1,7 +1,7 @@
 "use client";
 
 import { useNamespace } from "@/hooks/use-namespace";
-import { useTRPC } from "@/trpc/react";
+import { useORPC } from "@/orpc/react";
 import { useQuery } from "@tanstack/react-query";
 
 import { Separator } from "@agentset/ui/separator";
@@ -13,10 +13,10 @@ import HostingForm from "./form";
 
 export default function HostingPage() {
   const namespace = useNamespace();
-  const trpc = useTRPC();
+  const orpc = useORPC();
   const { data, isLoading } = useQuery(
-    trpc.hosting.get.queryOptions({
-      namespaceId: namespace.id,
+    orpc.hosting.get.queryOptions({
+      input: { namespaceId: namespace.id },
     }),
   );
 

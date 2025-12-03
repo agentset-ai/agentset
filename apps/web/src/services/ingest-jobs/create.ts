@@ -1,25 +1,62 @@
+/**
+ * Create ingest job
+ *
+ * Creates a new ingest job with validation and triggers the ingestion process.
+ */
+
 import type { createIngestJobSchema } from "@/schemas/api/ingest-job";
 import type { z } from "zod/v4";
+import { AgentsetApiError } from "@/lib/api/errors";
 
 import type { IngestJobBatchItem } from "@agentset/validation";
 import { IngestJobStatus } from "@agentset/db";
-import { db } from "@agentset/db/client";
 import { triggerIngestionJob } from "@agentset/jobs";
 import { checkFileExists } from "@agentset/storage";
+import { isFreePlan } from "@agentset/stripe/plans";
 
+import type { AgentsetContext } from "../shared/context";
+import { getNamespace } from "../shared/namespace-access";
 import { validateNamespaceFileKey } from "../uploads";
 
-export const createIngestJob = async ({
-  plan,
-  namespaceId,
-  tenantId,
-  data,
-}: {
-  plan: string;
-  namespaceId: string;
-  tenantId?: string;
-  data: z.infer<typeof createIngestJobSchema>;
-}) => {
+export const createIngestJob = async (
+  context: AgentsetContext,
+  input: {
+    namespaceId: string;
+    tenantId?: string;
+    data: z.infer<typeof createIngestJobSchema>;
+  },
+) => {
+  const namespace = await getNamespace(context, {
+    id: input.namespaceId,
+  });
+
+  const organization = await context.db.organization.findUnique({
+    where: { id: namespace.organizationId },
+  });
+
+  if (!organization) {
+    throw new AgentsetApiError({
+      code: "not_found",
+      message: "Organization not found",
+    });
+  }
+
+  // if it's not a pro plan, check if the user has exceeded the limit
+  // pro plan is unlimited with usage based billing
+  if (
+    isFreePlan(organization.plan) &&
+    organization.totalPages >= organization.pagesLimit
+  ) {
+    throw new AgentsetApiError({
+      code: "bad_request",
+      message: "You've reached the maximum number of pages.",
+    });
+  }
+
+  const plan = organization.plan;
+  const namespaceId = namespace.id;
+  const tenantId = input.tenantId;
+  const data = input.data;
   let finalPayload: PrismaJson.IngestJobPayload | null = null;
 
   if (data.payload.type === "BATCH") {
@@ -54,7 +91,10 @@ export const createIngestJob = async ({
 
       const invalidKey = results.some((result) => !result);
       if (invalidKey) {
-        throw new Error("FILE_NOT_FOUND");
+        throw new AgentsetApiError({
+          code: "not_found",
+          message: "One or more files not found",
+        });
       }
     }
 
@@ -87,7 +127,10 @@ export const createIngestJob = async ({
     } else if (data.payload.type === "MANAGED_FILE") {
       const exists = await checkFileExists(data.payload.key);
       if (!exists) {
-        throw new Error("FILE_NOT_FOUND");
+        throw new AgentsetApiError({
+          code: "not_found",
+          message: "File not found",
+        });
       }
 
       finalPayload = {
@@ -99,10 +142,13 @@ export const createIngestJob = async ({
   }
 
   if (!finalPayload) {
-    throw new Error("INVALID_PAYLOAD");
+    throw new AgentsetApiError({
+      code: "bad_request",
+      message: "Invalid payload",
+    });
   }
 
-  let config = structuredClone(data.config);
+  const config = structuredClone(data.config);
   if (
     config &&
     (finalPayload.type === "TEXT" ||
@@ -124,8 +170,8 @@ export const createIngestJob = async ({
   if (config?.chunkingStrategy !== undefined) delete config.chunkingStrategy;
   if (config?.strategy !== undefined) delete config.strategy;
 
-  const [job] = await db.$transaction([
-    db.ingestJob.create({
+  const [job] = await context.db.$transaction([
+    context.db.ingestJob.create({
       data: {
         namespace: { connect: { id: namespaceId } },
         tenantId,
@@ -136,7 +182,7 @@ export const createIngestJob = async ({
         payload: finalPayload,
       },
     }),
-    db.namespace.update({
+    context.db.namespace.update({
       where: { id: namespaceId },
       data: {
         totalIngestJobs: { increment: 1 },
@@ -157,7 +203,7 @@ export const createIngestJob = async ({
     plan,
   );
 
-  await db.ingestJob.update({
+  await context.db.ingestJob.update({
     where: { id: job.id },
     data: { workflowRunsIds: { push: handle.id } },
     select: { id: true },

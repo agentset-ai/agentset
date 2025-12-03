@@ -5,7 +5,7 @@ import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useOrganization } from "@/hooks/use-organization";
 import { logEvent } from "@/lib/analytics";
 import { getBaseUrl } from "@/lib/utils";
-import { useTRPC } from "@/trpc/react";
+import { useORPC } from "@/orpc/react";
 import { useMutation } from "@tanstack/react-query";
 import { toast } from "sonner";
 
@@ -26,11 +26,11 @@ export function UpgradePlanButton({
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
-  const trpc = useTRPC();
+  const orpc = useORPC();
   const organization = useOrganization();
 
   const { mutateAsync, isPending } = useMutation(
-    trpc.billing.upgrade.mutationOptions({
+    orpc.billing.upgrade.mutationOptions({
       onSuccess: async (data) => {
         if (data.url) {
           router.push(data.url);

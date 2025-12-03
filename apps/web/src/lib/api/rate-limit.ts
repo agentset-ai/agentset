@@ -1,3 +1,4 @@
+import { env } from "@/env";
 import { Ratelimit } from "@upstash/ratelimit";
 
 import { redis } from "../redis";
@@ -12,6 +13,16 @@ export const ratelimit = (
     | `${number} h`
     | `${number} d` = "10 s",
 ) => {
+  if (env.NODE_ENV === "development") {
+    return {
+      limit: () => ({
+        success: true,
+        limit: requests,
+        reset: Date.now() + seconds,
+        remaining: requests,
+      }),
+    };
+  }
   return new Ratelimit({
     redis: redis,
     limiter: Ratelimit.slidingWindow(requests, seconds),

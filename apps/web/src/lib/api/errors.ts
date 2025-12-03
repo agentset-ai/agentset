@@ -1,6 +1,4 @@
-import type { ZodOpenApiResponseObject } from "zod-openapi";
 import { NextResponse } from "next/server";
-import { generateErrorMessage } from "zod-error";
 import { z, ZodError } from "zod/v4";
 
 import { capitalize } from "@agentset/utils";
@@ -35,24 +33,6 @@ const errorCodeToHttpStatus: Record<z.infer<typeof ErrorCode>, number> = {
   internal_server_error: 500,
 };
 
-export const httpStatusToErrorCode = Object.fromEntries(
-  Object.entries(errorCodeToHttpStatus).map(([code, status]) => [status, code]),
-) as Record<number, z.infer<typeof ErrorCode>>;
-
-const speakeasyErrorOverrides: Record<z.infer<typeof ErrorCode>, string> = {
-  bad_request: "BadRequest",
-  unauthorized: "Unauthorized",
-  forbidden: "Forbidden",
-  exceeded_limit: "ExceededLimit",
-  not_found: "NotFound",
-  conflict: "Conflict",
-  invite_pending: "InvitePending",
-  invite_expired: "InviteExpired",
-  unprocessable_entity: "UnprocessableEntity",
-  rate_limit_exceeded: "RateLimitExceeded",
-  internal_server_error: "InternalServerError",
-};
-
 const _ErrorSchema = z.object({
   success: z.literal(false),
   error: z.object({
@@ -75,7 +55,6 @@ const _ErrorSchema = z.object({
 });
 
 export type ErrorResponse = z.infer<typeof _ErrorSchema>;
-export type ErrorCodes = z.infer<typeof ErrorCode>;
 
 export class AgentsetApiError extends Error {
   public readonly code: z.infer<typeof ErrorCode>;
@@ -99,37 +78,41 @@ export class AgentsetApiError extends Error {
 const docErrorUrl = `${docsBase}/api-reference/errors`;
 
 export function fromZodError(error: ZodError): Pick<ErrorResponse, "error"> {
+  // Format the first error message
+  const firstIssue = error.issues[0];
+  if (!firstIssue) {
+    return {
+      error: {
+        code: "unprocessable_entity",
+        message: "Validation failed.",
+        doc_url: `${docErrorUrl}#unprocessable-entity`,
+      },
+    };
+  }
+
+  // Build path string (e.g., "user.email" or "items[0].name")
+  const path = firstIssue.path
+    .map((key) => (typeof key === "number" ? `[${key}]` : key))
+    .join(".");
+
+  // Format message with path if available
+  const message = path ? `${path}: ${firstIssue.message}` : firstIssue.message;
+
   return {
     error: {
       code: "unprocessable_entity",
-      message: generateErrorMessage(error.issues as any, {
-        maxErrors: 1,
-        delimiter: {
-          component: ": ",
-        },
-        path: {
-          enabled: true,
-          type: "objectNotation",
-          label: "",
-        },
-        code: {
-          enabled: true,
-          label: "",
-        },
-        message: {
-          enabled: true,
-          label: "",
-        },
-      }),
+      message,
       doc_url: `${docErrorUrl}#unprocessable-entity`,
     },
   };
 }
 
 export function handleApiError(
-  error: any,
+  error: unknown,
 ): Pick<ErrorResponse, "error"> & { status: number } {
-  console.error("API error occurred", error.message);
+  const errorMessage =
+    error instanceof Error ? error.message : "An unknown error occurred";
+  console.error("API error occurred", errorMessage);
 
   // Zod errors
   if (error instanceof ZodError) {
@@ -152,13 +135,23 @@ export function handleApiError(
   }
 
   // Prisma record not found error
-  if (error.code === "P2025") {
+  if (
+    typeof error === "object" &&
+    error !== null &&
+    "code" in error &&
+    error.code === "P2025"
+  ) {
+    const prismaError = error as {
+      code: string;
+      meta?: { cause?: string };
+      message?: string;
+    };
     return {
       error: {
         code: "not_found",
         message:
-          error?.meta?.cause ||
-          error.message ||
+          prismaError.meta?.cause ||
+          prismaError.message ||
           "The requested resource was not found.",
         doc_url: `${docErrorUrl}#not-found`,
       },
@@ -189,57 +182,6 @@ export function handleAndReturnErrorResponse(
     { headers, status },
   );
 }
-
-export const errorSchemaFactory = (
-  code: z.infer<typeof ErrorCode>,
-  description: string,
-): ZodOpenApiResponseObject => {
-  return {
-    id: errorCodeToHttpStatus[code].toString(),
-    description,
-    content: {
-      "application/json": {
-        schema: {
-          "x-speakeasy-name-override": speakeasyErrorOverrides[code],
-          type: "object",
-          properties: {
-            success: {
-              type: "boolean",
-              example: false,
-            },
-            error: {
-              type: "object",
-              properties: {
-                code: {
-                  type: "string",
-                  enum: [code],
-                  description:
-                    "A short code indicating the error code returned.",
-                  example: code,
-                },
-                message: {
-                  "x-speakeasy-error-message": true,
-                  type: "string",
-                  description:
-                    "A human readable explanation of what went wrong.",
-                  example: "The requested resource was not found.",
-                },
-                doc_url: {
-                  type: "string",
-                  description:
-                    "A link to our documentation with more details about this error code",
-                  example: `${docErrorUrl}#${code.replace("_", "-")}`,
-                },
-              },
-              required: ["code", "message"],
-            },
-          },
-          required: ["success", "error"],
-        },
-      },
-    },
-  };
-};
 
 export const exceededLimitError = ({
   plan,
