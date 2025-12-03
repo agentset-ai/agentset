@@ -115,11 +115,11 @@ export const ingestJob = schemaTask({
           ...(ingestionJob.tenantId && { tenantId: ingestionJob.tenantId }),
         },
         crawl_options: {
-          max_depth: ingestionJob.payload.options?.maxDepth,
-          limit: ingestionJob.payload.options?.limit,
-          exclude_paths: ingestionJob.payload.options?.excludePaths,
-          include_paths: ingestionJob.payload.options?.includePaths,
-          headers: ingestionJob.payload.options?.headers,
+          max_depth: ingestionJob.payload?.maxDepth,
+          limit: ingestionJob.payload?.limit,
+          exclude_paths: ingestionJob.payload?.excludePaths,
+          include_paths: ingestionJob.payload?.includePaths,
+          headers: ingestionJob.payload?.headers,
         },
         chunk_options: {
           chunk_size: ingestionJob.config?.chunkSize,
@@ -177,7 +177,7 @@ export const ingestJob = schemaTask({
       }
     } else if (ingestionJob.payload.type === "YOUTUBE") {
       const token = await wait.createToken({ timeout: "2h" });
-      const options = ingestionJob.payload.options;
+      const options = ingestionJob.payload;
 
       const body: YoutubePartitionBody = {
         urls: ingestionJob.payload.urls,

@@ -1,7 +1,9 @@
 import { z } from "zod/v4";
 
-const crawlOptionsSchema = z
+export const crawlPayloadSchema = z
   .object({
+    type: z.literal("CRAWL"),
+    url: z.url().describe("The starting URL to crawl."),
     maxDepth: z
       .int()
       .min(1)
@@ -31,19 +33,6 @@ const crawlOptionsSchema = z
       .describe(
         "Custom HTTP headers to send with crawl requests (for example, auth headers).",
       )
-      .optional(),
-  })
-  .meta({
-    id: "crawl-options",
-    description: "Options to control how the crawl behaves.",
-  });
-
-export const crawlPayloadSchema = z
-  .object({
-    type: z.literal("CRAWL"),
-    url: z.url().describe("The starting URL to crawl."),
-    options: crawlOptionsSchema
-      .describe("Optional crawl configuration.")
       .optional(),
   })
   .meta({

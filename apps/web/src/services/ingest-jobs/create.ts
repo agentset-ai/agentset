@@ -62,17 +62,9 @@ export const createIngestJob = async ({
       type: "BATCH",
       items: finalItems,
     };
-  } else if (data.payload.type === "CRAWL") {
+  } else if (data.payload.type === "CRAWL" || data.payload.type === "YOUTUBE") {
     finalPayload = {
-      type: "CRAWL",
-      url: data.payload.url,
-      ...(data.payload.options && { options: data.payload.options }),
-    };
-  } else if (data.payload.type === "YOUTUBE") {
-    finalPayload = {
-      type: "YOUTUBE",
-      urls: data.payload.urls,
-      ...(data.payload.options && { options: data.payload.options }),
+      ...data.payload,
     };
   } else {
     const commonPayload = {
