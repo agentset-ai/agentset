@@ -12,7 +12,7 @@ import { initTRPC, TRPCError } from "@trpc/server";
 import superjson from "superjson";
 import { ZodError } from "zod/v4";
 
-import { db } from "@agentset/db";
+import { db } from "@agentset/db/client";
 
 /**
  * 1. CONTEXT

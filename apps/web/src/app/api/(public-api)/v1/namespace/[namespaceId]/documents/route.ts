@@ -4,7 +4,7 @@ import { makeApiSuccessResponse } from "@/lib/api/response";
 import { DocumentSchema, getDocumentsSchema } from "@/schemas/api/document";
 import { getPaginationArgs, paginateResults } from "@/services/pagination";
 
-import { db } from "@agentset/db";
+import { db } from "@agentset/db/client";
 
 export const GET = withNamespaceApiHandler(
   async ({ searchParams, namespace, tenantId, headers }) => {

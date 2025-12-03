@@ -1,6 +1,6 @@
 import { env } from "@/env";
 
-import { db } from "@agentset/db";
+import { db } from "@agentset/db/client";
 
 import type { AgentsetApiError } from "../api/errors";
 import {

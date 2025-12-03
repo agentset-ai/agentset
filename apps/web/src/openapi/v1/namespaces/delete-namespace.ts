@@ -29,7 +29,7 @@ export const deleteNamespace: ZodOpenApiOperationObject = {
   ...makeCodeSamples(
     ts`
 await agentset.namespaces.delete("ns_xxx");
-console.log("Namespace deleted successfully");
+console.log("Namespace queued for deletion");
 `,
     { isNs: false },
   ),

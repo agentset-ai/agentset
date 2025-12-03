@@ -6,7 +6,7 @@ import { makeApiSuccessResponse } from "@/lib/api/response";
 import { incrementSearchUsage } from "@/lib/api/usage";
 import { parseRequestBody } from "@/lib/api/utils";
 
-import { db } from "@agentset/db";
+import { db } from "@agentset/db/client";
 import {
   getNamespaceEmbeddingModel,
   getNamespaceLanguageModel,

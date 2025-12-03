@@ -2,7 +2,7 @@ import { AgentsetApiError } from "@/lib/api/errors";
 import { DEFAULT_SYSTEM_PROMPT } from "@/lib/prompts";
 import { nanoid } from "nanoid";
 
-import { db } from "@agentset/db";
+import { db } from "@agentset/db/client";
 
 export const enableHosting = async ({
   namespaceId,

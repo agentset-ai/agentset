@@ -30,7 +30,7 @@ interface ChatActions {
 
 type ChatSettings = ChatState & ChatActions;
 
-const defaultState: NamespaceState = {
+export const DEFAULT_CHAT_SETTINGS: NamespaceState = {
   topK: 50,
   rerankLimit: 15,
   systemPrompt: null,
@@ -49,7 +49,7 @@ const updateNamespace = (
     namespaces: {
       ...state.namespaces,
       [namespaceId]: {
-        ...defaultState,
+        ...DEFAULT_CHAT_SETTINGS,
         ...state.namespaces[namespaceId],
         ...(update as NamespaceState),
       },
@@ -63,8 +63,10 @@ export const useChatSettings = create<ChatSettings>()(
       setSettings: (namespaceId: string, newState: Partial<NamespaceState>) =>
         set((state) => updateNamespace(state, namespaceId, newState)),
       reset: (namespaceId: string) => {
-        set((state) => updateNamespace(state, namespaceId, defaultState));
-        return defaultState;
+        set((state) =>
+          updateNamespace(state, namespaceId, DEFAULT_CHAT_SETTINGS),
+        );
+        return DEFAULT_CHAT_SETTINGS;
       },
     }),
     {
@@ -114,7 +116,7 @@ export const useChatSettings = create<ChatSettings>()(
 export const useNamespaceChatSettings = (namespaceId: string) => {
   const settings =
     useChatSettings(useShallow((s) => s.namespaces[namespaceId])) ??
-    defaultState;
+    DEFAULT_CHAT_SETTINGS;
 
   const _setSettings = useChatSettings((s) => s.setSettings);
 

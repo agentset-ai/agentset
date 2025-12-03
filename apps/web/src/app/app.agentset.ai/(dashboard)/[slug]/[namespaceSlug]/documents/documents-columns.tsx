@@ -1,20 +1,34 @@
 import type { ColumnDef } from "@tanstack/react-table";
+import { useState } from "react";
 import { formatDuration, formatNumber } from "@/lib/utils";
-import { BookTextIcon, Code2Icon, FileTextIcon, ImageIcon } from "lucide-react";
+import {
+  BookTextIcon,
+  Code2Icon,
+  FileTextIcon,
+  GlobeIcon,
+  ImageIcon,
+  ListIcon,
+} from "lucide-react";
 
-import type { Document } from "@agentset/db";
+import type { Document } from "@agentset/db/browser";
 import type { BadgeProps } from "@agentset/ui/badge";
-import { DocumentStatus } from "@agentset/db";
+import { DocumentStatus } from "@agentset/db/browser";
 import { Badge } from "@agentset/ui/badge";
+import { Button } from "@agentset/ui/button";
+import { YouTubeIcon } from "@agentset/ui/icons/youtube";
+import TimestampTooltip from "@agentset/ui/timestamp-tooltip";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@agentset/ui/tooltip";
-import { capitalize, formatBytes } from "@agentset/utils";
+import { capitalize, truncate } from "@agentset/utils";
 
+import { ChunksDrawer } from "./chunks-drawer";
 import DocumentActions from "./document-actions";
+import DocumentSizeTooltip from "./document-size-tooltip";
 
 export interface DocumentCol {
   id: string;
   status: DocumentStatus;
   name?: Document["name"];
+  source: Document["source"];
   totalChunks: number;
   totalCharacters: number;
   totalTokens: number;
@@ -27,9 +41,19 @@ export interface DocumentCol {
   error?: Document["error"];
 }
 
-const MimeType = ({ mimeType }: { mimeType: string }) => {
+const MimeType = ({
+  mimeType,
+  source,
+}: {
+  mimeType: string;
+  source: Document["source"];
+}) => {
   let Icon;
-  if (mimeType === "application/pdf") {
+  if (source.type === "YOUTUBE_VIDEO") {
+    Icon = YouTubeIcon;
+  } else if (source.type === "CRAWLED_PAGE") {
+    Icon = GlobeIcon;
+  } else if (mimeType === "application/pdf") {
     Icon = BookTextIcon;
   } else if (mimeType.startsWith("image/")) {
     Icon = ImageIcon;
@@ -44,14 +68,12 @@ const MimeType = ({ mimeType }: { mimeType: string }) => {
   }
 
   return (
-    <div className="flex flex-row gap-2">
-      <Tooltip>
-        <TooltipTrigger>
-          <Icon className="size-5" />
-        </TooltipTrigger>
-        <TooltipContent>{mimeType}</TooltipContent>
-      </Tooltip>
-    </div>
+    <Tooltip>
+      <TooltipTrigger>
+        <Icon className="text-muted-foreground size-5" />
+      </TooltipTrigger>
+      <TooltipContent>{mimeType}</TooltipContent>
+    </Tooltip>
   );
 };
 
@@ -79,35 +101,16 @@ const statusToBadgeVariant = (
 
 export const documentColumns: ColumnDef<DocumentCol>[] = [
   {
-    accessorKey: "name",
-    header: "Name",
-    cell: ({ row }) => {
-      const name = row.original.name ?? "-";
-
-      return (
-        <p title={name}>
-          {name.length > 20 ? name.slice(0, 20) + "..." : name}
-        </p>
-      );
-    },
-  },
-  // {
-  //   id: "source",
-  //   header: "Source",
-  //   accessorKey: "source",
-  //   cell: ({ row }) => {
-  //     return <p>{capitalize(row.original.source.type.split("_").join(" "))}</p>;
-  //   },
-  // },
-  {
     id: "type",
-    header: "Type",
-    accessorKey: "documentProperties.mimeType",
+    header: () => null,
     cell: ({ row }) => {
       return (
-        <div>
+        <div className="flex justify-center pl-2">
           {row.original.documentProperties?.mimeType ? (
-            <MimeType mimeType={row.original.documentProperties.mimeType} />
+            <MimeType
+              mimeType={row.original.documentProperties.mimeType}
+              source={row.original.source}
+            />
           ) : (
             "-"
           )}
@@ -116,43 +119,13 @@ export const documentColumns: ColumnDef<DocumentCol>[] = [
     },
   },
   {
-    accessorKey: "totalChunks",
-    header: "Total Chunks",
+    accessorKey: "name",
+    header: "Name",
     cell: ({ row }) => {
-      return <p>{formatNumber(row.original.totalChunks, "compact")}</p>;
-    },
-  },
-  {
-    accessorKey: "totalCharacters",
-    header: "Total Characters",
-    cell: ({ row }) => {
-      return <p>{formatNumber(row.original.totalCharacters, "compact")}</p>;
-    },
-  },
-  {
-    accessorKey: "totalTokens",
-    header: "Total Tokens",
-    cell: ({ row }) => {
-      return <p>{formatNumber(row.original.totalTokens, "compact")}</p>;
-    },
-  },
-  {
-    accessorKey: "totalPages",
-    header: "Total Pages",
-    cell: ({ row }) => {
-      return <p>{formatNumber(row.original.totalPages, "compact")}</p>;
-    },
-  },
-  {
-    id: "size",
-    accessorKey: "documentProperties.fileSize",
-    header: "Size",
-    cell: ({ row }) => {
+      const name = row.original.name ?? "-";
       return (
-        <p>
-          {row.original.documentProperties?.fileSize
-            ? formatBytes(row.original.documentProperties.fileSize)
-            : "-"}
+        <p title={name} className="w-48 truncate">
+          {name}
         </p>
       );
     },
@@ -166,7 +139,9 @@ export const documentColumns: ColumnDef<DocumentCol>[] = [
           variant={statusToBadgeVariant(row.original.status)}
           className="capitalize"
         >
-          {capitalize(row.original.status.split("_").join(" "))}
+          {row.original.status === DocumentStatus.COMPLETED
+            ? "Ready"
+            : capitalize(row.original.status.split("_").join(" "))}
         </Badge>
       );
       if (!row.original.error) return badge;
@@ -176,6 +151,41 @@ export const documentColumns: ColumnDef<DocumentCol>[] = [
           <TooltipTrigger asChild>{badge}</TooltipTrigger>
           <TooltipContent>{row.original.error}</TooltipContent>
         </Tooltip>
+      );
+    },
+  },
+  {
+    accessorKey: "totalPages",
+    header: "Pages",
+    cell: ({ row }) => {
+      return (
+        <DocumentSizeTooltip
+          totalCharacters={row.original.totalCharacters}
+          totalChunks={row.original.totalChunks}
+          totalBytes={row.original.documentProperties?.fileSize ?? 0}
+          totalTokens={row.original.totalTokens}
+        >
+          <p className="w-fit">
+            {formatNumber(row.original.totalPages, "compact")}
+          </p>
+        </DocumentSizeTooltip>
+      );
+    },
+  },
+  {
+    id: "uploadedAt",
+    header: "Uploaded At",
+    cell: ({ row }) => {
+      return (
+        <TimestampTooltip timestamp={row.original.createdAt}>
+          <p className="w-fit">
+            {row.original.createdAt.toLocaleString("en-US", {
+              year: "numeric",
+              month: "short",
+              day: "numeric",
+            })}
+          </p>
+        </TimestampTooltip>
       );
     },
   },
@@ -194,7 +204,36 @@ export const documentColumns: ColumnDef<DocumentCol>[] = [
     },
   },
   {
+    id: "chunks",
+    header: "Chunks",
+    cell: ({ row }) => {
+      const canViewChunks = row.original.status === DocumentStatus.COMPLETED;
+      const [chunksDrawerOpen, setChunksDrawerOpen] = useState(false);
+
+      return (
+        <>
+          <Button
+            disabled={!canViewChunks}
+            onClick={() => setChunksDrawerOpen(true)}
+            variant="outline"
+            size="sm"
+            // className="hover:text-muted-foreground h-auto p-0 hover:bg-transparent"
+          >
+            View
+          </Button>
+
+          <ChunksDrawer
+            documentId={row.original.id}
+            documentName={row.original.name ?? undefined}
+            open={chunksDrawerOpen}
+            onOpenChange={setChunksDrawerOpen}
+          />
+        </>
+      );
+    },
+  },
+  {
     id: "actions",
-    cell: ({ row }) => <DocumentActions row={row} />, // Use the DocumentActions component
+    cell: ({ row }) => <DocumentActions row={row} />,
   },
 ];

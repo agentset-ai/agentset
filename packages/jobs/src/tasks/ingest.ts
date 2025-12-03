@@ -1,11 +1,13 @@
-import { schemaTask } from "@trigger.dev/sdk";
+import { schemaTask, wait } from "@trigger.dev/sdk";
 
-import {
-  Document,
-  DocumentStatus,
-  IngestJobStatus,
-  Prisma,
-} from "@agentset/db";
+import type {
+  CrawlPartitionBody,
+  CrawlPartitionResult,
+  YoutubePartitionBody,
+  YoutubePartitionResult,
+} from "@agentset/engine";
+import { DocumentStatus, IngestJobStatus, Prisma } from "@agentset/db";
+import { env } from "@agentset/engine/env";
 import { chunkArray } from "@agentset/utils";
 
 import { getDb } from "../db";
@@ -101,9 +103,204 @@ export const ingestJob = schemaTask({
       namespaceId: ingestionJob.namespace.id,
     } satisfies Partial<Prisma.DocumentCreateArgs["data"]>;
 
-    let documents: Pick<Document, "id">[] = [];
+    let documentsIds: string[] = [];
+    let overLimitCount = 0;
 
-    if (
+    if (ingestionJob.payload.type === "CRAWL") {
+      const token = await wait.createToken({ timeout: "2h" });
+
+      const body: CrawlPartitionBody = {
+        url: ingestionJob.payload.url,
+        extra_metadata: {
+          ...ingestionJob.config?.metadata,
+          ...(ingestionJob.tenantId && { tenantId: ingestionJob.tenantId }),
+        },
+        crawl_options: {
+          max_depth: ingestionJob.payload?.maxDepth,
+          limit: ingestionJob.payload?.limit,
+          exclude_paths: ingestionJob.payload?.excludePaths,
+          include_paths: ingestionJob.payload?.includePaths,
+          headers: ingestionJob.payload?.headers,
+        },
+        chunk_options: {
+          chunk_size: ingestionJob.config?.chunkSize,
+        },
+        trigger_token_id: token.id,
+        trigger_access_token: token.publicAccessToken,
+        namespace_id: ingestionJob.namespace.id,
+      };
+
+      const response = await fetch(`${env.PARTITION_API_URL}/crawl`, {
+        method: "POST",
+        headers: {
+          "api-key": env.PARTITION_API_KEY,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(body),
+      });
+
+      const initialBody = (await response.json()) as { call_id: string };
+      if (response.status !== 200 || !initialBody.call_id)
+        throw new Error("Partition Error");
+
+      const result = await wait
+        .forToken<CrawlPartitionResult | undefined>(token.id)
+        .unwrap();
+
+      if (!result || result.status !== 200) throw new Error("Partition Error");
+
+      // Fetch fresh org data for limit checks
+      const org = await db.organization.findUniqueOrThrow({
+        where: { id: ingestionJob.namespace.organization.id },
+        select: { plan: true, pagesLimit: true, totalPages: true },
+      });
+
+      const isPro = org.plan === "pro";
+      const availablePages = isPro ? Infinity : org.pagesLimit - org.totalPages;
+      let usedPages = 0;
+
+      const batchDocuments = chunkArray(result.documents, 20);
+      for (const batch of batchDocuments) {
+        const docsWithStatus = batch.map((doc) => {
+          const docPages = doc.total_characters / 1000;
+          const isOverLimit = !isPro && usedPages + docPages > availablePages;
+
+          if (!isOverLimit) {
+            usedPages += docPages;
+          } else {
+            overLimitCount++;
+          }
+
+          return {
+            ...commonData,
+            id: doc.id,
+            status: isOverLimit ? DocumentStatus.FAILED : DocumentStatus.QUEUED,
+            error: isOverLimit ? "Pages limit exceeded" : null,
+            name: doc.url,
+            source: {
+              type: "CRAWLED_PAGE" as const,
+            },
+            totalCharacters: doc.total_characters,
+            totalChunks: doc.total_chunks,
+            totalPages: docPages,
+            documentProperties: {
+              fileSize: doc.total_bytes,
+              mimeType: "text/html",
+            },
+            failedAt: isOverLimit ? new Date() : null,
+          };
+        });
+
+        const createdDocs = await db.document.createManyAndReturn({
+          select: { id: true, status: true },
+          data: docsWithStatus,
+        });
+
+        // Only add QUEUED docs to processing queue
+        documentsIds = documentsIds.concat(
+          createdDocs
+            .filter((doc) => doc.status === DocumentStatus.QUEUED)
+            .map((doc) => doc.id),
+        );
+      }
+    } else if (ingestionJob.payload.type === "YOUTUBE") {
+      const token = await wait.createToken({ timeout: "2h" });
+      const options = ingestionJob.payload;
+
+      const body: YoutubePartitionBody = {
+        urls: ingestionJob.payload.urls,
+        transcript_languages: options?.transcriptLanguages,
+        include_metadata: options?.includeMetadata,
+        extra_metadata: {
+          ...ingestionJob.config?.metadata,
+          ...(ingestionJob.tenantId && { tenantId: ingestionJob.tenantId }),
+        },
+        chunk_options: {
+          chunk_size: ingestionJob.config?.chunkSize,
+        },
+        trigger_token_id: token.id,
+        trigger_access_token: token.publicAccessToken,
+        namespace_id: ingestionJob.namespace.id,
+      };
+
+      const response = await fetch(`${env.PARTITION_API_URL}/youtube`, {
+        method: "POST",
+        headers: {
+          "api-key": env.PARTITION_API_KEY,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(body),
+      });
+
+      const initialBody = (await response.json()) as { call_id: string };
+      if (response.status !== 200 || !initialBody.call_id) {
+        throw new Error("Partition Error");
+      }
+
+      const result = await wait
+        .forToken<YoutubePartitionResult | undefined>(token.id)
+        .unwrap();
+
+      if (!result || result.status !== 200) {
+        throw new Error("Partition Error");
+      }
+
+      // Fetch fresh org data for limit checks
+      const org = await db.organization.findUniqueOrThrow({
+        where: { id: ingestionJob.namespace.organization.id },
+        select: { plan: true, pagesLimit: true, totalPages: true },
+      });
+
+      const isPro = org.plan === "pro";
+      const availablePages = isPro ? Infinity : org.pagesLimit - org.totalPages;
+      let usedPages = 0;
+
+      const batchDocuments = chunkArray(result.documents, 20);
+      for (const batch of batchDocuments) {
+        const docsWithStatus = batch.map((doc) => {
+          const docPages = doc.total_characters / 1000;
+          const isOverLimit = !isPro && usedPages + docPages > availablePages;
+
+          if (!isOverLimit) {
+            usedPages += docPages;
+          } else {
+            overLimitCount++;
+          }
+
+          return {
+            ...commonData,
+            id: doc.id,
+            status: isOverLimit ? DocumentStatus.FAILED : DocumentStatus.QUEUED,
+            error: isOverLimit ? "Pages limit exceeded" : null,
+            name: doc.title,
+            source: {
+              type: "YOUTUBE_VIDEO" as const,
+              videoId: doc.video_id,
+            },
+            totalCharacters: doc.total_characters,
+            totalChunks: doc.total_chunks,
+            totalPages: docPages,
+            documentProperties: {
+              fileSize: doc.total_bytes,
+              mimeType: "text/markdown",
+            },
+            failedAt: isOverLimit ? new Date() : null,
+          };
+        });
+
+        const createdDocs = await db.document.createManyAndReturn({
+          select: { id: true, status: true },
+          data: docsWithStatus,
+        });
+
+        // Only add QUEUED docs to processing queue
+        documentsIds = documentsIds.concat(
+          createdDocs
+            .filter((doc) => doc.status === DocumentStatus.QUEUED)
+            .map((doc) => doc.id),
+        );
+      }
+    } else if (
       ingestionJob.payload.type === "FILE" ||
       ingestionJob.payload.type === "TEXT" ||
       ingestionJob.payload.type === "MANAGED_FILE"
@@ -130,7 +327,7 @@ export const ingestJob = schemaTask({
           select: { id: true },
         });
 
-        documents = [document];
+        documentsIds = [document.id];
       } else if (ingestionJob.payload.type === "FILE") {
         const { fileUrl } = ingestionJob.payload;
         const document = await db.document.create({
@@ -145,7 +342,7 @@ export const ingestJob = schemaTask({
           select: { id: true },
         });
 
-        documents = [document];
+        documentsIds = [document.id];
       } else if (ingestionJob.payload.type === "MANAGED_FILE") {
         const { key } = ingestionJob.payload;
         const document = await db.document.create({
@@ -160,7 +357,7 @@ export const ingestJob = schemaTask({
           select: { id: true },
         });
 
-        documents = [document];
+        documentsIds = [document.id];
       }
     } else {
       // Handle batch document creation for multi-file types
@@ -187,7 +384,7 @@ export const ingestJob = schemaTask({
           ),
         });
 
-        documents = documents.concat(batchResult);
+        documentsIds = documentsIds.concat(batchResult.map((doc) => doc.id));
       }
     }
 
@@ -196,14 +393,14 @@ export const ingestJob = schemaTask({
       db.namespace.update({
         where: { id: ingestionJob.namespace.id },
         data: {
-          totalDocuments: { increment: documents.length },
+          totalDocuments: { increment: documentsIds.length },
         },
         select: { id: true },
       }),
       db.organization.update({
         where: { id: ingestionJob.namespace.organization.id },
         data: {
-          totalDocuments: { increment: documents.length },
+          totalDocuments: { increment: documentsIds.length },
         },
         select: { id: true },
       }),
@@ -218,18 +415,18 @@ export const ingestJob = schemaTask({
       }),
     ]);
 
-    const chunks = chunkArray(documents, BATCH_SIZE);
+    const chunks = chunkArray(documentsIds, BATCH_SIZE);
     let success = true;
     let totalPages = 0;
     for (const chunk of chunks) {
       const handles = await processDocument.batchTriggerAndWait(
-        chunk.map((document) => ({
+        chunk.map((documentId) => ({
           payload: {
-            documentId: document.id,
+            documentId: documentId,
             ingestJob: ingestionJob,
           },
           options: {
-            tags: [`doc_${document.id}`],
+            tags: [`doc_${documentId}`],
             priority: ctx.run.priority,
           },
         })),
@@ -266,11 +463,18 @@ export const ingestJob = schemaTask({
           }
     ) satisfies Prisma.NamespaceUpdateInput | Prisma.OrganizationUpdateInput;
 
+    const jobFailed = !success || overLimitCount > 0;
+    const jobError = !success
+      ? "Failed to process documents"
+      : overLimitCount > 0
+        ? `${overLimitCount} document(s) exceeded pages limit`
+        : null;
+
     await db.$transaction([
       db.ingestJob.update({
         where: { id: ingestionJob.id },
         data: {
-          ...(success
+          ...(!jobFailed
             ? {
                 status: IngestJobStatus.COMPLETED,
                 completedAt: new Date(),
@@ -281,7 +485,7 @@ export const ingestJob = schemaTask({
                 status: IngestJobStatus.FAILED,
                 completedAt: null,
                 failedAt: new Date(),
-                error: "Failed to process documents",
+                error: jobError,
               }),
         },
         select: { id: true },
@@ -300,7 +504,7 @@ export const ingestJob = schemaTask({
 
     return {
       ingestionJobId: ingestionJob.id,
-      documentsCreated: documents.length,
+      documentsCreated: documentsIds.length,
     };
   },
 });

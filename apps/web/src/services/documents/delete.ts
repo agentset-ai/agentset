@@ -1,4 +1,5 @@
-import { db, DocumentStatus } from "@agentset/db";
+import { DocumentStatus } from "@agentset/db";
+import { db } from "@agentset/db/client";
 import { triggerDeleteDocument } from "@agentset/jobs";
 
 export const deleteDocument = async (documentId: string) => {

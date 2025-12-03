@@ -1,4 +1,5 @@
-import { db, NamespaceStatus } from "@agentset/db";
+import { NamespaceStatus } from "@agentset/db";
+import { db } from "@agentset/db/client";
 import { triggerDeleteNamespace } from "@agentset/jobs";
 
 export const deleteNamespace = async ({

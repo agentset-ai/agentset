@@ -1,4 +1,5 @@
-import type { UseFormReturn } from "react-hook-form";
+import type { ReactNode } from "react";
+import type { FieldValues, UseFormReturn } from "react-hook-form";
 import { useState } from "react";
 
 import {
@@ -7,6 +8,7 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from "@agentset/ui/accordion";
+import { Checkbox } from "@agentset/ui/checkbox";
 import {
   FormControl,
   FormField,
@@ -24,158 +26,210 @@ import {
 } from "@agentset/ui/select";
 import { Textarea } from "@agentset/ui/textarea";
 
+const LANGUAGES = [
+  { code: "en", name: "English" },
+  { code: "es", name: "Spanish" },
+  { code: "fr", name: "French" },
+  { code: "de", name: "German" },
+  { code: "it", name: "Italian" },
+  { code: "pt", name: "Portuguese" },
+  { code: "nl", name: "Dutch" },
+  { code: "ru", name: "Russian" },
+  { code: "zh", name: "Chinese" },
+  { code: "jp", name: "Japanese" },
+  { code: "kr", name: "Korean" },
+  { code: "ar", name: "Arabic" },
+  { code: "hi", name: "Hindi" },
+  { code: "bn", name: "Bengali" },
+  { code: "pl", name: "Polish" },
+  { code: "tr", name: "Turkish" },
+  { code: "vi", name: "Vietnamese" },
+  { code: "th", name: "Thai" },
+  { code: "sv", name: "Swedish" },
+  { code: "da", name: "Danish" },
+  { code: "no", name: "Norwegian" },
+  { code: "fi", name: "Finnish" },
+  { code: "cs", name: "Czech" },
+  { code: "ro", name: "Romanian" },
+  { code: "hu", name: "Hungarian" },
+  { code: "he", name: "Hebrew" },
+  { code: "id", name: "Indonesian" },
+  { code: "ms", name: "Malay" },
+  { code: "uk", name: "Ukrainian" },
+  { code: "fa", name: "Persian" },
+];
+
+// Default values shown in UI (not sent to API unless changed)
+const DEFAULTS = {
+  chunkSize: "2048",
+} as const;
+
+interface IngestConfigProps {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  form: UseFormReturn<any>;
+  /** Hide file-specific options (forceOcr, mode, image extraction, etc.) */
+  minimal?: boolean;
+  /** Additional settings to render at the top of the accordion */
+  extraSettings?: ReactNode;
+}
+
 export default function IngestConfig({
   form,
-}: {
-  form: UseFormReturn<any, any, any>;
-}) {
-  const [metadata, setMetadata] = useState<string>("");
+  minimal = false,
+  extraSettings,
+}: IngestConfigProps) {
+  const [metadataStr, setMetadataStr] = useState("");
 
   return (
-    <>
-      <Accordion type="single" collapsible>
-        <AccordionItem value="item-1">
-          <AccordionTrigger className="hover:bg-muted/70 items-center justify-start rounded-none duration-75 hover:no-underline">
-            Chunking Settings
-          </AccordionTrigger>
+    <Accordion type="single" collapsible>
+      <AccordionItem value="chunking-settings">
+        <AccordionTrigger className="hover:bg-muted/70 items-center justify-start rounded-none px-2 duration-75 hover:no-underline">
+          Additional Settings
+        </AccordionTrigger>
 
-          <AccordionContent className="mt-6 flex flex-col gap-6">
-            <FormField
-              control={form.control}
-              name="chunkSize"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Chunk size (optional)</FormLabel>
-                  <FormControl>
-                    <Input placeholder="512" {...field} />
-                  </FormControl>
+        <AccordionContent className="mt-6 flex flex-col gap-6 px-2">
+          <FormField
+            control={form.control}
+            name="metadata"
+            render={({ field }: { field: FieldValues }) => (
+              <FormItem>
+                <FormLabel>Metadata</FormLabel>
+                <FormControl>
+                  <Textarea
+                    value={metadataStr}
+                    onChange={(e) => {
+                      const str = e.target.value;
+                      setMetadataStr(str);
 
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+                      if (str === "") {
+                        field.onChange(undefined);
+                        return;
+                      }
 
-            <FormField
-              control={form.control}
-              name="maxChunkSize"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Max chunk size (optional)</FormLabel>
-                  <FormControl>
-                    <Input placeholder="1024" {...field} />
-                  </FormControl>
+                      try {
+                        field.onChange(JSON.parse(str));
+                      } catch {
+                        field.onChange("");
+                      }
+                    }}
+                    placeholder='{ "foo": "bar" }'
+                    className="h-24"
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
 
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+          <FormField
+            control={form.control}
+            name="chunkSize"
+            render={({ field }: { field: FieldValues }) => (
+              <FormItem>
+                <FormLabel>Chunk Size</FormLabel>
+                <FormControl>
+                  <Input
+                    placeholder={DEFAULTS.chunkSize}
+                    {...field}
+                    value={field.value ?? ""}
+                    onChange={(e) => {
+                      const val = e.target.value;
+                      field.onChange(val === "" ? undefined : Number(val));
+                    }}
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
 
-            <FormField
-              control={form.control}
-              name="chunkOverlap"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Chunk overlap (optional)</FormLabel>
-                  <FormControl>
-                    <Input placeholder="32" {...field} />
-                  </FormControl>
-
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={form.control}
-              name="chunkingStrategy"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Chunking strategy</FormLabel>
-                  <FormControl>
-                    <Select
-                      onValueChange={field.onChange}
-                      defaultValue={field.value ?? "basic"}
-                    >
-                      <SelectTrigger className="w-full">
-                        <SelectValue placeholder="Select a strategy" />
-                      </SelectTrigger>
-
-                      <SelectContent>
-                        <SelectItem value="basic">Basic</SelectItem>
-                        <SelectItem value="by_title">By title</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </FormControl>
-
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={form.control}
-              name="strategy"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Strategy</FormLabel>
-                  <FormControl>
-                    <Select
-                      onValueChange={field.onChange}
-                      defaultValue={field.value ?? "auto"}
-                    >
-                      <SelectTrigger className="w-full">
-                        <SelectValue placeholder="Select a strategy" />
-                      </SelectTrigger>
-
-                      <SelectContent>
-                        <SelectItem value="auto">Auto</SelectItem>
-                        <SelectItem value="fast">Fast</SelectItem>
-                        <SelectItem value="hi_res">Hi-res</SelectItem>
-                        <SelectItem value="ocr_only">OCR only</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </FormControl>
-
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={form.control}
-              name="metadata"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Metadata JSON (optional)</FormLabel>
-                  <FormControl>
-                    <Textarea
-                      value={metadata}
-                      onChange={(e) => {
-                        const str = e.target.value;
-                        setMetadata(str);
-                        if (str === "") {
-                          field.onChange(undefined);
-                          return;
+          {!minimal && (
+            <>
+              <FormField
+                control={form.control}
+                name="languageCode"
+                render={({ field }: { field: FieldValues }) => (
+                  <FormItem>
+                    <FormLabel>Language</FormLabel>
+                    <FormControl>
+                      <Select
+                        value={field.value ?? ""}
+                        onValueChange={(val) =>
+                          field.onChange(val === "" ? undefined : val)
                         }
+                      >
+                        <SelectTrigger className="w-full">
+                          <SelectValue placeholder="Auto-detect" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {LANGUAGES.map((lang) => (
+                            <SelectItem key={lang.code} value={lang.code}>
+                              {lang.name}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
 
-                        try {
-                          field.onChange(JSON.parse(str));
-                        } catch (error) {
-                          field.onChange("");
-                        }
-                      }}
-                      placeholder='{ "foo": "bar" }'
-                      className="h-24"
-                    />
-                  </FormControl>
+              <CheckboxField
+                form={form}
+                name="useLlm"
+                label="Use LLM-enhanced parsing"
+              />
 
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-          </AccordionContent>
-        </AccordionItem>
-      </Accordion>
-    </>
+              <CheckboxField form={form} name="forceOcr" label="Force OCR" />
+
+              <CheckboxField
+                form={form}
+                name="disableImageExtraction"
+                label="Disable image extraction"
+              />
+
+              <CheckboxField
+                form={form}
+                name="disableOcrMath"
+                label="Disable OCR math"
+              />
+            </>
+          )}
+
+          {extraSettings}
+        </AccordionContent>
+      </AccordionItem>
+    </Accordion>
+  );
+}
+
+interface CheckboxFieldProps {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  form: UseFormReturn<any>;
+  name: string;
+  label: string;
+}
+
+function CheckboxField({ form, name, label }: CheckboxFieldProps) {
+  return (
+    <FormField
+      control={form.control}
+      name={name}
+      render={({ field }: { field: FieldValues }) => (
+        <FormItem>
+          <div className="flex items-center gap-2">
+            <FormControl>
+              <Checkbox
+                checked={!!field.value}
+                onCheckedChange={field.onChange}
+              />
+            </FormControl>
+            <FormLabel className="font-normal">{label}</FormLabel>
+          </div>
+          <FormMessage />
+        </FormItem>
+      )}
+    />
   );
 }

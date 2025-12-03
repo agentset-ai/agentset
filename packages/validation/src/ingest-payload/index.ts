@@ -1,5 +1,20 @@
 import { z } from "zod/v4";
 
+import { batchPayloadInputSchema, batchPayloadSchema } from "./batch";
+import { baseConfigSchema } from "./config";
+import { crawlPayloadSchema } from "./crawl";
+import { filePayloadSchema } from "./file";
+import { managedFilePayloadSchema } from "./managed-file";
+import { textPayloadInputSchema, textPayloadSchema } from "./text";
+import { youtubePayloadSchema } from "./youtube";
+
+export * from "./batch";
+export * from "./crawl";
+export * from "./file";
+export * from "./managed-file";
+export * from "./text";
+export * from "./youtube";
+
 // type IngestJobPayloadConnection = {
 //   type: "CONNECTION";
 //   connectionId: string;
@@ -24,50 +39,12 @@ export const ingestJobNameSchema = z
   .optional()
   .describe("The name of the ingest job.");
 
-const baseConfigSchema = z.object({
-  chunkSize: z.coerce.number().describe("Soft chunk size.").optional(),
-  maxChunkSize: z.coerce.number().describe("Hard chunk size.").optional(),
-  chunkOverlap: z.coerce.number().describe("Custom chunk overlap.").optional(),
-  metadata: z
-    .record(z.string(), z.union([z.string(), z.number(), z.boolean()]))
-    .describe(
-      "Custom metadata to be added to the ingested documents. It cannot contain nested objects; only primitive types (string, number, boolean) are allowed.",
-    )
-    .optional(),
-  chunkingStrategy: z
-    .enum(["basic", "by_title"])
-    .meta({
-      id: "chunking-strategy",
-      description: "The chunking strategy to use. Defaults to `basic`.",
-    })
-    .optional(),
-  strategy: z
-    .enum(["auto", "fast", "hi_res", "ocr_only"])
-    .meta({
-      id: "strategy",
-      description: "The strategy to use. Defaults to `auto`.",
-    })
-    .optional(),
-  // languages: z.array(z.string()).optional().describe("The languages to use."),
-});
-
 export const configSchema = baseConfigSchema.meta({
   id: "ingest-job-config",
   description: "The ingest job config.",
 });
 
 export type IngestJobConfig = z.infer<typeof configSchema>;
-
-export const documentConfigSchema = configSchema.meta({
-  id: "document-config",
-  description: "The document config.",
-});
-
-const fileNameSchema = z
-  .string()
-  .describe("The name of the file.")
-  .nullable()
-  .optional();
 
 // TODO: bring this back when we implement document external ID
 // export const documentExternalIdSchema = z
@@ -78,103 +55,14 @@ const fileNameSchema = z
 //     "A unique external ID of the document. You can use this to identify the document in your system.",
 //   );
 
-// Base schema for reading existing jobs (lenient validation)
-const textPayloadBaseSchema = z
-  .object({
-    type: z.literal("TEXT"),
-    text: z.string().describe("The text to ingest."),
-    fileName: fileNameSchema,
-    // externalId: documentExternalIdSchema,
-  })
-  .meta({
-    id: "text-payload",
-    title: "Text Payload",
-  });
-
-// Schema for creating new jobs (strict validation)
-export const textPayloadInputSchema = textPayloadBaseSchema.extend({
-  text: z.string().min(1).describe("The text to ingest."),
-});
-
-// Schema for reading existing jobs (used for validation when querying)
-export const textPayloadSchema = textPayloadBaseSchema;
-
-export const filePayloadSchema = z
-  .object({
-    type: z.literal("FILE"),
-    fileUrl: z.url().describe("The URL of the file to ingest."),
-    fileName: fileNameSchema,
-    // externalId: documentExternalIdSchema,
-  })
-  .meta({
-    id: "file-payload",
-    title: "URL Payload",
-  });
-
-export const managedFilePayloadSchema = z
-  .object({
-    type: z.literal("MANAGED_FILE"),
-    key: z.string().describe("The key of the managed file to ingest."),
-    fileName: fileNameSchema,
-    // externalId: documentExternalIdSchema,
-  })
-  .meta({
-    id: "managed-file-payload",
-    title: "Managed File Payload",
-  });
-
-// Schema for reading existing batch jobs (lenient validation)
-export const batchPayloadSchema = z
-  .object({
-    type: z.literal("BATCH"),
-    items: z
-      .array(
-        z.discriminatedUnion("type", [
-          textPayloadSchema.extend({ config: documentConfigSchema.optional() }),
-          filePayloadSchema.extend({ config: documentConfigSchema.optional() }),
-          managedFilePayloadSchema.extend({
-            config: documentConfigSchema.optional(),
-          }),
-        ]),
-      )
-      .describe("The items to ingest.")
-      .min(1),
-  })
-  .meta({
-    id: "batch-payload",
-    title: "Batch Payload",
-  });
-
-// Schema for creating new batch jobs (strict validation)
-export const batchPayloadInputSchema = z
-  .object({
-    type: z.literal("BATCH"),
-    items: z
-      .array(
-        z.discriminatedUnion("type", [
-          textPayloadInputSchema.extend({
-            config: documentConfigSchema.optional(),
-          }),
-          filePayloadSchema.extend({ config: documentConfigSchema.optional() }),
-          managedFilePayloadSchema.extend({
-            config: documentConfigSchema.optional(),
-          }),
-        ]),
-      )
-      .describe("The items to ingest.")
-      .min(1),
-  })
-  .meta({
-    id: "batch-payload-input",
-    title: "Batch Payload Input",
-  });
-
 // Schema for reading existing jobs (lenient validation)
 export const ingestJobPayloadSchema = z
   .discriminatedUnion("type", [
     textPayloadSchema,
     filePayloadSchema,
     managedFilePayloadSchema,
+    crawlPayloadSchema,
+    youtubePayloadSchema,
     batchPayloadSchema,
   ])
   .meta({ id: "ingest-job-payload", description: "The ingest job payload." });
@@ -185,6 +73,8 @@ export const ingestJobPayloadInputSchema = z
     textPayloadInputSchema,
     filePayloadSchema,
     managedFilePayloadSchema,
+    crawlPayloadSchema,
+    youtubePayloadSchema,
     batchPayloadInputSchema,
   ])
   .meta({

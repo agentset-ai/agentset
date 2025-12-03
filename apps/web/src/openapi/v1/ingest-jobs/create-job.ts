@@ -13,7 +13,8 @@ export const createIngestJob: ZodOpenApiOperationObject = {
   "x-speakeasy-name-override": "create",
   "x-speakeasy-group": "ingestJobs",
   summary: "Create an ingest job",
-  description: "Create an ingest job for the authenticated organization.",
+  description:
+    "Create an ingest job for the authenticated organization. You can control how documents are parsed and chunked using the optional `config` object (for example, chunk size, overlap, language, and advanced OCR/LLM options).",
   parameters: [namespaceIdPathSchema, tenantHeaderSchema],
   requestBody: {
     required: true,
@@ -44,6 +45,15 @@ const job = await ns.ingestion.create({
     metadata: {
       foo: "bar",
     },
+    chunkSize: 2000,
+    chunkOverlap: 200,
+    minSentencesPerChunk: 1,
+    languageCode: "en",
+    forceOcr: false,
+    mode: "balanced",
+    disableImageExtraction: false,
+    disableOcrMath: false,
+    useLlm: true,
   },
 });
 console.log(job);

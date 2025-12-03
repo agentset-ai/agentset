@@ -3,7 +3,11 @@ import { Ratelimit } from "@upstash/ratelimit";
 
 import { DocumentStatus } from "@agentset/db";
 import { getNamespaceVectorStore, KeywordStore } from "@agentset/engine";
-import { deleteObject } from "@agentset/storage";
+import {
+  deleteDocumentChunksFile,
+  deleteDocumentImages,
+  deleteObject,
+} from "@agentset/storage";
 import { chunkArray } from "@agentset/utils";
 
 import { getDb } from "../db";
@@ -114,6 +118,18 @@ export const deleteDocument = schemaTask({
         }
       }
     }
+
+    try {
+      await deleteDocumentChunksFile(namespace.id, document.id);
+    } catch (error) {
+      console.error("Failed to delete chunks.json for document", {
+        documentId: document.id,
+        error,
+      });
+    }
+
+    // Delete any images associated with this document in the images bucket
+    await deleteDocumentImages(namespace.id, document.id);
 
     // Delete managed file if needed
     if (document.source.type === "MANAGED_FILE") {

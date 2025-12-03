@@ -155,16 +155,9 @@ export class Turbopuffer implements VectorStore<TurbopufferVectorFilter> {
       // Parse metadata to nodes
       return filterFalsy(
         results.map(({ id, $dist: distance, text, ...metadata }) => {
-          const node = metadataToChunk(metadata as VectorStoreMetadata);
           const finalMetadata = params.includeMetadata
-            ? node
-              ? node.metadata
-              : metadata
+            ? (metadata as VectorStoreMetadata)
             : undefined;
-          const finalRelationships =
-            params.includeRelationships && node
-              ? node.relationships
-              : undefined;
 
           return {
             id: id.toString(),
@@ -174,7 +167,7 @@ export class Turbopuffer implements VectorStore<TurbopufferVectorFilter> {
                 : undefined,
             text: text as string,
             metadata: finalMetadata,
-            relationships: finalRelationships,
+            // relationships: finalRelationships,
           };
         }),
       );

@@ -28,11 +28,6 @@ export const env = createEnv({
     BETTER_AUTH_SECRET: z.string(),
     BETTER_AUTH_URL: z.url(),
 
-    QSTASH_URL: z.url(),
-    QSTASH_TOKEN: z.string(),
-    QSTASH_CURRENT_SIGNING_KEY: z.string(),
-    QSTASH_NEXT_SIGNING_KEY: z.string(),
-
     GITHUB_CLIENT_ID: z.string(),
     GITHUB_CLIENT_SECRET: z.string(),
 
@@ -67,11 +62,6 @@ export const env = createEnv({
 
     BETTER_AUTH_SECRET: process.env.BETTER_AUTH_SECRET,
     BETTER_AUTH_URL: process.env.BETTER_AUTH_URL,
-
-    QSTASH_URL: process.env.QSTASH_URL,
-    QSTASH_TOKEN: process.env.QSTASH_TOKEN,
-    QSTASH_CURRENT_SIGNING_KEY: process.env.QSTASH_CURRENT_SIGNING_KEY,
-    QSTASH_NEXT_SIGNING_KEY: process.env.QSTASH_NEXT_SIGNING_KEY,
 
     GITHUB_CLIENT_ID: process.env.GITHUB_CLIENT_ID,
     GITHUB_CLIENT_SECRET: process.env.GITHUB_CLIENT_SECRET,

@@ -4,11 +4,12 @@ import type { ColumnDef } from "@tanstack/react-table";
 import { formatDuration } from "@/lib/utils";
 import { ChevronDownIcon, ChevronRightIcon } from "lucide-react";
 
-import type { IngestJob } from "@agentset/db";
+import type { IngestJob } from "@agentset/db/browser";
 import type { BadgeProps } from "@agentset/ui/badge";
-import { IngestJobStatus } from "@agentset/db";
+import { IngestJobStatus } from "@agentset/db/browser";
 import { Badge } from "@agentset/ui/badge";
 import { Button } from "@agentset/ui/button";
+import { TimestampTooltip } from "@agentset/ui/timestamp-tooltip";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@agentset/ui/tooltip";
 import { capitalize } from "@agentset/utils";
 
@@ -49,10 +50,6 @@ const statusToBadgeVariant = (
   }
 };
 
-const formatDate = (date: Date | string) => {
-  return new Date(date).toLocaleString();
-};
-
 export const columns: ColumnDef<JobCol>[] = [
   {
     id: "expand",
@@ -89,11 +86,37 @@ export const columns: ColumnDef<JobCol>[] = [
     accessorKey: "name",
     header: "Name",
     cell: ({ row }) => {
-      const name = row.original.name ?? "-";
+      const name = row.original.name || "-";
+
       return (
         <p title={name}>
           {name.length > 20 ? name.slice(0, 20) + "..." : name}
         </p>
+      );
+    },
+  },
+  {
+    accessorKey: "status",
+    header: "Status",
+    cell: ({ row }) => {
+      const badge = (
+        <Badge
+          variant={statusToBadgeVariant(row.original.status)}
+          className="capitalize"
+        >
+          {row.original.status === IngestJobStatus.COMPLETED
+            ? "Ready"
+            : capitalize(row.original.status.split("_").join(" "))}
+        </Badge>
+      );
+
+      if (!row.original.error) return badge;
+
+      return (
+        <Tooltip>
+          <TooltipTrigger asChild>{badge}</TooltipTrigger>
+          <TooltipContent>{row.original.error}</TooltipContent>
+        </Tooltip>
       );
     },
   },
@@ -108,13 +131,6 @@ export const columns: ColumnDef<JobCol>[] = [
   //   },
   // },
   {
-    accessorKey: "config",
-    header: "Config",
-    cell: ({ row }) => {
-      return <ConfigModal jobId={row.original.id} />;
-    },
-  },
-  {
     accessorKey: "tenantId",
     header: "Tenant ID",
     cell: ({ row }) => {
@@ -123,33 +139,20 @@ export const columns: ColumnDef<JobCol>[] = [
   },
 
   {
-    accessorKey: "status",
-    header: "Status",
+    id: "uploadedAt",
+    header: "Uploaded At",
     cell: ({ row }) => {
-      const badge = (
-        <Badge
-          variant={statusToBadgeVariant(row.original.status)}
-          className="capitalize"
-        >
-          {capitalize(row.original.status.split("_").join(" "))}
-        </Badge>
-      );
-
-      if (!row.original.error) return badge;
-
       return (
-        <Tooltip>
-          <TooltipTrigger asChild>{badge}</TooltipTrigger>
-          <TooltipContent>{row.original.error}</TooltipContent>
-        </Tooltip>
+        <TimestampTooltip timestamp={row.original.createdAt}>
+          <p className="w-fit">
+            {row.original.createdAt.toLocaleString("en-US", {
+              year: "numeric",
+              month: "long",
+              day: "numeric",
+            })}
+          </p>
+        </TimestampTooltip>
       );
-    },
-  },
-  {
-    accessorKey: "createdAt",
-    header: "Created At",
-    cell: ({ row }) => {
-      return <p>{formatDate(row.original.createdAt)}</p>;
     },
   },
   {
@@ -164,6 +167,13 @@ export const columns: ColumnDef<JobCol>[] = [
             : "-"}
         </p>
       );
+    },
+  },
+  {
+    accessorKey: "config",
+    header: "Config",
+    cell: ({ row }) => {
+      return <ConfigModal jobId={row.original.id} />;
     },
   },
   {

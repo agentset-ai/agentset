@@ -17,7 +17,7 @@ export const getNamespaceVectorStore = async (
   // NOTE: this technically should never happen because we should always have a vector store config
   if (!config) {
     config = {
-      provider: "MANAGED_PINECONE",
+      provider: "MANAGED_TURBOPUFFER",
     };
   }
 

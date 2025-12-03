@@ -6,7 +6,8 @@ import { getCache, waitUntil } from "@vercel/functions";
 import { nanoid } from "nanoid";
 import { z } from "zod/v4";
 
-import { db, Prisma } from "@agentset/db";
+import { Prisma } from "@agentset/db";
+import { db } from "@agentset/db/client";
 import { deleteAsset, uploadImage } from "@agentset/storage";
 
 export const updateHosting = async ({

@@ -90,7 +90,7 @@ export const PreviewMessage = ({
                             "bg-primary text-primary-foreground rounded-xl px-3 py-2",
                         )}
                       >
-                        <Markdown message={message}>
+                        <Markdown message={message} isLoading={isLoading}>
                           {sanitizeText(part.text)}
                         </Markdown>
                       </div>

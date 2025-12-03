@@ -1,4 +1,4 @@
-import { db } from "@agentset/db";
+import { db } from "@agentset/db/client";
 
 const namespaces = await db.namespace.findMany({
   select: {

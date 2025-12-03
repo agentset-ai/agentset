@@ -16,7 +16,6 @@
     "dev:stripe": "stripe listen --forward-to localhost:3000/api/stripe/webhook --events checkout.session.completed,customer.subscription.updated,customer.subscription.deleted,invoice.payment_failed",
     "dev": "turbo watch dev --continue",
     "dev:supavisor": "turbo -F @agentset/supavisor dev",
-    "dev:upstash": "pnpm dlx @upstash/qstash-cli dev",
     "dev:web": "turbo watch dev -F @agentset/web...",
     "dev:emails": "turbo watch dev -F @agentset/emails...",
     "format": "turbo run format --continue -- --cache --cache-location .cache/.prettiercache",

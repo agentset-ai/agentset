@@ -4,7 +4,7 @@ import { useNamespace } from "@/hooks/use-namespace";
 import { useTRPC } from "@/trpc/react";
 import { keepPreviousData, useQuery } from "@tanstack/react-query";
 
-import { IngestJobStatus } from "@agentset/db";
+import { IngestJobStatus } from "@agentset/db/browser";
 import { capitalize } from "@agentset/utils";
 
 const statusLabels = Object.values(IngestJobStatus).map((status) => ({

@@ -1,9 +1,4 @@
-import { useNamespace } from "@/hooks/use-namespace";
-import { logEvent } from "@/lib/analytics";
-import { useTRPC } from "@/trpc/react";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { useMutation } from "@tanstack/react-query";
-import { useForm } from "react-hook-form";
+import { useZodForm } from "@/hooks/use-zod-form";
 import { z } from "zod/v4";
 
 import { Button } from "@agentset/ui/button";
@@ -20,7 +15,10 @@ import { Input } from "@agentset/ui/input";
 import { Textarea } from "@agentset/ui/textarea";
 import { configSchema } from "@agentset/validation";
 
+import type { BaseIngestFormProps } from "./shared";
 import IngestConfig from "./config";
+import { extractConfig } from "./shared";
+import { useIngest } from "./use-ingest";
 
 const schema = z
   .object({
@@ -29,33 +27,17 @@ const schema = z
   })
   .extend(configSchema.shape);
 
-export default function TextForm({ onSuccess }: { onSuccess: () => void }) {
-  const namespace = useNamespace();
-  const trpc = useTRPC();
-
-  const form = useForm({
-    resolver: zodResolver(schema),
+export default function TextForm({ onSuccess }: BaseIngestFormProps) {
+  const { mutateAsync, isPending, namespace } = useIngest({
+    type: "TEXT",
+    onSuccess,
   });
 
-  const { mutateAsync, isPending } = useMutation(
-    trpc.ingestJob.ingest.mutationOptions({
-      onSuccess: (doc) => {
-        logEvent("document_ingested", {
-          type: "text",
-          namespaceId: namespace.id,
-          chunkSize: doc.config?.chunkSize,
-          maxChunkSize: doc.config?.maxChunkSize,
-          chunkOverlap: doc.config?.chunkOverlap,
-          strategy: doc.config?.strategy,
-          chunkingStrategy: doc.config?.chunkingStrategy,
-          hasMetadata: !!doc.config?.metadata,
-        });
-        onSuccess();
-      },
-    }),
-  );
+  const form = useZodForm(schema, {
+    defaultValues: {},
+  });
 
-  const handleTextSubmit = async (data: z.infer<typeof schema>) => {
+  const onSubmit = async (data: z.infer<typeof schema>) => {
     await mutateAsync({
       namespaceId: namespace.id,
       name: data.name,
@@ -64,35 +46,23 @@ export default function TextForm({ onSuccess }: { onSuccess: () => void }) {
         fileName: data.name,
         text: data.text,
       },
-      config:
-        data.chunkSize ||
-        data.maxChunkSize ||
-        data.chunkOverlap ||
-        data.metadata
-          ? {
-              chunkSize: data.chunkSize,
-              maxChunkSize: data.maxChunkSize,
-              chunkOverlap: data.chunkOverlap,
-              metadata: data.metadata,
-            }
-          : undefined,
+      config: extractConfig(data),
     });
   };
 
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(handleTextSubmit)}>
+      <form onSubmit={form.handleSubmit(onSubmit)}>
         <div className="flex flex-col gap-6 py-4">
           <FormField
             control={form.control}
             name="name"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Name</FormLabel>
+                <FormLabel>File Name</FormLabel>
                 <FormControl>
                   <Input placeholder="example.txt" {...field} />
                 </FormControl>
-
                 <FormMessage />
               </FormItem>
             )}
@@ -106,24 +76,22 @@ export default function TextForm({ onSuccess }: { onSuccess: () => void }) {
                 <FormLabel>Text</FormLabel>
                 <FormControl>
                   <Textarea
-                    id="text"
                     placeholder="Enter your text here"
                     className="max-h-[400px] min-h-[200px]"
                     {...field}
                   />
                 </FormControl>
-
                 <FormMessage />
               </FormItem>
             )}
           />
 
-          <IngestConfig form={form} />
+          <IngestConfig form={form} minimal />
         </div>
 
         <DialogFooter>
           <Button type="submit" isLoading={isPending}>
-            Ingest Text
+            Ingest
           </Button>
         </DialogFooter>
       </form>

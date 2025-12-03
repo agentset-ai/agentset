@@ -1,4 +1,5 @@
-import { db, Prisma } from "@agentset/db";
+import { Prisma } from "@agentset/db";
+import { db } from "@agentset/db/client";
 import { chunkArray } from "@agentset/utils";
 
 const namespacesWithDefaultConfig = await db.namespace.findMany({

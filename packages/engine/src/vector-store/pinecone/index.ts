@@ -68,7 +68,10 @@ export class Pinecone implements VectorStore<PineconeVectorFilter> {
     // Parse metadata to nodes
     return filterFalsy(
       results.map((match) => {
-        const node = metadataToChunk(match.metadata);
+        const node = metadataToChunk({
+          id: match.id,
+          ...match.metadata,
+        });
         if (!node) return null;
 
         return {

@@ -13,7 +13,8 @@ import {
   validateVectorStoreConfig,
 } from "@/services/namespaces/validate";
 
-import { db, Prisma } from "@agentset/db";
+import { Prisma } from "@agentset/db";
+import { db } from "@agentset/db/client";
 
 export const GET = withApiHandler(
   async ({ organization, headers }) => {

@@ -84,7 +84,7 @@ Import from packages using their configured aliases:
 ```typescript
 // ✅ Correct - use package aliases
 import { Button } from "@agentset/ui"
-import { db } from "@agentset/db"
+import { db } from "@agentset/db/client"
 import { env } from "@agentset/engine/env"
 
 // ❌ Avoid relative paths to packages

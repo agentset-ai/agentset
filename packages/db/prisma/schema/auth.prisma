@@ -2,16 +2,16 @@ model User {
   id            String       @id
   name          String
   email         String
-  emailVerified Boolean
+  emailVerified Boolean      @default(false)
   image         String?
-  createdAt     DateTime
-  updatedAt     DateTime
+  createdAt     DateTime     @default(now())
+  updatedAt     DateTime     @updatedAt
   sessions      Session[]
   accounts      Account[]
   members       Member[]
   invitations   Invitation[]
-  role          String       @default("user")
-  banned        Boolean? //	Indicates whether the user is banned.
+  role          String?
+  banned        Boolean?     @default(false) //	Indicates whether the user is banned.
   banReason     String? // The reason for the user's ban.
   banExpires    DateTime?
 
@@ -27,8 +27,8 @@ model Session {
   id                   String   @id
   expiresAt            DateTime
   token                String
-  createdAt            DateTime
-  updatedAt            DateTime
+  createdAt            DateTime @default(now())
+  updatedAt            DateTime @updatedAt
   ipAddress            String?
   userAgent            String?
   impersonatedBy       String?
@@ -37,6 +37,7 @@ model Session {
   activeOrganizationId String?
 
   @@unique([token])
+  @@index([userId])
   @@map("session")
 }
 
@@ -53,19 +54,21 @@ model Account {
   refreshTokenExpiresAt DateTime?
   scope                 String?
   password              String?
-  createdAt             DateTime
-  updatedAt             DateTime
+  createdAt             DateTime  @default(now())
+  updatedAt             DateTime  @updatedAt
 
+  @@index([userId])
   @@map("account")
 }
 
 model Verification {
-  id         String    @id
+  id         String   @id
   identifier String
   value      String
   expiresAt  DateTime
-  createdAt  DateTime?
-  updatedAt  DateTime?
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
 
+  @@index([identifier])
   @@map("verification")
 }

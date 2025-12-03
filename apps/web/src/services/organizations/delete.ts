@@ -1,4 +1,5 @@
-import { db, OrganizationStatus } from "@agentset/db";
+import { OrganizationStatus } from "@agentset/db";
+import { db } from "@agentset/db/client";
 import { triggerDeleteOrganization } from "@agentset/jobs";
 import { cancelSubscription } from "@agentset/stripe";
 

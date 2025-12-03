@@ -2,7 +2,8 @@ import { env } from "@/env";
 import { AgentsetApiError } from "@/lib/api/errors";
 import { getCache, waitUntil } from "@vercel/functions";
 
-import { db, Prisma } from "@agentset/db";
+import { Prisma } from "@agentset/db";
+import { db } from "@agentset/db/client";
 import { deleteAsset } from "@agentset/storage";
 
 export const deleteHosting = async ({

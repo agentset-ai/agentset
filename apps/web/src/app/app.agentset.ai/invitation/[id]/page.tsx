@@ -8,9 +8,7 @@ import { InvitationStatus } from "./invitation-status";
 
 export default async function InvitationPage({
   params,
-}: {
-  params: Promise<{ id: string }>;
-}) {
+}: PageProps<"/app.agentset.ai/invitation/[id]">) {
   const [inviteId, allHeaders] = await Promise.all([
     params.then((p) => p.id),
     headers(),

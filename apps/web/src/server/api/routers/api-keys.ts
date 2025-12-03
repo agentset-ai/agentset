@@ -78,7 +78,7 @@ export const apiKeysRouter = createTRPCRouter({
         },
       });
 
-      revalidateTag(`apiKey:${apiKey.key}`);
+      revalidateTag(`apiKey:${apiKey.key}`, "max");
 
       return apiKey;
     }),
@@ -102,7 +102,7 @@ export const apiKeysRouter = createTRPCRouter({
         },
       });
 
-      revalidateTag(`apiKey:${apiKey.key}`);
+      revalidateTag(`apiKey:${apiKey.key}`, "max");
 
       return { success: true };
     }),

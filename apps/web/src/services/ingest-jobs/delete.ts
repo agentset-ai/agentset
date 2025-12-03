@@ -1,4 +1,5 @@
-import { db, IngestJobStatus } from "@agentset/db";
+import { IngestJobStatus } from "@agentset/db";
+import { db } from "@agentset/db/client";
 import { triggerDeleteIngestJob } from "@agentset/jobs";
 
 export const deleteIngestJob = async (jobId: string) => {

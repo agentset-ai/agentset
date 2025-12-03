@@ -1,4 +1,4 @@
-import { db } from "@agentset/db";
+import { db } from "@agentset/db/client";
 
 /**
  * This script fills in the title and slug for hostings that don't have them.

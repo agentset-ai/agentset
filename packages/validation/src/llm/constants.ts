@@ -7,6 +7,10 @@ export const LLM_MODELS = {
   ],
 } as const;
 
+export const LLM_PROVIDERS: Record<keyof typeof LLM_MODELS, string> = {
+  openai: "OpenAI",
+};
+
 type _LLMMap = {
   [T in keyof typeof LLM_MODELS]: `${T}:${(typeof LLM_MODELS)[T][number]["model"]}`;
 };

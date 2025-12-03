@@ -3,7 +3,7 @@ import { sendEmail } from "@/lib/resend";
 import { waitUntil } from "@vercel/functions";
 
 import type { Stripe } from "@agentset/stripe";
-import { db } from "@agentset/db";
+import { db } from "@agentset/db/client";
 
 const cancellationReasonMap = {
   customer_service: "you had a bad experience with our customer service",
@@ -49,7 +49,7 @@ export async function sendCancellationFeedback({
 export function revalidateOrganizationCache(organizationId: string) {
   waitUntil(
     (async () => {
-      revalidateTag(`org:${organizationId}`);
+      revalidateTag(`org:${organizationId}`, "max");
 
       const apiKeys = await db.organizationApiKey.findMany({
         where: {
@@ -61,7 +61,7 @@ export function revalidateOrganizationCache(organizationId: string) {
       });
 
       for (const apiKey of apiKeys) {
-        revalidateTag(`apiKey:${apiKey.key}`);
+        revalidateTag(`apiKey:${apiKey.key}`, "max");
       }
     })(),
   );

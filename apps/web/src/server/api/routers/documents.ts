@@ -6,6 +6,7 @@ import { TRPCError } from "@trpc/server";
 import { z } from "zod/v4";
 
 import { DocumentStatus } from "@agentset/db";
+import { presignChunksDownloadUrl, presignGetUrl } from "@agentset/storage";
 
 import { getNamespaceByUser } from "../auth";
 
@@ -49,6 +50,7 @@ export const documentsRouter = createTRPCRouter({
           totalTokens: true,
           totalChunks: true,
           totalCharacters: true,
+          source: true,
           totalPages: true,
           documentProperties: true,
           createdAt: true,
@@ -101,5 +103,88 @@ export const documentsRouter = createTRPCRouter({
       const updatedDocument = await deleteDocument(input.documentId);
 
       return updatedDocument;
+    }),
+  getChunksDownloadUrl: protectedProcedure
+    .input(
+      z.object({
+        documentId: z.string(),
+        namespaceId: z.string(),
+      }),
+    )
+    .mutation(async ({ ctx, input }) => {
+      const namespace = await getNamespaceByUser(ctx, {
+        id: input.namespaceId,
+      });
+
+      if (!namespace) {
+        throw new TRPCError({ code: "NOT_FOUND" });
+      }
+
+      const document = await ctx.db.document.findUnique({
+        where: {
+          id: input.documentId,
+          namespaceId: namespace.id,
+        },
+        select: { id: true, status: true },
+      });
+
+      if (!document) {
+        throw new TRPCError({ code: "NOT_FOUND" });
+      }
+
+      if (document.status !== DocumentStatus.COMPLETED) {
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          message: "Chunks are only available for completed documents",
+        });
+      }
+
+      const url = await presignChunksDownloadUrl(namespace.id, document.id);
+      if (!url) {
+        throw new TRPCError({ code: "NOT_FOUND" });
+      }
+
+      return { url };
+    }),
+  getFileDownloadUrl: protectedProcedure
+    .input(
+      z.object({
+        documentId: z.string(),
+        namespaceId: z.string(),
+      }),
+    )
+    .mutation(async ({ ctx, input }) => {
+      const namespace = await getNamespaceByUser(ctx, {
+        id: input.namespaceId,
+      });
+
+      if (!namespace) {
+        throw new TRPCError({ code: "NOT_FOUND" });
+      }
+
+      const document = await ctx.db.document.findUnique({
+        where: {
+          id: input.documentId,
+          namespaceId: namespace.id,
+        },
+        select: { id: true, name: true, source: true },
+      });
+
+      if (!document) {
+        throw new TRPCError({ code: "NOT_FOUND" });
+      }
+
+      if (document.source.type !== "MANAGED_FILE") {
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          message: "File download is only available for managed files",
+        });
+      }
+
+      const { url } = await presignGetUrl(document.source.key, {
+        fileName: document.name ?? undefined,
+      });
+
+      return { url };
     }),
 });

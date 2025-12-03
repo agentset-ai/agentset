@@ -20,7 +20,7 @@ import {
   streamText,
 } from "ai";
 
-import { db } from "@agentset/db";
+import { db } from "@agentset/db/client";
 import {
   getNamespaceEmbeddingModel,
   getNamespaceLanguageModel,
