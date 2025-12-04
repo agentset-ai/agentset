@@ -49,7 +49,7 @@
     "file-type": "^21.0.0",
     "jiti": "^2.6.1",
     "motion": "^12.23.24",
-    "next": "16.0.3",
+    "next": "16.0.7",
     "posthog-js": "^1.260.1",
     "posthog-node": "^5.8.1",
     "react": "catalog:react19",
