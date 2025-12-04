@@ -3,8 +3,8 @@
   "version": "0.0.1",
   "private": true,
   "scripts": {
-    "trigger:dev": "dotenv -- trigger dev",
-    "trigger:deploy": "dotenv -- trigger deploy --skip-sync-env-vars",
+    "trigger:dev": "bun run trigger dev",
+    "trigger:deploy": "bun run trigger deploy --skip-sync-env-vars",
     "typecheck": "tsc --noEmit --emitDeclarationOnly false",
     "clean": "git clean -xdf .cache .turbo .trigger node_modules",
     "format": "prettier --check . --ignore-path ../../.gitignore",
@@ -34,7 +34,6 @@
     "@agentset/prettier-config": "workspace:*",
     "@agentset/tsconfig": "workspace:*",
     "@trigger.dev/build": "^4.1.2",
-    "dotenv-cli": "^8.0.0",
     "eslint": "catalog:",
     "prettier": "catalog:",
     "trigger.dev": "^4.1.2",

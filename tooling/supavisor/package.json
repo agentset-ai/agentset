@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "docker-compose up",
-    "create-tenant": "pnpm dlx tsx --env-file .env create-tenant.ts"
+    "create-tenant": "bun run create-tenant.ts"
   },
   "devDependencies": {
     "pino": "^9.7.0",
