@@ -8,6 +8,7 @@ export const RERANKER_MODELS = {
     },
   ],
   zeroentropy: [
+    { model: "zerank-2", name: "Zerank 2" },
     { model: "zerank-1", name: "Zerank 1" },
     { model: "zerank-1-small", name: "Zerank 1 Small" },
   ],
@@ -19,4 +20,4 @@ type _RerankerMap = {
 
 export type RerankingModel = _RerankerMap[keyof _RerankerMap];
 
-export const DEFAULT_RERANKER: RerankingModel = "cohere:rerank-v3.5";
+export const DEFAULT_RERANKER: RerankingModel = "zeroentropy:zerank-2";
