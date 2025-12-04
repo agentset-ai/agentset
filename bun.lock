@@ -341,7 +341,7 @@
     "typescript": "^5.9.3",
     "vitest": "^3.2.4",
     "zod": "^4.1.8",
-    "zod-openapi": "^5.4.1",
+    "zod-openapi": "^5.4.5",
   },
   "catalogs": {
     "react19": {
@@ -3434,7 +3434,7 @@
 
     "zod-error": ["zod-error@1.5.0", "", { "dependencies": { "zod": "3.25.76" } }, "sha512-zzopKZ/skI9iXpqCEPj+iLCKl9b88E43ehcU+sbRoHuwGd9F1IDVGQ70TyO6kmfiRL1g4IXkjsXK+g1gLYl4WQ=="],
 
-    "zod-openapi": ["zod-openapi@5.4.1", "", { "peerDependencies": { "zod": "4.1.8" } }, "sha512-deZCmezGJhi2urw7l8LWYCJEUaAb/Azo14c0wncCM7L7u7hz+1d4v3r4Uav7x4+zVkJj/ZYlCu6lwT0QQttW6g=="],
+    "zod-openapi": ["zod-openapi@5.4.5", "", { "peerDependencies": { "zod": "^3.25.74 || ^4.0.0" } }, "sha512-DVLBNsnggh8k/Yq7qp+NeQCH6JuLIyGzUQWA1wN5+7DpQJSwC7WYR/2lE6uQDmGcS/X6l4tUyYFpeG4nk3nOpA=="],
 
     "zod-to-json-schema": ["zod-to-json-schema@3.24.4", "", { "peerDependencies": { "zod": "3.25.76" } }, "sha512-0uNlcvgabyrni9Ag8Vghj21drk7+7tp7VTwwR7KxxXXc/3pbXz2PHlDgj3cICahgF1kHm4dExBFj7BXrZJXzig=="],
 
@@ -3943,8 +3943,6 @@
     "zeroentropy/formdata-node": ["formdata-node@4.4.1", "", { "dependencies": { "node-domexception": "1.0.0", "web-streams-polyfill": "4.0.0-beta.3" } }, "sha512-0iirZp3uVDjVGt9p49aTaqjk84TrglENEDuqfdlZQ1roC9CWlPk6Avf8EEnZNcAqPonwkG35x4n3ww/1THYAeQ=="],
 
     "zod-error/zod": ["zod@3.25.76", "", {}, "sha512-gzUt/qt81nXsFGKIFcC3YnfEAx5NkunCfnDlvuBSSFS02bcXu4Lmea0AFIUwbLWxWPx3d9p8S5QoaujKcNQxcQ=="],
-
-    "zod-openapi/zod": ["zod@4.1.8", "", {}, "sha512-5R1P+WwQqmmMIEACyzSvo4JXHY5WiAFHRMg+zBZKgKS+Q1viRa0C1hmUKtHltoIFKtIdki3pRxkmpP74jnNYHQ=="],
 
     "zod-to-json-schema/zod": ["zod@3.25.76", "", {}, "sha512-gzUt/qt81nXsFGKIFcC3YnfEAx5NkunCfnDlvuBSSFS02bcXu4Lmea0AFIUwbLWxWPx3d9p8S5QoaujKcNQxcQ=="],
 

@@ -46,7 +46,7 @@
       "tailwindcss": "^4.1.17",
       "typescript": "^5.9.3",
       "zod": "^4.1.8",
-      "zod-openapi": "^5.4.1",
+      "zod-openapi": "^5.4.5",
       "@t3-oss/env-nextjs": "^0.13.8",
       "ai": "^5.0.44",
       "@tanstack/react-query": "^5.83.0",
