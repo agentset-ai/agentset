@@ -3,8 +3,8 @@
   "version": "0.0.1",
   "private": true,
   "scripts": {
-    "trigger:dev": "bun trigger dev",
-    "trigger:deploy": "bun trigger deploy --skip-sync-env-vars",
+    "trigger:dev": "bun run trigger dev",
+    "trigger:deploy": "bun run trigger deploy --skip-sync-env-vars",
     "typecheck": "tsc --noEmit --emitDeclarationOnly false",
     "clean": "git clean -xdf .cache .turbo .trigger node_modules",
     "format": "prettier --check . --ignore-path ../../.gitignore",

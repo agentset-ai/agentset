@@ -23,7 +23,7 @@
     "lint": "turbo run lint --continue -- --cache --cache-location .cache/.eslintcache",
     "lint:fix": "turbo run lint --continue -- --fix --cache --cache-location .cache/.eslintcache",
     "lint:ws": "bunx sherif@latest",
-    "postinstall": "bun lint:ws",
+    "postinstall": "bun run lint:ws",
     "typecheck": "turbo run typecheck",
     "ui-add": "turbo run ui-add"
   },

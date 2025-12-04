@@ -11,16 +11,16 @@
     "./browser": "./src/browser.ts"
   },
   "scripts": {
-    "postinstall": "bun db:generate",
+    "postinstall": "bun run db:generate",
     "build": "tsc",
     "clean": "git clean -xdf .cache .turbo dist node_modules",
     "dev": "tsc",
     "format": "prettier --check . --ignore-path ../../.gitignore",
     "lint": "eslint",
-    "db:generate": "PRISMA_MODE=generate bun --env-file=../../.env prisma generate",
-    "db:deploy": "bun --env-file=../../.env prisma migrate deploy",
-    "db:studio": "bun --env-file=../../.env prisma studio",
-    "db:migrate": "bun --env-file=../../.env prisma migrate dev",
+    "db:generate": "PRISMA_MODE=generate bun --env-file=../../.env run prisma generate",
+    "db:deploy": "bun --env-file=../../.env run prisma migrate deploy",
+    "db:studio": "bun --env-file=../../.env run prisma studio",
+    "db:migrate": "bun --env-file=../../.env run prisma migrate dev",
     "typecheck": "tsc --noEmit --emitDeclarationOnly false"
   },
   "dependencies": {

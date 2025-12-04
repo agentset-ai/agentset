@@ -4,16 +4,16 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "build": "bun --env-file=../../.env next build",
-    "typegen": "bun --env-file=../../.env next typegen",
+    "build": "bun --env-file=../../.env run next build",
+    "typegen": "bun --env-file=../../.env run next typegen",
     "clean": "git clean -xdf .cache .next .turbo node_modules",
-    "check": "bun lint && tsc --noEmit",
-    "dev": "bun --env-file=../../.env next dev",
+    "check": "bun run lint && tsc --noEmit",
+    "dev": "bun --env-file=../../.env run next dev",
     "format": "prettier --check . --ignore-path ../../.gitignore",
     "lint": "eslint",
-    "lint:fix": "bun lint --fix",
+    "lint:fix": "bun run lint --fix",
     "preview": "next build && next start",
-    "start": "bun --env-file=../../.env next start",
+    "start": "bun --env-file=../../.env run next start",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
