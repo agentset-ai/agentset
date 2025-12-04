@@ -4,18 +4,17 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "build": "pnpm with-env next build",
-    "typegen": "pnpm with-env next typegen",
+    "build": "bun --env-file=../../.env next build",
+    "typegen": "bun --env-file=../../.env next typegen",
     "clean": "git clean -xdf .cache .next .turbo node_modules",
-    "check": "pnpm lint && tsc --noEmit",
-    "dev": "pnpm with-env next dev",
+    "check": "bun lint && tsc --noEmit",
+    "dev": "bun --env-file=../../.env next dev",
     "format": "prettier --check . --ignore-path ../../.gitignore",
     "lint": "eslint",
-    "lint:fix": "pnpm lint --fix",
+    "lint:fix": "bun lint --fix",
     "preview": "next build && next start",
-    "start": "pnpm with-env next start",
-    "typecheck": "tsc --noEmit",
-    "with-env": "dotenv -e ../../.env --"
+    "start": "bun --env-file=../../.env next start",
+    "typecheck": "tsc --noEmit"
   },
   "dependencies": {
     "@agentset/db": "workspace:*",
@@ -74,7 +73,6 @@
     "@types/node": "^22.10.10",
     "@types/react": "catalog:react19",
     "@types/react-dom": "catalog:react19",
-    "dotenv-cli": "^8.0.0",
     "eslint": "catalog:",
     "postcss": "^8.4.39",
     "prettier": "catalog:",

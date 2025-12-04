@@ -64,7 +64,7 @@
     "format": "prettier --check . --ignore-path ../../.gitignore",
     "lint": "eslint",
     "typecheck": "tsc --noEmit --emitDeclarationOnly false",
-    "ui-add": "pnpm dlx shadcn@latest add && prettier src --write --list-different"
+    "ui-add": "bunx shadcn@latest add && prettier src --write --list-different"
   },
   "dependencies": {
     "@agentset/utils": "workspace:*",

@@ -66,19 +66,19 @@ Follow our complete guide: https://docs.agentset.ai/open-source/self-hosting
 cp .env.example .env
 
 # 2) Install dependencies
-pnpm install
+bun install
 
 # 3) Run database migrations (from the repo root)
-pnpm db:deploy
+bun db:deploy
 
 # 4) Start the app
-pnpm dev:web
+bun dev:web
 ```
 
 Useful scripts:
 
-- `pnpm db:studio` – open Prisma Studio
-- `pnpm dev:web` – run only the web app
+- `bun db:studio` – open Prisma Studio
+- `bun dev:web` – run only the web app
 
 ## Star Us
 

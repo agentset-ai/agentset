@@ -32,9 +32,9 @@ Agentset is a **Turborepo monorepo** containing a Next.js web app and supporting
 
 ## Package Management
 
-### Use PNPM with Workspace Protocol
+### Use Bun with Workspace Protocol
 
-- Use `pnpm` as the package manager (required by packageManager field)
+- Use `bun` as the package manager (required by packageManager field)
 - Reference internal packages with `workspace:*` in package.json
 - Use catalog: references for shared external dependencies
 
@@ -50,11 +50,11 @@ Agentset is a **Turborepo monorepo** containing a Next.js web app and supporting
 
 ### Workspace Scripts
 
-- `pnpm dev` - Start all services in watch mode
-- `pnpm dev:web` - Start web app with dependencies
-- `pnpm build` - Build all packages
-- `pnpm lint` - Run linting across workspace
-- `pnpm typecheck` - Type check all packages
+- `bun dev` - Start all services in watch mode
+- `bun dev:web` - Start web app with dependencies
+- `bun build` - Build all packages
+- `bun lint` - Run linting across workspace
+- `bun typecheck` - Type check all packages
 
 ## Directory Naming Conventions
 

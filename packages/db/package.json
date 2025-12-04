@@ -11,18 +11,17 @@
     "./browser": "./src/browser.ts"
   },
   "scripts": {
-    "postinstall": "pnpm db:generate",
+    "postinstall": "bun db:generate",
     "build": "tsc",
     "clean": "git clean -xdf .cache .turbo dist node_modules",
     "dev": "tsc",
     "format": "prettier --check . --ignore-path ../../.gitignore",
     "lint": "eslint",
-    "db:generate": "dotenv -e ../../.env -v PRISMA_MODE=generate -- prisma generate",
-    "db:deploy": "pnpm with-env prisma migrate deploy",
-    "db:studio": "pnpm with-env prisma studio",
-    "db:migrate": "pnpm with-env prisma migrate dev",
-    "typecheck": "tsc --noEmit --emitDeclarationOnly false",
-    "with-env": "dotenv -e ../../.env --"
+    "db:generate": "bun --env-file=../../.env prisma generate",
+    "db:deploy": "bun --env-file=../../.env prisma migrate deploy",
+    "db:studio": "bun --env-file=../../.env prisma studio",
+    "db:migrate": "bun --env-file=../../.env prisma migrate dev",
+    "typecheck": "tsc --noEmit --emitDeclarationOnly false"
   },
   "dependencies": {
     "@neondatabase/serverless": "^1.0.2",
@@ -38,7 +37,6 @@
     "@agentset/prettier-config": "workspace:*",
     "@agentset/tsconfig": "workspace:*",
     "@agentset/validation": "workspace:*",
-    "dotenv-cli": "^8.0.0",
     "eslint": "catalog:",
     "prettier": "catalog:",
     "prisma": "^7.0.1",
