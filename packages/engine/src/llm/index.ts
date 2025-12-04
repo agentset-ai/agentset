@@ -14,6 +14,7 @@ const azure = createAzure({
 const modelToId: Record<LLM, string> = {
   "openai:gpt-4.1": "gpt-4.1",
   "openai:gpt-5": "gpt-5",
+  "openai:gpt-5.1": "gpt-5.1",
   "openai:gpt-5-mini": "gpt-5-mini",
   "openai:gpt-5-nano": "gpt-5-nano",
 };
