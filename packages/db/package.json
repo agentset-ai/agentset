@@ -17,7 +17,7 @@
     "dev": "tsc",
     "format": "prettier --check . --ignore-path ../../.gitignore",
     "lint": "eslint",
-    "db:generate": "bun --env-file=../../.env prisma generate",
+    "db:generate": "PRISMA_MODE=generate bun --env-file=../../.env prisma generate",
     "db:deploy": "bun --env-file=../../.env prisma migrate deploy",
     "db:studio": "bun --env-file=../../.env prisma studio",
     "db:migrate": "bun --env-file=../../.env prisma migrate dev",
