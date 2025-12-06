@@ -121,10 +121,6 @@ Triggered when documents are successfully ingested into a namespace. This event 
   fileCount?: number;                 // Number of files (for file uploads)
   urlCount?: number;                  // Number of URLs (for URL ingestion)
   chunkSize?: number;                 // Chunk size configuration
-  maxChunkSize?: number;              // Maximum chunk size configuration
-  chunkOverlap?: number;              // Chunk overlap configuration
-  strategy?: string;                  // Chunking strategy
-  chunkingStrategy?: string;          // Specific chunking strategy
   hasMetadata: boolean;               // Whether custom metadata was provided
 }
 ```

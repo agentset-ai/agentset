@@ -5,17 +5,16 @@ curl --request POST \\
   --header 'Content-Type: application/json' \\
   --data '{
   "payload": {
-    "type": "TEXT",
-    "text": "This is some content to ingest into the knowledge base.",
-    "name": "Introduction"
+    "type": "FILE",
+    "fileUrl": "https://example.com/file.pdf",
+    "fileName": "file.pdf"
   },
   "config": {
-    "chunkSize": 512,
-    "maxChunkSize": 1024,
-    "chunkOverlap": 10,
-    "metadata": {},
-    "chunkingStrategy": "basic",
-    "strategy": "auto"
+    "chunkSize": 2048,
+    "mode": "balanced",
+    "metadata": {
+      "foo": "bar"
+    }
   }
 }'
 `;
@@ -31,17 +30,16 @@ const ns = agentset.namespace("{{namespace}}");
 
 const result = await ns.ingestion.create({ 
   payload: {
-    type: "TEXT",
-    text: "This is some content to ingest into the knowledge base.",
-    name: "Introduction",
+    type: "FILE",
+    fileUrl: "https://example.com/file.pdf",
+    fileName: "file.pdf",
   },
   config: {
-    chunkSize: 512,
-    maxChunkSize: 1024,
-    chunkOverlap: 10,
-    metadata: {},
-    chunkingStrategy: "basic",
-    strategy: "auto",
+    chunkSize: 2048,
+    mode: "balanced",
+    metadata: {
+      foo: "bar",
+    },
   },
 });
 console.log(result);

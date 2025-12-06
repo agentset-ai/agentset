@@ -20,7 +20,11 @@ export const textPayloadInputSchema = textPayloadBaseSchema
   });
 
 // Schema for reading existing jobs (used for validation when querying)
-export const textPayloadSchema = textPayloadBaseSchema.meta({
-  id: "text-payload",
-  title: "Text Payload",
-});
+export const textPayloadSchema = textPayloadBaseSchema
+  .extend({
+    text: z.string().describe("The text to ingest."),
+  })
+  .meta({
+    id: "text-payload",
+    title: "Text Payload",
+  });

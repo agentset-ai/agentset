@@ -62,7 +62,7 @@ export const baseConfigSchema = z.object({
     .number()
     .meta({
       description:
-        "Custom chunk overlap (in characters) between consecutive chunks. Helps preserve context across chunk boundaries.",
+        "[Deprecated] Custom chunk overlap (in characters) between consecutive chunks. Helps preserve context across chunk boundaries.",
       deprecated: true,
       "x-speakeasy-deprecation-message":
         "We no longer support this option. Use `chunkSize` instead.",
