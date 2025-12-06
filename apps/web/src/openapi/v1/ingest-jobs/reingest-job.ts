@@ -32,6 +32,6 @@ export const reIngestJob: ZodOpenApiOperationObject = {
   security: [{ token: [] }],
   ...makeCodeSamples(ts`
 const result = await ns.ingestion.reIngest("job_123");
-console.log("Job re-ingested: ", result);
+console.log("Job queued for re-ingestion: ", result);
 `),
 };

@@ -45,15 +45,7 @@ const job = await ns.ingestion.create({
     metadata: {
       foo: "bar",
     },
-    chunkSize: 2000,
-    chunkOverlap: 200,
-    minSentencesPerChunk: 1,
-    languageCode: "en",
-    forceOcr: false,
-    mode: "balanced",
-    disableImageExtraction: false,
-    disableOcrMath: false,
-    useLlm: true,
+    chunkSize: 2048,
   },
 });
 console.log(job);
