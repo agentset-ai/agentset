@@ -18,4 +18,4 @@ type _LLMMap = {
 
 export type LLM = _LLMMap[keyof _LLMMap];
 
-export const DEFAULT_LLM: LLM = "openai:gpt-5.1";
+export const DEFAULT_LLM: LLM = "openai:gpt-4.1";
