@@ -25,9 +25,9 @@
   },
   "dependencies": {
     "@neondatabase/serverless": "^1.0.2",
-    "@prisma/adapter-neon": "^7.0.1",
-    "@prisma/adapter-pg": "^7.0.1",
-    "@prisma/client": "^7.0.1"
+    "@prisma/adapter-neon": "^7.1.0",
+    "@prisma/adapter-pg": "^7.1.0",
+    "@prisma/client": "^7.1.0"
   },
   "prisma": {
     "schema": "prisma/schema"
@@ -39,8 +39,8 @@
     "@agentset/validation": "workspace:*",
     "eslint": "catalog:",
     "prettier": "catalog:",
-    "prisma": "^7.0.1",
-    "prisma-json-types-generator": "^3.6.2",
+    "prisma": "^7.1.0",
+    "prisma-json-types-generator": "^4.0.1",
     "typescript": "catalog:"
   },
   "prettier": "@agentset/prettier-config"
