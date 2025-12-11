@@ -22,7 +22,7 @@ export const EmbeddingConfigSchema = z
     GoogleEmbeddingConfigSchema,
     z.object({
       provider: z.literal("MANAGED_OPENAI"),
-      model: z.enum([openaiEmbeddingModelEnum.enum["text-embedding-3-large"]]),
+      model: openaiEmbeddingModelEnum.extract(["text-embedding-3-large"]),
     }),
   ])
   .meta({
