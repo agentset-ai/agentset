@@ -21,6 +21,7 @@ import { PaginatedTable } from "./paginated-table";
 import { PaginatedTableHeader } from "./paginated-table-header";
 import { useDocuments } from "./use-documents";
 import { useJobs } from "./use-jobs";
+import { useHasPendingJobs } from "./use-pending-jobs";
 
 export default function JobsPage() {
   const [tab, setTab] = useState<"jobs" | "documents">("documents");
@@ -38,7 +39,7 @@ export default function JobsPage() {
     statusLabels: jobStatusLabels,
     expandedJobId,
     setExpandedJobId,
-  } = useJobs();
+  } = useJobs(tab === "jobs");
 
   const {
     isLoading: isDocumentsLoading,
@@ -52,6 +53,7 @@ export default function JobsPage() {
     handlePrevious: handlePreviousDocument,
     hasPrevious: hasPreviousDocument,
   } = useDocuments(undefined, tab === "documents");
+  const hasPendingJobs = useHasPendingJobs(tab === "documents");
 
   return (
     <>
@@ -112,15 +114,17 @@ export default function JobsPage() {
         </TabsContent>
 
         <TabsContent value="documents">
-          <div className="mb-5">
-            <Alert>
-              <InfoIcon className="text-muted-foreground size-4" />
-              <AlertDescription>
-                Documents may take a moment to appear while processing. Check
-                the jobs tab for status.
-              </AlertDescription>
-            </Alert>
-          </div>
+          {hasPendingJobs && (
+            <div className="mb-5">
+              <Alert>
+                <InfoIcon className="text-muted-foreground size-4" />
+                <AlertDescription>
+                  Documents may take a moment to appear while processing. Check
+                  the jobs tab for status.
+                </AlertDescription>
+              </Alert>
+            </div>
+          )}
 
           <PaginatedTable
             columns={documentColumns}

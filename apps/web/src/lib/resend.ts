@@ -48,7 +48,7 @@ export const sendEmail = async (opts: ResendEmailOptions) => {
     from: from || VARIANT_TO_FROM_MAP[variant],
     bcc: bcc,
     replyTo: replyTo || "support@agentset.ai",
-    subject,
+    subject: subject!,
     text,
     react,
     scheduledAt,

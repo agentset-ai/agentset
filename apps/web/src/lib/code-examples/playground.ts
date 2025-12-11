@@ -49,3 +49,38 @@ const result = await generateText({
 });
 console.log(result);
 `;
+
+export const pythonExample = (apiKey?: string) => /* python */ `
+from agentset import Agentset
+from openai import OpenAI as OpenAIClient
+
+client = Agentset(
+    namespace_id="{{namespace}}",
+    token="${apiKey ?? "YOUR_API_KEY"}",
+)
+
+openai = OpenAIClient()
+
+query = "What are the key findings?"
+
+# Search for relevant context
+results = client.search.execute(query=query)
+context = "\n\n".join([r.text for r in results.data])
+
+# Generate a response
+response = openai.responses.create(
+    model="gpt-5.1",
+    input=[
+        {
+            "role": "system",
+            "content": f"Answer questions based on the following context:\n\n{context}",
+        },
+        {
+            "role": "user",
+            "content": query,
+        },
+    ],
+)
+
+print(response.output_text)
+`;

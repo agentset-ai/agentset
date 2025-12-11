@@ -12,7 +12,7 @@ const statusLabels = Object.values(IngestJobStatus).map((status) => ({
   value: status,
 }));
 
-export function useJobs(enabled = true) {
+export function useJobs(enabled: boolean) {
   const namespace = useNamespace();
   const trpc = useTRPC();
   const [statuses, _setStatuses] = useState<IngestJobStatus[]>([]);
