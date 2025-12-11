@@ -15,7 +15,7 @@
     "typecheck": "tsc --noEmit --emitDeclarationOnly false"
   },
   "dependencies": {
-    "@react-email/components": "^0.0.34",
+    "@react-email/components": "^1.0.1",
     "react": "catalog:react19",
     "react-dom": "catalog:react19"
   },
@@ -27,7 +27,7 @@
     "@types/react-dom": "catalog:react19",
     "eslint": "catalog:",
     "prettier": "catalog:",
-    "react-email": "^4.0.2",
+    "react-email": "^5.0.7",
     "typescript": "catalog:"
   },
   "prettier": "@agentset/prettier-config"
