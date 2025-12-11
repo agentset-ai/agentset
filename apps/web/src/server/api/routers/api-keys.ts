@@ -1,18 +1,8 @@
 import { revalidateTag } from "next/cache";
 import { createTRPCRouter, protectedProcedure } from "@/server/api/trpc";
+import { createApiKey, createApiKeySchema } from "@/services/api-key/create";
 import { TRPCError } from "@trpc/server";
 import { z } from "zod/v4";
-
-const keyGenerator = (prefix?: string, length = 16) => {
-  const characters = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
-  let apiKey = `${prefix || ""}`;
-  for (let i = 0; i < length; i++) {
-    const randomIndex = Math.floor(Math.random() * characters.length);
-    apiKey += characters[randomIndex];
-  }
-
-  return apiKey;
-};
 
 export const apiKeysRouter = createTRPCRouter({
   getApiKeys: protectedProcedure
@@ -49,19 +39,38 @@ export const apiKeysRouter = createTRPCRouter({
 
       return apiKeys;
     }),
-  createApiKey: protectedProcedure
-    .input(
-      z.object({
-        orgId: z.string(),
-        label: z.string(),
-        scope: z.enum(["all"]),
-      }),
-    )
-    .mutation(async ({ ctx, input }) => {
+  getDefaultApiKey: protectedProcedure
+    .input(z.object({ orgId: z.string() }))
+    .query(async ({ ctx, input }) => {
       const member = await ctx.db.member.findFirst({
         where: {
           userId: ctx.session.user.id,
           organizationId: input.orgId,
+        },
+        select: { id: true },
+      });
+
+      if (!member) {
+        throw new TRPCError({ code: "UNAUTHORIZED" });
+      }
+
+      const apiKey = await ctx.db.organizationApiKey.findFirst({
+        where: {
+          organizationId: input.orgId,
+          label: "Default API Key",
+        },
+        select: { key: true },
+      });
+
+      return apiKey?.key ?? null;
+    }),
+  createApiKey: protectedProcedure
+    .input(createApiKeySchema)
+    .mutation(async ({ ctx, input }) => {
+      const member = await ctx.db.member.findFirst({
+        where: {
+          userId: ctx.session.user.id,
+          organizationId: input.organizationId,
         },
       });
 
@@ -69,16 +78,7 @@ export const apiKeysRouter = createTRPCRouter({
         throw new TRPCError({ code: "UNAUTHORIZED" });
       }
 
-      const apiKey = await ctx.db.organizationApiKey.create({
-        data: {
-          label: input.label,
-          scope: input.scope,
-          organizationId: input.orgId,
-          key: keyGenerator("agentset_"),
-        },
-      });
-
-      revalidateTag(`apiKey:${apiKey.key}`, "max");
+      const apiKey = await createApiKey(input);
 
       return apiKey;
     }),

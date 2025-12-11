@@ -1,5 +1,6 @@
 import { cache } from "react";
 import { headers } from "next/headers";
+import { createApiKey } from "@/services/api-key/create";
 import { betterAuth } from "better-auth";
 import { prismaAdapter } from "better-auth/adapters/prisma";
 import { admin, magicLink, organization } from "better-auth/plugins";
@@ -46,6 +47,16 @@ export const makeAuth = (params?: { baseUrl: string; isHosting: boolean }) => {
     plugins: [
       admin(),
       organization({
+        organizationHooks: {
+          async afterCreateOrganization(data) {
+            // create default api key
+            await createApiKey({
+              organizationId: data.organization.id,
+              label: "Default API Key",
+              scope: "all",
+            });
+          },
+        },
         sendInvitationEmail: async ({ email, organization, id, inviter }) => {
           const url = `${getBaseUrl()}/invitation/${id}`;
           await sendEmail({
