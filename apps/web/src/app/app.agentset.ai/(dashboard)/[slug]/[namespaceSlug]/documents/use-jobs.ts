@@ -12,7 +12,7 @@ const statusLabels = Object.values(IngestJobStatus).map((status) => ({
   value: status,
 }));
 
-export function useJobs() {
+export function useJobs(enabled: boolean) {
   const namespace = useNamespace();
   const trpc = useTRPC();
   const [statuses, _setStatuses] = useState<IngestJobStatus[]>([]);
@@ -34,7 +34,11 @@ export function useJobs() {
         cursor,
         cursorDirection,
       },
-      { refetchInterval: 15_000, placeholderData: keepPreviousData }, // Refetch every 15 seconds
+      {
+        enabled,
+        refetchInterval: 15_000, // Refetch every 15 seconds
+        placeholderData: keepPreviousData,
+      },
     ),
   );
 

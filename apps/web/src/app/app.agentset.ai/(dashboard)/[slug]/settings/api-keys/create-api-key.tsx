@@ -60,7 +60,7 @@ export default function CreateApiKey({ orgId }: { orgId: string }) {
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     await mutateAsync({
-      orgId,
+      organizationId: orgId,
       label,
       scope,
     });

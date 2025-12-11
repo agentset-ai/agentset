@@ -1,6 +1,10 @@
 "use client";
 
-import { curlExample, tsSdkExample } from "@/lib/code-examples/ingest";
+import {
+  curlExample,
+  pythonExample,
+  tsSdkExample,
+} from "@/lib/code-examples/ingest";
 import { Code2Icon } from "lucide-react";
 
 import { Button } from "@agentset/ui/button";
@@ -32,8 +36,9 @@ export function ApiIngestModal() {
         </>
       }
       tabs={[
-        { title: "cURL", code: curlExample },
-        { title: "Javascript", code: tsSdkExample },
+        { title: "cURL", language: "bash", code: curlExample },
+        { title: "Javascript", language: "typescript", code: tsSdkExample },
+        { title: "Python", language: "python", code: pythonExample },
       ]}
     />
   );

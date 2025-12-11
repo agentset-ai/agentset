@@ -21,9 +21,10 @@ import { PaginatedTable } from "./paginated-table";
 import { PaginatedTableHeader } from "./paginated-table-header";
 import { useDocuments } from "./use-documents";
 import { useJobs } from "./use-jobs";
+import { useHasPendingJobs } from "./use-pending-jobs";
 
 export default function JobsPage() {
-  const [tab, setTab] = useState<"jobs" | "documents">("jobs");
+  const [tab, setTab] = useState<"jobs" | "documents">("documents");
 
   const {
     isLoading: isJobsLoading,
@@ -38,7 +39,7 @@ export default function JobsPage() {
     statusLabels: jobStatusLabels,
     expandedJobId,
     setExpandedJobId,
-  } = useJobs();
+  } = useJobs(tab === "jobs");
 
   const {
     isLoading: isDocumentsLoading,
@@ -52,6 +53,7 @@ export default function JobsPage() {
     handlePrevious: handlePreviousDocument,
     hasPrevious: hasPreviousDocument,
   } = useDocuments(undefined, tab === "documents");
+  const hasPendingJobs = useHasPendingJobs(tab === "documents");
 
   return (
     <>
@@ -61,8 +63,8 @@ export default function JobsPage() {
       >
         <div className="mb-5 flex w-full justify-between gap-4">
           <TabsList>
-            <TabsTrigger value="jobs">Jobs</TabsTrigger>
             <TabsTrigger value="documents">Documents</TabsTrigger>
+            <TabsTrigger value="jobs">Jobs</TabsTrigger>
           </TabsList>
 
           <TabsContent value="jobs" className="flex flex-none">
@@ -112,13 +114,17 @@ export default function JobsPage() {
         </TabsContent>
 
         <TabsContent value="documents">
-          <Alert className="mb-5">
-            <InfoIcon className="text-muted-foreground size-4" />
-            <AlertDescription>
-              Documents may take a moment to appear while processing. Check the
-              jobs tab for status.
-            </AlertDescription>
-          </Alert>
+          {hasPendingJobs && (
+            <div className="mb-5">
+              <Alert>
+                <InfoIcon className="text-muted-foreground size-4" />
+                <AlertDescription>
+                  Documents may take a moment to appear while processing. Check
+                  the jobs tab for status.
+                </AlertDescription>
+              </Alert>
+            </div>
+          )}
 
           <PaginatedTable
             columns={documentColumns}
