@@ -119,8 +119,8 @@ export default function JobsPage() {
               <Alert>
                 <InfoIcon className="text-muted-foreground size-4" />
                 <AlertDescription>
-                  Documents may take a moment to appear while processing. Check
-                  the jobs tab for status.
+                  Documents may take a moment to appear. Check the jobs tab for
+                  status.
                 </AlertDescription>
               </Alert>
             </div>
