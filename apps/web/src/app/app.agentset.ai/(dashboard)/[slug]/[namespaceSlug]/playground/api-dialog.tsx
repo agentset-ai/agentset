@@ -1,8 +1,8 @@
-"use client";
-
 import { useNamespace } from "@/hooks/use-namespace";
 import { useOrganization } from "@/hooks/use-organization";
 import { prefixId } from "@/lib/api/ids";
+import { useTRPC } from "@/trpc/react";
+import { useQuery } from "@tanstack/react-query";
 import { ArrowUpRightIcon } from "lucide-react";
 
 import { CodeBlock, CodeBlockCopyButton } from "@agentset/ui/ai/code-block";
@@ -27,16 +27,27 @@ export default function ApiDialog({
   title?: string;
   description?: React.ReactNode;
   tabs: {
+    language: React.ComponentProps<typeof CodeBlock>["language"];
     title: string;
-    code: string;
+    code: (apiKey?: string) => string;
   }[];
 }) {
   const namespace = useNamespace();
   const organization = useOrganization();
+  const trpc = useTRPC();
 
-  const prepareExample = (example: string) => {
+  const { data: defaultApiKey } = useQuery(
+    trpc.apiKey.getDefaultApiKey.queryOptions(
+      { orgId: organization.id },
+      { enabled: !organization.isLoading },
+    ),
+  );
+
+  const prepareExample = (example: (apiKey?: string) => string) => {
     const id = prefixId(namespace.id, "ns_");
-    return example.replace("{{namespace}}", id).trim();
+    return example(defaultApiKey ?? undefined)
+      .replace("{{namespace}}", id)
+      .trim();
   };
 
   if (organization.isLoading || namespace.isLoading)
@@ -63,20 +74,25 @@ export default function ApiDialog({
               ))}
             </TabsList>
 
-            <Button asChild size="sm">
-              <a
-                href={`/${organization.slug}/settings/api-keys`}
-                target="_blank"
-              >
-                <ArrowUpRightIcon className="size-4" />
-                Create API Key
-              </a>
-            </Button>
+            {!defaultApiKey && (
+              <Button asChild size="sm">
+                <a
+                  href={`/${organization.slug}/settings/api-keys`}
+                  target="_blank"
+                >
+                  <ArrowUpRightIcon className="size-4" />
+                  Create API Key
+                </a>
+              </Button>
+            )}
           </div>
 
           {tabs.map((tab) => (
             <TabsContent key={tab.title} value={tab.title}>
-              <CodeBlock code={prepareExample(tab.code)} language="typescript">
+              <CodeBlock
+                code={prepareExample(tab.code)}
+                language={tab.language}
+              >
                 <CodeBlockCopyButton />
               </CodeBlock>
             </TabsContent>

@@ -36,6 +36,7 @@ export function useDocuments(jobId?: string, enabled = true) {
       },
       {
         placeholderData: keepPreviousData,
+        refetchInterval: 15_000, // Refetch every 15 seconds
         enabled,
       },
     ),
