@@ -23,16 +23,16 @@ export function ApiIngestModal() {
       )}
       description={
         <>
-          Use the API to ingest documents into the knowledge base. For extended
-          info, <br />
-          checkout the{" "}
+          Use the API to ingest documents into the knowledge base. For local
+          file uploads and API documentation, visit our{" "}
           <a
-            href="https://docs.agentset.ai/api-reference/endpoint/ingest-jobs/create"
+            href="https://docs.agentset.ai/data-ingestion/file-uploads"
             target="_blank"
             className="text-foreground underline"
           >
             docs
           </a>
+          .
         </>
       }
       tabs={[
