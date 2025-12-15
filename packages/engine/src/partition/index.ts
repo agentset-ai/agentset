@@ -92,6 +92,7 @@ export const getPartitionDocumentBody = async ({
 
   const chunkOptions: ChunkOptions = filterUndefined({
     chunk_size: mergedConfig.chunkSize,
+    delimiter: mergedConfig.delimiter,
     language_code: mergedConfig.languageCode,
   });
 
