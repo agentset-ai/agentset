@@ -10,6 +10,10 @@ export const baseConfigSchema = z.object({
       "Chunk size (in characters). Controls approximately how much text is included in each chunk. Defaults to `2048`.",
     )
     .optional(),
+  delimiter: z
+    .string()
+    .describe("Delimiter to use for separating text before chunking.")
+    .optional(),
   metadata: z
     .record(z.string(), z.union([z.string(), z.number(), z.boolean()]))
     .describe(

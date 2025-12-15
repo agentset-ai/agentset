@@ -60,8 +60,7 @@ export interface ParseOptions {
 
 export interface ChunkOptions {
   chunk_size?: number; // default: 2048
-  // chunk_overlap?: number; // default: 128
-  // min_sentences_per_chunk?: number; // default: 1
+  delimiter?: string;
   language_code?:
     | "af"
     | "am"
