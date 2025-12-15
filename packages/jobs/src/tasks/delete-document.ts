@@ -1,4 +1,4 @@
-import { schemaTask } from "@trigger.dev/sdk";
+import { logger, schemaTask } from "@trigger.dev/sdk";
 import { Ratelimit } from "@upstash/ratelimit";
 
 import { DocumentStatus } from "@agentset/db";
@@ -70,6 +70,8 @@ export const deleteDocument = schemaTask({
       vectorStoreProvider === "MANAGED_PINECONE_OLD" ||
       vectorStoreProvider === "PINECONE"
     ) {
+      logger.info("Rate-limiting pinecone deletion");
+
       await rateLimit(
         {
           queue: "delete-document",
@@ -88,12 +90,14 @@ export const deleteDocument = schemaTask({
       document.tenantId,
     );
 
+    logger.info("Deleting vector chunks");
     const deletedChunks = await vectorStore.deleteByFilter({
       documentId: document.id,
     });
 
     // Clean up keyword store if enabled
     if (namespace.keywordEnabled) {
+      logger.info("Deleting keyword chunks");
       const keywordStore = new KeywordStore(namespace.id, document.tenantId);
 
       let page = 1;
@@ -119,20 +123,23 @@ export const deleteDocument = schemaTask({
       }
     }
 
+    logger.info("Deleting chunks.json");
     try {
       await deleteDocumentChunksFile(namespace.id, document.id);
     } catch (error) {
-      console.error("Failed to delete chunks.json for document", {
+      logger.error("Failed to delete chunks.json for document", {
         documentId: document.id,
         error,
       });
     }
 
+    logger.info("Deleting images");
     // Delete any images associated with this document in the images bucket
     await deleteDocumentImages(namespace.id, document.id);
 
     // Delete managed file if needed
     if (document.source.type === "MANAGED_FILE") {
+      logger.info("Deleting managed file");
       await deleteObject(document.source.key);
     }
 
