@@ -6,6 +6,7 @@
     "./cn": "./src/lib/utils.ts",
     "./hooks/*": "./src/hooks/*.ts",
     "./avatar-uploader": "./src/components/avatar-uploader.tsx",
+    "./image-uploader": "./src/components/image-uploader.tsx",
     "./client-only": "./src/components/client-only.tsx",
     "./copy-button": "./src/components/copy-button.tsx",
     "./cropper": "./src/components/cropper.tsx",
