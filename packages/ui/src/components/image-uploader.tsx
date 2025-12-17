@@ -46,7 +46,15 @@ export function ImageUploader({
     accept: "image/png,image/jpeg,image/jpg,image/gif,image/webp",
     maxSize,
     initialFiles: defaultImageUrl
-      ? [{ id: "default", url: defaultImageUrl } as FileMetadata]
+      ? [
+          {
+            id: "default",
+            url: defaultImageUrl,
+            name: "default-image",
+            size: 0,
+            type: "image/*",
+          },
+        ]
       : undefined,
   });
 
