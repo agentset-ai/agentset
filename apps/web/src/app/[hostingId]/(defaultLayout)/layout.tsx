@@ -27,11 +27,33 @@ const getHosting = cache(async (id: string) => {
   });
 });
 
+const getHostingMetadata = cache(async (id: string) => {
+  return await db.hosting.findFirst({
+    where: { id },
+    select: {
+      title: true,
+      ogTitle: true,
+      ogDescription: true,
+      ogImage: true,
+      logo: true,
+      namespace: {
+        select: {
+          organization: {
+            select: {
+              name: true,
+            },
+          },
+        },
+      },
+    },
+  });
+});
+
 export async function generateMetadata({
   params,
 }: LayoutProps<"/[hostingId]">): Promise<Metadata> {
   const { hostingId } = await params;
-  const hosting = await getHosting(hostingId);
+  const hosting = await getHostingMetadata(hostingId);
 
   if (!hosting) return {};
 
@@ -39,6 +61,7 @@ export async function generateMetadata({
     title:
       hosting.ogTitle || hosting.title || hosting.namespace.organization.name,
     description: hosting.ogDescription || undefined,
+    image: hosting.ogImage || hosting.logo || undefined,
     icons: hosting.logo
       ? [
           {
@@ -47,7 +70,6 @@ export async function generateMetadata({
           },
         ]
       : undefined,
-    image: hosting.ogImage || hosting.logo || undefined,
   });
 }
 
