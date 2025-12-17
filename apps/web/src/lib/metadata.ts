@@ -8,7 +8,7 @@ export function constructMetadata({
   description = "The open-source RAG platform: built-in citations, deep research, 22+ file formats, partitions, MCP server, and more.",
   image = "https://agentset.ai/og/cover.png",
   video,
-  // TOOD: add icons
+  icons,
   url,
   canonicalUrl,
   noIndex = false,
@@ -28,7 +28,7 @@ export function constructMetadata({
   return {
     title: fullTitle || (title ? `${title} | Agentset` : "Agentset Console"),
     description,
-    icons: [
+    icons: icons || [
       {
         rel: "apple-touch-icon",
         sizes: "32x32",
