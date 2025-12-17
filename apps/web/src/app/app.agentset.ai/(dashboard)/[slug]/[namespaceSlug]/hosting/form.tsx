@@ -25,6 +25,7 @@ import {
   FormLabel,
   FormMessage,
 } from "@agentset/ui/form";
+import { ImageUploader } from "@agentset/ui/image-uploader";
 import { Input } from "@agentset/ui/input";
 import { Separator } from "@agentset/ui/separator";
 import { Switch } from "@agentset/ui/switch";
@@ -40,6 +41,9 @@ export const schema = z.object({
   title: z.string().min(1, "Title is required"),
   slug: z.string().min(1, "Slug is required"),
   logo: z.string().nullable().optional(),
+  ogTitle: z.string().max(70).optional(),
+  ogDescription: z.string().max(200).optional(),
+  ogImage: z.string().nullable().optional(),
   protected: z.boolean(),
   allowedEmails: z.array(z.string().email()),
   allowedEmailDomains: z.array(z.string()),
@@ -112,6 +116,9 @@ export default function HostingForm({ data }: { data: Data }) {
       title: data.title || "",
       slug: data.slug || "",
       logo: data.logo || null,
+      ogTitle: data.ogTitle || "",
+      ogDescription: data.ogDescription || "",
+      ogImage: data.ogImage || null,
       protected: data.protected,
       allowedEmails: data.allowedEmails,
       allowedEmailDomains: data.allowedEmailDomains,
@@ -134,6 +141,9 @@ export default function HostingForm({ data }: { data: Data }) {
       title: newData.title,
       slug: newData.slug,
       logo: data?.logo === newData.logo ? undefined : newData.logo,
+      ogTitle: newData.ogTitle,
+      ogDescription: newData.ogDescription,
+      ogImage: data?.ogImage === newData.ogImage ? undefined : newData.ogImage,
       protected: newData.protected,
       allowedEmails: newData.allowedEmails,
       allowedEmailDomains: newData.allowedEmailDomains,
@@ -255,6 +265,87 @@ export default function HostingForm({ data }: { data: Data }) {
                       defaultImageUrl={data?.logo}
                     />
 
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
+          </div>
+
+          <div>
+            <div>
+              <h2 className="text-xl font-medium">Social Media / Open Graph</h2>
+              <p className="text-muted-foreground mt-1 text-sm">
+                Customize how your hosting appears when shared on social media
+              </p>
+            </div>
+
+            <Separator className="my-4" />
+
+            <div className="flex flex-col gap-8">
+              <FormField
+                control={form.control}
+                name="ogTitle"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>OG Title</FormLabel>
+                    <FormControl>
+                      <Input
+                        {...field}
+                        placeholder="Enter a title for social media sharing..."
+                        maxLength={70}
+                      />
+                    </FormControl>
+                    <FormDescription>
+                      {field.value?.length || 0}/70 characters. Appears as the
+                      title when shared on social media.
+                    </FormDescription>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="ogDescription"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>OG Description</FormLabel>
+                    <FormControl>
+                      <Textarea
+                        {...field}
+                        placeholder="Enter a description for social media sharing..."
+                        maxLength={200}
+                        className="h-24 max-h-32"
+                      />
+                    </FormControl>
+                    <FormDescription>
+                      {field.value?.length || 0}/200 characters. Appears as the
+                      description when shared on social media.
+                    </FormDescription>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="ogImage"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>OG Image</FormLabel>
+
+                    <ImageUploader
+                      onImageChange={field.onChange}
+                      defaultImageUrl={data?.ogImage}
+                      description="Upload a logo or banner image"
+                    />
+
+                    <FormDescription>
+                      Upload your logo or a custom banner (recommended:
+                      1200x630px). This image appears when your hosting is
+                      shared on social media.
+                    </FormDescription>
                     <FormMessage />
                   </FormItem>
                 )}
