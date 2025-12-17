@@ -30,6 +30,7 @@ export const deleteNamespace = schemaTask({
           select: {
             id: true,
             logo: true,
+            ogImage: true,
           },
         },
       },
@@ -71,6 +72,13 @@ export const deleteNamespace = schemaTask({
     if (namespace.hosting?.logo) {
       await deleteAsset(
         namespace.hosting.logo.replace(`${env.ASSETS_S3_URL}/`, ""),
+      );
+    }
+
+    // Delete og image if it exists
+    if (namespace.hosting?.ogImage) {
+      await deleteAsset(
+        namespace.hosting.ogImage.replace(`${env.ASSETS_S3_URL}/`, ""),
       );
     }
 

@@ -35,7 +35,20 @@ export async function generateMetadata({
 
   if (!hosting) return {};
 
-  return constructMetadata({ title: hosting.namespace.organization.name });
+  return constructMetadata({
+    title:
+      hosting.ogTitle || hosting.title || hosting.namespace.organization.name,
+    description: hosting.ogDescription || undefined,
+    image: hosting.ogImage || hosting.logo || undefined,
+    icons: hosting.logo
+      ? [
+          {
+            rel: "icon",
+            url: hosting.logo,
+          },
+        ]
+      : undefined,
+  });
 }
 
 export default async function CustomDomainLayout({

@@ -54,6 +54,11 @@ model Hosting {
   logo   String?
   domain Domain?
 
+  // open graph settings
+  ogTitle       String?
+  ogDescription String? @db.Text
+  ogImage       String?
+
   // chat settings
   systemPrompt         String?  @db.Text
   exampleQuestions     String[] @default([]) @db.Text

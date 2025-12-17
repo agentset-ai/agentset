@@ -23,6 +23,7 @@ export const updateHosting = async ({
       id: true,
       namespaceId: true,
       logo: true,
+      ogImage: true,
       rerankConfig: true,
     },
   });
@@ -43,6 +44,15 @@ export const updateHosting = async ({
         )
       : logo;
 
+  const ogImage = input.ogImage;
+  const newOgImage =
+    typeof ogImage === "string"
+      ? await uploadImage(
+          `namespaces/${prefixId(namespaceId, "ns_")}/hosting/og_image_${nanoid(7)}`,
+          ogImage,
+        )
+      : ogImage;
+
   const newRerankConfig = hosting.rerankConfig
     ? structuredClone(hosting.rerankConfig)
     : ({} as PrismaJson.HostingRerankConfig);
@@ -60,6 +70,11 @@ export const updateHosting = async ({
         ...(input.slug && { slug: input.slug }),
         ...(newLogo !== undefined && {
           logo: newLogo ? newLogo.url : null,
+        }),
+        ogTitle: input.ogTitle,
+        ogDescription: input.ogDescription,
+        ...(newOgImage !== undefined && {
+          ogImage: newOgImage ? newOgImage.url : null,
         }),
         protected: input.protected,
         allowedEmails: input.allowedEmails ?? undefined,
@@ -84,6 +99,13 @@ export const updateHosting = async ({
     // Delete old logo if it exists
     if ((newLogo || newLogo === null) && hosting.logo) {
       waitUntil(deleteAsset(hosting.logo.replace(`${env.ASSETS_S3_URL}/`, "")));
+    }
+
+    // Delete old ogImage if it exists
+    if ((newOgImage || newOgImage === null) && hosting.ogImage) {
+      waitUntil(
+        deleteAsset(hosting.ogImage.replace(`${env.ASSETS_S3_URL}/`, "")),
+      );
     }
 
     return updatedHosting;
