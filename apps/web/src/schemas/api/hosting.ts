@@ -23,6 +23,21 @@ export const HostingSchema = z
       .nullable()
       .default(null)
       .describe("The URL or base64 encoded image of the logo."),
+    ogTitle: z
+      .string()
+      .nullable()
+      .default(null)
+      .describe("Custom Open Graph title for social media sharing."),
+    ogDescription: z
+      .string()
+      .nullable()
+      .default(null)
+      .describe("Custom Open Graph description for social media sharing."),
+    ogImage: z
+      .string()
+      .nullable()
+      .default(null)
+      .describe("Custom Open Graph image URL for social media sharing."),
     systemPrompt: z
       .string()
       .nullable()
@@ -104,6 +119,9 @@ export const updateHostingSchema = z.object({
   title: z.string().min(1).optional(),
   slug: slugSchema.optional(),
   logo: uploadedImageSchema.nullish(),
+  ogTitle: z.string().max(70).optional(),
+  ogDescription: z.string().max(200).optional(),
+  ogImage: uploadedImageSchema.nullish(),
   protected: z.boolean().optional(),
   allowedEmails: z.array(z.email().trim().toLowerCase()).optional(),
   allowedEmailDomains: z.array(z.string().trim().toLowerCase()).optional(),
