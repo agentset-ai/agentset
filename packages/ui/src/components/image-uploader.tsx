@@ -1,9 +1,32 @@
 "use client";
 
+import type { Options } from "browser-image-compression";
 import { useEffect, useRef, useState } from "react";
+import imageCompression from "browser-image-compression";
 import { AlertCircleIcon, ImageUpIcon, LucideIcon, XIcon } from "lucide-react";
 
 import { FileMetadata, useFileUpload } from "../hooks/use-file-upload";
+
+const MAX_FILE_SIZE_MB = 2;
+const MAX_FILE_SIZE_BYTES = MAX_FILE_SIZE_MB * 1024 * 1024;
+
+async function compressImageIfNeeded(file: File): Promise<File> {
+  if (file.size <= MAX_FILE_SIZE_BYTES) return file;
+
+  try {
+    const options = {
+      maxSizeMB: MAX_FILE_SIZE_MB,
+      maxWidthOrHeight: 1920,
+      useWebWorker: true,
+    } satisfies Options;
+
+    const compressedFile = await imageCompression(file, options);
+    return compressedFile;
+  } catch (error) {
+    console.error("Error compressing image:", error);
+    return file;
+  }
+}
 
 function fileToBase64(file: File): Promise<string> {
   return new Promise((resolve, reject) => {
@@ -71,7 +94,7 @@ export function ImageUploader({
     defaultImageUrl ? "default" : undefined,
   );
 
-  // When a new file is uploaded, convert to base64 and update
+  // When a new file is uploaded, compress if needed, then convert to base64 and update
   useEffect(() => {
     async function processFile() {
       // Only process if it's a new file (not the default/initial one)
@@ -83,12 +106,14 @@ export function ImageUploader({
         file instanceof File
       ) {
         try {
-          const base64 = await fileToBase64(file);
+          // Compress image if it exceeds 2MB
+          const processedFile = await compressImageIfNeeded(file);
+          const base64 = await fileToBase64(processedFile);
           setImageUrl(previewUrl || base64);
           onImageChange?.(base64);
           previousFileIdRef.current = fileId;
         } catch (error) {
-          console.error("Error converting file to base64:", error);
+          console.error("Error processing file:", error);
         }
       }
     }
