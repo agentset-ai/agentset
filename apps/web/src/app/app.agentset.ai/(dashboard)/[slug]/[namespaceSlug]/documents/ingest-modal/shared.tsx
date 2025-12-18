@@ -28,11 +28,17 @@ export function extractConfig<T extends IngestJobConfig>(
     config.chunkSize = data.chunkSize;
 
   if (data.mode && data.mode !== "balanced") config.mode = data.mode;
-  if (data.forceOcr) config.forceOcr = data.forceOcr;
+
   if (data.disableImageExtraction)
     config.disableImageExtraction = data.disableImageExtraction;
-  if (data.disableOcrMath) config.disableOcrMath = data.disableOcrMath;
-  if (data.useLlm === false) config.useLlm = data.useLlm;
+  if (data.disableImageCaptions)
+    config.disableImageCaptions = data.disableImageCaptions;
+  if (data.keepPagefooterInOutput)
+    config.keepPagefooterInOutput = data.keepPagefooterInOutput;
+  if (data.keepPageheaderInOutput)
+    config.keepPageheaderInOutput = data.keepPageheaderInOutput;
+  if (data.chartUnderstanding)
+    config.chartUnderstanding = data.chartUnderstanding;
 
   if (data.metadata && Object.keys(data.metadata).length > 0)
     config.metadata = data.metadata;
