@@ -5,10 +5,9 @@ import { useEffect, useRef, useState } from "react";
 import imageCompression from "browser-image-compression";
 import { AlertCircleIcon, ImageUpIcon, LucideIcon, XIcon } from "lucide-react";
 
-import { FileMetadata, useFileUpload } from "../hooks/use-file-upload";
+import { useFileUpload } from "../hooks/use-file-upload";
 
 const DEFAULT_COMPRESSION_THRESHOLD_MB = 2;
-const MAX_FILE_SIZE_MB = 2;
 
 async function compressImageIfNeeded(
   file: File,
