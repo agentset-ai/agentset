@@ -48,7 +48,7 @@ export class Turbopuffer implements VectorStore<TurbopufferVectorFilter> {
     // our max size will be as_ (3) + namespaceId (25) + _ (1) + tenantId (64) = 93
     const namespace = `as_${namespaceId}${tenantId ? `_${tenantId}` : ""}`;
 
-    this._client = new TurbopufferClient({ apiKey, region });
+    this._client = new TurbopufferClient({ apiKey, region, logLevel: "error" });
     this.client = this._client.namespace(namespace);
   }
 
@@ -194,6 +194,7 @@ export class Turbopuffer implements VectorStore<TurbopufferVectorFilter> {
           text: chunk.text,
           ...chunk.metadata,
         })),
+        disable_backpressure: true,
         ...(shouldSendSchema
           ? { distance_metric: "cosine_distance", schema }
           : {}),
@@ -209,6 +210,7 @@ export class Turbopuffer implements VectorStore<TurbopufferVectorFilter> {
   async deleteByIds(ids: string[]) {
     const result = await this.client.write({
       deletes: ids.map((id) => id),
+      disable_backpressure: true,
     });
 
     return { deleted: result.rows_deleted || result.rows_affected };
