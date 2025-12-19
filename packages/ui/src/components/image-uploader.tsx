@@ -7,15 +7,18 @@ import { AlertCircleIcon, ImageUpIcon, LucideIcon, XIcon } from "lucide-react";
 
 import { FileMetadata, useFileUpload } from "../hooks/use-file-upload";
 
+const DEFAULT_COMPRESSION_THRESHOLD_MB = 2;
 const MAX_FILE_SIZE_MB = 2;
-const MAX_FILE_SIZE_BYTES = MAX_FILE_SIZE_MB * 1024 * 1024;
 
-async function compressImageIfNeeded(file: File): Promise<File> {
-  if (file.size <= MAX_FILE_SIZE_BYTES) return file;
+async function compressImageIfNeeded(
+  file: File,
+  thresholdBytes: number,
+): Promise<File> {
+  if (file.size <= thresholdBytes) return file;
 
   try {
     const options = {
-      maxSizeMB: MAX_FILE_SIZE_MB,
+      maxSizeMB: thresholdBytes / 1024 / 1024,
       maxWidthOrHeight: 1920,
       useWebWorker: true,
     } satisfies Options;
@@ -39,6 +42,7 @@ function fileToBase64(file: File): Promise<string> {
 
 export interface ImageUploaderProps {
   maxSizeMB?: number;
+  compressionThresholdMB?: number;
   defaultImageUrl?: string | null;
   onImageChange?: (image: string | null) => void;
   icon?: LucideIcon;
@@ -47,12 +51,14 @@ export interface ImageUploaderProps {
 
 export function ImageUploader({
   maxSizeMB = 5,
+  compressionThresholdMB = DEFAULT_COMPRESSION_THRESHOLD_MB,
   onImageChange,
   defaultImageUrl,
   icon: Icon = ImageUpIcon,
   description,
 }: ImageUploaderProps) {
   const maxSize = maxSizeMB * 1024 * 1024;
+  const compressionThresholdBytes = compressionThresholdMB * 1024 * 1024;
 
   const [
     { files, isDragging, errors },
@@ -107,7 +113,10 @@ export function ImageUploader({
       ) {
         try {
           // Compress image if it exceeds 2MB
-          const processedFile = await compressImageIfNeeded(file);
+          const processedFile = await compressImageIfNeeded(
+            file,
+            compressionThresholdBytes,
+          );
           const base64 = await fileToBase64(processedFile);
           setImageUrl(previewUrl || base64);
           onImageChange?.(base64);

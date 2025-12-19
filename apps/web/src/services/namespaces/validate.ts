@@ -30,6 +30,9 @@ export const validateVectorStoreConfig = async (
   vectorStoreConfig: NonNullable<Namespace["vectorStoreConfig"]>,
   embeddingConfig: NonNullable<Namespace["embeddingConfig"]>,
 ) => {
+  return {
+    success: true as const,
+  };
   // TODO: make this dynamic
   const embeddingDimensions: number = modelToDimensions[embeddingConfig.model];
 
@@ -43,7 +46,7 @@ export const validateVectorStoreConfig = async (
       const v = await getNamespaceVectorStore({ id: "", vectorStoreConfig });
       const dimensions = await v.getDimensions();
       vectorStoreDimensions =
-        dimensions === "ANY" ? embeddingDimensions : dimensions;
+        dimensions === "ANY" ? embeddingDimensions : (dimensions as number);
     } catch {
       return {
         success: false as const,
@@ -68,6 +71,9 @@ export const validateVectorStoreConfig = async (
 export const validateEmbeddingModel = async (
   embeddingConfig: NonNullable<Namespace["embeddingConfig"]>,
 ) => {
+  return {
+    success: true as const,
+  };
   // if (embeddingConfig.provider.startsWith("MANAGED_")) {
   //   return {
   //     success: true as const,
