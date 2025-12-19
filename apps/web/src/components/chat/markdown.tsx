@@ -23,6 +23,10 @@ export const Markdown = ({ children, isLoading, message }: MarkdownProps) => {
         citation: ({ node: _, ...props }) => (
           <CitationButton {...props} message={message} />
         ),
+        // @ts-ignore
+        "citation-group": ({ node: _, ...props }) => (
+          <CitationButton {...props} message={message} />
+        ),
       }}
     >
       {children}
