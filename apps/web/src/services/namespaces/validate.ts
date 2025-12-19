@@ -30,9 +30,6 @@ export const validateVectorStoreConfig = async (
   vectorStoreConfig: NonNullable<Namespace["vectorStoreConfig"]>,
   embeddingConfig: NonNullable<Namespace["embeddingConfig"]>,
 ) => {
-  return {
-    success: true as const,
-  };
   // TODO: make this dynamic
   const embeddingDimensions: number = modelToDimensions[embeddingConfig.model];
 
@@ -71,9 +68,6 @@ export const validateVectorStoreConfig = async (
 export const validateEmbeddingModel = async (
   embeddingConfig: NonNullable<Namespace["embeddingConfig"]>,
 ) => {
-  return {
-    success: true as const,
-  };
   // if (embeddingConfig.provider.startsWith("MANAGED_")) {
   //   return {
   //     success: true as const,
