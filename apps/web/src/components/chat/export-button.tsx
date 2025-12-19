@@ -69,8 +69,22 @@ function useExportChat({ title }: ExportButtonProps) {
       return;
     }
 
-    exportChatAsJson(messages, title);
-    toast.success("Chat exported as JSON");
+    let url: string | undefined;
+    try {
+      url = exportChatAsJson(messages, title);
+      toast.success("Chat exported as JSON");
+    } catch (error) {
+      const errorMessage =
+        error instanceof Error
+          ? error.message
+          : "Failed to export chat as JSON";
+      toast.error(errorMessage);
+    } finally {
+      if (url) {
+        // Delay revocation to avoid race condition with download
+        setTimeout(() => URL.revokeObjectURL(url!), 100);
+      }
+    }
   }
 
   async function handleCopyText() {
@@ -79,9 +93,30 @@ function useExportChat({ title }: ExportButtonProps) {
       return;
     }
 
-    const formattedText = formatChatAsText(messages, title);
-    await copyToClipboard(formattedText);
-    toast.success("Chat copied to clipboard");
+    try {
+      const formattedText = formatChatAsText(messages, title);
+      const success = await copyToClipboard(formattedText);
+      if (success) {
+        toast.success("Chat copied to clipboard");
+      } else {
+        try {
+          await navigator.clipboard.writeText(formattedText);
+          toast.success("Chat copied to clipboard");
+        } catch (clipboardError) {
+          const errorMessage =
+            clipboardError instanceof Error
+              ? clipboardError.message
+              : "Failed to copy to clipboard";
+          toast.error(`Failed to copy: ${errorMessage}`);
+        }
+      }
+    } catch (error) {
+      const errorMessage =
+        error instanceof Error
+          ? error.message
+          : "Failed to copy chat to clipboard";
+      toast.error(errorMessage);
+    }
   }
 
   function handleDownloadMarkdown() {
@@ -90,8 +125,21 @@ function useExportChat({ title }: ExportButtonProps) {
       return;
     }
 
-    exportChatAsMarkdown(messages, title);
-    toast.success("Chat exported as Markdown");
+    let url: string | undefined;
+    try {
+      url = exportChatAsMarkdown(messages, title);
+      toast.success("Chat exported as Markdown");
+    } catch (error) {
+      const errorMessage =
+        error instanceof Error
+          ? error.message
+          : "Failed to export chat as Markdown";
+      toast.error(errorMessage);
+    } finally {
+      if (url) {
+        setTimeout(() => URL.revokeObjectURL(url!), 100);
+      }
+    }
   }
 
   return {

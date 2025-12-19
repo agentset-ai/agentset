@@ -14,7 +14,10 @@ interface ChatExport {
   messages: ExportedMessage[];
 }
 
-export function exportChatAsJson(messages: MyUIMessage[], title?: string) {
+export function exportChatAsJson(
+  messages: MyUIMessage[],
+  title?: string,
+): string {
   const exportData: ChatExport = {
     exportedAt: new Date().toISOString(),
     title: title ?? "Chat Export",
@@ -33,8 +36,10 @@ export function exportChatAsJson(messages: MyUIMessage[], title?: string) {
   const a = document.createElement("a");
   a.href = url;
   a.download = `chat-export-${Date.now()}.json`;
+  document.body.appendChild(a);
   a.click();
-  URL.revokeObjectURL(url);
+  document.body.removeChild(a);
+  return url;
 }
 
 export function formatChatAsText(
@@ -54,7 +59,10 @@ export function formatChatAsText(
   return header + formatted;
 }
 
-export function exportChatAsMarkdown(messages: MyUIMessage[], title?: string) {
+export function exportChatAsMarkdown(
+  messages: MyUIMessage[],
+  title?: string,
+): string {
   const markdownContent = `# ${title ?? "Chat Export"}
 
 *Exported on ${new Date().toLocaleString()}*
@@ -75,6 +83,8 @@ ${messages
   const a = document.createElement("a");
   a.href = url;
   a.download = `chat-export-${Date.now()}.md`;
+  document.body.appendChild(a);
   a.click();
-  URL.revokeObjectURL(url);
+  document.body.removeChild(a);
+  return url;
 }
