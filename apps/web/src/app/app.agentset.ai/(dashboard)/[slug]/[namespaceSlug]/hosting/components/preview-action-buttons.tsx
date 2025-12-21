@@ -1,3 +1,5 @@
+"use client";
+
 import { ArrowUpRightIcon, CopyIcon } from "lucide-react";
 import { toast } from "sonner";
 
