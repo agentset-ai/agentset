@@ -53,11 +53,12 @@ export const MessageStatus = ({
     <ChainOfThought open={open} onOpenChange={setOpen} className="mt-4">
       <ChainOfThoughtHeader isLoading={isLoading} />
       <ChainOfThoughtContent>
-        {statusParts.map(({ data }, index) => {
+        {statusParts.map(({ data, id }, index) => {
           const { label, icon: Icon } = STATUS_LABELS[data.value];
           const isLast = index === statusParts.length - 1;
           return (
             <ChainOfThoughtStep
+              key={`${id}-${index}`}
               icon={Icon}
               label={label}
               status={isLoading && isLast ? "active" : "complete"}
