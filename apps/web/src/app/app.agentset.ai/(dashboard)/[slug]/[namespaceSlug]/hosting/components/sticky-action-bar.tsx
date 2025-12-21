@@ -1,3 +1,5 @@
+"use client";
+
 import { ArrowUpRightIcon, CopyIcon } from "lucide-react";
 import { toast } from "sonner";
 
@@ -17,8 +19,12 @@ export function StickyActionBar({
   onDiscard,
 }: StickyActionBarProps) {
   async function handleCopy() {
-    await navigator.clipboard.writeText(url);
-    toast.success("Copied to clipboard");
+    try {
+      await navigator.clipboard.writeText(url);
+      toast.success("Copied to clipboard");
+    } catch {
+      toast.error("Failed to copy to clipboard");
+    }
   }
 
   return (
