@@ -1,5 +1,5 @@
 import { useMemo } from "react";
-import { useHosting, useIsHosting } from "@/contexts/hosting-context";
+import { useOptionalHosting } from "@/contexts/hosting-context";
 
 import { CodeBlock, CodeBlockCopyButton } from "@agentset/ui/ai/code-block";
 import { cn } from "@agentset/ui/cn";
@@ -48,8 +48,7 @@ export function CitationModal({
   displayText,
   triggerProps,
 }: CitationModalProps) {
-  const isHosting = useIsHosting();
-  const hosting = isHosting ? useHosting() : null;
+  const hosting = useOptionalHosting();
 
   // Determine the dialog title
   const dialogTitle = useMemo(() => {

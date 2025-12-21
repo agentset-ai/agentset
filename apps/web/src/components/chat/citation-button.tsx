@@ -18,8 +18,6 @@ interface CitationButtonProps {
 }
 
 export const CitationButton = ({ message, ...props }: CitationButtonProps) => {
-  if (!props.children) return null;
-
   const sources = message?.parts.find((a) => a.type === "data-agentset-sources")
     ?.data?.results;
 
@@ -36,6 +34,8 @@ export const CitationButton = ({ message, ...props }: CitationButtonProps) => {
   }, [props["data-citation"], props["data-citations"]]);
 
   const isHosted = useIsHosting();
+
+  if (!props.children) return null;
 
   if (citationIndices.length === 0 || !sources) {
     return <span {...props}>{props.children}</span>;
