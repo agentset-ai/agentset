@@ -58,7 +58,7 @@ export const MessageStatus = ({
           const isLast = index === statusParts.length - 1;
           return (
             <ChainOfThoughtStep
-              key={id}
+              key={`${id}-${index}`}
               icon={Icon}
               label={label}
               status={isLoading && isLast ? "active" : "complete"}

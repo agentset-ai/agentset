@@ -2,7 +2,6 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { ExportButton } from "@/components/chat/export-button";
 import { useHostingChat } from "@/components/chat/use-hosting-chat";
 import { useHosting } from "@/contexts/hosting-context";
 import { logEvent } from "@/lib/analytics";
@@ -63,7 +62,6 @@ export default function Header() {
         <div className="h-9 w-52" />
       ) : (
         <div className="flex items-center gap-2">
-          <ExportButton title={title ?? undefined} />
           <Button variant="outline" onClick={resetChat}>
             <PlusIcon className="size-4" />
             New Chat
