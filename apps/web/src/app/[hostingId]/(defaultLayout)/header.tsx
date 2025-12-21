@@ -59,14 +59,12 @@ export default function Header() {
       )}
 
       {isSearch ? (
-        <div className="h-9 w-52" />
+        <div className="h-9 w-28.5" />
       ) : (
-        <div className="flex items-center gap-2">
-          <Button variant="outline" onClick={resetChat}>
-            <PlusIcon className="size-4" />
-            New Chat
-          </Button>
-        </div>
+        <Button variant="outline" onClick={resetChat}>
+          <PlusIcon className="size-4" />
+          New Chat
+        </Button>
       )}
     </div>
   );
