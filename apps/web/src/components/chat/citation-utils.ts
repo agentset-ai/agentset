@@ -37,16 +37,26 @@ export interface ResolvedCitation {
 }
 
 /**
+ * Truncates a string to a maximum length with ellipsis
+ */
+function truncateName(name: string, maxLength: number): string {
+  if (name.length <= maxLength) return name;
+  return name.slice(0, maxLength) + "...";
+}
+
+/**
  * Formats the display text for a group of citations.
  *
  * Rules:
  * - Single unnamed: "Source x"
- * - Single named: name as-is
+ * - Single named: name truncated to 35 chars max
  * - Multiple unnamed: "<count> Sources"
- * - Multiple named or mixed: "Name1, Name2 | +<rest>" (max 2 unique names shown)
+ * - Multiple named or mixed: "Name1, Name2 | +<rest>" (max 2 unique names shown, each truncated to 35 chars)
  * - Duplicate names are only shown once but still counted in the total
  */
 export function formatCitationDisplay(citations: ResolvedCitation[]): string {
+  const MAX_NAME_LENGTH = 35;
+
   // Filter out citations with missing sources
   const validCitations = citations.filter((c) => c.source !== undefined);
 
@@ -59,7 +69,9 @@ export function formatCitationDisplay(citations: ResolvedCitation[]): string {
 
   if (validCitations.length === 1) {
     const citation = validCitations[0]!;
-    return citation.name ?? `Source ${citation.index}`;
+    return citation.name
+      ? truncateName(citation.name, MAX_NAME_LENGTH)
+      : `Source ${citation.index}`;
   }
 
   // Multiple citations
@@ -76,7 +88,7 @@ export function formatCitationDisplay(citations: ResolvedCitation[]): string {
   for (const citation of named) {
     if (citation.name && !seenNames.has(citation.name)) {
       seenNames.add(citation.name);
-      uniqueNames.push(citation.name);
+      uniqueNames.push(truncateName(citation.name, MAX_NAME_LENGTH));
     }
   }
 
