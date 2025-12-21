@@ -27,7 +27,7 @@ function buildAnalyticsData(
     languageCode: config?.languageCode,
     mode: config?.mode,
     disableImageExtraction: config?.disableImageExtraction,
-    disableOcrMath: config?.disableImageCaptions,
+    disableImageCaptions: config?.disableImageCaptions,
     keepPagefooterInOutput: config?.keepPagefooterInOutput,
     keepPageheaderInOutput: config?.keepPageheaderInOutput,
     chartUnderstanding: config?.chartUnderstanding,
