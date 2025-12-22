@@ -25,8 +25,6 @@ export default function SearchPage() {
     handleExampleClick,
   } = useSearch();
 
-  const allData = data ? data.chunks : null;
-
   if (!searchEnabled) {
     notFound();
   }
@@ -94,30 +92,14 @@ export default function SearchPage() {
         ) : (
           <div>
             <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: 20 }}
-            >
-              <p className="text-sm font-medium">Queries performed:</p>
-              <p className="text-muted-foreground mt-1 text-xs">
-                {data.queries.map((q, idx) => (
-                  <i key={idx}>
-                    {q.query}
-                    {idx !== data.queries.length - 1 ? ", " : ""}
-                  </i>
-                ))}
-              </p>
-            </motion.div>
-
-            <motion.div
               className="mt-6 flex w-full flex-col gap-6"
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: 20 }}
               transition={{ delay: 0.05 * 1 }}
             >
-              {allData!.length > 0 ? (
-                allData!.map((result) => (
+              {data.length > 0 ? (
+                data.map((result) => (
                   <SearchChunk
                     key={result.id}
                     chunk={result}

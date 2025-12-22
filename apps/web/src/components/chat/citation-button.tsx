@@ -15,8 +15,15 @@ export const CitationButton = ({
 
   const idx = props["data-citation"] ? props["data-citation"] - 1 : undefined;
 
-  const sources = message?.parts.find((a) => a.type === "data-agentset-sources")
-    ?.data?.results;
+  const sources =
+    message?.parts.find((a) => a.type === "data-agentset-sources")?.data
+      ?.results ??
+    message?.parts
+      .filter(
+        (a) =>
+          a.type === "tool-semantic_search" || a.type === "tool-keyword_search",
+      )
+      .flatMap((a) => a.output ?? []);
 
   if (idx === undefined || !sources || !sources[idx])
     return <span {...props}>{props.children}</span>;

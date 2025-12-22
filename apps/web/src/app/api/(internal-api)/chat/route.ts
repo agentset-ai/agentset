@@ -1,5 +1,5 @@
 import type { ModelMessage } from "ai";
-import agenticPipeline from "@/lib/agentic";
+import { generateAgenticResponse } from "@/lib/agentic";
 import { AgentsetApiError } from "@/lib/api/errors";
 import { withAuthApiHandler } from "@/lib/api/handler";
 import { parseRequestBody } from "@/lib/api/utils";
@@ -145,28 +145,22 @@ export const POST = withAuthApiHandler(
         ? new KeywordStore(namespace.id, tenantId)
         : undefined;
 
-      const result = agenticPipeline({
+      const result = generateAgenticResponse({
         model: languageModel,
         keywordStore,
-        queryOptions: {
-          embeddingModel,
-          vectorStore,
-          topK: body.topK,
-          minScore: body.minScore,
-          filter: body.filter,
-          includeMetadata: body.includeMetadata,
-          includeRelationships: body.includeRelationships,
-          rerank: body.rerank
-            ? {
-                model: body.rerankModel,
-                limit: body.rerankLimit,
-              }
-            : false,
-        },
+        embeddingModel,
+        vectorStore,
+        topK: body.topK,
+        rerank: body.rerank
+          ? {
+              model: body.rerankModel,
+              limit: body.rerankLimit,
+            }
+          : undefined,
+        headers,
         systemPrompt: body.systemPrompt,
         temperature: body.temperature,
-        messagesWithoutQuery,
-        lastMessage,
+        messages,
         afterQueries: (totalQueries) => {
           incrementUsage(namespace.id, totalQueries);
         },
@@ -175,7 +169,6 @@ export const POST = withAuthApiHandler(
       return result;
     }
 
-    // TODO: track the usage
     const data = await queryVectorStore({
       embeddingModel,
       vectorStore,

@@ -1,5 +1,5 @@
 import type { LanguageModel } from "ai";
-import { formatSources } from "@/lib/agentic/utils";
+import { formatSources } from "@/lib/prompts";
 import { generateText } from "ai";
 import { z } from "zod/v4";
 

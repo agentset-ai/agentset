@@ -31,11 +31,7 @@ export const useSearch = () => {
         | { success: false }
         | {
             success: true;
-            data: {
-              totalQueries: number;
-              queries: { type: "keyword" | "semantic"; query: string }[];
-              chunks: QueryVectorStoreResult["results"];
-            };
+            data: QueryVectorStoreResult["results"];
           };
 
       if (!data.success) {
