@@ -6,7 +6,7 @@ import { useQuery } from "@tanstack/react-query";
 
 import { Skeleton } from "@agentset/ui/skeleton";
 
-import { HostingConfigurator } from "./components/hosting-configurator";
+import { HostingLayout } from "./components/hosting-layout";
 import { EmptyState } from "./empty-state";
 
 export default function HostingPageClient() {
@@ -26,7 +26,7 @@ export default function HostingPageClient() {
     return <EmptyState />;
   }
 
-  return <HostingConfigurator data={data} />;
+  return <HostingLayout data={data} />;
 }
 
 function LoadingSkeleton() {
