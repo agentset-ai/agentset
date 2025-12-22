@@ -1,32 +1,20 @@
+import { ArrowUpRightIcon, CheckIcon, CopyIcon } from "lucide-react";
+import { useCopyToClipboard } from "usehooks-ts";
+
+import { Button } from "@agentset/ui/button";
+
 interface DeploymentStatusBarProps {
   url: string;
 }
 
-function validateAndSanitizeUrl(url: string) {
-  try {
-    const urlObj = new URL(url);
-
-    if (urlObj.protocol !== "http:" && urlObj.protocol !== "https:") {
-      return { isValid: false };
-    }
-
-    const displayText = urlObj.hostname + urlObj.pathname;
-
-    return {
-      isValid: true,
-      href: urlObj.href,
-      displayText,
-    };
-  } catch {
-    return { isValid: false };
-  }
-}
-
 export function DeploymentStatusBar({ url }: DeploymentStatusBarProps) {
-  const { isValid, href, displayText } = validateAndSanitizeUrl(url);
+  const [copiedText, copyToClipboard] = useCopyToClipboard();
+  const isCopied = copiedText === url;
+
+  const displayText = url.replace(/^https?:\/\//, "");
 
   return (
-    <div className="bg-background border-b pb-4">
+    <div className="bg-background flex items-center justify-between border-b pb-4">
       <div className="flex items-center gap-3">
         <div className="flex items-center gap-2">
           <span className="relative flex size-2">
@@ -35,24 +23,36 @@ export function DeploymentStatusBar({ url }: DeploymentStatusBarProps) {
           </span>
           <span className="text-sm font-medium">Your deployment is live!</span>
         </div>
-        {isValid && href && displayText ? (
-          <a
-            href={href}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="text-muted-foreground text-sm underline"
-            aria-label={`Visit deployment at ${displayText}`}
-          >
-            {displayText}
+        <a
+          href={url}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="text-muted-foreground text-sm underline"
+        >
+          {displayText}
+        </a>
+      </div>
+
+      <div className="flex items-center justify-end gap-2">
+        <Button
+          type="button"
+          variant="outline"
+          size="sm"
+          onClick={() => copyToClipboard(url)}
+        >
+          {isCopied ? (
+            <CheckIcon className="size-4" />
+          ) : (
+            <CopyIcon className="size-4" />
+          )}
+          <span className="hidden sm:inline">Copy URL</span>
+        </Button>
+        <Button variant="outline" size="sm" asChild>
+          <a href={url} target="_blank" rel="noopener noreferrer">
+            <ArrowUpRightIcon className="size-4" />
+            <span className="hidden sm:inline">Visit</span>
           </a>
-        ) : (
-          <span
-            className="text-muted-foreground text-sm"
-            aria-label={`Deployment URL is invalid or unavailable: ${url}`}
-          >
-            {url}
-          </span>
-        )}
+        </Button>
       </div>
     </div>
   );

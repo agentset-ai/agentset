@@ -18,16 +18,16 @@ export function HostingLayout({
   mobilePreview,
 }: HostingLayoutProps) {
   return (
-    <div className="flex h-[calc(100dvh-theme(spacing.16)-theme(spacing.20))] flex-col">
+    <div className="flex h-[calc(100dvh-(--spacing(16))-(--spacing(20)))] flex-col">
       {statusBar}
       <div className="flex flex-1 gap-8 overflow-hidden pt-6">
         {/* Config Pane - 60% on desktop, full width on mobile */}
-        <ScrollArea className="flex-1 lg:flex-[6]">
+        <ScrollArea className="flex-1 lg:flex-6">
           <div className="pr-4">{configPane}</div>
         </ScrollArea>
 
         {/* Preview Pane - 40% on desktop, hidden on mobile */}
-        <div className="hidden flex-[4] lg:block">
+        <div className="hidden flex-4 lg:block">
           <div className="flex h-full flex-col gap-4">
             {/* Action Buttons */}
             {actionButtons}

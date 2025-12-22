@@ -172,9 +172,7 @@ function DomainConfiguration(props: { domain: string }) {
   }
 
   return (
-    <CardFooter className="mt-8 flex flex-grow justify-start">
-      {result}
-    </CardFooter>
+    <CardFooter className="mt-8 flex grow justify-start">{result}</CardFooter>
   );
 }
 
@@ -314,52 +312,52 @@ export function CustomDomainConfigurator(props: { defaultDomain?: string }) {
     }),
   );
 
-  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
+  function handleSave() {
     if (!domainInput) return;
     addDomain({ domain: domainInput, namespaceId: namespace.id });
-  };
+  }
 
   return (
     <Card className="flex w-2xl flex-col space-y-6">
-      <form onSubmit={handleSubmit}>
-        <CardHeader className="gap-0.5">
-          <CardTitle className="flex items-center gap-2 text-lg font-semibold">
-            Custom Domain
-            {domain && <DomainStatus domain={domain} />}
-          </CardTitle>
-          <CardDescription>The custom domain for your site.</CardDescription>
-        </CardHeader>
-        <CardContent className="bg-background relative mt-5 flex w-full flex-row items-center justify-between">
-          <Input
-            type="text"
-            placeholder="example.com"
-            maxLength={64}
-            className="bg-background max-w-sm"
-            value={domainInput}
-            onChange={(e) => setDomainInput(e.target.value)}
-          />
+      <CardHeader className="gap-0.5">
+        <CardTitle className="flex items-center gap-2 text-lg font-semibold">
+          Custom Domain
+          {domain && <DomainStatus domain={domain} />}
+        </CardTitle>
+        <CardDescription>The custom domain for your site.</CardDescription>
+      </CardHeader>
+      <CardContent className="bg-background relative mt-5 flex w-full flex-row items-center justify-between">
+        <Input
+          type="text"
+          placeholder="example.com"
+          maxLength={64}
+          className="bg-background max-w-sm"
+          value={domainInput}
+          onChange={(e) => setDomainInput(e.target.value)}
+        />
 
-          <div className="flex items-center space-x-2">
-            {domain ? (
-              <>
-                <DomainControls
-                  domain={domain}
-                  onRemove={() => {
-                    setDomain(null);
-                    setDomainInput("");
-                  }}
-                />
-              </>
-            ) : (
-              <Button type="submit" variant="outline" isLoading={isPending}>
-                Save
-              </Button>
-            )}
-          </div>
-        </CardContent>
-        {domain && <DomainConfiguration domain={domain} />}
-      </form>
+        <div className="flex items-center space-x-2">
+          {domain ? (
+            <DomainControls
+              domain={domain}
+              onRemove={() => {
+                setDomain(null);
+                setDomainInput("");
+              }}
+            />
+          ) : (
+            <Button
+              type="button"
+              variant="outline"
+              isLoading={isPending}
+              onClick={handleSave}
+            >
+              Save
+            </Button>
+          )}
+        </div>
+      </CardContent>
+      {domain && <DomainConfiguration domain={domain} />}
     </Card>
   );
 }

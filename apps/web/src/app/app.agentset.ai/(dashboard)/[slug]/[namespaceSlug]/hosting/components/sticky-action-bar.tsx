@@ -1,7 +1,7 @@
 "use client";
 
-import { ArrowUpRightIcon, CopyIcon } from "lucide-react";
-import { toast } from "sonner";
+import { ArrowUpRightIcon, CheckIcon, CopyIcon } from "lucide-react";
+import { useCopyToClipboard } from "usehooks-ts";
 
 import { Button } from "@agentset/ui/button";
 
@@ -18,14 +18,8 @@ export function StickyActionBar({
   isUpdating,
   onDiscard,
 }: StickyActionBarProps) {
-  async function handleCopy() {
-    try {
-      await navigator.clipboard.writeText(url);
-      toast.success("Copied to clipboard");
-    } catch {
-      toast.error("Failed to copy to clipboard");
-    }
-  }
+  const [copiedText, copyToClipboard] = useCopyToClipboard();
+  const isCopied = copiedText === url;
 
   return (
     <div className="bg-background sticky top-0 z-10 flex flex-col gap-4 border-b pb-4 sm:flex-row sm:items-center sm:justify-between">
@@ -37,14 +31,24 @@ export function StickyActionBar({
           </span>
           <span className="text-sm font-medium">Your deployment is live!</span>
         </div>
-        <a
-          href={url}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="text-muted-foreground hidden text-sm underline sm:inline"
+        <Button
+          type="button"
+          variant="ghost"
+          size="sm"
+          className="h-auto p-0"
+          onClick={() => copyToClipboard(url)}
         >
-          {url.replace("https://", "").replace("http://", "")}
-        </a>
+          {isCopied ? (
+            <CheckIcon className="size-3.5" />
+          ) : (
+            <CopyIcon className="size-3.5" />
+          )}
+        </Button>
+        <Button variant="ghost" size="sm" className="h-auto p-0" asChild>
+          <a href={url} target="_blank" rel="noopener noreferrer">
+            <ArrowUpRightIcon className="size-3.5" />
+          </a>
+        </Button>
       </div>
 
       <div className="flex items-center gap-2">
@@ -59,16 +63,6 @@ export function StickyActionBar({
             Discard
           </Button>
         )}
-        <Button type="button" variant="outline" size="sm" onClick={handleCopy}>
-          <CopyIcon className="size-4" />
-          <span className="hidden sm:inline">Copy URL</span>
-        </Button>
-        <Button variant="outline" size="sm" asChild>
-          <a href={url} target="_blank" rel="noopener noreferrer">
-            <ArrowUpRightIcon className="size-4" />
-            <span className="hidden sm:inline">Visit</span>
-          </a>
-        </Button>
         <Button
           type="submit"
           size="sm"

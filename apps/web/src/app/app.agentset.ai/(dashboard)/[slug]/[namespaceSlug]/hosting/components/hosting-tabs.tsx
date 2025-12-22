@@ -2,12 +2,6 @@
 
 import type { UseFormReturn } from "react-hook-form";
 import { useState } from "react";
-import {
-  BrainIcon,
-  MoreHorizontalIcon,
-  PaletteIcon,
-  ShieldCheckIcon,
-} from "lucide-react";
 
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@agentset/ui/tabs";
 
@@ -15,46 +9,52 @@ import type { HostingData, HostingFormValues } from "../use-hosting-form";
 import { AIEngineTab } from "./tabs/ai-engine-tab";
 import { ConnectivityTab } from "./tabs/connectivity-tab";
 import { GeneralTab } from "./tabs/general-tab";
+import { OpenGraphTab } from "./tabs/opengraph-tab";
 import { SecurityTab } from "./tabs/security-tab";
 
-type TabValue = "branding" | "ai-behavior" | "access" | "other";
+export type TabValue =
+  | "branding"
+  | "opengraph"
+  | "ai-behavior"
+  | "access"
+  | "other";
 
 interface HostingTabsProps {
   form: UseFormReturn<HostingFormValues>;
   data: HostingData;
+  onTabChange?: (tab: TabValue) => void;
 }
 
-export function HostingTabs({ form, data }: HostingTabsProps) {
+export function HostingTabs({ form, data, onTabChange }: HostingTabsProps) {
   const [activeTab, setActiveTab] = useState<TabValue>("branding");
+
+  function handleTabChange(value: string) {
+    const newTab = value as TabValue;
+    setActiveTab(newTab);
+    onTabChange?.(newTab);
+  }
 
   return (
     <Tabs
       value={activeTab}
-      onValueChange={(value) => setActiveTab(value as TabValue)}
+      onValueChange={handleTabChange}
       className="flex h-full flex-col"
     >
-      <TabsList className="grid w-full grid-cols-4">
-        <TabsTrigger value="branding" className="gap-2">
-          <PaletteIcon className="size-4" />
-          <span className="hidden sm:inline">Branding</span>
-        </TabsTrigger>
-        <TabsTrigger value="ai-behavior" className="gap-2">
-          <BrainIcon className="size-4" />
-          <span className="hidden sm:inline">AI Behavior</span>
-        </TabsTrigger>
-        <TabsTrigger value="access" className="gap-2">
-          <ShieldCheckIcon className="size-4" />
-          <span className="hidden sm:inline">Access</span>
-        </TabsTrigger>
-        <TabsTrigger value="other" className="gap-2">
-          <MoreHorizontalIcon className="size-4" />
-          <span className="hidden sm:inline">Other</span>
-        </TabsTrigger>
+      <TabsList className="grid w-full grid-cols-5">
+        <TabsTrigger value="branding">Branding</TabsTrigger>
+        <TabsTrigger value="opengraph">Open Graph</TabsTrigger>
+        <TabsTrigger value="ai-behavior">AI Behavior</TabsTrigger>
+        <TabsTrigger value="access">Access</TabsTrigger>
+        <TabsTrigger value="other">Other</TabsTrigger>
       </TabsList>
 
-      <div className="mt-6 flex-1 pb-8">
+      <div className="mt-6 flex-1">
         <TabsContent value="branding" className="mt-0">
           <GeneralTab form={form} data={data} />
+        </TabsContent>
+
+        <TabsContent value="opengraph" className="mt-0">
+          <OpenGraphTab form={form} data={data} />
         </TabsContent>
 
         <TabsContent value="ai-behavior" className="mt-0">
