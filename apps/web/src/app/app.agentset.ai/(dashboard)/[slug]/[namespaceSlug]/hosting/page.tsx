@@ -4,11 +4,7 @@ import HostingPageClient from "./page.client";
 
 export default function HostingPage() {
   return (
-    <DashboardPageWrapper
-      title="Hosting"
-      requireNamespace
-      className="h-full py-0"
-    >
+    <DashboardPageWrapper title="Hosting" requireNamespace className="py-0">
       <HostingPageClient />
     </DashboardPageWrapper>
   );
