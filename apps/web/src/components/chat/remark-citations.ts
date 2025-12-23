@@ -1,6 +1,6 @@
 import type { Root, RootContent } from "mdast";
 import type { Plugin } from "unified";
-import { visit } from "unist-util-visit";
+import { SKIP, visit } from "unist-util-visit";
 
 interface CitationNode {
   type: "citation";
@@ -35,6 +35,9 @@ const remarkCitations: Plugin<[], Root> = () => {
 
       const nodeValue = node.value || "";
 
+      // Reset regex state before using it
+      CITATION_REGEX.lastIndex = 0;
+
       while ((match = CITATION_REGEX.exec(nodeValue)) !== null) {
         // Add text before the citation
         if (match.index > lastIndex) {
@@ -68,13 +71,15 @@ const remarkCitations: Plugin<[], Root> = () => {
 
       if (parts.length > 1) {
         // Replace the current node with the array of text and citation nodes
-        parent.children.splice(
-          index,
-          1,
-          ...(parts.map((part) =>
-            typeof part === "string" ? { type: "text", value: part } : part,
-          ) as RootContent[]),
-        );
+        const newNodes = parts.map((part) =>
+          typeof part === "string" ? { type: "text", value: part } : part,
+        ) as RootContent[];
+
+        parent.children.splice(index, 1, ...newNodes);
+
+        // Return the index after the newly inserted nodes to continue traversal
+        // This prevents re-visiting the nodes we just inserted
+        return [SKIP, index + newNodes.length];
       }
     });
   };
