@@ -31,42 +31,39 @@ export function HostingLayout({ data }: { data: HostingData }) {
 
   return (
     <Form {...form}>
-      <form onSubmit={handleSubmit}>
-        <div className="flex h-[calc(100dvh-(--spacing(16))-(--spacing(20)))] flex-col">
-          <DeploymentStatusBar url={url} />
-          <div className="flex flex-1 gap-8 overflow-hidden pt-6">
-            {/* Config Pane - 60% on desktop, full width on mobile */}
-            <ScrollArea className="flex-1 lg:flex-6">
-              <div className="pr-4">
-                <HostingTabs
-                  form={form}
-                  data={data}
-                  onTabChange={setActiveTab}
-                />
-              </div>
-            </ScrollArea>
+      <form
+        onSubmit={handleSubmit}
+        className="flex h-[calc(100dvh-(--spacing(16))-(--spacing(20)))] flex-col"
+      >
+        <DeploymentStatusBar url={url} />
+        <div className="flex flex-1 gap-8 overflow-hidden pt-6">
+          {/* Config Pane - 60% on desktop, full width on mobile */}
+          <ScrollArea className="flex-1 lg:flex-6">
+            <div className="pr-4">
+              <HostingTabs form={form} data={data} onTabChange={setActiveTab} />
+            </div>
+          </ScrollArea>
 
-            {/* Preview Pane - 40% on desktop, hidden on mobile */}
-            <div className="hidden flex-4 lg:block">
-              <div className="flex h-full flex-col gap-4">
-                {/* Action Buttons */}
-                <PreviewActionButtons
-                  url={url}
-                  isDirty={isDirty}
-                  isUpdating={isUpdating}
-                  onDiscard={reset}
-                />
-                {/* Preview */}
-                <div className="flex-1 overflow-hidden">
-                  {renderPreviewPane()}
-                </div>
+          {/* Preview Pane - 40% on desktop, hidden on mobile */}
+          <div className="hidden flex-4 lg:block">
+            <div className="flex h-full flex-col gap-4">
+              {/* Action Buttons */}
+              <PreviewActionButtons
+                url={url}
+                isDirty={isDirty}
+                isUpdating={isUpdating}
+                onDiscard={reset}
+              />
+              {/* Preview */}
+              <div className="flex-1 overflow-hidden">
+                {renderPreviewPane()}
               </div>
             </div>
           </div>
-
-          {/* Mobile Preview Button/Drawer */}
-          <MobilePreviewButton form={form} />
         </div>
+
+        {/* Mobile Preview Button/Drawer */}
+        <MobilePreviewButton form={form} />
       </form>
     </Form>
   );
