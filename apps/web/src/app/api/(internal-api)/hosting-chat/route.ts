@@ -1,4 +1,4 @@
-import { generateAgenticResponse } from "@/lib/agentic";
+import { streamAgenticResponse } from "@/lib/agentic";
 import { AgentsetApiError } from "@/lib/api/errors";
 import { withPublicApiHandler } from "@/lib/api/handler/public";
 import { hostingAuth } from "@/lib/api/hosting-auth";
@@ -110,7 +110,7 @@ export const POST = withPublicApiHandler(
       ? new KeywordStore(hosting.namespace.id)
       : undefined;
 
-    const result = generateAgenticResponse({
+    const result = streamAgenticResponse({
       model: languageModel,
       keywordStore,
       embeddingModel,
@@ -118,17 +118,16 @@ export const POST = withPublicApiHandler(
       topK: hosting.topK,
       rerank: {
         model: hosting.rerankConfig?.model,
-        limit: hosting.rerankConfig?.limit ?? 15,
+        limit: hosting.rerankConfig?.limit,
       },
       systemPrompt: hosting.systemPrompt ?? DEFAULT_SYSTEM_PROMPT.compile(),
       temperature: 0,
       messages,
-      headers,
       afterQueries: (totalQueries) => {
         incrementUsage(hosting.namespace.id, totalQueries);
       },
     });
 
-    return result;
+    return result.toUIMessageStreamResponse({ headers });
   },
 );

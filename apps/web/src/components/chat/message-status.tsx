@@ -44,7 +44,7 @@ export const MessageStatus = ({
                 part.type === "tool-expand"
                   ? "Expanding context..."
                   : part.input?.query
-                    ? `Searching ${part.input.query}`
+                    ? `Searching "${part.input.query}"`
                     : "Searching..."
               }
               status={isLoading && isLast ? "active" : "complete"}

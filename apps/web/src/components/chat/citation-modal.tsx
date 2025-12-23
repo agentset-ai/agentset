@@ -14,14 +14,12 @@ import { truncate } from "@agentset/utils";
 
 interface CitationModalProps {
   source: { text: string; metadata?: Record<string, unknown> };
-  sourceIndex: number;
   triggerProps: React.ComponentProps<"button">;
 }
 
 const useHostingCitationName = ({
   source,
-  sourceIndex,
-}: Pick<CitationModalProps, "source" | "sourceIndex">) => {
+}: Pick<CitationModalProps, "source">) => {
   const isHosting = useIsHosting();
 
   // it's fine to call hooks conditionally here because we'll never get a different value for `isHosting` within the same render
@@ -51,15 +49,11 @@ const useHostingCitationName = ({
     return null;
   }, [hosting, source.metadata]);
 
-  return citationName ? citationName : `[${sourceIndex}]`;
+  return citationName ? citationName : `[Source]`;
 };
 
-export function CitationModal({
-  source,
-  sourceIndex,
-  triggerProps,
-}: CitationModalProps) {
-  const hostingCitation = useHostingCitationName({ source, sourceIndex });
+export function CitationModal({ source, triggerProps }: CitationModalProps) {
+  const hostingCitation = useHostingCitationName({ source });
   const stringifiedMetadata = useMemo(() => {
     if (!source.metadata) return null;
     try {
@@ -72,27 +66,15 @@ export function CitationModal({
   return (
     <Dialog>
       <DialogTrigger asChild>
-        {hostingCitation ? (
-          <button
-            {...triggerProps}
-            className={cn(
-              triggerProps.className,
-              "bg-muted text-muted-foreground hover:bg-primary hover:text-primary-foreground mx-0.5 cursor-pointer rounded-full px-2 py-0.5 text-sm font-medium hover:no-underline",
-            )}
-          >
-            {truncate(hostingCitation, 35, "...")}
-          </button>
-        ) : (
-          <button
-            className={cn(
-              triggerProps.className,
-              "cursor-pointer text-blue-500 hover:underline",
-            )}
-            {...triggerProps}
-          >
-            <span className="mx-1.5">{triggerProps.children}</span>
-          </button>
-        )}
+        <button
+          {...triggerProps}
+          className={cn(
+            triggerProps.className,
+            "bg-muted text-muted-foreground hover:bg-primary hover:text-primary-foreground mx-1 cursor-pointer rounded-full px-2 py-0.5 text-sm font-medium transition-colors hover:no-underline",
+          )}
+        >
+          {hostingCitation ? truncate(hostingCitation, 35, "...") : "Source"}
+        </button>
       </DialogTrigger>
 
       <DialogContent
@@ -102,9 +84,7 @@ export function CitationModal({
         }}
       >
         <DialogHeader>
-          <DialogTitle>
-            {hostingCitation || `Source [${sourceIndex}]`}
-          </DialogTitle>
+          <DialogTitle>{hostingCitation || `Source`}</DialogTitle>
         </DialogHeader>
 
         <div className="mt-4 max-h-[60vh] overflow-y-auto">

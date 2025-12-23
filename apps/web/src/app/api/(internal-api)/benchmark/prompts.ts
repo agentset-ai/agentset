@@ -39,25 +39,6 @@ but it is not as concise."
 }
 `;
 
-// export const FAITHFULNESS_REFINE_SYSTEM_PROMPT = prmpt`
-// We want to understand if the following information is present
-// in the context information: ${"query"}
-// We have provided an existing answer: ${"existingAnswer"}
-// We have the opportunity to refine the existing answer
-// (only if needed) with some more context below.
-// ------------
-// ${"context"}
-// ------------
-// If the existing answer was already true, still answer true.
-// If the information is present in the new context, answer true.
-// Otherwise answer false.
-
-// Example Response:
-// {
-// "faithful": true
-// }
-// `;
-
 export const FAITHFULNESS_SYSTEM_PROMPT = prmpt`
 Please tell if a given piece of information is supported by the context.
 
@@ -93,27 +74,6 @@ Context:
 ${"context"}
 ------------
 `;
-
-// export const RELEVANCY_REFINE_SYSTEM_PROMPT = prmpt`
-// We want to understand if the following query and response is
-// in line with the context information:
-// ${"query"}
-// We have provided an existing answer:
-// ${"existingAnswer"}
-// We have the opportunity to refine the existing answer
-// (only if needed) with some more context below.
-// ------------
-// ${"context"}
-// ------------
-// If the existing answer was already true, still answer true.
-// If the information is present in the new context, answer true.
-// Otherwise answer false.
-
-// Example Response:
-// {
-// "relevant": true
-// }
-// `;
 
 export const RELEVANCY_SYSTEM_PROMPT = prmpt`
 Your task is to evaluate if the response for the query is in line with the context information provided.

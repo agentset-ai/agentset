@@ -12,10 +12,7 @@ const formatChunks = (chunks: QueryVectorStoreResult["results"]) => {
   return chunks.map((chunk) => ({
     id: chunk.id,
     text: chunk.text,
-    metadata: {
-      documentId: chunk.metadata?.documentId as string,
-      sequenceNumber: chunk.metadata?.sequence_number as number,
-    },
+    metadata: chunk.metadata ?? {},
   }));
 };
 

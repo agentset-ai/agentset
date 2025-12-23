@@ -1,5 +1,5 @@
 import type { ModelMessage } from "ai";
-import { generateAgenticResponse } from "@/lib/agentic";
+import { streamAgenticResponse } from "@/lib/agentic";
 import { AgentsetApiError } from "@/lib/api/errors";
 import { withAuthApiHandler } from "@/lib/api/handler";
 import { parseRequestBody } from "@/lib/api/utils";
@@ -145,7 +145,7 @@ export const POST = withAuthApiHandler(
         ? new KeywordStore(namespace.id, tenantId)
         : undefined;
 
-      const result = generateAgenticResponse({
+      const result = streamAgenticResponse({
         model: languageModel,
         keywordStore,
         embeddingModel,
@@ -157,7 +157,6 @@ export const POST = withAuthApiHandler(
               limit: body.rerankLimit,
             }
           : undefined,
-        headers,
         systemPrompt: body.systemPrompt,
         temperature: body.temperature,
         messages,
@@ -166,7 +165,7 @@ export const POST = withAuthApiHandler(
         },
       });
 
-      return result;
+      return result.toUIMessageStreamResponse({ headers });
     }
 
     const data = await queryVectorStore({

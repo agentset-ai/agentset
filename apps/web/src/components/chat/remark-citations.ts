@@ -5,12 +5,12 @@ import { visit } from "unist-util-visit";
 interface CitationNode {
   type: "citation";
   value: string;
-  citationNumber: number;
+  citationId: string;
   data: {
     hName: "citation";
     hProperties: {
       className: string;
-      "data-citation": number;
+      "data-citation": string;
     };
     hChildren: [{ type: "text"; value: string }];
   };
@@ -22,7 +22,7 @@ declare module "mdast" {
   }
 }
 
-const CITATION_REGEX = /\[(\d+)\]/g;
+const CITATION_REGEX = /\[ref:([^\]]+)\]/g;
 
 const remarkCitations: Plugin<[], Root> = () => {
   return (tree) => {
@@ -42,17 +42,17 @@ const remarkCitations: Plugin<[], Root> = () => {
         }
 
         // Add the citation node
-        const citationNumber = parseInt(match[1]!, 10);
+        const citationId = match[1]!;
 
         parts.push({
           type: "citation",
           value: match[0],
-          citationNumber,
+          citationId,
           data: {
             hName: "citation",
             hProperties: {
               className: "cursor-pointer text-blue-500 hover:underline",
-              "data-citation": citationNumber,
+              "data-citation": citationId,
             },
             hChildren: [{ type: "text", value: match[0] }],
           },

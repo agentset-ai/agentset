@@ -4,7 +4,7 @@ import { AgentsetApiError } from "@/lib/api/errors";
 import { withAuthApiHandler } from "@/lib/api/handler";
 import { makeApiSuccessResponse } from "@/lib/api/response";
 import { parseRequestBody } from "@/lib/api/utils";
-import { NEW_MESSAGE_PROMPT } from "@/lib/prompts";
+import { DEFAULT_SYSTEM_PROMPT, NEW_MESSAGE_PROMPT } from "@/lib/prompts";
 import { waitUntil } from "@vercel/functions";
 import { generateText } from "ai";
 
@@ -16,6 +16,7 @@ import {
   getNamespaceVectorStore,
   queryVectorStore,
 } from "@agentset/engine";
+import { DEFAULT_RERANKER } from "@agentset/validation";
 
 import { chatSchema } from "./schema";
 import { correctnessEval, faithfulnessEval, relevanceEval } from "./utils";
@@ -69,41 +70,35 @@ export const POST = withAuthApiHandler(
     };
 
     if (body.mode === "agentic") {
-      result = await generateAgenticResponse({
+      const response = await generateAgenticResponse({
         model: languageModel,
-        systemPrompt: body.systemPrompt,
-        temperature: body.temperature,
-        queryOptions: {
-          embeddingModel,
-          vectorStore,
-          topK: body.topK,
-          minScore: body.minScore,
-          filter: body.filter,
-          includeMetadata: body.includeMetadata,
-          includeRelationships: body.includeRelationships,
-          rerank: body.rerank
-            ? { model: "cohere:rerank-v3.5", limit: body.rerankLimit }
-            : false,
-        },
-        messagesWithoutQuery: [],
-        lastMessage: message,
+        systemPrompt: DEFAULT_SYSTEM_PROMPT.compile(),
+        temperature: 0,
+        embeddingModel,
+        vectorStore,
+        messages: [
+          {
+            role: "user",
+            content: message,
+          },
+        ],
         afterQueries: (totalQueries) => {
           incrementUsage(namespace.id, totalQueries);
         },
       });
+
+      result = {
+        answer: response.text,
+        sources: response.searchResults as QueryVectorStoreResult["results"],
+      };
     } else {
       const data = await queryVectorStore({
         embeddingModel,
         vectorStore,
         query: message,
-        topK: body.topK,
-        minScore: body.minScore,
-        filter: body.filter,
-        includeMetadata: body.includeMetadata,
-        includeRelationships: body.includeRelationships,
-        rerank: body.rerank
-          ? { model: "cohere:rerank-v3.5", limit: body.rerankLimit }
-          : false,
+        topK: 50,
+        includeMetadata: true,
+        rerank: { model: DEFAULT_RERANKER, limit: 15 },
       });
 
       const newMessages: ModelMessage[] = [
