@@ -31,8 +31,8 @@ export function HostingLayout({ data }: { data: HostingData }) {
 
   return (
     <Form {...form}>
-      <form onSubmit={handleSubmit}>
-        <div className="flex h-[calc(100dvh-(--spacing(16))-(--spacing(20)))] flex-col">
+      <form onSubmit={handleSubmit} className="h-full">
+        <div className="flex h-[calc(100dvh-(--spacing(2))-(--spacing(20)))] flex-col">
           <DeploymentStatusBar url={url} />
           <div className="flex flex-1 gap-8 overflow-hidden pt-6">
             {/* Config Pane - 60% on desktop, full width on mobile */}
