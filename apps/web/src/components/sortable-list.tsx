@@ -4,7 +4,7 @@ import type {
   FieldPathByValue,
   UseFormReturn,
 } from "react-hook-form";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   closestCenter,
   DndContext,
@@ -57,6 +57,12 @@ export default function SortableList<T extends object>({
     control: form.control,
     name: typedName,
   });
+
+  useEffect(() => {
+    if (virtualIds.length === 1 && fields.length === 0) {
+      append("" as any);
+    }
+  }, [virtualIds, fields, append]);
 
   const sensors = useSensors(
     useSensor(PointerSensor),
@@ -112,16 +118,6 @@ export default function SortableList<T extends object>({
     <div className="flex flex-col gap-2">
       <div className="flex items-center gap-5">
         <FormLabel>{label}</FormLabel>
-        <Button
-          type="button"
-          variant="outline"
-          size="sm"
-          onClick={handleAdd}
-          disabled={!!maxItems && fields.length >= maxItems}
-        >
-          <PlusIcon className="size-4" />
-          Add
-        </Button>
       </div>
 
       <DndContext
@@ -157,6 +153,19 @@ export default function SortableList<T extends object>({
           })}
         </SortableContext>
       </DndContext>
+
+      <div className="mt-4">
+        <Button
+          type="button"
+          variant="outline"
+          size="sm"
+          onClick={handleAdd}
+          disabled={!!maxItems && fields.length >= maxItems}
+        >
+          <PlusIcon className="size-4" />
+          Add
+        </Button>
+      </div>
     </div>
   );
 }

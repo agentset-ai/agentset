@@ -16,13 +16,15 @@ import { Separator } from "@agentset/ui/separator";
 import { Textarea } from "@agentset/ui/textarea";
 
 import type { HostingData, HostingFormValues } from "../../use-hosting-form";
+import { TabValue } from "../hosting-tabs";
 
 interface GeneralTabProps {
   form: UseFormReturn<HostingFormValues>;
   data: HostingData;
+  setTab: (tab: TabValue) => void;
 }
 
-export function GeneralTab({ form, data }: GeneralTabProps) {
+export function GeneralTab({ form, data, setTab }: GeneralTabProps) {
   return (
     <div className="space-y-10">
       <section>
@@ -58,7 +60,16 @@ export function GeneralTab({ form, data }: GeneralTabProps) {
             name="slug"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Slug</FormLabel>
+                <div className="flex justify-between">
+                  <FormLabel>Slug</FormLabel>
+                  <button
+                    className="text-primary text-sm underline"
+                    onClick={() => setTab("other")}
+                    type="button"
+                  >
+                    Custom domain
+                  </button>
+                </div>
                 <FormControl>
                   <Input {...field} placeholder="Enter a unique slug..." />
                 </FormControl>

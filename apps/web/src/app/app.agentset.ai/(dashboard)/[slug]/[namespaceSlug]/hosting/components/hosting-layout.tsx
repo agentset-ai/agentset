@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { APP_DOMAIN, HOSTING_PREFIX } from "@/lib/constants";
 
 import { Form } from "@agentset/ui/form";
@@ -11,22 +11,36 @@ import { HostingTabs, TabValue } from "./hosting-tabs";
 import { PreviewActionButtons } from "./preview-action-buttons";
 import { SocialShareCard } from "./social-share-card";
 
+const UNSAVED_CHANGES_MESSAGE =
+  "You have unsaved changes. Are you sure you want to leave?";
+
 export function HostingLayout({ data }: { data: HostingData }) {
   const { form, handleSubmit, isUpdating, isDirty, reset } =
     useHostingForm(data);
   const [activeTab, setActiveTab] = useState<TabValue>("branding");
 
+  useEffect(() => {
+    const handleBeforeUnload = (event: BeforeUnloadEvent) => {
+      if (isDirty) {
+        event.preventDefault();
+        // Chrome requires returnValue to be set
+        event.returnValue = UNSAVED_CHANGES_MESSAGE;
+        return UNSAVED_CHANGES_MESSAGE;
+      }
+    };
+
+    window.addEventListener("beforeunload", handleBeforeUnload);
+
+    return () => {
+      window.removeEventListener("beforeunload", handleBeforeUnload);
+    };
+  }, [isDirty]);
+
   const url = `${APP_DOMAIN}${HOSTING_PREFIX}${data.slug}`;
 
   function renderPreviewPane() {
-    switch (activeTab) {
-      case "branding":
-        return <HostingPreview form={form} />;
-      case "opengraph":
-        return <SocialSharePreview form={form} />;
-      default:
-        return <HostingPreview form={form} />;
-    }
+    if (activeTab === "opengraph") return <SocialSharePreview form={form} />;
+    return <HostingPreview form={form} />;
   }
 
   return (

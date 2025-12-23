@@ -30,7 +30,7 @@ export function HostingPreview({ form }: HostingPreviewProps) {
     <div className="flex h-full flex-col overflow-hidden rounded-lg border">
       <div className="bg-muted/30 border-b px-4 py-2">
         <span className="text-muted-foreground text-xs font-medium tracking-wide uppercase">
-          Live Preview
+          Preview
         </span>
       </div>
 
@@ -43,32 +43,35 @@ export function HostingPreview({ form }: HostingPreviewProps) {
                 alt="Logo"
                 className="size-10 rounded-md object-cover"
               />
-            ) : (
-              <div className="bg-muted size-10 rounded-md" />
-            )}
+            ) : null}
 
             <div className="space-y-2">
               <h3 className="text-xl font-semibold">
                 {welcomeMessage || title || "Welcome!"}
               </h3>
             </div>
-
-            {exampleQuestions && exampleQuestions.length > 0 && (
-              <div className="mt-4 grid gap-2">
-                {exampleQuestions.slice(0, 4).map((question, index) => (
-                  <MockSuggestionButton key={index} text={question} />
-                ))}
-              </div>
-            )}
           </div>
         </div>
 
-        <div className="border-t p-4">
-          <div className="bg-muted/50 flex items-center gap-2 rounded-lg border px-4 py-3">
-            <span className="text-muted-foreground flex-1 text-sm">
-              Ask a question...
-            </span>
-            <SendIcon className="text-muted-foreground size-4" />
+        <div>
+          {exampleQuestions && exampleQuestions.length > 0 && (
+            <div className="mx-4 mb-4 grid gap-2">
+              {exampleQuestions
+                .filter(Boolean)
+                .slice(0, 4)
+                .map((question, index) => (
+                  <MockSuggestionButton key={index} text={question} />
+                ))}
+            </div>
+          )}
+
+          <div className="border-t p-4">
+            <div className="bg-muted/50 flex items-center gap-2 rounded-lg border px-4 py-3">
+              <span className="text-muted-foreground flex-1 text-sm">
+                Ask a question...
+              </span>
+              <SendIcon className="text-muted-foreground size-4" />
+            </div>
           </div>
         </div>
       </div>
