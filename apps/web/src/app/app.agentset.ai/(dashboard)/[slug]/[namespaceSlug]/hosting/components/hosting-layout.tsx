@@ -32,7 +32,7 @@ export function HostingLayout({ data }: { data: HostingData }) {
   return (
     <Form {...form}>
       <form onSubmit={handleSubmit} className="h-full">
-        <div className="flex h-[calc(100dvh-(--spacing(2))-(--spacing(20)))] flex-col">
+        <div className="flex h-[calc(100dvh-(--spacing(0))-(--spacing(20)))] flex-col">
           <DeploymentStatusBar url={url} />
           <div className="flex flex-1 gap-8 overflow-hidden pt-6">
             {/* Config Pane - 60% on desktop, full width on mobile */}
@@ -47,7 +47,7 @@ export function HostingLayout({ data }: { data: HostingData }) {
             </ScrollArea>
 
             {/* Preview Pane - 40% on desktop, hidden on mobile */}
-            <div className="hidden flex-4 lg:block">
+            <div className="hidden flex-4 pb-2 lg:block">
               <div className="flex h-full flex-col gap-4">
                 {/* Action Buttons */}
                 <PreviewActionButtons
