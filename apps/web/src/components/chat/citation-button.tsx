@@ -1,3 +1,4 @@
+import { useMemo } from "react";
 import { MyUIMessage } from "@/types/ai";
 
 import { CitationModal } from "./citation-modal";
@@ -8,24 +9,27 @@ export const CitationButton = ({
 }: {
   children?: React.ReactNode;
   message?: MyUIMessage;
-  "data-citation"?: number;
+  "data-citation"?: string;
   className?: string;
 }) => {
-  if (!props.children) return null;
+  const citationId = props["data-citation"];
+  if (!props.children || !citationId || !message) return null;
 
-  const idx = props["data-citation"] ? props["data-citation"] - 1 : undefined;
+  const source = useMemo(() => {
+    return (
+      message.parts.find((a) => a.type === "data-agentset-sources")?.data
+        ?.results ??
+      message.parts
+        .filter(
+          (a) =>
+            a.type === "tool-semantic_search" ||
+            a.type === "tool-keyword_search",
+        )
+        .flatMap((a) => a.output ?? [])
+    ).find((a) => a.id === citationId);
+  }, [message.parts, citationId]);
 
-  const sources = message?.parts.find((a) => a.type === "data-agentset-sources")
-    ?.data?.results;
+  if (!source) return <span {...props}>{props.children}</span>;
 
-  if (idx === undefined || !sources || !sources[idx])
-    return <span {...props}>{props.children}</span>;
-
-  return (
-    <CitationModal
-      source={sources[idx]}
-      sourceIndex={idx + 1}
-      triggerProps={props}
-    />
-  );
+  return <CitationModal source={source} triggerProps={props} />;
 };
