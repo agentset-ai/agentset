@@ -33,7 +33,7 @@ export function HostingLayout({ data }: { data: HostingData }) {
     <Form {...form}>
       <form
         onSubmit={handleSubmit}
-        className="flex h-[calc(100dvh-(--spacing(16))-(--spacing(20)))] flex-col"
+        className="flex h-[calc(100dvh-(--spacing(0))-(--spacing(20)))] flex-col"
       >
         <DeploymentStatusBar url={url} />
         <div className="flex flex-1 gap-8 overflow-hidden pt-6">
