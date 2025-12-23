@@ -42,15 +42,15 @@ export function HostingTabs({ form, data, onTabChange }: HostingTabsProps) {
     >
       <TabsList className="grid w-full grid-cols-5">
         <TabsTrigger value="branding">General</TabsTrigger>
-        <TabsTrigger value="opengraph">Open Graph</TabsTrigger>
         <TabsTrigger value="ai-behavior">AI</TabsTrigger>
         <TabsTrigger value="access">Security</TabsTrigger>
+        <TabsTrigger value="opengraph">Open Graph</TabsTrigger>
         <TabsTrigger value="other">Advanced</TabsTrigger>
       </TabsList>
 
       <div className="mt-6 flex-1">
         <TabsContent value="branding" className="mt-0">
-          <GeneralTab form={form} data={data} />
+          <GeneralTab form={form} data={data} setTab={setActiveTab} />
         </TabsContent>
 
         <TabsContent value="opengraph" className="mt-0">
