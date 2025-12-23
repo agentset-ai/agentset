@@ -15,14 +15,7 @@ import {
 import { toast } from "sonner";
 
 import { Button } from "@agentset/ui/button";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from "@agentset/ui/card";
+import { Card, CardContent, CardFooter } from "@agentset/ui/card";
 import { Input } from "@agentset/ui/input";
 import { Tabs, TabsList, TabsTrigger } from "@agentset/ui/tabs";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@agentset/ui/tooltip";
@@ -171,11 +164,7 @@ function DomainConfiguration(props: { domain: string }) {
     );
   }
 
-  return (
-    <CardFooter className="mt-8 flex flex-grow justify-start">
-      {result}
-    </CardFooter>
-  );
+  return <CardFooter className="flex grow justify-start">{result}</CardFooter>;
 }
 
 const statues: Record<
@@ -314,23 +303,15 @@ export function CustomDomainConfigurator(props: { defaultDomain?: string }) {
     }),
   );
 
-  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
+  function handleSave() {
     if (!domainInput) return;
     addDomain({ domain: domainInput, namespaceId: namespace.id });
-  };
+  }
 
   return (
-    <Card className="flex w-2xl flex-col space-y-6">
-      <form onSubmit={handleSubmit}>
-        <CardHeader className="gap-0.5">
-          <CardTitle className="flex items-center gap-2 text-lg font-semibold">
-            Custom Domain
-            {domain && <DomainStatus domain={domain} />}
-          </CardTitle>
-          <CardDescription>The custom domain for your site.</CardDescription>
-        </CardHeader>
-        <CardContent className="bg-background relative mt-5 flex w-full flex-row items-center justify-between">
+    <Card className="flex w-full flex-col space-y-6">
+      <CardContent className="bg-background relative flex w-full flex-row items-center justify-between">
+        <div className="flex w-full gap-2">
           <Input
             type="text"
             placeholder="example.com"
@@ -339,27 +320,31 @@ export function CustomDomainConfigurator(props: { defaultDomain?: string }) {
             value={domainInput}
             onChange={(e) => setDomainInput(e.target.value)}
           />
+          {domain && <DomainStatus domain={domain} />}
+        </div>
 
-          <div className="flex items-center space-x-2">
-            {domain ? (
-              <>
-                <DomainControls
-                  domain={domain}
-                  onRemove={() => {
-                    setDomain(null);
-                    setDomainInput("");
-                  }}
-                />
-              </>
-            ) : (
-              <Button type="submit" variant="outline" isLoading={isPending}>
-                Save
-              </Button>
-            )}
-          </div>
-        </CardContent>
-        {domain && <DomainConfiguration domain={domain} />}
-      </form>
+        <div className="flex items-center space-x-2">
+          {domain ? (
+            <DomainControls
+              domain={domain}
+              onRemove={() => {
+                setDomain(null);
+                setDomainInput("");
+              }}
+            />
+          ) : (
+            <Button
+              type="button"
+              variant="outline"
+              isLoading={isPending}
+              onClick={handleSave}
+            >
+              Save
+            </Button>
+          )}
+        </div>
+      </CardContent>
+      {domain && <DomainConfiguration domain={domain} />}
     </Card>
   );
 }
