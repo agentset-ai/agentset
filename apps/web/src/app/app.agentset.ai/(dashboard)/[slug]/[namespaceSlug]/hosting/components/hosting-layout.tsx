@@ -39,7 +39,7 @@ export function HostingLayout({ data }: { data: HostingData }) {
         <div className="flex flex-1 gap-8 overflow-hidden pt-6">
           {/* Config Pane - 60% on desktop, full width on mobile */}
           <ScrollArea className="flex-1 lg:flex-6">
-            <div className="pr-4">
+            <div className="pr-4 pb-10">
               <HostingTabs form={form} data={data} onTabChange={setActiveTab} />
             </div>
           </ScrollArea>

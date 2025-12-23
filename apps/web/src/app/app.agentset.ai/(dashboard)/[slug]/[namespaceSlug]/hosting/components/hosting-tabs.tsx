@@ -42,8 +42,8 @@ export function HostingTabs({ form, data, onTabChange }: HostingTabsProps) {
     >
       <TabsList className="grid w-full grid-cols-5">
         <TabsTrigger value="branding">General</TabsTrigger>
-        <TabsTrigger value="opengraph">Social Preview</TabsTrigger>
-        <TabsTrigger value="ai-behavior">AI Configuration</TabsTrigger>
+        <TabsTrigger value="opengraph">Open Graph</TabsTrigger>
+        <TabsTrigger value="ai-behavior">AI</TabsTrigger>
         <TabsTrigger value="access">Security</TabsTrigger>
         <TabsTrigger value="other">Advanced</TabsTrigger>
       </TabsList>
