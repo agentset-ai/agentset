@@ -1,11 +1,12 @@
 "use client";
 
-import { Fragment, useEffect } from "react";
+import { Fragment, useEffect, useState } from "react";
 import { logEvent } from "@/lib/analytics";
 import { authClient } from "@/lib/auth-client";
 import { useRouter } from "@bprogress/next/app";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation } from "@tanstack/react-query";
+import { PencilIcon, RotateCcwIcon } from "lucide-react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { z } from "zod/v4";
@@ -21,7 +22,7 @@ import {
   FormMessage,
 } from "@agentset/ui/form";
 import { Input } from "@agentset/ui/input";
-import { toSlug } from "@agentset/utils";
+import { generateToken, toSlug } from "@agentset/utils";
 
 const formSchema = z.object({
   name: z.string().min(1),
@@ -46,9 +47,12 @@ export function CreateOrgForm({
   onSuccess,
 }: {
   isDialog?: boolean;
-  onSuccess?: () => void;
+  onSuccess?(): void;
 }) {
   const router = useRouter();
+  const [hashSuffix] = useState(() => generateToken(4).toLowerCase());
+  const [isEditingSlug, setIsEditingSlug] = useState(false);
+
   const form = useForm({
     resolver: zodResolver(formSchema, undefined, { mode: "async" }),
     reValidateMode: "onBlur",
@@ -88,12 +92,28 @@ export function CreateOrgForm({
     });
 
   const name = form.watch("name");
+  const slug = form.watch("slug");
   const { formState, setValue } = form;
+
   useEffect(() => {
     if (!formState.touchedFields.slug) {
-      setValue("slug", toSlug(name));
+      const baseSlug = toSlug(name);
+      setValue("slug", baseSlug ? `${baseSlug}-${hashSuffix}` : "");
     }
-  }, [name, formState, setValue]);
+  }, [name, formState.touchedFields.slug, setValue, hashSuffix]);
+
+  function resetToAutoSlug() {
+    setIsEditingSlug(false);
+    const baseSlug = toSlug(form.getValues("name"));
+    const newSlug = baseSlug ? `${baseSlug}-${hashSuffix}` : "";
+    form.resetField("slug", { defaultValue: newSlug });
+    setValue("slug", newSlug);
+  }
+
+  function enableSlugEditing() {
+    setIsEditingSlug(true);
+    form.setValue("slug", slug, { shouldTouch: true });
+  }
 
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
     await createOrganization(values);
@@ -105,47 +125,76 @@ export function CreateOrgForm({
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)}>
         <div className="flex flex-col gap-6">
-          <div className="flex flex-col gap-6">
+          <div className="flex flex-col gap-4">
             <FormField
               control={form.control}
               name="name"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Name</FormLabel>
+                  <FormLabel>Organization Name</FormLabel>
                   <FormControl>
                     <Input placeholder="My Organization" {...field} />
                   </FormControl>
-
                   <FormMessage />
                 </FormItem>
               )}
             />
 
-            <FormField
-              control={form.control}
-              name="slug"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Slug</FormLabel>
-                  <FormControl>
-                    <Input placeholder="my-organization" {...field} />
-                  </FormControl>
-
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <SubmitWrapper>
-              <Button
-                type="submit"
-                className="w-full"
-                isLoading={isCreatingOrganization}
-              >
-                Create
-              </Button>
-            </SubmitWrapper>
+            {!isEditingSlug ? (
+              <div className="flex flex-col gap-1">
+                <div className="flex items-center gap-2">
+                  <span className="text-muted-foreground text-sm">
+                    {slug || "my-organization"}
+                  </span>
+                  <button
+                    type="button"
+                    onClick={enableSlugEditing}
+                    className="text-muted-foreground hover:text-foreground transition-colors"
+                    aria-label="Edit slug"
+                  >
+                    <PencilIcon className="h-3.5 w-3.5" />
+                  </button>
+                </div>
+                {formState.errors.slug && (
+                  <p className="text-destructive text-sm">
+                    {formState.errors.slug.message}
+                  </p>
+                )}
+              </div>
+            ) : (
+              <FormField
+                control={form.control}
+                name="slug"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Slug</FormLabel>
+                    <FormControl>
+                      <Input placeholder="my-organization" {...field} />
+                    </FormControl>
+                    <button
+                      type="button"
+                      onClick={resetToAutoSlug}
+                      className="text-muted-foreground hover:text-foreground flex items-center gap-1 text-sm transition-colors"
+                    >
+                      <RotateCcwIcon className="h-3 w-3" />
+                      Auto generate
+                    </button>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            )}
           </div>
+
+          <SubmitWrapper>
+            <Button
+              type="submit"
+              className="w-full"
+              isLoading={isCreatingOrganization}
+            >
+              Get Started
+            </Button>
+          </SubmitWrapper>
         </div>
       </form>
     </Form>
