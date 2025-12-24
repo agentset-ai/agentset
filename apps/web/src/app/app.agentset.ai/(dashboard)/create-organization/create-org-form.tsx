@@ -1,12 +1,11 @@
 "use client";
 
-import { Fragment, useEffect, useState } from "react";
+import { Fragment, useEffect, useMemo, useState } from "react";
 import { logEvent } from "@/lib/analytics";
 import { authClient } from "@/lib/auth-client";
 import { useRouter } from "@bprogress/next/app";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation } from "@tanstack/react-query";
-import { PencilIcon, RotateCcwIcon } from "lucide-react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { z } from "zod/v4";
@@ -25,10 +24,10 @@ import { Input } from "@agentset/ui/input";
 import { generateToken, toSlug } from "@agentset/utils";
 
 const formSchema = z.object({
-  name: z.string().min(1),
+  name: z.string().min(3, "Name must be at least 3 characters"),
   slug: z
     .string()
-    .min(1)
+    .min(3, "Slug must be at least 3 characters")
     .regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/)
     .refine(
       async (value) => {
@@ -45,13 +44,14 @@ const formSchema = z.object({
 export function CreateOrgForm({
   isDialog,
   onSuccess,
+  className,
 }: {
   isDialog?: boolean;
   onSuccess?(): void;
+  className?: string;
 }) {
   const router = useRouter();
-  const [hashSuffix] = useState(() => generateToken(4).toLowerCase());
-  const [isEditingSlug, setIsEditingSlug] = useState(false);
+  const hashSuffix = useMemo(() => generateToken(4).toLowerCase(), []);
 
   const form = useForm({
     resolver: zodResolver(formSchema, undefined, { mode: "async" }),
@@ -92,7 +92,6 @@ export function CreateOrgForm({
     });
 
   const name = form.watch("name");
-  const slug = form.watch("slug");
   const { formState, setValue } = form;
 
   useEffect(() => {
@@ -102,19 +101,6 @@ export function CreateOrgForm({
     }
   }, [name, formState.touchedFields.slug, setValue, hashSuffix]);
 
-  function resetToAutoSlug() {
-    setIsEditingSlug(false);
-    const baseSlug = toSlug(form.getValues("name"));
-    const newSlug = baseSlug ? `${baseSlug}-${hashSuffix}` : "";
-    form.resetField("slug", { defaultValue: newSlug });
-    setValue("slug", newSlug);
-  }
-
-  function enableSlugEditing() {
-    setIsEditingSlug(true);
-    form.setValue("slug", slug, { shouldTouch: true });
-  }
-
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
     await createOrganization(values);
   };
@@ -123,7 +109,7 @@ export function CreateOrgForm({
 
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)}>
+      <form onSubmit={form.handleSubmit(onSubmit)} className={className}>
         <div className="flex flex-col gap-6">
           <div className="flex flex-col gap-4">
             <FormField
@@ -133,57 +119,41 @@ export function CreateOrgForm({
                 <FormItem>
                   <FormLabel>Organization Name</FormLabel>
                   <FormControl>
-                    <Input placeholder="My Organization" {...field} />
+                    <Input
+                      placeholder="My Organization"
+                      className="h-11"
+                      autoFocus
+                      {...field}
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
               )}
             />
 
-            {!isEditingSlug ? (
-              <div className="flex flex-col gap-1">
-                <div className="flex items-center gap-2">
-                  <span className="text-muted-foreground text-sm">
-                    {slug || "my-organization"}
-                  </span>
-                  <button
-                    type="button"
-                    onClick={enableSlugEditing}
-                    className="text-muted-foreground hover:text-foreground transition-colors"
-                    aria-label="Edit slug"
-                  >
-                    <PencilIcon className="h-3.5 w-3.5" />
-                  </button>
-                </div>
-                {formState.errors.slug && (
-                  <p className="text-destructive text-sm">
-                    {formState.errors.slug.message}
-                  </p>
-                )}
-              </div>
-            ) : (
-              <FormField
-                control={form.control}
-                name="slug"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Slug</FormLabel>
-                    <FormControl>
-                      <Input placeholder="my-organization" {...field} />
-                    </FormControl>
-                    <button
-                      type="button"
-                      onClick={resetToAutoSlug}
-                      className="text-muted-foreground hover:text-foreground flex items-center gap-1 text-sm transition-colors"
-                    >
-                      <RotateCcwIcon className="h-3 w-3" />
-                      Auto generate
-                    </button>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            )}
+            <FormField
+              control={form.control}
+              name="slug"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Organization URL</FormLabel>
+                  <FormControl>
+                    <div className="focus-within:ring-ring/50 focus-within:border-ring border-input flex h-11 w-full overflow-hidden rounded-md border bg-transparent shadow-xs transition-[color,box-shadow] focus-within:ring-[3px]">
+                      <div className="bg-muted/50 border-input text-muted-foreground flex items-center border-r px-3 text-sm">
+                        app.agentset.ai/
+                      </div>
+                      <input
+                        type="text"
+                        placeholder="my-organization"
+                        className="placeholder:text-muted-foreground flex-1 bg-transparent px-3 py-1 font-mono text-sm outline-none disabled:cursor-not-allowed disabled:opacity-50"
+                        {...field}
+                      />
+                    </div>
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
           </div>
 
           <SubmitWrapper>
@@ -192,7 +162,7 @@ export function CreateOrgForm({
               className="w-full"
               isLoading={isCreatingOrganization}
             >
-              Get Started
+              Create Organization
             </Button>
           </SubmitWrapper>
         </div>

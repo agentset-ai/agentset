@@ -1,22 +1,11 @@
 import type { Metadata } from "next";
-
-import { CreateOrgForm } from "./create-org-form";
+import { CreateOrganizationPageClient } from "./page.client";
 
 export const metadata: Metadata = {
-  title: "Create Organization",
+  title: "Create Organization | Agentset Console",
+  description: "This will be the workspace for your various namespaces and API keys."
 };
 
 export default function CreateOrganizationPage() {
-  return (
-    <div className="bg-background flex min-h-svh flex-col items-center justify-center gap-6 p-6 md:p-10">
-      <div className="w-full max-w-sm">
-        <div className="flex flex-col gap-6">
-          <div className="flex flex-col items-center gap-2">
-            <h1 className="text-xl font-bold">Let's get started</h1>
-          </div>
-          <CreateOrgForm />
-        </div>
-      </div>
-    </div>
-  );
+  return <CreateOrganizationPageClient />
 }
