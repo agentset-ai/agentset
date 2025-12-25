@@ -47,7 +47,6 @@ import {
 
 import { embeddingModels, vectorStores } from "./models";
 
-// Combined form schema
 const formSchema = z.object({
   embeddingModel: EmbeddingConfigSchema,
   vectorStore: createVectorStoreSchema,
@@ -55,7 +54,6 @@ const formSchema = z.object({
 
 type FormValues = z.infer<typeof formSchema>;
 
-// Get provider options
 const embeddingOptions = EmbeddingConfigSchema.options.map(
   (o) => o.shape.provider.value,
 );
@@ -70,7 +68,6 @@ const managedVectorStoreOptions = vectorStoreOptions.filter((o) =>
   o.startsWith("MANAGED_"),
 ) as Extract<(typeof vectorStoreOptions)[number], `MANAGED_${string}`>[];
 
-// Provider to models mapping
 const providerToModels = EmbeddingConfigSchema.options.reduce(
   (acc, o) => {
     acc[o.shape.provider.value] = o.shape.model.options;
@@ -107,7 +104,6 @@ export function CustomizeStep({ onSubmit, onBack }: CustomizeStepProps) {
     },
   });
 
-  // Watch providers for dynamic form fields
   const currentEmbeddingProvider = form.watch("embeddingModel").provider;
   const currentVectorProvider = form.watch("vectorStore").provider;
 
@@ -118,7 +114,6 @@ export function CustomizeStep({ onSubmit, onBack }: CustomizeStepProps) {
     currentVectorProvider as (typeof managedVectorStoreOptions)[number],
   );
 
-  // Reset embedding model fields when provider changes
   useEffect(() => {
     if (embeddingMode === "custom") {
       const model = providerToModels[currentEmbeddingProvider]?.[0];
@@ -131,7 +126,6 @@ export function CustomizeStep({ onSubmit, onBack }: CustomizeStepProps) {
     }
   }, [currentEmbeddingProvider, embeddingMode, form]);
 
-  // Reset vector store fields when provider changes
   useEffect(() => {
     if (vectorStoreMode === "custom") {
       form.setValue("vectorStore", {
@@ -140,7 +134,6 @@ export function CustomizeStep({ onSubmit, onBack }: CustomizeStepProps) {
     }
   }, [currentVectorProvider, vectorStoreMode, form]);
 
-  // Get additional fields for custom embedding providers
   const currentEmbeddingOptions = useMemo(() => {
     if (currentEmbeddingProvider.startsWith("MANAGED_")) return [];
 
@@ -161,7 +154,6 @@ export function CustomizeStep({ onSubmit, onBack }: CustomizeStepProps) {
       });
   }, [currentEmbeddingProvider]);
 
-  // Get additional fields for custom vector store providers
   const currentVectorStoreOptions = useMemo(() => {
     if (currentVectorProvider.startsWith("MANAGED_")) return [];
 
@@ -186,7 +178,6 @@ export function CustomizeStep({ onSubmit, onBack }: CustomizeStepProps) {
       });
   }, [currentVectorProvider]);
 
-  // Handle mode changes
   const handleEmbeddingModeChange = (mode: ConfigMode) => {
     setEmbeddingMode(mode);
     if (mode === "recommended") {
@@ -219,11 +210,9 @@ export function CustomizeStep({ onSubmit, onBack }: CustomizeStepProps) {
         onSubmit={form.handleSubmit(handleFormSubmit)}
         className="space-y-6"
       >
-        {/* Embedding Configuration */}
         <div className="space-y-3">
           <label className="text-sm font-medium">Embedding Model</label>
           <div className="grid grid-cols-2 gap-3">
-            {/* Recommended Card */}
             <button
               type="button"
               onClick={() => handleEmbeddingModeChange("recommended")}
@@ -258,7 +247,6 @@ export function CustomizeStep({ onSubmit, onBack }: CustomizeStepProps) {
               </div>
             </button>
 
-            {/* Custom Card */}
             <button
               type="button"
               onClick={() => handleEmbeddingModeChange("custom")}
@@ -286,7 +274,6 @@ export function CustomizeStep({ onSubmit, onBack }: CustomizeStepProps) {
             </button>
           </div>
 
-          {/* Custom Embedding Options */}
           {embeddingMode === "custom" && (
             <Collapsible defaultOpen className="space-y-3">
               <CollapsibleTrigger className="text-muted-foreground hover:text-foreground flex items-center gap-1 text-xs">
@@ -294,7 +281,6 @@ export function CustomizeStep({ onSubmit, onBack }: CustomizeStepProps) {
                 Configure embedding model
               </CollapsibleTrigger>
               <CollapsibleContent className="space-y-4 pt-2">
-                {/* Provider Selection */}
                 <FormField
                   control={form.control}
                   name="embeddingModel.provider"
@@ -342,7 +328,6 @@ export function CustomizeStep({ onSubmit, onBack }: CustomizeStepProps) {
                   )}
                 />
 
-                {/* Managed Provider Selection */}
                 {isCurrentEmbeddingProviderManaged && (
                   <FormField
                     control={form.control}
@@ -372,7 +357,6 @@ export function CustomizeStep({ onSubmit, onBack }: CustomizeStepProps) {
                   />
                 )}
 
-                {/* Model Selection */}
                 <FormField
                   control={form.control}
                   name="embeddingModel.model"
@@ -403,7 +387,6 @@ export function CustomizeStep({ onSubmit, onBack }: CustomizeStepProps) {
                   )}
                 />
 
-                {/* Additional fields for custom providers */}
                 {!isCurrentEmbeddingProviderManaged &&
                   currentEmbeddingOptions.map((key) => (
                     <FormField
@@ -435,11 +418,9 @@ export function CustomizeStep({ onSubmit, onBack }: CustomizeStepProps) {
           )}
         </div>
 
-        {/* Vector Store Configuration */}
         <div className="space-y-3">
           <label className="text-sm font-medium">Vector Store</label>
           <div className="grid grid-cols-2 gap-3">
-            {/* Recommended Card */}
             <button
               type="button"
               onClick={() => handleVectorStoreModeChange("recommended")}
@@ -474,7 +455,6 @@ export function CustomizeStep({ onSubmit, onBack }: CustomizeStepProps) {
               </div>
             </button>
 
-            {/* Custom Card */}
             <button
               type="button"
               onClick={() => handleVectorStoreModeChange("custom")}
@@ -502,7 +482,6 @@ export function CustomizeStep({ onSubmit, onBack }: CustomizeStepProps) {
             </button>
           </div>
 
-          {/* Custom Vector Store Options */}
           {vectorStoreMode === "custom" && (
             <Collapsible defaultOpen className="space-y-3">
               <CollapsibleTrigger className="text-muted-foreground hover:text-foreground flex items-center gap-1 text-xs">
@@ -510,7 +489,6 @@ export function CustomizeStep({ onSubmit, onBack }: CustomizeStepProps) {
                 Configure vector store
               </CollapsibleTrigger>
               <CollapsibleContent className="space-y-4 pt-2">
-                {/* Provider Selection */}
                 <FormField
                   control={form.control}
                   name="vectorStore.provider"
@@ -558,7 +536,6 @@ export function CustomizeStep({ onSubmit, onBack }: CustomizeStepProps) {
                   )}
                 />
 
-                {/* Managed Vector Store Selection */}
                 {isCurrentVectorProviderManaged ? (
                   <FormField
                     control={form.control}
@@ -587,7 +564,6 @@ export function CustomizeStep({ onSubmit, onBack }: CustomizeStepProps) {
                     )}
                   />
                 ) : (
-                  /* Additional fields for custom providers */
                   currentVectorStoreOptions.map((key) => (
                     <FormField
                       key={key.name}

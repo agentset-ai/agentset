@@ -43,28 +43,31 @@ export function RecommendedStep({
 
   return (
     <div className="space-y-6">
-      {/* Name Input */}
-      <div className="space-y-2">
-        <Label htmlFor="name">Name</Label>
-        <Input
-          id="name"
-          value={name}
-          onChange={(e) => setName(e.target.value)}
-          placeholder="My Namespace"
-          autoFocus
+      <div className="flex items-start gap-2">
+        <div className="flex-1 space-y-2">
+          <div className="flex items-center justify-between">
+            <Label htmlFor="name">Name</Label>
+            <div className="h-6" />
+          </div>
+          <Input
+            id="name"
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            placeholder="My Namespace"
+            autoFocus
+          />
+          <div className="h-4" />
+        </div>
+
+        <SlugInput
+          orgId={orgId}
+          name={name}
+          value={slug}
+          onChange={setSlug}
+          onValidationChange={handleSlugValidationChange}
         />
       </div>
 
-      {/* Slug Input */}
-      <SlugInput
-        orgId={orgId}
-        name={name}
-        value={slug}
-        onChange={setSlug}
-        onValidationChange={handleSlugValidationChange}
-      />
-
-      {/* Recommended Configuration Display */}
       <div className="space-y-3">
         <div className="flex items-center gap-2">
           <SparklesIcon className="text-primary h-4 w-4" />
@@ -74,7 +77,6 @@ export function RecommendedStep({
         </div>
 
         <div className="grid grid-cols-2 gap-4">
-          {/* Embedding Model Card */}
           <div className="from-muted/50 to-muted rounded-xl border bg-gradient-to-br p-4">
             <div className="mb-3 flex items-center justify-between">
               <span className="text-muted-foreground text-xs font-medium tracking-wider uppercase">
@@ -94,7 +96,6 @@ export function RecommendedStep({
             </div>
           </div>
 
-          {/* Vector Store Card */}
           <div className="from-muted/50 to-muted rounded-xl border bg-gradient-to-br p-4">
             <div className="mb-3 flex items-center justify-between">
               <span className="text-muted-foreground text-xs font-medium tracking-wider uppercase">
@@ -121,7 +122,6 @@ export function RecommendedStep({
         </p>
       </div>
 
-      {/* Action Buttons */}
       <div className="flex gap-3 pt-2">
         <Button
           type="button"

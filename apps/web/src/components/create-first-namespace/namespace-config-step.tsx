@@ -117,7 +117,6 @@ export function NamespaceConfigStep({
   const currentEmbeddingProvider = form.watch("embeddingConfig.provider");
   const currentVectorStoreProvider = form.watch("vectorStoreConfig.provider");
 
-  // Get current embedding options (extra fields beyond provider/model)
   const currentEmbeddingOptions = useMemo(() => {
     if (
       !currentEmbeddingProvider ||
@@ -142,7 +141,6 @@ export function NamespaceConfigStep({
       });
   }, [currentEmbeddingProvider]);
 
-  // Get current vector store options
   const currentVectorStoreOptions = useMemo(() => {
     if (
       !currentVectorStoreProvider ||
@@ -171,7 +169,6 @@ export function NamespaceConfigStep({
       });
   }, [currentVectorStoreProvider]);
 
-  // Handle switching to custom embedding - FIX: Set provider immediately in onClick
   const handleSelectCustomEmbedding = () => {
     const firstProvider = customEmbeddingProviders[0];
     form.setValue("embeddingType", "custom");
@@ -184,7 +181,6 @@ export function NamespaceConfigStep({
     setEmbeddingExpanded(true);
   };
 
-  // Handle switching to custom vector store - FIX: Set provider immediately in onClick
   const handleSelectCustomVectorStore = () => {
     const firstProvider = customVectorStoreProviders[0];
     form.setValue("vectorStoreType", "custom");
@@ -196,7 +192,6 @@ export function NamespaceConfigStep({
     setVectorStoreExpanded(true);
   };
 
-  // Handle embedding provider change
   const handleEmbeddingProviderChange = (provider: string) => {
     const models =
       providerToEmbeddingModels[provider as EmbeddingConfig["provider"]];
@@ -206,7 +201,6 @@ export function NamespaceConfigStep({
     } as EmbeddingConfig);
   };
 
-  // Handle vector store provider change
   const handleVectorStoreProviderChange = (provider: string) => {
     form.setValue("vectorStoreConfig", {
       provider: provider,
@@ -238,7 +232,6 @@ export function NamespaceConfigStep({
       transition={{ duration: 0.3 }}
       className="flex flex-col"
     >
-      {/* Header */}
       <div className="mb-6">
         <button
           type="button"
@@ -259,7 +252,6 @@ export function NamespaceConfigStep({
 
       <Form {...form}>
         <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-6">
-          {/* Embedding Model Section */}
           <div className="space-y-4">
             <h3 className="text-sm font-medium tracking-wide uppercase">
               Embedding Model
@@ -286,7 +278,6 @@ export function NamespaceConfigStep({
               />
             </div>
 
-            {/* Custom Embedding Config */}
             <AnimatePresence>
               {embeddingType === "custom" && (
                 <Collapsible
@@ -314,7 +305,6 @@ export function NamespaceConfigStep({
                       exit={{ opacity: 0, height: 0 }}
                       className="bg-muted/50 space-y-4 rounded-lg border p-4"
                     >
-                      {/* Provider Select */}
                       <FormField
                         control={form.control}
                         name="embeddingConfig.provider"
@@ -348,7 +338,6 @@ export function NamespaceConfigStep({
                         )}
                       />
 
-                      {/* Model Select */}
                       {currentEmbeddingProvider && (
                         <FormField
                           control={form.control}
@@ -381,7 +370,6 @@ export function NamespaceConfigStep({
                         />
                       )}
 
-                      {/* Extra fields (API key, etc.) */}
                       {currentEmbeddingOptions.map((opt) => (
                         <FormField
                           key={opt.name}
@@ -414,7 +402,6 @@ export function NamespaceConfigStep({
             </AnimatePresence>
           </div>
 
-          {/* Vector Store Section */}
           <div className="space-y-4">
             <h3 className="text-sm font-medium tracking-wide uppercase">
               Vector Store
@@ -441,7 +428,6 @@ export function NamespaceConfigStep({
               />
             </div>
 
-            {/* Custom Vector Store Config */}
             <AnimatePresence>
               {vectorStoreType === "custom" && (
                 <Collapsible
@@ -469,7 +455,6 @@ export function NamespaceConfigStep({
                       exit={{ opacity: 0, height: 0 }}
                       className="bg-muted/50 space-y-4 rounded-lg border p-4"
                     >
-                      {/* Provider Select */}
                       <FormField
                         control={form.control}
                         name="vectorStoreConfig.provider"
@@ -503,7 +488,6 @@ export function NamespaceConfigStep({
                         )}
                       />
 
-                      {/* Extra fields */}
                       {currentVectorStoreOptions.map((opt) => (
                         <FormField
                           key={opt.name}
@@ -556,7 +540,6 @@ export function NamespaceConfigStep({
             </AnimatePresence>
           </div>
 
-          {/* Submit Button */}
           <div className="flex justify-end pt-4">
             <Button type="submit" isLoading={isLoading} disabled={isLoading}>
               Create Namespace
@@ -568,7 +551,6 @@ export function NamespaceConfigStep({
   );
 }
 
-// Config option card component
 function ConfigOption({
   selected,
   onClick,

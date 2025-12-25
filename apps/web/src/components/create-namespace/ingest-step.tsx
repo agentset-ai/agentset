@@ -52,13 +52,11 @@ export function IngestStep({ onSubmit, onSkip, onBack }: IngestStepProps) {
 
   const handleSubmit = () => {
     // TODO: Implement actual file upload functionality
-    // For now, just proceed with the files (non-functional)
     onSubmit(files);
   };
 
   return (
     <div className="space-y-6">
-      {/* Header */}
       <div>
         <h3 className="text-sm font-medium">Upload Files (Optional)</h3>
         <p className="text-muted-foreground mt-1 text-xs">
@@ -67,7 +65,6 @@ export function IngestStep({ onSubmit, onSkip, onBack }: IngestStepProps) {
         </p>
       </div>
 
-      {/* Dropzone */}
       <div
         onDragOver={handleDragOver}
         onDragLeave={handleDragLeave}
@@ -84,7 +81,6 @@ export function IngestStep({ onSubmit, onSkip, onBack }: IngestStepProps) {
           multiple
           onChange={handleFileSelect}
           className="absolute inset-0 cursor-pointer opacity-0"
-          // TODO: Add accept attribute for supported file types
         />
 
         <UploadCloudIcon
@@ -110,7 +106,6 @@ export function IngestStep({ onSubmit, onSkip, onBack }: IngestStepProps) {
         </div>
       </div>
 
-      {/* File List */}
       {files.length > 0 && (
         <div className="space-y-2">
           <p className="text-muted-foreground text-xs font-medium">
@@ -142,7 +137,6 @@ export function IngestStep({ onSubmit, onSkip, onBack }: IngestStepProps) {
         </div>
       )}
 
-      {/* TODO Notice */}
       <div className="rounded-lg border border-amber-200 bg-amber-50 p-3 dark:border-amber-800 dark:bg-amber-950/30">
         <p className="text-xs text-amber-800 dark:text-amber-200">
           <strong>Note:</strong> File upload functionality is coming soon. For

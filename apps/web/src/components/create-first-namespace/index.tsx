@@ -9,7 +9,7 @@ import type {
   CreateVectorStoreConfig,
   EmbeddingConfig,
 } from "@agentset/validation";
-import { toSlug } from "@agentset/utils";
+import { capitalize, toSlug } from "@agentset/utils";
 
 import type { SampleDataType } from "./constants";
 import {
@@ -22,23 +22,13 @@ import { NamespaceConfigStep } from "./namespace-config-step";
 
 type Step = "form" | "config" | "creating";
 
-// Helper to capitalize first letter of each word
-function capitalizeFirstLetter(str: string): string {
-  return str
-    .split(" ")
-    .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
-    .join(" ");
-}
-
 interface CreateFirstNamespaceProps {
   organization: {
     id: string;
     slug: string;
     name: string;
   };
-  /** Callback to open the dialog instead of inline config */
   onOpenDialog?: (name: string) => void;
-  /** User's name for namespace naming */
   userName?: string;
 }
 
@@ -53,17 +43,13 @@ export function CreateFirstNamespace({
   const [step, setStep] = useState<Step>("form");
   const [isComplete, setIsComplete] = useState(false);
   const [namespaceName, setNamespaceName] = useState("");
-  // Track selected sample type for future use when ingesting sample data
   const [_selectedSampleType, setSelectedSampleType] =
     useState<SampleDataType | null>(null);
 
-  // Use provided userName or default, with first letter capitalized
-  const userName = capitalizeFirstLetter(userNameProp ?? "User");
+  const userName = capitalize(userNameProp ?? "User")!;
 
-  // Default namespace name with capitalized user name
   const defaultName = `${userName}'s Namespace`;
 
-  // Navigate to namespace quick-start page
   const navigateToNamespace = useCallback(
     (namespaceSlug: string) => {
       router.push(`/${organization.slug}/${namespaceSlug}/quick-start`);
@@ -71,7 +57,6 @@ export function CreateFirstNamespace({
     [router, organization.slug],
   );
 
-  // Create namespace with given config
   const createNamespace = useCallback(
     (
       name: string,
@@ -93,7 +78,6 @@ export function CreateFirstNamespace({
         {
           onSuccess: (data) => {
             setIsComplete(true);
-            // Small delay to show success state before redirect
             setTimeout(() => {
               navigateToNamespace(data.slug);
             }, 1500);
@@ -104,7 +88,6 @@ export function CreateFirstNamespace({
     [namespaceMutation, organization.id, navigateToNamespace],
   );
 
-  // Handle "Create Namespace" button click with name from input
   const handleCreateNamespace = useCallback(
     (name: string) => {
       setNamespaceName(name);
@@ -117,11 +100,9 @@ export function CreateFirstNamespace({
     [onOpenDialog],
   );
 
-  // Handle sample data card click - create namespace with managed config
   const handleSelectSampleData = useCallback(
     (type: SampleDataType) => {
       setSelectedSampleType(type);
-      // Use default name for sample data
       const name = defaultName;
       setNamespaceName(name);
       setStep("creating");
@@ -136,7 +117,6 @@ export function CreateFirstNamespace({
     [createNamespace, defaultName],
   );
 
-  // Handle config step submission
   const handleConfigSubmit = useCallback(
     (config: {
       embeddingConfig?: EmbeddingConfig;
@@ -148,7 +128,6 @@ export function CreateFirstNamespace({
     [createNamespace, namespaceName],
   );
 
-  // Handle back from config step
   const handleBackFromConfig = useCallback(() => {
     setStep("form");
   }, []);

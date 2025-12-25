@@ -33,7 +33,6 @@ export function SlugInput({
 
   const trpc = useTRPC();
 
-  // Auto-update slug when name changes (only in auto mode)
   useEffect(() => {
     if (mode === "auto") {
       const newSlug = toSlug(name);
@@ -41,7 +40,6 @@ export function SlugInput({
     }
   }, [name, mode, onChange]);
 
-  // Check slug availability
   const {
     data: slugExists,
     isLoading: isValidating,
@@ -54,7 +52,6 @@ export function SlugInput({
     enabled: debouncedSlug.length >= 2,
   });
 
-  // Notify parent of validation state
   useEffect(() => {
     if (onValidationChange) {
       const isValid =
@@ -66,24 +63,21 @@ export function SlugInput({
   const handleModeToggle = (newMode: SlugMode) => {
     setMode(newMode);
     if (newMode === "auto") {
-      // Regenerate slug from current name
       onChange(toSlug(name));
     }
   };
 
   const handleSlugChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    // Only allow slug-safe characters
     const sanitized = e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, "");
     onChange(sanitized);
   };
 
-  // Validation state
   const showValidation = debouncedSlug.length >= 2 && isFetched;
   const isAvailable = showValidation && !slugExists;
   const isTaken = showValidation && slugExists;
 
   return (
-    <div className="space-y-2">
+    <div className="space-y-2 flex-1">
       <div className="flex items-center justify-between">
         <Label htmlFor="slug">Slug</Label>
         <div className="flex gap-1">
@@ -139,8 +133,7 @@ export function SlugInput({
         </div>
       </div>
 
-      {/* Validation message */}
-      <div className="h-4 text-xs">
+      <div className="h-4 text-xs ml-2">
         {!isValidating && isAvailable && (
           <span className="text-green-600 dark:text-green-500">
             Slug is available

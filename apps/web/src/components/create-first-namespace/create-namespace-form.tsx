@@ -12,11 +12,8 @@ import { SAMPLE_DATA_TYPES } from "./constants";
 import { SampleDataCard } from "./sample-data-card";
 
 interface CreateNamespaceFormProps {
-  /** Default namespace name to show in input */
   defaultName: string;
-  /** Called when user clicks Create Namespace with the entered name */
   onCreateNamespace: (name: string) => void;
-  /** Called when user selects a sample data type */
   onSelectSampleData: (type: SampleDataType) => void;
 }
 
@@ -42,7 +39,6 @@ export function CreateNamespaceForm({
       transition={{ duration: 0.3 }}
       className="flex flex-col items-center"
     >
-      {/* Header Section */}
       <motion.div
         initial={{ opacity: 0, scale: 0.9 }}
         animate={{ opacity: 1, scale: 1 }}
@@ -70,7 +66,6 @@ export function CreateNamespaceForm({
         Namespaces are instant and free to create
       </motion.p>
 
-      {/* Chroma-style Input + Button */}
       <motion.form
         onSubmit={handleSubmit}
         initial={{ opacity: 0, y: 10 }}
@@ -82,21 +77,18 @@ export function CreateNamespaceForm({
           value={name}
           onChange={(e) => setName(e.target.value)}
           placeholder="Enter namespace name"
-          className="h-11 flex-1"
           autoFocus
         />
         <Button
           type="submit"
           size="lg"
-          className="h-11 shrink-0"
           disabled={!name.trim()}
         >
           Create Namespace
-          <ArrowRightIcon className="ml-2 h-4 w-4" />
+          <ArrowRightIcon className="h-4 w-4" />
         </Button>
       </motion.form>
 
-      {/* Divider */}
       <motion.div
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
@@ -110,7 +102,6 @@ export function CreateNamespaceForm({
         <div className="bg-border h-px flex-1" />
       </motion.div>
 
-      {/* Sample Data Cards */}
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}

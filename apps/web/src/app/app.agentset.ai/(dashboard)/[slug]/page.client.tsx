@@ -15,14 +15,7 @@ import { Button } from "@agentset/ui/button";
 import { DataWrapper } from "@agentset/ui/data-wrapper";
 import { Separator } from "@agentset/ui/separator";
 import { Skeleton } from "@agentset/ui/skeleton";
-
-// Helper to capitalize first letter of each word
-function capitalizeFirstLetter(str: string): string {
-  return str
-    .split(" ")
-    .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
-    .join(" ");
-}
+import { capitalize } from "@agentset/utils";
 
 export default function DashboardPage() {
   const organization = useOrganization();
@@ -32,10 +25,9 @@ export default function DashboardPage() {
 
   const trpc = useTRPC();
 
-  // Get user name for namespace naming (capitalized)
   const rawUserName =
     session?.user?.name || session?.user?.email?.split("@")[0] || "User";
-  const userName = capitalizeFirstLetter(rawUserName);
+  const userName = capitalize(rawUserName)!;
 
   const {
     data: namespaces,
@@ -47,7 +39,6 @@ export default function DashboardPage() {
     }),
   );
 
-  // Generate default name based on user and namespace count
   const getDefaultName = (count: number) => {
     if (count === 0) {
       return `${userName}'s Namespace`;
@@ -98,8 +89,6 @@ export default function DashboardPage() {
         organization={organization}
         open={open}
         setOpen={setOpen}
-        namespaceCount={namespaces?.length ?? 0}
-        userName={userName}
         defaultName={dialogDefaultName}
       />
 
@@ -122,7 +111,6 @@ export default function DashboardPage() {
         }
         emptyState={
           <div className="relative">
-            {/* Show button in top right even in empty state */}
             <div className="absolute top-0 right-0">{createButton}</div>
             <CreateFirstNamespace
               organization={{

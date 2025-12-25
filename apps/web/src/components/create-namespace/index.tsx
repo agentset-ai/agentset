@@ -46,21 +46,14 @@ interface CreateNamespaceDialogProps {
   };
   open: boolean;
   setOpen: (open: boolean) => void;
-  /** Number of existing namespaces - used to generate default name */
-  namespaceCount?: number;
-  /** User's name for default namespace naming */
-  userName?: string;
-  /** Override default name (e.g., from input field) */
-  defaultName?: string;
+  defaultName: string;
 }
 
 export default function CreateNamespaceDialog({
   organization,
   open,
   setOpen,
-  namespaceCount = 0,
-  userName = "User",
-  defaultName: defaultNameProp,
+  defaultName,
 }: CreateNamespaceDialogProps) {
   const router = useRouter();
   const trpc = useTRPC();
@@ -70,7 +63,6 @@ export default function CreateNamespaceDialog({
   const [step, setStep] = useState<Step>("recommended");
   const [isComplete, setIsComplete] = useState(false);
 
-  // Form state
   const [name, setName] = useState("");
   const [slug, setSlug] = useState("");
   const [embeddingConfig, setEmbeddingConfig] = useState<EmbeddingConfig>(
@@ -79,20 +71,8 @@ export default function CreateNamespaceDialog({
   const [vectorStoreConfig, setVectorStoreConfig] =
     useState<CreateVectorStoreConfig>(MANAGED_VECTOR_STORE_CONFIG);
 
-  // Generate default name based on user and namespace count, or use provided default
-  const defaultName = useMemo(() => {
-    if (defaultNameProp) {
-      return defaultNameProp;
-    }
-    if (namespaceCount === 0) {
-      return `${userName}'s Namespace`;
-    }
-    return `${userName}'s Namespace ${namespaceCount + 1}`;
-  }, [userName, namespaceCount, defaultNameProp]);
-
   const defaultSlug = useMemo(() => toSlug(defaultName), [defaultName]);
 
-  // Reset state when dialog opens
   useEffect(() => {
     if (open) {
       setStep("recommended");
@@ -104,7 +84,6 @@ export default function CreateNamespaceDialog({
     }
   }, [open, defaultName, defaultSlug]);
 
-  // Navigate to namespace after creation
   const navigateToNamespace = useCallback(
     (namespaceSlug: string) => {
       router.push(`/${organization.slug}/${namespaceSlug}/quick-start`);
@@ -112,7 +91,6 @@ export default function CreateNamespaceDialog({
     [router, organization.slug],
   );
 
-  // Create namespace
   const createNamespace = useCallback(() => {
     namespaceMutation.mutate(
       {
@@ -134,7 +112,6 @@ export default function CreateNamespaceDialog({
           toast.success("Namespace created");
           setIsComplete(true);
 
-          // Redirect after short delay
           setTimeout(() => {
             setOpen(false);
             navigateToNamespace(data.slug);
@@ -156,12 +133,10 @@ export default function CreateNamespaceDialog({
     navigateToNamespace,
   ]);
 
-  // Step handlers
   const handleRecommendedContinue = useCallback(
     (newName: string, newSlug: string) => {
       setName(newName);
       setSlug(newSlug);
-      // Use recommended config, go to ingest step
       setEmbeddingConfig(MANAGED_EMBEDDING_CONFIG);
       setVectorStoreConfig(MANAGED_VECTOR_STORE_CONFIG);
       setStep("ingest");
@@ -213,7 +188,6 @@ export default function CreateNamespaceDialog({
     setStep("customize");
   }, []);
 
-  // Dialog title and description based on step
   const getDialogContent = () => {
     switch (step) {
       case "recommended":
@@ -244,7 +218,6 @@ export default function CreateNamespaceDialog({
 
   const dialogContent = getDialogContent();
 
-  // Dynamic dialog size
   const getDialogSize = () => {
     switch (step) {
       case "ingest":
@@ -260,7 +233,6 @@ export default function CreateNamespaceDialog({
     <Dialog
       open={open}
       onOpenChange={(newOpen) => {
-        // Don't allow closing while creating
         if (namespaceMutation.isPending || step === "creating") return;
         setOpen(newOpen);
       }}
@@ -307,5 +279,3 @@ export default function CreateNamespaceDialog({
   );
 }
 
-// Re-export for backward compatibility
-export { CreateNamespaceDialog };
