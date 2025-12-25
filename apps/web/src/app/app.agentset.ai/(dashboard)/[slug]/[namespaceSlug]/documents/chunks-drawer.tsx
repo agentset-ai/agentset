@@ -2,8 +2,8 @@
 
 import { useMemo, useState } from "react";
 import { useNamespace } from "@/hooks/use-namespace";
-import { trpcClient } from "@/trpc/react";
-import { useQuery } from "@tanstack/react-query";
+import { useTRPC } from "@/trpc/react";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import { ChevronDownIcon, CopyIcon, SearchIcon } from "lucide-react";
 import { toast } from "sonner";
 import { VList } from "virtua";
@@ -38,17 +38,20 @@ export function ChunksDrawer({
 }: ChunksDrawerProps) {
   const namespace = useNamespace();
   const [search, setSearch] = useState("");
+  const trpc = useTRPC();
+
+  const getChunksDownloadUrl = useMutation(
+    trpc.document.getChunksDownloadUrl.mutationOptions(),
+  );
 
   const { data, isLoading, error, refetch } = useQuery({
     queryKey: ["document-chunks", namespace.id, documentId],
     queryFn: async () => {
       // First fetch the presigned URL
-      const urlResponse = await trpcClient.document.getChunksDownloadUrl.mutate(
-        {
-          documentId,
-          namespaceId: namespace.id,
-        },
-      );
+      const urlResponse = await getChunksDownloadUrl.mutateAsync({
+        documentId,
+        namespaceId: namespace.id,
+      });
 
       if (!urlResponse?.url) {
         throw new Error("Could not get chunks URL");
