@@ -3,7 +3,7 @@ import { useTRPC } from "@/trpc/react";
 import { useMutation } from "@tanstack/react-query";
 import { toast } from "sonner";
 
-export function useFreshNamespace() {
+export function useCreateNamespace() {
   const trpc = useTRPC();
 
   return useMutation(

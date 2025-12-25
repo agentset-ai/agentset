@@ -12,30 +12,13 @@ export const metadata: Metadata = {
 };
 
 export default async function OnboardingPage() {
-  const data = await getOnboardingData();
-
-  return (
-    <OnboardingClientPage
-      onboardingData={data.onboardingData}
-      userName={data.userName}
-    />
-  );
-}
-
-export type OnboardingData = Record<
-  "org" | "namespace",
-  {
-    id: string;
-    slug: string;
-  } | null
->;
-async function getOnboardingData() {
   const session = await getSession();
 
   if (!session) {
     redirect("/login");
   }
 
+  // Check if organization already exists
   const org = await db.organization.findFirst({
     where: session.session.activeOrganizationId
       ? {
@@ -51,20 +34,13 @@ async function getOnboardingData() {
     select: { slug: true, id: true },
   });
 
-  const onboardingData: OnboardingData = { org, namespace: null };
-
+  // If org exists, redirect to the organization dashboard
   if (org) {
-    console.log(org.id);
-    const namespace = await db.namespace.findFirst({
-      where: { organizationId: org.id },
-      select: { slug: true, id: true },
-    });
-
-    onboardingData.namespace = namespace;
+    redirect(`/${org.slug}`);
   }
 
-  return {
-    onboardingData,
-    userName: session.user.name || session.user.email.split("@")[0]!,
-  };
+  // Otherwise show org creation UI
+  const userName = session.user.name || session.user.email.split("@")[0]!;
+
+  return <OnboardingClientPage userName={userName} />;
 }

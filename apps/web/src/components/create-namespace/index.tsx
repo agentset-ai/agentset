@@ -1,14 +1,16 @@
-import { useEffect, useMemo, useState } from "react";
-import { logEvent } from "@/lib/analytics";
-import { useTRPC } from "@/trpc/react";
+"use client";
+
+import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCreateNamespace } from "@/hooks/use-create-namespace";
 import { useRouter } from "@bprogress/next/app";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 
 import type {
   CreateVectorStoreConfig,
   EmbeddingConfig,
 } from "@agentset/validation";
+import { cn } from "@agentset/ui/cn";
 import {
   Dialog,
   DialogContent,
@@ -18,152 +20,292 @@ import {
 } from "@agentset/ui/dialog";
 import { toSlug } from "@agentset/utils";
 
-import CreateNamespaceDetailsStep from "./details-step";
-import CreateNamespaceEmbeddingStep from "./embedding-step";
-import CreateNamespaceVectorStoreStep from "./vector-store-step";
+import { useTRPC } from "../../trpc/react";
+import { CreatingStep } from "./creating-step";
+import { CustomizeStep } from "./customize-step";
+import { IngestStep } from "./ingest-step";
+import { RecommendedStep } from "./recommended-step";
+
+// Managed config defaults
+const MANAGED_EMBEDDING_CONFIG: EmbeddingConfig = {
+  provider: "MANAGED_OPENAI",
+  model: "text-embedding-3-large",
+};
+
+const MANAGED_VECTOR_STORE_CONFIG: CreateVectorStoreConfig = {
+  provider: "MANAGED_TURBOPUFFER",
+};
+
+type Step = "recommended" | "customize" | "ingest" | "creating";
+
+interface CreateNamespaceDialogProps {
+  organization: {
+    id: string;
+    slug: string;
+    name: string;
+  };
+  open: boolean;
+  setOpen: (open: boolean) => void;
+  /** Number of existing namespaces - used to generate default name */
+  namespaceCount?: number;
+  /** User's name for default namespace naming */
+  userName?: string;
+  /** Override default name (e.g., from input field) */
+  defaultName?: string;
+}
 
 export default function CreateNamespaceDialog({
   organization,
   open,
   setOpen,
-}: {
-  organization?: { id: string; slug: string; name: string } | null;
-  open: boolean;
-  setOpen: (open: boolean) => void;
-}) {
+  namespaceCount = 0,
+  userName = "User",
+  defaultName: defaultNameProp,
+}: CreateNamespaceDialogProps) {
   const router = useRouter();
   const trpc = useTRPC();
   const queryClient = useQueryClient();
+  const namespaceMutation = useCreateNamespace();
 
-  const [step, setStep] = useState<"details" | "embeddings" | "vector-store">(
-    "details",
+  const [step, setStep] = useState<Step>("recommended");
+  const [isComplete, setIsComplete] = useState(false);
+
+  // Form state
+  const [name, setName] = useState("");
+  const [slug, setSlug] = useState("");
+  const [embeddingConfig, setEmbeddingConfig] = useState<EmbeddingConfig>(
+    MANAGED_EMBEDDING_CONFIG,
   );
-  const [embeddingModel, setEmbeddingModel] = useState<EmbeddingConfig>();
+  const [vectorStoreConfig, setVectorStoreConfig] =
+    useState<CreateVectorStoreConfig>(MANAGED_VECTOR_STORE_CONFIG);
 
+  // Generate default name based on user and namespace count, or use provided default
   const defaultName = useMemo(() => {
-    return organization?.name
-      ? `${organization.name}'s First Namespace`
-      : "Default";
-  }, [organization]);
+    if (defaultNameProp) {
+      return defaultNameProp;
+    }
+    if (namespaceCount === 0) {
+      return `${userName}'s Namespace`;
+    }
+    return `${userName}'s Namespace ${namespaceCount + 1}`;
+  }, [userName, namespaceCount, defaultNameProp]);
+
   const defaultSlug = useMemo(() => toSlug(defaultName), [defaultName]);
 
+  // Reset state when dialog opens
   useEffect(() => {
-    setName(defaultName);
-    setSlug(toSlug(defaultName));
-  }, [defaultName]);
-  const [name, setName] = useState(defaultName);
-  const [slug, setSlug] = useState(defaultSlug);
+    if (open) {
+      setStep("recommended");
+      setIsComplete(false);
+      setName(defaultName);
+      setSlug(defaultSlug);
+      setEmbeddingConfig(MANAGED_EMBEDDING_CONFIG);
+      setVectorStoreConfig(MANAGED_VECTOR_STORE_CONFIG);
+    }
+  }, [open, defaultName, defaultSlug]);
 
-  const { isPending, mutateAsync: createNamespace } = useMutation(
-    trpc.namespace.createNamespace.mutationOptions({
-      onSuccess: (data) => {
-        logEvent("namespace_created", {
-          name: data.name,
-          slug: data.slug,
-          organizationId: data.organizationId,
-          embeddingModel: data.embeddingConfig
-            ? {
-                provider: data.embeddingConfig.provider,
-                model: data.embeddingConfig.model,
-              }
-            : null,
-          vectorStore: data.vectorStoreConfig
-            ? {
-                provider: data.vectorStoreConfig.provider,
-              }
-            : null,
-        });
-        toast.success("Namespace created");
-        setOpen(false);
+  // Navigate to namespace after creation
+  const navigateToNamespace = useCallback(
+    (namespaceSlug: string) => {
+      router.push(`/${organization.slug}/${namespaceSlug}/quick-start`);
+    },
+    [router, organization.slug],
+  );
 
-        setName(defaultName);
-        setSlug(defaultSlug);
-
-        setEmbeddingModel(undefined);
-        setStep("details");
-
-        if (organization) {
+  // Create namespace
+  const createNamespace = useCallback(() => {
+    namespaceMutation.mutate(
+      {
+        name,
+        slug,
+        orgId: organization.id,
+        embeddingConfig,
+        vectorStoreConfig,
+      },
+      {
+        onSuccess: (data) => {
+          // Invalidate namespace list
           const queryKey = trpc.namespace.getOrgNamespaces.queryKey({
             slug: organization.slug,
           });
           queryClient.setQueryData(queryKey, (old) => [data, ...(old ?? [])]);
           void queryClient.invalidateQueries({ queryKey });
-          router.push(`/${organization.slug}/${data.slug}/quick-start`);
-        }
+
+          toast.success("Namespace created");
+          setIsComplete(true);
+
+          // Redirect after short delay
+          setTimeout(() => {
+            setOpen(false);
+            navigateToNamespace(data.slug);
+          }, 1500);
+        },
       },
-      onError: (error) => {
-        toast.error(error.message);
-      },
-    }),
+    );
+  }, [
+    name,
+    slug,
+    organization.id,
+    organization.slug,
+    embeddingConfig,
+    vectorStoreConfig,
+    namespaceMutation,
+    queryClient,
+    trpc,
+    setOpen,
+    navigateToNamespace,
+  ]);
+
+  // Step handlers
+  const handleRecommendedContinue = useCallback(
+    (newName: string, newSlug: string) => {
+      setName(newName);
+      setSlug(newSlug);
+      // Use recommended config, go to ingest step
+      setEmbeddingConfig(MANAGED_EMBEDDING_CONFIG);
+      setVectorStoreConfig(MANAGED_VECTOR_STORE_CONFIG);
+      setStep("ingest");
+    },
+    [],
   );
 
-  const onSubmit = async (vectorStore?: CreateVectorStoreConfig) => {
-    if (!organization) return;
+  const handleRecommendedCustomize = useCallback(
+    (newName: string, newSlug: string) => {
+      setName(newName);
+      setSlug(newSlug);
+      setStep("customize");
+    },
+    [],
+  );
 
-    await createNamespace({
-      orgId: organization.id,
-      name: name,
-      slug: slug,
-      embeddingConfig: embeddingModel,
-      vectorStoreConfig: vectorStore,
-    });
+  const handleCustomizeSubmit = useCallback(
+    (config: {
+      embeddingConfig: EmbeddingConfig;
+      vectorStoreConfig: CreateVectorStoreConfig;
+    }) => {
+      setEmbeddingConfig(config.embeddingConfig);
+      setVectorStoreConfig(config.vectorStoreConfig);
+      setStep("ingest");
+    },
+    [],
+  );
+
+  const handleCustomizeBack = useCallback(() => {
+    setStep("recommended");
+  }, []);
+
+  const handleIngestSubmit = useCallback(
+    (_files: File[]) => {
+      // TODO: Handle file upload in the future
+      // For now, just create the namespace
+      setStep("creating");
+      createNamespace();
+    },
+    [createNamespace],
+  );
+
+  const handleIngestSkip = useCallback(() => {
+    setStep("creating");
+    createNamespace();
+  }, [createNamespace]);
+
+  const handleIngestBack = useCallback(() => {
+    setStep("customize");
+  }, []);
+
+  // Dialog title and description based on step
+  const getDialogContent = () => {
+    switch (step) {
+      case "recommended":
+        return {
+          title: "Create namespace",
+          description:
+            "Create a new namespace to start ingesting and querying your data.",
+        };
+      case "customize":
+        return {
+          title: "Configure namespace",
+          description:
+            "Choose your embedding model and vector store. These settings cannot be changed later.",
+        };
+      case "ingest":
+        return {
+          title: "Upload files",
+          description:
+            "Optionally upload documents to populate your namespace.",
+        };
+      case "creating":
+        return {
+          title: "Creating namespace",
+          description: "Please wait while we set up your namespace.",
+        };
+    }
+  };
+
+  const dialogContent = getDialogContent();
+
+  // Dynamic dialog size
+  const getDialogSize = () => {
+    switch (step) {
+      case "ingest":
+        return "sm:max-w-2xl";
+      case "creating":
+        return "sm:max-w-md";
+      default:
+        return "sm:max-w-xl";
+    }
   };
 
   return (
     <Dialog
       open={open}
       onOpenChange={(newOpen) => {
-        if (isPending) return;
+        // Don't allow closing while creating
+        if (namespaceMutation.isPending || step === "creating") return;
         setOpen(newOpen);
       }}
     >
-      <DialogContent className="sm:max-w-xl" scrollableOverlay>
+      <DialogContent
+        className={cn("transition-all duration-200", getDialogSize())}
+        scrollableOverlay
+      >
         <DialogHeader>
-          <DialogTitle>
-            {step === "details"
-              ? "Create namespace"
-              : step === "embeddings"
-                ? "Embeddings"
-                : "Vector store"}
-          </DialogTitle>
-          <DialogDescription>
-            {step === "details"
-              ? "Create a new namespace to start ingesting data."
-              : step === "embeddings"
-                ? "Choose an embedding model for your namespace. Note that you can't change the embedding model once the namespace is created."
-                : "Choose a vector store for your namespace. Note that you can't change the vector store once the namespace is created."}
-          </DialogDescription>
+          <DialogTitle>{dialogContent.title}</DialogTitle>
+          <DialogDescription>{dialogContent.description}</DialogDescription>
         </DialogHeader>
 
-        {step === "details" ? (
-          <CreateNamespaceDetailsStep
-            defaultValues={{
-              name,
-              slug,
-            }}
-            onSubmit={(values) => {
-              setName(values.name);
-              setSlug(values.slug);
-              setStep("embeddings");
-            }}
+        {step === "recommended" && (
+          <RecommendedStep
+            orgId={organization.id}
+            defaultName={name}
+            defaultSlug={slug}
+            onContinue={handleRecommendedContinue}
+            onCustomize={handleRecommendedCustomize}
           />
-        ) : step === "embeddings" ? (
-          <CreateNamespaceEmbeddingStep
-            defaultValues={embeddingModel ? { embeddingModel } : undefined}
-            onSubmit={(values) => {
-              setEmbeddingModel(values.embeddingModel ?? undefined);
-              setStep("vector-store");
-            }}
-            onBack={() => setStep("details")}
+        )}
+
+        {step === "customize" && (
+          <CustomizeStep
+            onSubmit={handleCustomizeSubmit}
+            onBack={handleCustomizeBack}
           />
-        ) : (
-          <CreateNamespaceVectorStoreStep
-            isLoading={isPending}
-            onSubmit={(values) => onSubmit(values.vectorStore)}
-            onBack={() => setStep("embeddings")}
+        )}
+
+        {step === "ingest" && (
+          <IngestStep
+            onSubmit={handleIngestSubmit}
+            onSkip={handleIngestSkip}
+            onBack={handleIngestBack}
           />
+        )}
+
+        {step === "creating" && (
+          <CreatingStep namespaceName={name} isComplete={isComplete} />
         )}
       </DialogContent>
     </Dialog>
   );
 }
+
+// Re-export for backward compatibility
+export { CreateNamespaceDialog };

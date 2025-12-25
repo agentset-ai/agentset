@@ -2,24 +2,41 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import { CreateFirstNamespace } from "@/components/create-first-namespace";
 import CreateNamespaceDialog from "@/components/create-namespace";
 import { useOrganization } from "@/hooks/use-organization";
+import { useSession } from "@/hooks/use-session";
 import { formatNumber } from "@/lib/utils";
 import { useTRPC } from "@/trpc/react";
 import { useQuery } from "@tanstack/react-query";
-import { FoldersIcon, PlusIcon } from "lucide-react";
+import { PlusIcon } from "lucide-react";
 
 import { Button } from "@agentset/ui/button";
 import { DataWrapper } from "@agentset/ui/data-wrapper";
-import { EmptyState } from "@agentset/ui/empty-state";
 import { Separator } from "@agentset/ui/separator";
 import { Skeleton } from "@agentset/ui/skeleton";
 
+// Helper to capitalize first letter of each word
+function capitalizeFirstLetter(str: string): string {
+  return str
+    .split(" ")
+    .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+    .join(" ");
+}
+
 export default function DashboardPage() {
   const organization = useOrganization();
+  const { session } = useSession();
   const [open, setOpen] = useState(false);
+  const [dialogDefaultName, setDialogDefaultName] = useState("");
 
   const trpc = useTRPC();
+
+  // Get user name for namespace naming (capitalized)
+  const rawUserName =
+    session?.user?.name || session?.user?.email?.split("@")[0] || "User";
+  const userName = capitalizeFirstLetter(rawUserName);
+
   const {
     data: namespaces,
     isLoading,
@@ -29,6 +46,14 @@ export default function DashboardPage() {
       slug: organization.slug,
     }),
   );
+
+  // Generate default name based on user and namespace count
+  const getDefaultName = (count: number) => {
+    if (count === 0) {
+      return `${userName}'s Namespace`;
+    }
+    return `${userName}'s Namespace ${count + 1}`;
+  };
 
   if (organization.isLoading) {
     return (
@@ -55,8 +80,13 @@ export default function DashboardPage() {
     );
   }
 
+  const handleOpenDialog = (name?: string) => {
+    setDialogDefaultName(name || getDefaultName(namespaces?.length ?? 0));
+    setOpen(true);
+  };
+
   const createButton = (
-    <Button onClick={() => setOpen(true)}>
+    <Button onClick={() => handleOpenDialog()}>
       <PlusIcon className="size-4" />
       New Namespace
     </Button>
@@ -68,6 +98,9 @@ export default function DashboardPage() {
         organization={organization}
         open={open}
         setOpen={setOpen}
+        namespaceCount={namespaces?.length ?? 0}
+        userName={userName}
+        defaultName={dialogDefaultName}
       />
 
       <DataWrapper
@@ -88,13 +121,19 @@ export default function DashboardPage() {
           </div>
         }
         emptyState={
-          <EmptyState
-            className="mt-20"
-            title="No namespaces"
-            description="Create a new namespace to start uploading your data"
-            icon={FoldersIcon}
-            action={createButton}
-          />
+          <div className="relative">
+            {/* Show button in top right even in empty state */}
+            <div className="absolute top-0 right-0">{createButton}</div>
+            <CreateFirstNamespace
+              organization={{
+                id: organization.id,
+                slug: organization.slug,
+                name: organization.name,
+              }}
+              onOpenDialog={handleOpenDialog}
+              userName={userName}
+            />
+          </div>
         }
       >
         {(namespaces) => (

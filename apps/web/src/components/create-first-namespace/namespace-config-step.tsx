@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import {
   embeddingModels,
   vectorStores,
@@ -53,7 +53,7 @@ import {
 import {
   MANAGED_EMBEDDING_CONFIG,
   MANAGED_VECTOR_STORE_CONFIG,
-} from "../_constants";
+} from "./constants";
 
 // Form schema
 const formSchema = z.object({
@@ -87,7 +87,7 @@ const customVectorStoreProviders = vectorStoreProviderOptions.filter(
   (o) => !o.startsWith("MANAGED_"),
 );
 
-interface NamespaceConfigProps {
+interface NamespaceConfigStepProps {
   onSubmit: (config: {
     embeddingConfig?: EmbeddingConfig;
     vectorStoreConfig?: CreateVectorStoreConfig;
@@ -96,11 +96,11 @@ interface NamespaceConfigProps {
   isLoading: boolean;
 }
 
-export function NamespaceConfig({
+export function NamespaceConfigStep({
   onSubmit,
   onBack,
   isLoading,
-}: NamespaceConfigProps) {
+}: NamespaceConfigStepProps) {
   const [embeddingExpanded, setEmbeddingExpanded] = useState(false);
   const [vectorStoreExpanded, setVectorStoreExpanded] = useState(false);
 
@@ -116,47 +116,6 @@ export function NamespaceConfig({
   const vectorStoreType = form.watch("vectorStoreType");
   const currentEmbeddingProvider = form.watch("embeddingConfig.provider");
   const currentVectorStoreProvider = form.watch("vectorStoreConfig.provider");
-
-  // Reset embedding config when switching to custom
-  useEffect(() => {
-    if (embeddingType === "custom" && !currentEmbeddingProvider) {
-      const firstProvider = customEmbeddingProviders[0];
-      if (firstProvider) {
-        form.setValue("embeddingConfig", {
-          provider: firstProvider,
-          model: providerToEmbeddingModels[firstProvider]?.[0] ?? "",
-        } as EmbeddingConfig);
-      }
-    }
-  }, [embeddingType, currentEmbeddingProvider, form]);
-
-  // Reset vector store config when switching to custom
-  useEffect(() => {
-    if (vectorStoreType === "custom" && !currentVectorStoreProvider) {
-      const firstProvider = customVectorStoreProviders[0];
-      if (firstProvider) {
-        form.setValue("vectorStoreConfig", {
-          provider: firstProvider,
-        } as CreateVectorStoreConfig);
-      }
-    }
-  }, [vectorStoreType, currentVectorStoreProvider, form]);
-
-  // Reset embedding model when provider changes
-  useEffect(() => {
-    if (
-      currentEmbeddingProvider &&
-      !currentEmbeddingProvider.startsWith("MANAGED_")
-    ) {
-      const models = providerToEmbeddingModels[currentEmbeddingProvider];
-      if (models?.[0]) {
-        form.setValue("embeddingConfig", {
-          provider: currentEmbeddingProvider,
-          model: models[0],
-        } as EmbeddingConfig);
-      }
-    }
-  }, [currentEmbeddingProvider, form]);
 
   // Get current embedding options (extra fields beyond provider/model)
   const currentEmbeddingOptions = useMemo(() => {
@@ -211,6 +170,48 @@ export function NamespaceConfig({
         };
       });
   }, [currentVectorStoreProvider]);
+
+  // Handle switching to custom embedding - FIX: Set provider immediately in onClick
+  const handleSelectCustomEmbedding = () => {
+    const firstProvider = customEmbeddingProviders[0];
+    form.setValue("embeddingType", "custom");
+    if (firstProvider) {
+      form.setValue("embeddingConfig", {
+        provider: firstProvider,
+        model: providerToEmbeddingModels[firstProvider]?.[0] ?? "",
+      } as EmbeddingConfig);
+    }
+    setEmbeddingExpanded(true);
+  };
+
+  // Handle switching to custom vector store - FIX: Set provider immediately in onClick
+  const handleSelectCustomVectorStore = () => {
+    const firstProvider = customVectorStoreProviders[0];
+    form.setValue("vectorStoreType", "custom");
+    if (firstProvider) {
+      form.setValue("vectorStoreConfig", {
+        provider: firstProvider,
+      } as CreateVectorStoreConfig);
+    }
+    setVectorStoreExpanded(true);
+  };
+
+  // Handle embedding provider change
+  const handleEmbeddingProviderChange = (provider: string) => {
+    const models =
+      providerToEmbeddingModels[provider as EmbeddingConfig["provider"]];
+    form.setValue("embeddingConfig", {
+      provider: provider,
+      model: models?.[0] ?? "",
+    } as EmbeddingConfig);
+  };
+
+  // Handle vector store provider change
+  const handleVectorStoreProviderChange = (provider: string) => {
+    form.setValue("vectorStoreConfig", {
+      provider: provider,
+    } as CreateVectorStoreConfig);
+  };
 
   const handleSubmit = (values: FormValues) => {
     const embeddingConfig =
@@ -269,6 +270,7 @@ export function NamespaceConfig({
                 selected={embeddingType === "recommended"}
                 onClick={() => {
                   form.setValue("embeddingType", "recommended");
+                  form.setValue("embeddingConfig", undefined);
                   setEmbeddingExpanded(false);
                 }}
                 icon={<Logo className="h-5 w-5" />}
@@ -277,10 +279,7 @@ export function NamespaceConfig({
               />
               <ConfigOption
                 selected={embeddingType === "custom"}
-                onClick={() => {
-                  form.setValue("embeddingType", "custom");
-                  setEmbeddingExpanded(true);
-                }}
+                onClick={handleSelectCustomEmbedding}
                 icon={<SettingsIcon className="h-5 w-5" />}
                 title="Custom"
                 description="Bring your own API keys"
@@ -324,7 +323,7 @@ export function NamespaceConfig({
                             <FormLabel>Provider</FormLabel>
                             <Select
                               value={field.value}
-                              onValueChange={field.onChange}
+                              onValueChange={handleEmbeddingProviderChange}
                             >
                               <FormControl>
                                 <SelectTrigger>
@@ -382,7 +381,7 @@ export function NamespaceConfig({
                         />
                       )}
 
-                      {/* Extra fields */}
+                      {/* Extra fields (API key, etc.) */}
                       {currentEmbeddingOptions.map((opt) => (
                         <FormField
                           key={opt.name}
@@ -426,6 +425,7 @@ export function NamespaceConfig({
                 selected={vectorStoreType === "recommended"}
                 onClick={() => {
                   form.setValue("vectorStoreType", "recommended");
+                  form.setValue("vectorStoreConfig", undefined);
                   setVectorStoreExpanded(false);
                 }}
                 icon={<Logo className="h-5 w-5" />}
@@ -434,10 +434,7 @@ export function NamespaceConfig({
               />
               <ConfigOption
                 selected={vectorStoreType === "custom"}
-                onClick={() => {
-                  form.setValue("vectorStoreType", "custom");
-                  setVectorStoreExpanded(true);
-                }}
+                onClick={handleSelectCustomVectorStore}
                 icon={<SettingsIcon className="h-5 w-5" />}
                 title="Custom"
                 description="Bring your own credentials"
@@ -481,7 +478,7 @@ export function NamespaceConfig({
                             <FormLabel>Provider</FormLabel>
                             <Select
                               value={field.value}
-                              onValueChange={field.onChange}
+                              onValueChange={handleVectorStoreProviderChange}
                             >
                               <FormControl>
                                 <SelectTrigger>
