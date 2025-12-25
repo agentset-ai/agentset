@@ -60,7 +60,7 @@ export default async function AppMiddleware(
       });
 
       if (org) return NextResponse.redirect(new URL(`/${org.slug}`, req.url));
-      return NextResponse.redirect(new URL("/create-organization", req.url));
+      return NextResponse.redirect(new URL("/onboarding", req.url));
     }
   }
 
