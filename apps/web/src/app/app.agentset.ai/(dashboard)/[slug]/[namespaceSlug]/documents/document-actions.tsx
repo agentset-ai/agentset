@@ -1,4 +1,6 @@
 import type { Row } from "@tanstack/react-table";
+import { useState } from "react";
+import { DeleteConfirmationDialog } from "@/components/delete-confirmation";
 import { useNamespace } from "@/hooks/use-namespace";
 import { logEvent } from "@/lib/analytics";
 import { prefixId } from "@/lib/api/ids";
@@ -23,10 +25,19 @@ import {
 
 import type { DocumentCol } from "./documents-columns";
 
+/**
+ * Renders an actions menu and delete confirmation dialog for a document row.
+ *
+ * The menu provides "Copy ID", a conditional "Download File" action for managed files, and a "Delete" action that opens a confirmation dialog. Actions reflect mutation/loading state and disable when deletion is pending or the document is already being deleted or queued for deletion.
+ *
+ * @param row - The table row for the document; `row.original` must be a `DocumentCol` used to derive IDs, name, source type, and status.
+ * @returns A JSX element containing the dropdown actions menu and the delete confirmation dialog for the specified document.
+ */
 export default function DocumentActions({ row }: { row: Row<DocumentCol> }) {
   const namespace = useNamespace();
   const trpc = useTRPC();
   const queryClient = useQueryClient();
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
 
   const { isPending, mutate: deleteDocument } = useMutation(
     trpc.document.delete.mutationOptions({
@@ -37,6 +48,7 @@ export default function DocumentActions({ row }: { row: Row<DocumentCol> }) {
           status: row.original.status,
         });
         toast.success("Document queued for deletion");
+        setDeleteDialogOpen(false);
         void queryClient.invalidateQueries(
           trpc.document.all.queryFilter({
             namespaceId: namespace.id,
@@ -79,37 +91,54 @@ export default function DocumentActions({ row }: { row: Row<DocumentCol> }) {
     });
   };
 
+  const documentName = row.original.name ?? row.original.id;
+
   const isDeleteDisabled =
     isPending ||
     row.original.status === DocumentStatus.DELETING ||
     row.original.status === DocumentStatus.QUEUED_FOR_DELETE;
 
   return (
-    <DropdownMenu>
-      <DropdownMenuTrigger asChild>
-        <Button size="icon" variant="ghost">
-          <EllipsisVerticalIcon className="size-4" />
-        </Button>
-      </DropdownMenuTrigger>
+    <>
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild>
+          <Button size="icon" variant="ghost">
+            <EllipsisVerticalIcon className="size-4" />
+          </Button>
+        </DropdownMenuTrigger>
 
-      <DropdownMenuContent>
-        <DropdownMenuItem onClick={handleCopy}>
-          <CopyIcon className="size-4" />
-          Copy ID
-        </DropdownMenuItem>
-
-        {row.original.source.type === "MANAGED_FILE" && (
-          <DropdownMenuItem disabled={isDownloading} onClick={handleDownload}>
-            <DownloadIcon className="size-4" />
-            Download File
+        <DropdownMenuContent>
+          <DropdownMenuItem onClick={handleCopy}>
+            <CopyIcon className="size-4" />
+            Copy ID
           </DropdownMenuItem>
-        )}
 
-        <DropdownMenuItem disabled={isDeleteDisabled} onClick={handleDelete}>
-          <Trash2Icon className="size-4" />
-          Delete
-        </DropdownMenuItem>
-      </DropdownMenuContent>
-    </DropdownMenu>
+          {row.original.source.type === "MANAGED_FILE" && (
+            <DropdownMenuItem disabled={isDownloading} onClick={handleDownload}>
+              <DownloadIcon className="size-4" />
+              Download File
+            </DropdownMenuItem>
+          )}
+
+          <DropdownMenuItem
+            disabled={isDeleteDisabled}
+            onClick={() => setDeleteDialogOpen(true)}
+          >
+            <Trash2Icon className="size-4" />
+            Delete
+          </DropdownMenuItem>
+        </DropdownMenuContent>
+      </DropdownMenu>
+
+      <DeleteConfirmationDialog
+        open={deleteDialogOpen}
+        onOpenChange={setDeleteDialogOpen}
+        title="Delete document"
+        description="This action cannot be undone. This will permanently delete the document and remove all associated chunks from the vector store."
+        itemName={documentName}
+        onConfirm={handleDelete}
+        isLoading={isPending}
+      />
+    </>
   );
 }
