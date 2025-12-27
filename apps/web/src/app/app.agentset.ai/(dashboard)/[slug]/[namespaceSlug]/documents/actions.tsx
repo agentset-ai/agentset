@@ -1,4 +1,6 @@
 import type { Row } from "@tanstack/react-table";
+import { useState } from "react";
+import { DeleteConfirmationDialog } from "@/components/delete-confirmation";
 import { useNamespace } from "@/hooks/use-namespace";
 import { prefixId } from "@/lib/api/ids";
 import { useTRPC } from "@/trpc/react";
@@ -22,14 +24,25 @@ import {
 
 import type { JobCol } from "./columns";
 
+/**
+ * Renders a dropdown menu of actions for a job row and manages copy, re-ingest, and delete flows with user feedback.
+ *
+ * Displays menu items for copying the job ID, starting a re-ingest, and deleting the job (delete opens a confirmation dialog).
+ * Actions update application state and show toast notifications on success or error.
+ *
+ * @param row - The table row containing the job data used to perform actions and display the job name
+ */
 export function JobActions({ row }: { row: Row<JobCol> }) {
   const queryClient = useQueryClient();
   const namespace = useNamespace();
   const trpc = useTRPC();
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+
   const { mutate: deleteJob, isPending: isDeletePending } = useMutation(
     trpc.ingestJob.delete.mutationOptions({
       onSuccess: () => {
         toast.success("Job queued for deletion");
+        setDeleteDialogOpen(false);
         void queryClient.invalidateQueries(
           trpc.ingestJob.all.queryFilter({
             namespaceId: namespace.id,
@@ -77,6 +90,8 @@ export function JobActions({ row }: { row: Row<JobCol> }) {
     });
   };
 
+  const jobName = row.original.name ?? row.original.id;
+
   const isDeleteDisabled =
     isDeletePending ||
     isReIngestPending ||
@@ -90,32 +105,47 @@ export function JobActions({ row }: { row: Row<JobCol> }) {
     row.original.status === IngestJobStatus.PROCESSING;
 
   return (
-    <DropdownMenu>
-      <DropdownMenuTrigger asChild>
-        <Button size="icon" variant="ghost">
-          <EllipsisVerticalIcon className="size-4" />
-        </Button>
-      </DropdownMenuTrigger>
+    <>
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild>
+          <Button size="icon" variant="ghost">
+            <EllipsisVerticalIcon className="size-4" />
+          </Button>
+        </DropdownMenuTrigger>
 
-      <DropdownMenuContent>
-        <DropdownMenuItem onClick={handleCopy}>
-          <CopyIcon className="size-4" />
-          Copy ID
-        </DropdownMenuItem>
+        <DropdownMenuContent>
+          <DropdownMenuItem onClick={handleCopy}>
+            <CopyIcon className="size-4" />
+            Copy ID
+          </DropdownMenuItem>
 
-        <DropdownMenuItem
-          disabled={isReIngestDisabled}
-          onClick={handleReIngest}
-        >
-          <RefreshCwIcon className="size-4" />
-          Re-ingest
-        </DropdownMenuItem>
+          <DropdownMenuItem
+            disabled={isReIngestDisabled}
+            onClick={handleReIngest}
+          >
+            <RefreshCwIcon className="size-4" />
+            Re-ingest
+          </DropdownMenuItem>
 
-        <DropdownMenuItem disabled={isDeleteDisabled} onClick={handleDelete}>
-          <Trash2Icon className="size-4" />
-          Delete
-        </DropdownMenuItem>
-      </DropdownMenuContent>
-    </DropdownMenu>
+          <DropdownMenuItem
+            disabled={isDeleteDisabled}
+            onClick={() => setDeleteDialogOpen(true)}
+          >
+            <Trash2Icon className="size-4" />
+            Delete
+          </DropdownMenuItem>
+        </DropdownMenuContent>
+      </DropdownMenu>
+
+      <DeleteConfirmationDialog
+        open={deleteDialogOpen}
+        onOpenChange={setDeleteDialogOpen}
+        title="Delete job"
+        description="This action cannot be undone. This will permanently delete the ingest job and all associated documents from the vector store."
+        itemName={jobName}
+        onConfirm={handleDelete}
+        isLoading={isDeletePending}
+      />
+    </>
   );
 }
