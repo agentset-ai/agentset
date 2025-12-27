@@ -23,10 +23,8 @@ import { toSlug } from "@agentset/utils";
 import { useTRPC } from "../../trpc/react";
 import { CreatingStep } from "./creating-step";
 import { CustomizeStep } from "./customize-step";
-import { IngestStep } from "./ingest-step";
 import { RecommendedStep } from "./recommended-step";
 
-// Managed config defaults
 const MANAGED_EMBEDDING_CONFIG: EmbeddingConfig = {
   provider: "MANAGED_OPENAI",
   model: "text-embedding-3-large",
@@ -36,7 +34,7 @@ const MANAGED_VECTOR_STORE_CONFIG: CreateVectorStoreConfig = {
   provider: "MANAGED_TURBOPUFFER",
 };
 
-type Step = "recommended" | "customize" | "ingest" | "creating";
+type Step = "recommended" | "customize" | "creating";
 
 interface CreateNamespaceDialogProps {
   organization: {
@@ -65,13 +63,7 @@ export default function CreateNamespaceDialog({
 
   const [name, setName] = useState("");
   const [slug, setSlug] = useState("");
-  const [embeddingConfig, setEmbeddingConfig] = useState<EmbeddingConfig>(
-    MANAGED_EMBEDDING_CONFIG,
-  );
-  const [vectorStoreConfig, setVectorStoreConfig] =
-    useState<CreateVectorStoreConfig>(MANAGED_VECTOR_STORE_CONFIG);
-
-  const defaultSlug = useMemo(() => toSlug(defaultName), [defaultName]);
+  const defaultSlug = toSlug(defaultName);
 
   useEffect(() => {
     if (open) {
@@ -79,26 +71,22 @@ export default function CreateNamespaceDialog({
       setIsComplete(false);
       setName(defaultName);
       setSlug(defaultSlug);
-      setEmbeddingConfig(MANAGED_EMBEDDING_CONFIG);
-      setVectorStoreConfig(MANAGED_VECTOR_STORE_CONFIG);
     }
   }, [open, defaultName, defaultSlug]);
 
-  const navigateToNamespace = useCallback(
-    (namespaceSlug: string) => {
-      router.push(`/${organization.slug}/${namespaceSlug}/quick-start`);
-    },
-    [router, organization.slug],
-  );
-
-  const createNamespace = useCallback(() => {
+  function createNamespace(params: {
+    name: string;
+    slug: string;
+    embeddingConfig: EmbeddingConfig;
+    vectorStoreConfig: CreateVectorStoreConfig;
+  }) {
     namespaceMutation.mutate(
       {
-        name,
-        slug,
+        name: params.name,
+        slug: params.slug,
         orgId: organization.id,
-        embeddingConfig,
-        vectorStoreConfig,
+        embeddingConfig: params.embeddingConfig,
+        vectorStoreConfig: params.vectorStoreConfig,
       },
       {
         onSuccess: (data) => {
@@ -114,81 +102,48 @@ export default function CreateNamespaceDialog({
 
           setTimeout(() => {
             setOpen(false);
-            navigateToNamespace(data.slug);
+            router.push(`/${organization.slug}/${data.slug}/quick-start`);
           }, 1500);
         },
       },
     );
-  }, [
-    name,
-    slug,
-    organization.id,
-    organization.slug,
-    embeddingConfig,
-    vectorStoreConfig,
-    namespaceMutation,
-    queryClient,
-    trpc,
-    setOpen,
-    navigateToNamespace,
-  ]);
-
-  const handleRecommendedContinue = useCallback(
-    (newName: string, newSlug: string) => {
-      setName(newName);
-      setSlug(newSlug);
-      setEmbeddingConfig(MANAGED_EMBEDDING_CONFIG);
-      setVectorStoreConfig(MANAGED_VECTOR_STORE_CONFIG);
-      setStep("ingest");
-    },
-    [],
-  );
-
-  const handleRecommendedCustomize = useCallback(
-    (newName: string, newSlug: string) => {
-      setName(newName);
-      setSlug(newSlug);
-      setStep("customize");
-    },
-    [],
-  );
-
-  const handleCustomizeSubmit = useCallback(
-    (config: {
-      embeddingConfig: EmbeddingConfig;
-      vectorStoreConfig: CreateVectorStoreConfig;
-    }) => {
-      setEmbeddingConfig(config.embeddingConfig);
-      setVectorStoreConfig(config.vectorStoreConfig);
-      setStep("ingest");
-    },
-    [],
-  );
-
-  const handleCustomizeBack = useCallback(() => {
-    setStep("recommended");
-  }, []);
-
-  const handleIngestSubmit = useCallback(
-    (_files: File[]) => {
-      // TODO: Handle file upload in the future
-      // For now, just create the namespace
-      setStep("creating");
-      createNamespace();
-    },
-    [createNamespace],
-  );
-
-  const handleIngestSkip = useCallback(() => {
+  }
+  function handleRecommendedContinue(newName: string, newSlug: string) {
+    setName(newName);
+    setSlug(newSlug);
     setStep("creating");
-    createNamespace();
-  }, [createNamespace]);
+    createNamespace({
+      name: newName,
+      slug: newSlug,
+      embeddingConfig: MANAGED_EMBEDDING_CONFIG,
+      vectorStoreConfig: MANAGED_VECTOR_STORE_CONFIG,
+    });
+  }
 
-  const handleIngestBack = useCallback(() => {
+  function handleRecommendedCustomize(newName: string, newSlug: string) {
+    setName(newName);
+    setSlug(newSlug);
     setStep("customize");
-  }, []);
+  }
 
-  const getDialogContent = () => {
+  function handleCustomizeSubmit(config: {
+    embeddingConfig: EmbeddingConfig;
+    vectorStoreConfig: CreateVectorStoreConfig;
+  }) {
+    setStep("creating");
+    createNamespace({
+      name,
+      slug,
+      embeddingConfig: config.embeddingConfig,
+      vectorStoreConfig: config.vectorStoreConfig,
+    });
+  }
+
+  function handleCustomizeBack() {
+    return setStep("recommended");
+  }
+
+  function getDialogContent() {
     switch (step) {
       case "recommended":
         return {
@@ -202,33 +157,26 @@ export default function CreateNamespaceDialog({
           description:
             "Choose your embedding model and vector store. These settings cannot be changed later.",
         };
-      case "ingest":
-        return {
-          title: "Upload files",
-          description:
-            "Optionally upload documents to populate your namespace.",
-        };
       case "creating":
         return {
           title: "Creating namespace",
           description: "Please wait while we set up your namespace.",
         };
     }
-  };
+  }
 
-  const dialogContent = getDialogContent();
-
-  const getDialogSize = () => {
+  function getDialogSize() {
     switch (step) {
-      case "ingest":
-        return "sm:max-w-2xl";
       case "creating":
         return "sm:max-w-md";
+      case "customize":
+        return "sm:max-w-4xl";
       default:
         return "sm:max-w-xl";
     }
-  };
+  }
 
+  const dialogContent = getDialogContent();
   return (
     <Dialog
       open={open}
@@ -263,14 +211,6 @@ export default function CreateNamespaceDialog({
           />
         )}
 
-        {step === "ingest" && (
-          <IngestStep
-            onSubmit={handleIngestSubmit}
-            onSkip={handleIngestSkip}
-            onBack={handleIngestBack}
-          />
-        )}
-
         {step === "creating" && (
           <CreatingStep namespaceName={name} isComplete={isComplete} />
         )}
@@ -278,4 +218,3 @@ export default function CreateNamespaceDialog({
     </Dialog>
   );
 }
-

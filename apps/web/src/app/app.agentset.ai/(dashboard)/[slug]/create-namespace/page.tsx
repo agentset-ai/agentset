@@ -33,6 +33,7 @@ export default function CreateNamespacePage() {
       organization={organization}
       open
       setOpen={() => {}}
+      defaultName={`Namespace ${organization.totalNamespaces + 1}`}
     />
   );
 }

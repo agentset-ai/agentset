@@ -115,6 +115,9 @@ export const NamespaceSwitcher = () => {
           organization={organization}
           open={open}
           setOpen={setOpen}
+          defaultName={
+            namespaces ? `Namespace ${namespaces.length + 1}` : "Namespace"
+          }
         />
       )}
     </>

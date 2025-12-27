@@ -39,13 +39,6 @@ export default function DashboardPage() {
     }),
   );
 
-  const getDefaultName = (count: number) => {
-    if (count === 0) {
-      return `${userName}'s Namespace`;
-    }
-    return `${userName}'s Namespace ${count + 1}`;
-  };
-
   if (organization.isLoading) {
     return (
       <div className="flex h-full flex-col space-y-6 px-6 py-8">
@@ -72,7 +65,9 @@ export default function DashboardPage() {
   }
 
   const handleOpenDialog = (name?: string) => {
-    setDialogDefaultName(name || getDefaultName(namespaces?.length ?? 0));
+    setDialogDefaultName(
+      name || (namespaces ? `Namespace ${namespaces.length + 1}` : "Namespace"),
+    );
     setOpen(true);
   };
 
@@ -145,7 +140,7 @@ export default function DashboardPage() {
                       </p>
                       <Separator
                         orientation="vertical"
-                        className="!h-4 shrink-0"
+                        className="h-4! shrink-0"
                       />
                       <p>
                         {formatNumber(namespace.totalDocuments, "compact")}{" "}

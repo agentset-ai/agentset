@@ -10,6 +10,7 @@ export function RadioButton({
   label,
   tooltip,
   value,
+  id,
   note,
   noteStyle = "primary",
   disabled,
@@ -17,23 +18,25 @@ export function RadioButton({
   icon: React.ElementType;
   label: string;
   value: string;
+  id?: string;
   tooltip?: string;
   note?: string;
   noteStyle?: "primary" | "muted";
   disabled?: boolean;
 }) {
+  const elementId = id ?? value;
   return (
     <div className="relative">
       <RadioGroupItem
         value={value}
-        id={value}
+        id={elementId}
         className="peer sr-only"
         aria-label={label}
         disabled={disabled}
       />
 
       <Label
-        htmlFor={value}
+        htmlFor={elementId}
         className="border-muted hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-primary [&:has([data-state=checked])]:border-primary flex flex-col items-center justify-between rounded-md border-2 bg-transparent p-4 text-black"
       >
         <Icon className="mb-3 h-6" />
