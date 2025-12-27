@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useCreateNamespace } from "@/hooks/use-create-namespace";
+import { useIngestSampleData } from "@/hooks/use-ingest-sample-data";
 import { useRouter } from "@bprogress/next/app";
 import { AnimatePresence } from "motion/react";
 
@@ -38,17 +39,24 @@ export function CreateFirstNamespace({
   userName: userNameProp,
 }: CreateFirstNamespaceProps) {
   const router = useRouter();
-  const namespaceMutation = useCreateNamespace(organization.slug);
+  const { invalidateNamespaces, ...namespaceMutation } = useCreateNamespace(
+    organization.slug,
+  );
+  const ingestSampleDataMutation = useIngestSampleData();
 
   const [step, setStep] = useState<Step>("form");
   const [isComplete, setIsComplete] = useState(false);
   const [namespaceName, setNamespaceName] = useState("");
+  const [selectedSampleDataType, setSelectedSampleDataType] =
+    useState<SampleDataType | null>(null);
+  const [isIngestingData, setIsIngestingData] = useState(false);
   const userName = capitalize(userNameProp ?? "User")!;
 
   const defaultName = `${userName}'s Namespace`;
 
   function navigateToNamespace(namespaceSlug: string) {
     router.push(`/${organization.slug}/${namespaceSlug}/quick-start`);
+    invalidateNamespaces();
   }
 
   function createNamespace(
@@ -57,6 +65,7 @@ export function CreateFirstNamespace({
       embeddingConfig?: EmbeddingConfig;
       vectorStoreConfig?: CreateVectorStoreConfig;
     },
+    sampleDataType?: SampleDataType | null,
   ) {
     const slug = toSlug(name);
 
@@ -70,10 +79,28 @@ export function CreateFirstNamespace({
       },
       {
         onSuccess: (data) => {
-          setIsComplete(true);
-          setTimeout(() => {
-            navigateToNamespace(data.slug);
-          }, 1500);
+          if (sampleDataType) {
+            setIsIngestingData(true);
+            ingestSampleDataMutation.mutate(
+              {
+                namespaceId: data.id,
+                sampleDataTypeId: sampleDataType.id,
+              },
+              {
+                onSettled: () => {
+                  setIsComplete(true);
+                  setTimeout(() => {
+                    navigateToNamespace(data.slug);
+                  }, 1500);
+                },
+              },
+            );
+          } else {
+            setIsComplete(true);
+            setTimeout(() => {
+              navigateToNamespace(data.slug);
+            }, 1500);
+          }
         },
       },
     );
@@ -91,13 +118,17 @@ export function CreateFirstNamespace({
   function handleSelectSampleData(type: SampleDataType) {
     const name = `${type.name} Namespace`;
     setNamespaceName(name);
+    setSelectedSampleDataType(type);
     setStep("creating");
 
-    // TODO: Ingest sample data based on selected type after namespace creation
-    createNamespace(name, {
-      embeddingConfig: MANAGED_EMBEDDING_CONFIG,
-      vectorStoreConfig: MANAGED_VECTOR_STORE_CONFIG,
-    });
+    createNamespace(
+      name,
+      {
+        embeddingConfig: MANAGED_EMBEDDING_CONFIG,
+        vectorStoreConfig: MANAGED_VECTOR_STORE_CONFIG,
+      },
+      type,
+    );
   }
 
   function handleConfigSubmit(config: {
@@ -136,6 +167,8 @@ export function CreateFirstNamespace({
             key="creating"
             namespaceName={namespaceName}
             isComplete={isComplete}
+            isIngestingData={isIngestingData}
+            sampleDataType={selectedSampleDataType?.name}
           />
         )}
       </AnimatePresence>

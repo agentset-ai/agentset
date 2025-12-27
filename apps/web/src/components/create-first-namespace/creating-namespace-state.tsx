@@ -8,11 +8,15 @@ import { Spinner } from "@agentset/ui/spinner";
 interface CreatingNamespaceStateProps {
   namespaceName: string;
   isComplete?: boolean;
+  isIngestingData?: boolean;
+  sampleDataType?: string;
 }
 
 export function CreatingNamespaceState({
   namespaceName,
   isComplete = false,
+  isIngestingData = false,
+  sampleDataType,
 }: CreatingNamespaceStateProps) {
   if (isComplete) {
     return (
@@ -75,9 +79,11 @@ export function CreatingNamespaceState({
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.6 }}
-          className="text-muted-foreground mt-2 text-sm"
+          className="text-muted-foreground mt-2 max-w-md text-sm"
         >
-          {namespaceName && `"${namespaceName}" has been successfully created.`}
+          {sampleDataType
+            ? `"${namespaceName}" has been created. Your sample data is being ingested in the background.`
+            : `"${namespaceName}" has been successfully created.`}
         </motion.p>
 
         <motion.div
@@ -146,7 +152,7 @@ export function CreatingNamespaceState({
         transition={{ delay: 0.2 }}
         className="text-2xl font-semibold tracking-tight"
       >
-        Creating Your Namespace
+        {isIngestingData ? "Ingesting Sample Data" : "Creating Your Namespace"}
       </motion.h2>
 
       <motion.p
@@ -155,7 +161,9 @@ export function CreatingNamespaceState({
         transition={{ delay: 0.3 }}
         className="text-muted-foreground mt-2 text-sm"
       >
-        {namespaceName && `Setting up "${namespaceName}"...`}
+        {isIngestingData
+          ? `Adding ${sampleDataType} to your namespace...`
+          : `Setting up "${namespaceName}"...`}
       </motion.p>
 
       <motion.div

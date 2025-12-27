@@ -1,3 +1,4 @@
+import { getSampleDataConfig } from "@/components/create-first-namespace/sample-data-config";
 import {
   createIngestJobSchema,
   getIngestionJobsSchema,
@@ -6,6 +7,7 @@ import { createTRPCRouter, protectedProcedure } from "@/server/api/trpc";
 import { createIngestJob } from "@/services/ingest-jobs/create";
 import { deleteIngestJob } from "@/services/ingest-jobs/delete";
 import { getPaginationArgs, paginateResults } from "@/services/pagination";
+import { ingestSampleData } from "@/services/sample-data/ingest";
 import { TRPCError } from "@trpc/server";
 import { z } from "zod/v4";
 
@@ -126,6 +128,44 @@ export const ingestJobRouter = createTRPCRouter({
       return await createIngestJob({
         data: input,
         namespaceId: namespace.id,
+        plan: organization.plan,
+      });
+    }),
+  ingestSampleData: protectedProcedure
+    .input(
+      z.object({
+        namespaceId: z.string(),
+        sampleDataTypeId: z.string(),
+      }),
+    )
+    .mutation(async ({ ctx, input }) => {
+      const namespace = await getNamespaceByUser(ctx, {
+        id: input.namespaceId,
+      });
+
+      if (!namespace) {
+        throw new TRPCError({ code: "NOT_FOUND" });
+      }
+
+      const organization = await ctx.db.organization.findUnique({
+        where: { id: namespace.organizationId },
+      });
+
+      if (!organization) {
+        throw new TRPCError({ code: "NOT_FOUND" });
+      }
+
+      const sampleDataConfig = getSampleDataConfig(input.sampleDataTypeId);
+      if (!sampleDataConfig) {
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          message: "Invalid sample data type",
+        });
+      }
+
+      return await ingestSampleData({
+        namespaceId: namespace.id,
+        sampleDataTypeId: input.sampleDataTypeId,
         plan: organization.plan,
       });
     }),

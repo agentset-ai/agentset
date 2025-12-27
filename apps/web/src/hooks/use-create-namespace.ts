@@ -7,7 +7,7 @@ export function useCreateNamespace(orgSlug: string) {
   const queryClient = useQueryClient();
   const trpc = useTRPC();
 
-  return useMutation(
+  const mutation = useMutation(
     trpc.namespace.createNamespace.mutationOptions({
       onSuccess: (data) => {
         logEvent("namespace_created", {
@@ -26,16 +26,23 @@ export function useCreateNamespace(orgSlug: string) {
               }
             : null,
         });
-
-        queryClient.invalidateQueries({
-          queryKey: trpc.namespace.getOrgNamespaces.queryKey({
-            slug: orgSlug,
-          }),
-        });
       },
       onError: (error) => {
         toast.error(error.message);
       },
     }),
   );
+
+  function invalidateNamespaces() {
+    queryClient.invalidateQueries({
+      queryKey: trpc.namespace.getOrgNamespaces.queryKey({
+        slug: orgSlug,
+      }),
+    });
+  }
+
+  return {
+    ...mutation,
+    invalidateNamespaces,
+  };
 }
