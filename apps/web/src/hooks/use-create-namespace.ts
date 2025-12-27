@@ -1,9 +1,10 @@
 import { logEvent } from "@/lib/analytics";
 import { useTRPC } from "@/trpc/react";
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 
-export function useCreateNamespace() {
+export function useCreateNamespace(orgSlug: string) {
+  const queryClient = useQueryClient();
   const trpc = useTRPC();
 
   return useMutation(
@@ -24,6 +25,12 @@ export function useCreateNamespace() {
                 provider: data.vectorStoreConfig.provider,
               }
             : null,
+        });
+
+        queryClient.invalidateQueries({
+          queryKey: trpc.namespace.getOrgNamespaces.queryKey({
+            slug: orgSlug,
+          }),
         });
       },
       onError: (error) => {

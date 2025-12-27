@@ -79,11 +79,7 @@ export function CreateNamespaceForm({
           placeholder="Enter namespace name"
           autoFocus
         />
-        <Button
-          type="submit"
-          size="lg"
-          disabled={!name.trim()}
-        >
+        <Button type="submit" size="lg" disabled={!name.trim()}>
           Create Namespace
           <ArrowRightIcon className="h-4 w-4" />
         </Button>
@@ -121,7 +117,7 @@ export function CreateNamespaceForm({
               description={dataType.description}
               icon={dataType.icon}
               available={dataType.available}
-              onSelect={() => onSelectSampleData(dataType.id)}
+              onSelect={() => onSelectSampleData(dataType)}
             />
           </motion.div>
         ))}

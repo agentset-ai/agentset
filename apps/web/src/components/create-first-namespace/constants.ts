@@ -36,4 +36,4 @@ export const SAMPLE_DATA_TYPES = [
   },
 ] as const;
 
-export type SampleDataType = (typeof SAMPLE_DATA_TYPES)[number]["id"];
+export type SampleDataType = (typeof SAMPLE_DATA_TYPES)[number];

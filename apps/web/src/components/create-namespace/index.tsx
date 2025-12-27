@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import { useCreateNamespace } from "@/hooks/use-create-namespace";
 import { useRouter } from "@bprogress/next/app";
 import { useQueryClient } from "@tanstack/react-query";
@@ -56,7 +56,7 @@ export default function CreateNamespaceDialog({
   const router = useRouter();
   const trpc = useTRPC();
   const queryClient = useQueryClient();
-  const namespaceMutation = useCreateNamespace();
+  const namespaceMutation = useCreateNamespace(organization.slug);
 
   const [step, setStep] = useState<Step>("recommended");
   const [isComplete, setIsComplete] = useState(false);
