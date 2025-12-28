@@ -2,8 +2,10 @@ import type { ColumnDef } from "@tanstack/react-table";
 
 import { ApiKeyActions } from "./actions";
 
+// TODO: API key management should be improved - implement proper security with hashing/encryption
 export interface ApiKeyDef {
   id: string;
+  key: string;
   label: string;
   scope: string;
   organizationId: string;
@@ -17,6 +19,22 @@ export const columns: ColumnDef<ApiKeyDef>[] = [
     accessorKey: "label",
     cell: ({ row }) => {
       return <div className="pl-4">{row.original.label}</div>;
+    },
+  },
+  {
+    header: () => <div className="text-left">API Key</div>,
+    accessorKey: "key",
+    cell: ({ row }) => {
+      return (
+        <div className="text-left">
+          <div
+            className="inline-block cursor-help blur-xs transition-all duration-200 hover:blur-none"
+            title="Hover to reveal"
+          >
+            {row.original.key}
+          </div>
+        </div>
+      );
     },
   },
   {

@@ -32,9 +32,6 @@ export const apiKeysRouter = createTRPCRouter({
         where: {
           organizationId: input.orgId,
         },
-        omit: {
-          key: true,
-        },
       });
 
       return apiKeys;

@@ -2,8 +2,9 @@ import type { Row } from "@tanstack/react-table";
 import { DeleteConfirmation } from "@/components/delete-confirmation";
 import { useTRPC } from "@/trpc/react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { EllipsisVerticalIcon, Trash2Icon } from "lucide-react";
+import { CopyIcon, EllipsisVerticalIcon, Trash2Icon } from "lucide-react";
 import { toast } from "sonner";
+import { useCopyToClipboard } from "usehooks-ts";
 
 import { Button } from "@agentset/ui/button";
 import {
@@ -16,6 +17,7 @@ import {
 import type { ApiKeyDef } from "./columns";
 
 export function ApiKeyActions({ row }: { row: Row<ApiKeyDef> }) {
+  const [, copyToClipboard] = useCopyToClipboard();
   const trpc = useTRPC();
   const queryClient = useQueryClient();
   const orgId = row.original.organizationId;
@@ -52,6 +54,20 @@ export function ApiKeyActions({ row }: { row: Row<ApiKeyDef> }) {
       </DropdownMenuTrigger>
 
       <DropdownMenuContent>
+        <DropdownMenuItem
+          onSelect={(e) => {
+            copyToClipboard(row.original.key).then((success) => {
+              if (success) {
+                toast.success("API key copied to clipboard");
+              } else {
+                toast.error("Failed to copy API key");
+              }
+            });
+          }}
+        >
+          <CopyIcon className="size-4" />
+          Copy API Key
+        </DropdownMenuItem>
         <DeleteConfirmation
           trigger={
             <DropdownMenuItem
