@@ -70,6 +70,7 @@
   "dependencies": {
     "@agentset/utils": "workspace:*",
     "@origin-space/image-cropper": "^0.1.9",
+    "browser-image-compression": "^2.0.2",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "cmdk": "1.1.1",

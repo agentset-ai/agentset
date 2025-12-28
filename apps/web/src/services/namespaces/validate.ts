@@ -43,7 +43,7 @@ export const validateVectorStoreConfig = async (
       const v = await getNamespaceVectorStore({ id: "", vectorStoreConfig });
       const dimensions = await v.getDimensions();
       vectorStoreDimensions =
-        dimensions === "ANY" ? embeddingDimensions : dimensions;
+        dimensions === "ANY" ? embeddingDimensions : (dimensions as number);
     } catch {
       return {
         success: false as const,

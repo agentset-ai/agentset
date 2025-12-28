@@ -96,12 +96,20 @@ export const getPartitionDocumentBody = async ({
     language_code: mergedConfig.languageCode,
   });
 
-  const parseOptions: ParseOptions = filterUndefined({
-    force_ocr: mergedConfig.forceOcr,
-    disable_image_extraction: mergedConfig.disableImageExtraction,
-    disable_ocr_math: mergedConfig.disableOcrMath,
-    use_llm: mergedConfig.useLlm,
+  const additionalConfig = filterUndefined<
+    NonNullable<ParseOptions["additional_config"]>
+  >({
+    keep_pagefooter_in_output: mergedConfig.keepPagefooterInOutput,
+    keep_pageheader_in_output: mergedConfig.keepPageheaderInOutput,
+  });
+
+  const parseOptions = filterUndefined<ParseOptions>({
     mode: mergedConfig.mode,
+    disable_image_extraction: mergedConfig.disableImageExtraction,
+    disable_image_captions: mergedConfig.disableImageCaptions,
+    additional_config:
+      Object.keys(additionalConfig).length > 0 ? additionalConfig : undefined,
+    extras: mergedConfig.chartUnderstanding ? "chart_understanding" : undefined,
   });
 
   if (Object.keys(chunkOptions).length > 0) body.chunk_options = chunkOptions;

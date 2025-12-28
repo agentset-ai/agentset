@@ -67,7 +67,7 @@ const DEFAULTS = {
 interface IngestConfigProps {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   form: UseFormReturn<any>;
-  /** Hide file-specific options (forceOcr, mode, image extraction, etc.) */
+  /** Hide file-specific options (mode, image extraction, etc.) */
   minimal?: boolean;
   /** Additional settings to render at the top of the accordion */
   extraSettings?: ReactNode;
@@ -177,22 +177,32 @@ export default function IngestConfig({
 
               <CheckboxField
                 form={form}
-                name="useLlm"
-                label="Use LLM-enhanced parsing"
-              />
-
-              <CheckboxField form={form} name="forceOcr" label="Force OCR" />
-
-              <CheckboxField
-                form={form}
                 name="disableImageExtraction"
                 label="Disable image extraction"
               />
 
               <CheckboxField
                 form={form}
-                name="disableOcrMath"
-                label="Disable OCR math"
+                name="disableImageCaptions"
+                label="Disable image captions"
+              />
+
+              <CheckboxField
+                form={form}
+                name="keepPagefooterInOutput"
+                label="Keep page footer in output"
+              />
+
+              <CheckboxField
+                form={form}
+                name="keepPageheaderInOutput"
+                label="Keep page header in output"
+              />
+
+              <CheckboxField
+                form={form}
+                name="chartUnderstanding"
+                label="Enable chart understanding"
               />
             </>
           )}

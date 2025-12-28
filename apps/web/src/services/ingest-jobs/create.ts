@@ -109,13 +109,19 @@ export const createIngestJob = async ({
       finalPayload.type === "CRAWL" ||
       finalPayload.type === "YOUTUBE")
   ) {
+    const fieldsToDelete: (keyof typeof config)[] = [
+      "mode",
+      "disableImageExtraction",
+      "disableImageCaptions",
+      "keepPagefooterInOutput",
+      "keepPageheaderInOutput",
+      "chartUnderstanding",
+    ];
+
     // filter fields that are not supported for the payload type
-    if (config.disableImageExtraction !== undefined)
-      delete config.disableImageExtraction;
-    if (config.disableOcrMath !== undefined) delete config.disableOcrMath;
-    if (config.forceOcr !== undefined) delete config.forceOcr;
-    if (config.mode !== undefined) delete config.mode;
-    if (config.useLlm !== undefined) delete config.useLlm;
+    for (const field of fieldsToDelete) {
+      if (config[field] !== undefined) delete config[field];
+    }
   }
 
   // filter deprecated fields
@@ -123,6 +129,9 @@ export const createIngestJob = async ({
   if (config?.maxChunkSize !== undefined) delete config.maxChunkSize;
   if (config?.chunkingStrategy !== undefined) delete config.chunkingStrategy;
   if (config?.strategy !== undefined) delete config.strategy;
+  if (config?.disableOcrMath !== undefined) delete config.disableOcrMath;
+  if (config?.forceOcr !== undefined) delete config.forceOcr;
+  if (config?.useLlm !== undefined) delete config.useLlm;
 
   const [job] = await db.$transaction([
     db.ingestJob.create({

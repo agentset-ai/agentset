@@ -20,7 +20,7 @@ export const isContentTypeSupported = (contentType: string): boolean => {
 };
 
 export const isFileExtensionSupported = (fileName: string): boolean => {
-  const ext = extname(fileName);
+  const ext = extname(fileName).toLowerCase();
   return SUPPORTED_EXTENSIONS.includes(ext);
 };
 

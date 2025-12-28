@@ -51,7 +51,7 @@ const filesSchema = z
   .superRefine((data, ctx) => {
     if (data.sourceType === "upload" && data.files.length === 0) {
       ctx.addIssue({
-        code: z.ZodIssueCode.custom,
+        code: "custom",
         message: "At least one file is required",
         path: ["files"],
       });
@@ -60,7 +60,7 @@ const filesSchema = z
       const validUrls = data.urls.filter(Boolean);
       if (validUrls.length === 0) {
         ctx.addIssue({
-          code: z.ZodIssueCode.custom,
+          code: "custom",
           message: "At least one URL is required",
           path: ["urls"],
         });
@@ -69,7 +69,7 @@ const filesSchema = z
         const url = data.urls[i];
         if (url && !z.url().safeParse(url).success) {
           ctx.addIssue({
-            code: z.ZodIssueCode.custom,
+            code: "custom",
             message: "Please enter a valid URL",
             path: ["urls", i],
           });

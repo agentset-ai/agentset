@@ -1,9 +1,34 @@
 "use client";
 
+import type { Options } from "browser-image-compression";
 import { useEffect, useRef, useState } from "react";
+import imageCompression from "browser-image-compression";
 import { AlertCircleIcon, ImageUpIcon, LucideIcon, XIcon } from "lucide-react";
 
-import { FileMetadata, useFileUpload } from "../hooks/use-file-upload";
+import { useFileUpload } from "../hooks/use-file-upload";
+
+const DEFAULT_COMPRESSION_THRESHOLD_MB = 2;
+
+async function compressImageIfNeeded(
+  file: File,
+  thresholdBytes: number,
+): Promise<File> {
+  if (file.size <= thresholdBytes) return file;
+
+  try {
+    const options = {
+      maxSizeMB: thresholdBytes / 1024 / 1024,
+      maxWidthOrHeight: 1920,
+      useWebWorker: true,
+    } satisfies Options;
+
+    const compressedFile = await imageCompression(file, options);
+    return compressedFile;
+  } catch (error) {
+    console.error("Error compressing image:", error);
+    return file;
+  }
+}
 
 function fileToBase64(file: File): Promise<string> {
   return new Promise((resolve, reject) => {
@@ -16,6 +41,7 @@ function fileToBase64(file: File): Promise<string> {
 
 export interface ImageUploaderProps {
   maxSizeMB?: number;
+  compressionThresholdMB?: number;
   defaultImageUrl?: string | null;
   onImageChange?: (image: string | null) => void;
   icon?: LucideIcon;
@@ -24,12 +50,14 @@ export interface ImageUploaderProps {
 
 export function ImageUploader({
   maxSizeMB = 5,
+  compressionThresholdMB = DEFAULT_COMPRESSION_THRESHOLD_MB,
   onImageChange,
   defaultImageUrl,
   icon: Icon = ImageUpIcon,
   description,
 }: ImageUploaderProps) {
   const maxSize = maxSizeMB * 1024 * 1024;
+  const compressionThresholdBytes = compressionThresholdMB * 1024 * 1024;
 
   const [
     { files, isDragging, errors },
@@ -71,7 +99,7 @@ export function ImageUploader({
     defaultImageUrl ? "default" : undefined,
   );
 
-  // When a new file is uploaded, convert to base64 and update
+  // When a new file is uploaded, compress if needed, then convert to base64 and update
   useEffect(() => {
     async function processFile() {
       // Only process if it's a new file (not the default/initial one)
@@ -83,12 +111,17 @@ export function ImageUploader({
         file instanceof File
       ) {
         try {
-          const base64 = await fileToBase64(file);
+          // Compress image if it exceeds 2MB
+          const processedFile = await compressImageIfNeeded(
+            file,
+            compressionThresholdBytes,
+          );
+          const base64 = await fileToBase64(processedFile);
           setImageUrl(previewUrl || base64);
           onImageChange?.(base64);
           previousFileIdRef.current = fileId;
         } catch (error) {
-          console.error("Error converting file to base64:", error);
+          console.error("Error processing file:", error);
         }
       }
     }

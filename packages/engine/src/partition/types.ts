@@ -1,61 +1,35 @@
 export interface ParseOptions {
-  /** Force OCR on the document, even if selectable text exists. */
-  force_ocr?: boolean;
-
-  /** Enable line formatting, including math and styles detection. */
-  format_lines?: boolean;
-
-  /**
-   * Strip existing OCR text from the PDF and re-run OCR.
-   * Ignored if force_ocr is set.
-   */
-  strip_existing_ocr?: boolean;
-
-  /**
-   * Disable image extraction from the PDF.
-   * If use_llm is also set, images may be automatically captioned.
-   */
-  disable_image_extraction?: boolean;
-
-  /** Disable inline math recognition in OCR. */
-  disable_ocr_math?: boolean;
-
-  /**
-   * Significantly improves accuracy by using an LLM to enhance tables,
-   * forms, inline math, and layout detection. May increase latency.
-   * Default is true.
-   */
-  use_llm?: boolean;
-
   /** Processing mode for the parser. */
   mode?: "fast" | "balanced" | "accurate";
 
-  /** Custom prompt to use for block correction. */
-  block_correction_prompt?: string;
+  /**
+   * Disable image extraction from the PDF.
+   */
+  disable_image_extraction?: boolean;
+
+  /**
+   * Disable synthetic image captions/descriptions in output. Images will be rendered as plain img tags without alt text or the img-description wrapper div.
+   */
+  disable_image_captions?: boolean;
 
   /**
    * Additional configuration options for marker.
    * Should be a JSON object with key-value pairs.
    * See Python docstring for supported keys.
    */
-  additional_config?: Record<
-    | "disable_links"
-    | "keep_pageheader_in_output"
-    | "keep_pagefooter_in_output"
-    | "filter_blank_pages"
-    | "drop_repeated_text"
-    | "layout_coverage_threshold"
-    | "merge_threshold"
-    | "height_tolerance"
-    | "gap_threshold"
-    | "image_threshold"
-    | "min_line_length"
-    | "level_count"
-    | "default_level"
-    | "no_merge_tables_across_pages"
-    | "force_layout_block",
-    unknown
+  additional_config?: Partial<
+    Record<
+      | "keep_pageheader_in_output"
+      | "keep_pagefooter_in_output"
+      | "keep_spreadsheet_formatting",
+      boolean
+    >
   >;
+
+  /**
+   * Comma-separated list of extras to enable. Currently supports: 'track_changes', 'chart_understanding'.
+   */
+  extras?: string;
 }
 
 export interface ChunkOptions {

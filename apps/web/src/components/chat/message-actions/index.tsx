@@ -10,6 +10,7 @@ import { useCopyToClipboard } from "usehooks-ts";
 import { Action, Actions } from "@agentset/ui/ai/actions";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@agentset/ui/tooltip";
 
+import { ExportAction } from "./export";
 import MessageLogs from "./logs";
 
 function PureMessageActions({
@@ -60,6 +61,8 @@ function PureMessageActions({
         </TooltipTrigger>
         <TooltipContent>Regenerate</TooltipContent>
       </Tooltip>
+
+      <ExportAction currentId={message.id} disabled={isLoading} />
 
       {!isHosting && (
         <Tooltip>
