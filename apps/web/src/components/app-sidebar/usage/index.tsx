@@ -99,7 +99,7 @@ export function Usage() {
             activeOrganization.plan === "free" && (
               <Button asChild className="w-full">
                 <Link href={`/${activeOrganization.slug}/billing/upgrade`}>
-                  Get Pro
+                  Upgrade to Pro
                 </Link>
               </Button>
             )
