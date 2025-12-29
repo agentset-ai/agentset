@@ -1,4 +1,3 @@
-import { agenticSearch } from "@/lib/agentic/search";
 import { AgentsetApiError } from "@/lib/api/errors";
 import { withPublicApiHandler } from "@/lib/api/handler/public";
 import { hostingAuth } from "@/lib/api/hosting-auth";
@@ -9,9 +8,8 @@ import { parseRequestBody } from "@/lib/api/utils";
 import { db } from "@agentset/db/client";
 import {
   getNamespaceEmbeddingModel,
-  getNamespaceLanguageModel,
   getNamespaceVectorStore,
-  KeywordStore,
+  queryVectorStore,
 } from "@agentset/engine";
 
 import { hostingSearchSchema } from "./schema";
@@ -74,44 +72,28 @@ export const POST = withPublicApiHandler(
       });
     }
 
-    const [languageModel, vectorStore, embeddingModel] = await Promise.all([
-      getNamespaceLanguageModel(hosting.llmConfig?.model),
+    const [vectorStore, embeddingModel] = await Promise.all([
       getNamespaceVectorStore(hosting.namespace),
       getNamespaceEmbeddingModel(hosting.namespace, "query"),
     ]);
 
-    const keywordStore = hosting.namespace.keywordEnabled
-      ? new KeywordStore(hosting.namespace.id)
-      : undefined;
-
-    const result = await agenticSearch({
-      model: languageModel,
-      queryOptions: {
-        embeddingModel,
-        vectorStore,
-        topK: hosting.topK,
-        rerank: {
-          model: hosting.rerankConfig?.model,
-          limit: hosting.rerankConfig?.limit ?? 15,
-        },
-        includeMetadata: true,
+    const result = await queryVectorStore({
+      embeddingModel,
+      vectorStore,
+      query: body.query,
+      mode: "semantic",
+      topK: hosting.topK,
+      rerank: {
+        model: hosting.rerankConfig?.model,
+        limit: hosting.rerankConfig?.limit ?? 15,
       },
-      messages: [
-        {
-          role: "user",
-          content: body.query,
-        },
-      ],
+      includeMetadata: true,
     });
 
-    incrementSearchUsage(hosting.namespace.id, result.totalQueries);
+    incrementSearchUsage(hosting.namespace.id, 1);
 
     return makeApiSuccessResponse({
-      data: {
-        totalQueries: result.totalQueries,
-        queries: result.queries,
-        chunks: Object.values(result.chunks),
-      },
+      data: result.results,
       headers,
     });
   },
