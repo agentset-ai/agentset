@@ -10,6 +10,7 @@ import { LaptopIcon, SmartphoneIcon } from "lucide-react";
 import { toast } from "sonner";
 import { UAParser } from "ua-parser-js";
 
+import { Badge } from "@agentset/ui/badge";
 import { Button } from "@agentset/ui/button";
 
 const SessionItem = ({ session }: { session: Session["session"] }) => {
@@ -22,7 +23,7 @@ const SessionItem = ({ session }: { session: Session["session"] }) => {
   );
   const isCurrentSession = session.id === activeSession?.session.id;
 
-  const { mutateAsync: terminateSession, isPending: isTerminating } =
+  const { mutateAsync: revokeOtherSession, isPending: isRevoking } =
     useMutation({
       mutationFn: async () => {
         const res = await authClient.revokeSession({
@@ -36,7 +37,7 @@ const SessionItem = ({ session }: { session: Session["session"] }) => {
         return res.data;
       },
       onSuccess: () => {
-        toast.success("Session terminated successfully");
+        toast.success("Session revoked successfully");
         router.refresh();
       },
       onError: (error) => {
@@ -44,29 +45,68 @@ const SessionItem = ({ session }: { session: Session["session"] }) => {
       },
     });
 
-  return (
-    <div key={session.id}>
-      <div className="flex items-center justify-between gap-2 font-medium text-black dark:text-white">
-        <p className="flex items-center gap-2">
-          {parsedAgent.getDevice().type === "mobile" ? (
-            <SmartphoneIcon className="h-4 w-4" />
-          ) : (
-            <LaptopIcon className="h-4 w-4" />
-          )}
-          {parsedAgent.getOS().name}, {parsedAgent.getBrowser().name}{" "}
-          {isCurrentSession && <span>(Current)</span>}
-        </p>
+  const { mutateAsync: signOutCurrentSession, isPending: isSigningOut } =
+    useMutation({
+      mutationFn: async () => {
+        await authClient.signOut({
+          fetchOptions: {
+            onSuccess() {
+              router.replace("/login");
+            },
+          },
+        });
+      },
+      onError: (error) => {
+        toast.error(error.message || "Failed to sign out");
+      },
+    });
 
-        <Button
-          variant="destructive"
-          size="sm"
-          isLoading={isTerminating}
-          onClick={() => terminateSession()}
-        >
-          {isCurrentSession ? "Sign Out" : "Terminate"}
-        </Button>
+  const handleTerminate = () => {
+    if (isCurrentSession) {
+      signOutCurrentSession();
+    } else {
+      revokeOtherSession();
+    }
+  };
+
+  const isTerminating = isCurrentSession ? isSigningOut : isRevoking;
+
+  return (
+    <li className="border-border flex items-center justify-between gap-4 rounded-lg border p-4">
+      <div className="flex items-center gap-3">
+        <div className="bg-muted flex size-10 items-center justify-center rounded-full">
+          {parsedAgent.getDevice().type === "mobile" ? (
+            <SmartphoneIcon className="text-muted-foreground size-5" />
+          ) : (
+            <LaptopIcon className="text-muted-foreground size-5" />
+          )}
+        </div>
+        <div className="flex flex-col">
+          <div className="flex items-center gap-2">
+            <span className="text-foreground text-sm font-medium">
+              {parsedAgent.getBrowser().name || "Unknown Browser"}
+            </span>
+            {isCurrentSession && (
+              <Badge variant="secondary" className="text-xs">
+                Current
+              </Badge>
+            )}
+          </div>
+          <span className="text-muted-foreground text-xs">
+            {parsedAgent.getOS().name || "Unknown OS"}
+          </span>
+        </div>
       </div>
-    </div>
+
+      <Button
+        variant={isCurrentSession ? "destructive" : "outline"}
+        size="sm"
+        isLoading={isTerminating}
+        onClick={handleTerminate}
+      >
+        {isCurrentSession ? "Sign Out" : "Revoke"}
+      </Button>
+    </li>
   );
 };
 
@@ -75,16 +115,21 @@ export default function ActiveSessions({
 }: {
   activeSessions: Session["session"][];
 }) {
+  const filteredSessions = activeSessions.filter(
+    (session) => session.userAgent,
+  );
+
+  if (filteredSessions.length === 0) {
+    return (
+      <p className="text-muted-foreground text-sm">No active sessions found.</p>
+    );
+  }
+
   return (
-    <div className="mt-20 flex max-w-xl flex-col gap-5">
-      <p className="text-lg font-medium">Active Sessions</p>
-      <ul className="flex flex-col gap-2">
-        {activeSessions
-          .filter((session) => session.userAgent)
-          .map((session) => {
-            return <SessionItem key={session.id} session={session} />;
-          })}
-      </ul>
-    </div>
+    <ul className="flex flex-col gap-3">
+      {filteredSessions.map((session) => (
+        <SessionItem key={session.id} session={session} />
+      ))}
+    </ul>
   );
 }

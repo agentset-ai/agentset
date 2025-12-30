@@ -5,78 +5,106 @@ import { useState } from "react";
 import { useSession } from "@/hooks/use-session";
 import { authClient } from "@/lib/auth-client";
 import { useRouter } from "@bprogress/next/app";
-import { Loader2Icon, XIcon } from "lucide-react";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useMutation } from "@tanstack/react-query";
+import { Loader2Icon } from "lucide-react";
+import { useForm } from "react-hook-form";
 import { toast } from "sonner";
+import { z } from "zod/v4";
 
 import { Alert, AlertDescription, AlertTitle } from "@agentset/ui/alert";
+import { AvatarUploader } from "@agentset/ui/avatar-uploader";
 import { Button } from "@agentset/ui/button";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@agentset/ui/form";
 import { Input } from "@agentset/ui/input";
-import { Label } from "@agentset/ui/label";
+import { Skeleton } from "@agentset/ui/skeleton";
 
-async function convertImageToBase64(file: File): Promise<string> {
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    reader.onloadend = () => resolve(reader.result as string);
-    reader.onerror = reject;
-    reader.readAsDataURL(file);
-  });
-}
+const formSchema = z.object({
+  name: z.string().min(1, "Name is required"),
+});
+
+type FormValues = z.infer<typeof formSchema>;
 
 export default function EditUser() {
   const { session, isLoading } = useSession();
-  if (isLoading || !session) return <div>Loading...</div>;
+
+  if (isLoading) {
+    return <EditUserSkeleton />;
+  }
+
+  if (!session) {
+    return null;
+  }
 
   return <EditUserForm session={session} />;
 }
 
-const EditUserForm = ({ session }: { session: Session }) => {
-  const [name, setName] = useState<string>(session.user.name);
-  const [image, setImage] = useState<File | null>(null);
-  const [imagePreview, setImagePreview] = useState<string | null>(
-    session.user.image || null,
+function EditUserSkeleton() {
+  return (
+    <div className="flex max-w-md flex-col gap-6">
+      <Skeleton className="size-16 rounded-full" />
+      <div className="space-y-2">
+        <Skeleton className="h-4 w-20" />
+        <Skeleton className="h-10 w-full" />
+      </div>
+      <div className="space-y-2">
+        <Skeleton className="h-4 w-16" />
+        <Skeleton className="h-10 w-full" />
+      </div>
+      <Skeleton className="h-10 w-20" />
+    </div>
   );
-  const [isLoading, setIsLoading] = useState<boolean>(false);
+}
+
+const EditUserForm = ({ session }: { session: Session }) => {
+  const [imageBase64, setImageBase64] = useState<string | null>(null);
   const [emailVerificationPending, setEmailVerificationPending] =
     useState<boolean>(false);
   const router = useRouter();
 
-  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      setImage(file);
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setImagePreview(reader.result as string);
-      };
-      reader.readAsDataURL(file);
-    }
+  const form = useForm<FormValues>({
+    resolver: zodResolver(formSchema),
+    defaultValues: {
+      name: session.user.name || "",
+    },
+  });
+
+  const { mutate: updateUser, isPending } = useMutation({
+    mutationFn: async (data: FormValues) => {
+      return authClient.updateUser({
+        image: imageBase64 ?? undefined,
+        name: data.name,
+        fetchOptions: { throw: true },
+      });
+    },
+    onSuccess: () => {
+      toast.success("Profile updated successfully");
+      form.reset({ name: form.getValues("name") });
+      setImageBase64(null);
+      router.refresh();
+    },
+    onError: (error) => {
+      toast.error(error.message || "Failed to update profile");
+    },
+  });
+
+  const onSubmit = (data: FormValues) => {
+    updateUser(data);
   };
 
-  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-
-    setIsLoading(true);
-    await authClient.updateUser({
-      image: image ? await convertImageToBase64(image) : undefined,
-      name: name ? name : undefined,
-      fetchOptions: {
-        onSuccess: () => {
-          toast.success("User updated successfully");
-        },
-        onError: (error) => {
-          toast.error(error.error.message);
-        },
-      },
-    });
-
-    router.refresh();
-    setIsLoading(false);
-  };
+  const isDirty = form.formState.isDirty || imageBase64 !== null;
 
   return (
-    <div>
-      {session.user.emailVerified ? null : (
-        <Alert className="mb-10">
+    <div className="flex flex-col gap-6">
+      {!session.user.emailVerified && (
+        <Alert>
           <AlertTitle>Verify Your Email Address</AlertTitle>
           <AlertDescription className="text-muted-foreground">
             Please verify your email address. Check your inbox for the
@@ -86,7 +114,7 @@ const EditUserForm = ({ session }: { session: Session }) => {
           <Button
             size="sm"
             variant="secondary"
-            className="mt-2"
+            className="mt-3"
             onClick={async () => {
               await authClient.sendVerificationEmail(
                 {
@@ -117,66 +145,51 @@ const EditUserForm = ({ session }: { session: Session }) => {
         </Alert>
       )}
 
-      <form onSubmit={handleSubmit} className="flex max-w-xl flex-col gap-10">
-        <div className="flex flex-col gap-2">
-          <Label htmlFor="name">Full Name</Label>
-          <Input
-            id="name"
-            type="name"
-            placeholder="Enter your full name"
-            value={name}
-            required
-            onChange={(e) => setName(e.target.value)}
-          />
-        </div>
-
-        <div className="flex flex-col gap-2">
-          <Label htmlFor="email">Email</Label>
-          <Input id="email" type="email" value={session.user.email} disabled />
-        </div>
-
-        <div className="flex flex-col gap-2">
-          <Label htmlFor="image">Profile Image</Label>
-          <div className="flex items-end gap-4">
-            {imagePreview && (
-              <div className="relative h-16 w-16 flex-shrink-0 overflow-hidden rounded-sm">
-                <img
-                  src={imagePreview}
-                  alt="Profile preview"
-                  className="h-full w-full object-cover"
-                />
-              </div>
-            )}
-
-            <div className="flex w-full items-center gap-2">
-              <Input
-                id="image"
-                type="file"
-                accept="image/*"
-                onChange={handleImageChange}
-                value={image ? image.name : ""}
-                className="text-muted-foreground w-full"
-              />
-
-              {imagePreview && (
-                <XIcon
-                  className="cursor-pointer"
-                  onClick={() => {
-                    setImage(null);
-                    setImagePreview(null);
-                  }}
-                />
-              )}
-            </div>
+      <Form {...form}>
+        <form
+          onSubmit={form.handleSubmit(onSubmit)}
+          className="flex max-w-md flex-col gap-6"
+        >
+          <div className="flex flex-col gap-2">
+            <FormLabel>Profile Picture</FormLabel>
+            <AvatarUploader
+              defaultImageUrl={session.user.image}
+              onImageChange={(image) => setImageBase64(image)}
+            />
           </div>
-        </div>
 
-        <div>
-          <Button type="submit" isLoading={isLoading}>
-            Update
+          <FormField
+            control={form.control}
+            name="name"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Full Name</FormLabel>
+                <FormControl>
+                  <Input placeholder="Enter your full name" {...field} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          <div className="flex flex-col gap-2">
+            <FormLabel>Email</FormLabel>
+            <Input type="email" value={session.user.email} disabled />
+            <p className="text-muted-foreground text-sm">
+              Email cannot be changed.
+            </p>
+          </div>
+
+          <Button
+            type="submit"
+            className="w-fit"
+            disabled={!isDirty}
+            isLoading={isPending}
+          >
+            Save Changes
           </Button>
-        </div>
-      </form>
+        </form>
+      </Form>
     </div>
   );
 };
