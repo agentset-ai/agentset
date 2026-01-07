@@ -1,12 +1,11 @@
 "use client";
 
-import { Fragment, useEffect, useMemo, useState } from "react";
+import { Fragment, useEffect } from "react";
+import { useZodForm } from "@/hooks/use-zod-form";
 import { logEvent } from "@/lib/analytics";
 import { authClient } from "@/lib/auth-client";
 import { useRouter } from "@bprogress/next/app";
-import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation } from "@tanstack/react-query";
-import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { z } from "zod/v4";
 
@@ -21,7 +20,7 @@ import {
   FormMessage,
 } from "@agentset/ui/form";
 import { Input } from "@agentset/ui/input";
-import { generateToken, toSlug } from "@agentset/utils";
+import { toSlug } from "@agentset/utils";
 
 const formSchema = z.object({
   name: z.string().min(3, "Name must be at least 3 characters"),
@@ -51,16 +50,18 @@ export function CreateOrgForm({
   className?: string;
 }) {
   const router = useRouter();
-  const hashSuffix = useMemo(() => generateToken(4).toLowerCase(), []);
-
-  const form = useForm({
-    resolver: zodResolver(formSchema, undefined, { mode: "async" }),
-    reValidateMode: "onBlur",
-    defaultValues: {
-      name: "",
-      slug: "",
+  const form = useZodForm(
+    formSchema,
+    {
+      reValidateMode: "onBlur",
+      defaultValues: {
+        name: "",
+        slug: "",
+      },
     },
-  });
+    undefined,
+    { mode: "async" },
+  );
 
   const { mutateAsync: createOrganization, isPending: isCreatingOrganization } =
     useMutation({
@@ -96,10 +97,9 @@ export function CreateOrgForm({
 
   useEffect(() => {
     if (!formState.touchedFields.slug) {
-      const baseSlug = toSlug(name);
-      setValue("slug", baseSlug ? `${baseSlug}-${hashSuffix}` : "");
+      setValue("slug", toSlug(name));
     }
-  }, [name, formState.touchedFields.slug, setValue, hashSuffix]);
+  }, [name, formState.touchedFields.slug, setValue]);
 
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
     await createOrganization(values);
@@ -117,14 +117,9 @@ export function CreateOrgForm({
               name="name"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Organization Name</FormLabel>
+                  <FormLabel>Name</FormLabel>
                   <FormControl>
-                    <Input
-                      placeholder="My Organization"
-                      className="h-11"
-                      autoFocus
-                      {...field}
-                    />
+                    <Input placeholder="My Organization" autoFocus {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -136,26 +131,15 @@ export function CreateOrgForm({
               name="slug"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Organization URL</FormLabel>
+                  <FormLabel>Slug</FormLabel>
                   <FormControl>
-                    <div className="focus-within:ring-ring/50 focus-within:border-ring border-input flex h-11 w-full overflow-hidden rounded-md border bg-transparent shadow-xs transition-[color,box-shadow] focus-within:ring-[3px]">
-                      <div className="bg-muted/50 border-input text-muted-foreground flex items-center border-r px-3 text-sm">
-                        app.agentset.ai/
-                      </div>
-                      <input
-                        type="text"
-                        placeholder="my-organization"
-                        className="placeholder:text-muted-foreground flex-1 bg-transparent px-3 py-1 font-mono text-sm outline-none disabled:cursor-not-allowed disabled:opacity-50"
-                        {...field}
-                      />
-                    </div>
+                    <Input placeholder="my-organization" {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
               )}
             />
           </div>
-
           <SubmitWrapper>
             <Button
               type="submit"

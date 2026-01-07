@@ -105,18 +105,15 @@ export default function DashboardPage() {
           </div>
         }
         emptyState={
-          <div className="relative">
-            <div className="absolute top-0 right-0">{createButton}</div>
-            <CreateFirstNamespace
-              organization={{
-                id: organization.id,
-                slug: organization.slug,
-                name: organization.name,
-              }}
-              onOpenDialog={handleOpenDialog}
-              userName={userName}
-            />
-          </div>
+          <CreateFirstNamespace
+            organization={{
+              id: organization.id,
+              slug: organization.slug,
+              name: organization.name,
+            }}
+            onOpenDialog={handleOpenDialog}
+            userName={userName}
+          />
         }
       >
         {(namespaces) => (
