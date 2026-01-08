@@ -1,5 +1,3 @@
-"use client";
-
 import { useEffect, useMemo } from "react";
 import { useOrganization } from "@/hooks/use-organization";
 import { trpcClient } from "@/trpc/react";
@@ -106,7 +104,9 @@ export default function CreateNamespaceDetailsStep({
         </div>
 
         <DialogFooter className="mt-6">
-          <Button type="submit">Next</Button>
+          <Button type="submit" isLoading={formState.isValidating}>
+            Next
+          </Button>
         </DialogFooter>
       </form>
     </Form>

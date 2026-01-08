@@ -100,6 +100,7 @@ export function CreateOrgForm({
   };
 
   const SubmitWrapper = isDialog ? DialogFooter : Fragment;
+  const isLoading = isCreatingOrganization || formState.isValidating;
 
   return (
     <Form {...form}>
@@ -137,11 +138,7 @@ export function CreateOrgForm({
             />
 
             <SubmitWrapper>
-              <Button
-                type="submit"
-                className="w-full"
-                isLoading={isCreatingOrganization}
-              >
+              <Button type="submit" className="w-full" isLoading={isLoading}>
                 Create
               </Button>
             </SubmitWrapper>

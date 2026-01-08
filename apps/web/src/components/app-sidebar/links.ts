@@ -9,7 +9,6 @@ import {
   MessagesSquareIcon,
   ReceiptIcon,
   RocketIcon,
-  SearchIcon,
   SettingsIcon,
   UnplugIcon,
   UsersIcon,
@@ -111,11 +110,11 @@ export const namespaceItems: SidebarItemType[] = [
   {
     title: "Settings",
     icon: SettingsIcon,
+    adminOnly: true,
     items: [
       {
         title: "Danger",
         url: createNamespaceUrl("/settings/danger"),
-        adminOnly: true,
       },
     ],
   },

@@ -8,18 +8,22 @@ import { Tooltip, TooltipContent, TooltipTrigger } from "./ui/tooltip";
 export function RadioButton({
   icon: Icon,
   label,
+  description,
   tooltip,
   value,
   note,
   noteStyle = "primary",
+  align = "center",
   disabled,
 }: {
   icon: React.ElementType;
   label: string;
+  description?: string;
   value: string;
   tooltip?: string;
   note?: string;
   noteStyle?: "primary" | "muted";
+  align?: "center" | "start" | "end";
   disabled?: boolean;
 }) {
   return (
@@ -34,11 +38,24 @@ export function RadioButton({
 
       <Label
         htmlFor={value}
-        className="border-muted hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-primary [&:has([data-state=checked])]:border-primary flex flex-col items-center justify-between rounded-md border-2 bg-transparent p-4 text-black"
+        className={cn(
+          "border-muted hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-primary [&:has([data-state=checked])]:border-primary flex flex-col items-center justify-between rounded-md border-2 bg-transparent p-4 text-black",
+          align === "center" && "items-center",
+          align === "start" && "items-start",
+          align === "end" && "items-end",
+        )}
       >
         <Icon className="mb-3 h-6" />
-        <div className="flex items-center gap-1">
+        <div
+          className={cn(
+            "flex gap-1",
+            align === "center" && "justify-center",
+            align === "start" && "justify-start",
+            align === "end" && "justify-end",
+          )}
+        >
           {label}
+
           {tooltip && (
             <Tooltip>
               <TooltipTrigger className="mt-0.5">
@@ -48,6 +65,19 @@ export function RadioButton({
             </Tooltip>
           )}
         </div>
+
+        {description && (
+          <p
+            className={cn(
+              "text-muted-foreground text-xs",
+              align === "center" && "text-center",
+              align === "start" && "text-start",
+              align === "end" && "text-end",
+            )}
+          >
+            {description}
+          </p>
+        )}
       </Label>
 
       {note && (

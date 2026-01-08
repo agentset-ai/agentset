@@ -252,6 +252,7 @@ export default function CreateNamespaceVectorStoreStep({
             >
               Back
             </Button>
+
             <Button type="submit" isLoading={isLoading}>
               Create
             </Button>
