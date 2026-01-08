@@ -30,3 +30,8 @@ export function useIsHosting() {
   const hosting = use(HostingContext);
   return !!hosting;
 }
+
+export function useOptionalHosting() {
+  const hosting = use(HostingContext);
+  return hosting;
+}
