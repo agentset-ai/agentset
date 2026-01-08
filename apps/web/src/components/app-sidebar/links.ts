@@ -6,15 +6,31 @@ import {
   FoldersIcon,
   GlobeIcon,
   HomeIcon,
+  LucideIcon,
   MessagesSquareIcon,
   ReceiptIcon,
   RocketIcon,
   SettingsIcon,
+  ShieldIcon,
   UnplugIcon,
   UsersIcon,
 } from "lucide-react";
 
-import type { SidebarItemType } from ".";
+export type SidebarItemType = {
+  title: string;
+  url?: string;
+  icon?: LucideIcon;
+  external?: boolean;
+  adminOnly?: boolean;
+  isActive?: boolean;
+  exact?: boolean;
+  items?: {
+    title: string;
+    url: string;
+    adminOnly?: boolean;
+    exact?: boolean;
+  }[];
+};
 
 const createOrgUrl = (url: string) => `/{slug}${url}`;
 const createNamespaceUrl = (url: string) => `/{slug}/{namespaceSlug}${url}`;
@@ -117,6 +133,20 @@ export const namespaceItems: SidebarItemType[] = [
         url: createNamespaceUrl("/settings/danger"),
       },
     ],
+  },
+];
+
+export const profileItems: SidebarItemType[] = [
+  {
+    title: "General",
+    url: "/profile",
+    icon: SettingsIcon,
+    exact: true,
+  },
+  {
+    title: "Security",
+    url: "/profile/security",
+    icon: ShieldIcon,
   },
 ];
 

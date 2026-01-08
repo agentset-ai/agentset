@@ -12,6 +12,7 @@ import {
 } from "lucide-react";
 
 import { FileMetadata, useFileUpload } from "../hooks/use-file-upload";
+import { cn } from "../lib/utils";
 import {
   Cropper,
   CropperCropArea,
@@ -100,12 +101,14 @@ export function AvatarUploader({
   onImageChange,
   defaultImageUrl,
   icon: Icon = ImageIcon,
+  size = "sm",
 }: {
   maxSizeMB?: number;
   maxFiles?: number;
   defaultImageUrl?: string | null;
   onImageChange?: (image: string | null) => void;
   icon?: LucideIcon;
+  size?: "sm" | "lg";
 }) {
   const maxSize = maxSizeMB * 1024 * 1024;
   const [
@@ -134,6 +137,10 @@ export function AvatarUploader({
   const [finalImageUrl, setFinalImageUrl] = useState<string | null>(
     defaultImageUrl || null,
   );
+  useEffect(() => {
+    setFinalImageUrl(defaultImageUrl || null);
+  }, [defaultImageUrl]);
+
   const [isDialogOpen, setIsDialogOpen] = useState(false);
 
   // Ref to track the previous file ID to detect new uploads
@@ -239,12 +246,16 @@ export function AvatarUploader({
     previousFileIdRef.current = fileId;
   }, [fileId]); // Depend only on fileId
 
+  const avatarSize = size === "sm" ? 64 : 100;
+
   return (
     <div className="flex w-fit flex-col gap-2">
       <div className="relative inline-flex">
         {/* Drop area - uses finalImageUrl */}
         <button
-          className="border-input hover:bg-accent/50 data-[dragging=true]:bg-accent/50 focus-visible:border-ring focus-visible:ring-ring/50 relative flex size-16 items-center justify-center overflow-hidden rounded-full border-[1.5px] border-dashed transition-colors outline-none focus-visible:ring-[3px] has-disabled:pointer-events-none has-disabled:opacity-50 has-[img]:border-none"
+          className={cn(
+            "border-input hover:bg-accent/50 data-[dragging=true]:bg-accent/50 focus-visible:border-ring focus-visible:ring-ring/50 relative flex items-center justify-center overflow-hidden rounded-full border-[1.5px] border-dashed transition-colors outline-none focus-visible:ring-[3px] has-disabled:pointer-events-none has-disabled:opacity-50 has-[img]:border-none",
+          )}
           type="button"
           onClick={openFileDialog}
           onDragEnter={handleDragEnter}
@@ -253,19 +264,25 @@ export function AvatarUploader({
           onDrop={handleDrop}
           data-dragging={isDragging || undefined}
           aria-label={finalImageUrl ? "Change image" : "Upload image"}
+          style={{ width: avatarSize, height: avatarSize }}
         >
           {finalImageUrl ? (
             <img
               className="size-full object-cover"
               src={finalImageUrl}
               alt="User avatar"
-              width={64}
-              height={64}
+              width={avatarSize}
+              height={avatarSize}
               style={{ objectFit: "cover" }}
             />
           ) : (
             <div aria-hidden="true">
-              <Icon className="size-4 opacity-60" />
+              <Icon
+                className={cn(
+                  "opacity-60",
+                  size === "sm" ? "size-4" : "size-6",
+                )}
+              />
             </div>
           )}
         </button>
