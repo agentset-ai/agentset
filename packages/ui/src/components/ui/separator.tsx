@@ -24,4 +24,23 @@ function Separator({
   );
 }
 
-export { Separator };
+function SeparatorContent({
+  children,
+  className,
+  ...props
+}: React.ComponentProps<"span">) {
+  return (
+    <span
+      className={cn(
+        "bg-background text-muted-foreground relative mx-auto block w-fit -translate-y-1/2 px-2 text-sm",
+        className,
+      )}
+      data-slot="separator-content"
+      {...props}
+    >
+      {children}
+    </span>
+  );
+}
+
+export { Separator, SeparatorContent };

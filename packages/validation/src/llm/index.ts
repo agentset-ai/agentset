@@ -1,4 +1,4 @@
-import z from "zod/v4";
+import { z } from "zod/v4";
 
 import { DEFAULT_LLM, LLM, LLM_MODELS } from "./constants";
 

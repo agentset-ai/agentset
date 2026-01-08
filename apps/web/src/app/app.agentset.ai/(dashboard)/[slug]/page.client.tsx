@@ -15,6 +15,8 @@ import { EmptyState } from "@agentset/ui/empty-state";
 import { Separator } from "@agentset/ui/separator";
 import { Skeleton } from "@agentset/ui/skeleton";
 
+import { NamespacesEmptyState } from "./namespaces-empty-state";
+
 export default function DashboardPage() {
   const organization = useOrganization();
   const [open, setOpen] = useState(false);
@@ -87,15 +89,7 @@ export default function DashboardPage() {
             </div>
           </div>
         }
-        emptyState={
-          <EmptyState
-            className="mt-20"
-            title="No namespaces"
-            description="Create a new namespace to start uploading your data"
-            icon={FoldersIcon}
-            action={createButton}
-          />
-        }
+        emptyState={<NamespacesEmptyState createButton={createButton} />}
       >
         {(namespaces) => (
           <div>
@@ -118,7 +112,7 @@ export default function DashboardPage() {
                       </p>
                       <Separator
                         orientation="vertical"
-                        className="!h-4 shrink-0"
+                        className="h-4 shrink-0"
                       />
                       <p>
                         {formatNumber(namespace.totalDocuments, "compact")}{" "}
