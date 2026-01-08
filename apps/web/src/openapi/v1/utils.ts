@@ -1,4 +1,4 @@
-import z from "zod/v4";
+import { z } from "zod/v4";
 
 const tenantIdRegex = /^[A-Za-z0-9]{1,64}$/;
 export const tenantHeaderSchema = z

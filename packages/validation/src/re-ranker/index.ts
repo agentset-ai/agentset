@@ -1,4 +1,4 @@
-import z from "zod/v4";
+import { z } from "zod/v4";
 
 import { DEFAULT_RERANKER, RERANKER_MODELS, RerankingModel } from "./constants";
 

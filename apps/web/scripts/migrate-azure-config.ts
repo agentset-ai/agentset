@@ -1,4 +1,4 @@
-import z from "zod/v4";
+import { z } from "zod/v4";
 
 import { Prisma } from "@agentset/db";
 import { db } from "@agentset/db/client";
