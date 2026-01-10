@@ -23,15 +23,11 @@ export const hostingFormSchema = z.object({
   ogDescription: z.string().max(200).optional(),
   ogImage: z.string().nullable().optional(),
   protected: z.boolean(),
-  allowedEmails: z.array(z.string().email()),
+  allowedEmails: z.array(z.email()),
   allowedEmailDomains: z.array(z.string()),
   systemPrompt: z.string().min(1, "System prompt cannot be empty"),
-  exampleQuestions: z
-    .array(z.string().min(1, "Example cannot be empty"))
-    .max(4),
-  exampleSearchQueries: z
-    .array(z.string().min(1, "Example cannot be empty"))
-    .max(4),
+  exampleQuestions: z.array(z.string()).max(4),
+  exampleSearchQueries: z.array(z.string()).max(4),
   welcomeMessage: z.string(),
   citationMetadataPath: z.string().optional(),
   searchEnabled: z.boolean(),
@@ -102,8 +98,12 @@ export function useHostingForm(data: HostingData) {
       allowedEmails: data.allowedEmails,
       allowedEmailDomains: data.allowedEmailDomains,
       systemPrompt: data.systemPrompt || DEFAULT_SYSTEM_PROMPT.compile(),
-      exampleQuestions: data.exampleQuestions,
-      exampleSearchQueries: data.exampleSearchQueries,
+      exampleQuestions:
+        data.exampleQuestions.length === 0 ? [""] : data.exampleQuestions,
+      exampleSearchQueries:
+        data.exampleSearchQueries.length === 0
+          ? [""]
+          : data.exampleSearchQueries,
       welcomeMessage: data.welcomeMessage || "",
       citationMetadataPath: data.citationMetadataPath || "",
       searchEnabled: data.searchEnabled,
