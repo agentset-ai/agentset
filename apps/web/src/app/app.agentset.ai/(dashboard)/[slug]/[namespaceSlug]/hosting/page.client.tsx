@@ -4,14 +4,12 @@ import { useNamespace } from "@/hooks/use-namespace";
 import { useTRPC } from "@/trpc/react";
 import { useQuery } from "@tanstack/react-query";
 
-import { Separator } from "@agentset/ui/separator";
 import { Skeleton } from "@agentset/ui/skeleton";
 
-import { CustomDomainConfigurator } from "./domain-card";
+import { HostingLayout } from "./components/hosting-layout";
 import { EmptyState } from "./empty-state";
-import HostingForm from "./form";
 
-export default function HostingPage() {
+export default function HostingPageClient() {
   const namespace = useNamespace();
   const trpc = useTRPC();
   const { data, isLoading } = useQuery(
@@ -21,27 +19,30 @@ export default function HostingPage() {
   );
 
   if (isLoading) {
-    return (
-      <div className="flex max-w-xl flex-col gap-4">
-        <Skeleton className="h-[100px] w-full" />
-        <Skeleton className="h-[100px] w-full" />
-        <Skeleton className="h-[100px] w-full" />
-        <Skeleton className="h-[100px] w-full" />
-      </div>
-    );
+    return <LoadingSkeleton />;
   }
 
   if (!data) {
     return <EmptyState />;
   }
 
+  return <HostingLayout data={data} />;
+}
+
+function LoadingSkeleton() {
   return (
-    <div className="max-w-xl">
-      <HostingForm data={data} />
-
-      <Separator className="my-10" />
-
-      <CustomDomainConfigurator defaultDomain={data.domain?.slug} />
+    <div className="flex h-[calc(100dvh-(--spacing(16))-(--spacing(20)))] flex-col gap-6">
+      <Skeleton className="h-14 w-full" />
+      <div className="flex flex-1 gap-8">
+        <div className="flex flex-1 flex-col gap-4 lg:flex-6">
+          <Skeleton className="h-10 w-64" />
+          <Skeleton className="h-[200px] w-full" />
+          <Skeleton className="h-[200px] w-full" />
+        </div>
+        <div className="hidden flex-4 lg:block">
+          <Skeleton className="h-full w-full" />
+        </div>
+      </div>
     </div>
   );
 }

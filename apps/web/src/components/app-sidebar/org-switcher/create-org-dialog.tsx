@@ -1,4 +1,4 @@
-import { CreateOrgForm } from "@/app/app.agentset.ai/(dashboard)/create-organization/create-org-form";
+import { CreateOrgForm } from "@/app/app.agentset.ai/create-organization/create-org-form";
 import { toast } from "sonner";
 
 import {

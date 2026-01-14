@@ -20,14 +20,50 @@ import { toSlug } from "@agentset/utils";
 
 import CreateNamespaceDetailsStep from "./details-step";
 import CreateNamespaceEmbeddingStep from "./embedding-step";
+import CreateNamespaceSummaryStep from "./summary-step";
 import CreateNamespaceVectorStoreStep from "./vector-store-step";
+
+type Step = "details" | "summary" | "embeddings" | "vector-store";
+
+const STEPS: Record<
+  Step,
+  {
+    title: string;
+    description: string;
+  }
+> = {
+  details: {
+    title: "Create namespace",
+    description: "Create a new namespace to start ingesting data.",
+  },
+  summary: {
+    title: "Recommended Settings",
+    description:
+      "Use recommended settings or customize your namespace configuration.",
+  },
+  embeddings: {
+    title: "Embeddings",
+    description:
+      "Choose an embedding model for your namespace. Note that you can't change the embedding model once the namespace is created.",
+  },
+  "vector-store": {
+    title: "Vector Store",
+    description:
+      "Choose a vector store for your namespace. Note that you can't change the vector store once the namespace is created.",
+  },
+};
 
 export default function CreateNamespaceDialog({
   organization,
   open,
   setOpen,
 }: {
-  organization?: { id: string; slug: string; name: string } | null;
+  organization: {
+    id: string;
+    slug: string;
+    name: string;
+    totalNamespaces: number;
+  };
   open: boolean;
   setOpen: (open: boolean) => void;
 }) {
@@ -35,15 +71,11 @@ export default function CreateNamespaceDialog({
   const trpc = useTRPC();
   const queryClient = useQueryClient();
 
-  const [step, setStep] = useState<"details" | "embeddings" | "vector-store">(
-    "details",
-  );
+  const [step, setStep] = useState<Step>("details");
   const [embeddingModel, setEmbeddingModel] = useState<EmbeddingConfig>();
 
   const defaultName = useMemo(() => {
-    return organization?.name
-      ? `${organization.name}'s First Namespace`
-      : "Default";
+    return organization.totalNamespaces === 0 ? "First Namespace" : "";
   }, [organization]);
   const defaultSlug = useMemo(() => toSlug(defaultName), [defaultName]);
 
@@ -51,6 +83,7 @@ export default function CreateNamespaceDialog({
     setName(defaultName);
     setSlug(toSlug(defaultName));
   }, [defaultName]);
+
   const [name, setName] = useState(defaultName);
   const [slug, setSlug] = useState(defaultSlug);
 
@@ -78,7 +111,6 @@ export default function CreateNamespaceDialog({
 
         setName(defaultName);
         setSlug(defaultSlug);
-
         setEmbeddingModel(undefined);
         setStep("details");
 
@@ -119,20 +151,8 @@ export default function CreateNamespaceDialog({
     >
       <DialogContent className="sm:max-w-xl" scrollableOverlay>
         <DialogHeader>
-          <DialogTitle>
-            {step === "details"
-              ? "Create namespace"
-              : step === "embeddings"
-                ? "Embeddings"
-                : "Vector store"}
-          </DialogTitle>
-          <DialogDescription>
-            {step === "details"
-              ? "Create a new namespace to start ingesting data."
-              : step === "embeddings"
-                ? "Choose an embedding model for your namespace. Note that you can't change the embedding model once the namespace is created."
-                : "Choose a vector store for your namespace. Note that you can't change the vector store once the namespace is created."}
-          </DialogDescription>
+          <DialogTitle>{STEPS[step].title}</DialogTitle>
+          <DialogDescription>{STEPS[step].description}</DialogDescription>
         </DialogHeader>
 
         {step === "details" ? (
@@ -144,8 +164,15 @@ export default function CreateNamespaceDialog({
             onSubmit={(values) => {
               setName(values.name);
               setSlug(values.slug);
-              setStep("embeddings");
+              setStep("summary");
             }}
+          />
+        ) : step === "summary" ? (
+          <CreateNamespaceSummaryStep
+            isLoading={isPending}
+            onUseDefaults={() => onSubmit(undefined)}
+            onCustomize={() => setStep("embeddings")}
+            onBack={() => setStep("details")}
           />
         ) : step === "embeddings" ? (
           <CreateNamespaceEmbeddingStep
@@ -154,7 +181,7 @@ export default function CreateNamespaceDialog({
               setEmbeddingModel(values.embeddingModel ?? undefined);
               setStep("vector-store");
             }}
-            onBack={() => setStep("details")}
+            onBack={() => setStep("summary")}
           />
         ) : (
           <CreateNamespaceVectorStoreStep

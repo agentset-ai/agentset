@@ -5,7 +5,7 @@ import {
   SUPPORTED_MIME_TYPES_PREFIXES,
 } from "@/lib/file-types";
 import { batchUploadSchema, uploadFileSchema } from "@/schemas/api/upload";
-import z from "zod/v4";
+import { z } from "zod/v4";
 
 import { presignUploadUrl } from "@agentset/storage";
 import { filenamize, tryCatch } from "@agentset/utils";
