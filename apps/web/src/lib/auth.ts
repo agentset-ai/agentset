@@ -4,11 +4,16 @@ import { after } from "next/server";
 import { createApiKey } from "@/services/api-key/create";
 import { betterAuth } from "better-auth";
 import { prismaAdapter } from "better-auth/adapters/prisma";
-import { admin, magicLink, organization } from "better-auth/plugins";
+import { admin, emailOTP, magicLink, organization } from "better-auth/plugins";
 import { nanoid } from "nanoid";
 
 import { db } from "@agentset/db/client";
-import { InviteUserEmail, LoginEmail, WelcomeEmail } from "@agentset/emails";
+import {
+  InviteUserEmail,
+  LoginEmail,
+  OTPEmail,
+  WelcomeEmail,
+} from "@agentset/emails";
 import { toSlug } from "@agentset/utils";
 
 import { env } from "../env";
@@ -84,6 +89,18 @@ export const makeAuth = (params?: { baseUrl: string; isHosting: boolean }) => {
             subject: "Your Agentset login link",
             react: LoginEmail({ loginLink: url, email, domain: APP_DOMAIN }),
           });
+        },
+      }),
+      emailOTP({
+        async sendVerificationOTP({ email, otp, type }) {
+          // Send the OTP for sign in
+          if (type === "sign-in") {
+            await sendEmail({
+              email,
+              subject: "Your Agentset login code",
+              react: OTPEmail({ code: otp, email }),
+            });
+          }
         },
       }),
     ],

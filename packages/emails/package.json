@@ -23,6 +23,7 @@
     "@agentset/eslint-config": "workspace:*",
     "@agentset/prettier-config": "workspace:*",
     "@agentset/tsconfig": "workspace:*",
+    "@react-email/preview-server": "5.0.7",
     "@types/react": "catalog:react19",
     "@types/react-dom": "catalog:react19",
     "eslint": "catalog:",

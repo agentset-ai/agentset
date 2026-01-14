@@ -103,3 +103,67 @@ export const useGithubAuth = () => {
     isLoggingInWithGithub,
   };
 };
+
+export const useOtpAuth = () => {
+  const redirect = useRedirectParam();
+  const [email, setEmail] = useState("");
+  const [otp, setOtp] = useState("");
+  const [otpSent, setOtpSent] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const { mutateAsync: sendOtp, isPending: isSendingOtp } = useMutation({
+    mutationFn: async () => {
+      setError(null);
+      return authClient.emailOtp.sendVerificationOtp({
+        email: email.trim(),
+        type: "sign-in",
+        fetchOptions: { throw: true },
+      });
+    },
+    onSuccess: () => {
+      logEvent("auth_otp_sent", { email });
+      setOtpSent(true);
+    },
+    onError: (err) => {
+      setError(err.message);
+    },
+  });
+
+  const { mutateAsync: verifyOtp, isPending: isVerifyingOtp } = useMutation({
+    mutationFn: async () => {
+      setError(null);
+      return authClient.signIn.emailOtp({
+        email: email.trim(),
+        otp: otp.trim(),
+        fetchOptions: { throw: true },
+      });
+    },
+    onSuccess: () => {
+      logEvent("auth_otp_verified", { email });
+      window.location.href = redirect;
+    },
+    onError: (err) => {
+      setError(err.message);
+    },
+  });
+
+  const reset = () => {
+    setOtpSent(false);
+    setOtp("");
+    setError(null);
+  };
+
+  return {
+    email,
+    setEmail,
+    otp,
+    setOtp,
+    otpSent,
+    error,
+    sendOtp,
+    isSendingOtp,
+    verifyOtp,
+    isVerifyingOtp,
+    reset,
+  };
+};
