@@ -102,7 +102,7 @@ export function fromZodError(error: ZodError): Pick<ErrorResponse, "error"> {
   return {
     error: {
       code: "unprocessable_entity",
-      message: generateErrorMessage(error.issues as any, {
+      message: generateErrorMessage(error.issues, {
         maxErrors: 1,
         delimiter: {
           component: ": ",
