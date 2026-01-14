@@ -17,6 +17,22 @@ const useRedirectParam = () => {
   return value;
 };
 
+export const useLoginError = () => {
+  const params = useSearchParams();
+  const isClient = useIsClient();
+  if (!isClient) return null;
+
+  const errorCode = params.get("error") as
+    | keyof typeof authClient.$ERROR_CODES
+    | null;
+  if (!errorCode) return null;
+
+  if (errorCode === "INVALID_TOKEN")
+    return "The magic link is invalid or expired. Please try again.";
+
+  return "An error occurred. Please try again.";
+};
+
 export const useMagicAuth = () => {
   const redirect = useRedirectParam();
   const [email, setEmail] = useState("");
@@ -28,6 +44,7 @@ export const useMagicAuth = () => {
         authClient.signIn.magicLink({
           email: email.trim(),
           callbackURL: redirect,
+          errorCallbackURL: "/login",
         }),
       onSuccess: () => {
         logEvent("auth_magic_link_sent", { email });
@@ -50,7 +67,11 @@ export const useGoogleAuth = () => {
   const { mutateAsync: googleLogin, isPending: isLoggingInWithGoogle } =
     useMutation({
       mutationFn: () =>
-        authClient.signIn.social({ provider: "google", callbackURL: redirect }),
+        authClient.signIn.social({
+          provider: "google",
+          callbackURL: redirect,
+          errorCallbackURL: "/login",
+        }),
       onSuccess: () => {
         logEvent("auth_social_login", { provider: "google" });
       },
@@ -67,7 +88,11 @@ export const useGithubAuth = () => {
   const { mutateAsync: githubLogin, isPending: isLoggingInWithGithub } =
     useMutation({
       mutationFn: () =>
-        authClient.signIn.social({ provider: "github", callbackURL: redirect }),
+        authClient.signIn.social({
+          provider: "github",
+          callbackURL: redirect,
+          errorCallbackURL: "/login",
+        }),
       onSuccess: () => {
         logEvent("auth_social_login", { provider: "github" });
       },
