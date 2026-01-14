@@ -344,7 +344,7 @@
     "tailwindcss": "^4.1.17",
     "typescript": "^5.9.3",
     "vitest": "^3.2.4",
-    "zod": "^4.3.5",
+    "zod": "4.3.5",
     "zod-openapi": "^5.4.6",
   },
   "catalogs": {
