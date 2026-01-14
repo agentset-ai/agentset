@@ -1,5 +1,6 @@
 import {
   adminClient,
+  emailOTPClient,
   inferAdditionalFields,
   magicLinkClient,
   organizationClient,
@@ -16,5 +17,6 @@ export const authClient = createAuthClient({
     adminClient(),
     organizationClient(),
     magicLinkClient(),
+    emailOTPClient(),
   ],
 });
