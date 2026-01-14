@@ -63,5 +63,8 @@
         "@types/react-dom": "19.2.3"
       }
     }
+  },
+  "patchedDependencies": {
+    "zod@4.3.5": "patches/zod@4.3.5.patch"
   }
 }

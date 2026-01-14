@@ -329,6 +329,9 @@
       "version": "0.1.0",
     },
   },
+  "patchedDependencies": {
+    "zod@4.3.5": "patches/zod@4.3.5.patch",
+  },
   "catalog": {
     "@t3-oss/env-nextjs": "^0.13.8",
     "@tanstack/react-query": "^5.90.12",
