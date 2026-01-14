@@ -88,7 +88,7 @@ export default async function HostingMiddleware(
 
   // 404
   if (!hosting) {
-    return NextResponse.error();
+    return NextResponse.rewrite(new URL(`/hosting-not-found`, req.url));
   }
 
   const sessionCookie = getSessionCookie(req);
