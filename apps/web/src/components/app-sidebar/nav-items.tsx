@@ -22,7 +22,7 @@ import {
   SidebarMenuSubItem,
 } from "@agentset/ui/sidebar";
 
-import type { SidebarItemType } from ".";
+import type { SidebarItemType } from "./links";
 
 const processUrl = (url: string, slug: string, namespaceSlug?: string) => {
   let newUrl = url.replace("{slug}", slug);

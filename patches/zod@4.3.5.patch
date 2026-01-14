@@ -1,0 +1,13 @@
+diff --git a/v4/core/to-json-schema.js b/v4/core/to-json-schema.js
+index b0525de75b1fdb95e1f8f9f5c72d9eff15e5aa1c..966c3df8514a7c6f386b6db6474dde59c107ed0f 100644
+--- a/v4/core/to-json-schema.js
++++ b/v4/core/to-json-schema.js
+@@ -253,7 +253,7 @@ export function finalize(ctx, schema) {
+                 }
+             }
+             // When ref was extracted to $defs, remove properties that match the definition
+-            if (refSchema.$ref) {
++            if (refSchema.$ref && refSeen.def) {
+                 for (const key in schema) {
+                     if (key === "$ref" || key === "allOf")
+                         continue;

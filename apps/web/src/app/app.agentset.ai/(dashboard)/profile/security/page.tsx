@@ -4,12 +4,12 @@ import DashboardPageWrapper from "@/components/dashboard-page-wrapper";
 import PageClient from "./page.client";
 
 export const metadata: Metadata = {
-  title: "Profile | General",
+  title: "Profile | Security",
 };
 
-export default function ProfilePage() {
+export default function SecurityPage() {
   return (
-    <DashboardPageWrapper title="Profile" requireOrg={false}>
+    <DashboardPageWrapper title="Security" requireOrg={false}>
       <PageClient />
     </DashboardPageWrapper>
   );

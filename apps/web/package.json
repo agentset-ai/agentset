@@ -61,7 +61,7 @@
     "usehooks-ts": "^3.1.1",
     "virtua": "^0.47.2",
     "zod": "catalog:",
-    "zod-error": "^1.5.0",
+    "zod-error": "catalog:",
     "zod-openapi": "catalog:",
     "zustand": "^5.0.3"
   },

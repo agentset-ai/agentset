@@ -1,12 +1,15 @@
 import { cache } from "react";
 import { headers } from "next/headers";
+import { after } from "next/server";
 import { createApiKey } from "@/services/api-key/create";
 import { betterAuth } from "better-auth";
 import { prismaAdapter } from "better-auth/adapters/prisma";
 import { admin, magicLink, organization } from "better-auth/plugins";
+import { nanoid } from "nanoid";
 
 import { db } from "@agentset/db/client";
 import { InviteUserEmail, LoginEmail, WelcomeEmail } from "@agentset/emails";
+import { toSlug } from "@agentset/utils";
 
 import { env } from "../env";
 import { APP_DOMAIN } from "./constants";
@@ -99,44 +102,78 @@ export const makeAuth = (params?: { baseUrl: string; isHosting: boolean }) => {
         },
       },
     },
-    databaseHooks: params
-      ? {
-          user: {
-            create: {
-              // TODO: track the hosting id
-              before: !isUsingDefaultUrl
-                ? // eslint-disable-next-line @typescript-eslint/require-await
-                  async (user) => {
-                    const domain = new URL(params.baseUrl).host;
+    databaseHooks: {
+      user: {
+        create: {
+          // TODO: track the hosting id
+          before:
+            !isUsingDefaultUrl && params
+              ? // eslint-disable-next-line @typescript-eslint/require-await
+                async (user) => {
+                  const domain = new URL(params.baseUrl).host;
 
-                    return {
-                      data: {
-                        ...user,
-                        referrerDomain: domain,
-                      },
-                    };
-                  }
-                : undefined,
-              // only send welcome email if using default url
-              after:
-                isUsingDefaultUrl && !params.isHosting
-                  ? async (user) => {
-                      await sendEmail({
-                        email: user.email,
-                        subject: "Welcome to Agentset",
-                        react: WelcomeEmail({
-                          name: user.name || null,
-                          email: user.email,
-                          domain: APP_DOMAIN,
-                        }),
-                        variant: "marketing",
-                      });
-                    }
-                  : undefined,
-            },
+                  return {
+                    data: {
+                      ...user,
+                      referrerDomain: domain,
+                    },
+                  };
+                }
+              : undefined,
+          after: async (user) => {
+            // only send welcome email if using default url
+            if (isUsingDefaultUrl && !params.isHosting) {
+              after(async () => {
+                await sendEmail({
+                  email: user.email,
+                  subject: "Welcome to Agentset",
+                  react: WelcomeEmail({
+                    name: user.name || null,
+                    email: user.email,
+                    domain: APP_DOMAIN,
+                  }),
+                  variant: "marketing",
+                });
+              });
+            }
+
+            // create default org for user
+            await auth.api.createOrganization({
+              body: {
+                userId: user.id,
+                name: `${user.name ? `${user.name}'s` : "First"} Organization`,
+                slug: toSlug(user.name || "org", nanoid(9)),
+              },
+            });
           },
-        }
-      : undefined,
+        },
+      },
+      session: {
+        create: {
+          async before(session) {
+            // get the newest org for the user
+            const org = await db.organization.findFirst({
+              where: {
+                members: {
+                  some: { userId: session.userId },
+                },
+              },
+              select: { id: true },
+              orderBy: {
+                createdAt: "desc",
+              },
+            });
+
+            return {
+              data: {
+                ...session,
+                activeOrganizationId: org?.id,
+              },
+            };
+          },
+        },
+      },
+    },
   });
 };
 
