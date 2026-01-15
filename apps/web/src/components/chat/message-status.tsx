@@ -1,35 +1,13 @@
 import { useEffect, useState } from "react";
 import { MyUIMessage } from "@/types/ai";
-import {
-  LucideIcon,
-  MessageSquareIcon,
-  PencilIcon,
-  SearchIcon,
-} from "lucide-react";
+import { SearchIcon } from "lucide-react";
 
 import {
   ChainOfThought,
   ChainOfThoughtContent,
   ChainOfThoughtHeader,
-  ChainOfThoughtSearchResult,
-  ChainOfThoughtSearchResults,
   ChainOfThoughtStep,
 } from "@agentset/ui/ai/chain-of-thought";
-
-const STATUS_LABELS: Record<
-  Extract<
-    MyUIMessage["parts"][number],
-    { type: "data-status" }
-  >["data"]["value"],
-  { label: string; icon: LucideIcon }
-> = {
-  "generating-queries": { label: "Generating queries...", icon: PencilIcon },
-  searching: { label: "Searching...", icon: SearchIcon },
-  "generating-answer": {
-    label: "Generating answer...",
-    icon: MessageSquareIcon,
-  },
-};
 
 export const MessageStatus = ({
   message,
@@ -40,12 +18,15 @@ export const MessageStatus = ({
 }) => {
   const [open, setOpen] = useState(isLoading);
   useEffect(() => {
-    if (!isLoading) {
-      setOpen(false);
-    }
+    if (!isLoading) setOpen(false);
   }, [isLoading]);
 
-  const statusParts = message.parts.filter((p) => p.type === "data-status");
+  const statusParts = message.parts.filter(
+    (p) =>
+      p.type === "tool-semantic_search" ||
+      p.type === "tool-keyword_search" ||
+      p.type === "tool-expand",
+  );
 
   if (statusParts.length === 0) return null;
 
@@ -53,26 +34,21 @@ export const MessageStatus = ({
     <ChainOfThought open={open} onOpenChange={setOpen} className="mt-4">
       <ChainOfThoughtHeader isLoading={isLoading} />
       <ChainOfThoughtContent>
-        {statusParts.map(({ data, id }, index) => {
-          const { label, icon: Icon } = STATUS_LABELS[data.value];
+        {statusParts.map((part, index) => {
           const isLast = index === statusParts.length - 1;
           return (
             <ChainOfThoughtStep
-              key={`${id}-${index}`}
-              icon={Icon}
-              label={label}
+              key={part.toolCallId}
+              icon={SearchIcon}
+              label={
+                part.type === "tool-expand"
+                  ? "Expanding context..."
+                  : part.input?.query
+                    ? `Searching "${part.input.query}"`
+                    : "Searching..."
+              }
               status={isLoading && isLast ? "active" : "complete"}
-            >
-              {data.value === "searching" ? (
-                <ChainOfThoughtSearchResults className="flex-wrap">
-                  {data.queries.map((query) => (
-                    <ChainOfThoughtSearchResult key={query}>
-                      {query}
-                    </ChainOfThoughtSearchResult>
-                  ))}
-                </ChainOfThoughtSearchResults>
-              ) : null}
-            </ChainOfThoughtStep>
+            />
           );
         })}
       </ChainOfThoughtContent>

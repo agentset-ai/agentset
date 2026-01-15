@@ -1,10 +1,9 @@
-import agenticPipeline from "@/lib/agentic";
+import { streamAgenticResponse } from "@/lib/agentic";
 import { AgentsetApiError } from "@/lib/api/errors";
 import { withPublicApiHandler } from "@/lib/api/handler/public";
 import { hostingAuth } from "@/lib/api/hosting-auth";
 import { parseRequestBody } from "@/lib/api/utils";
 import { DEFAULT_SYSTEM_PROMPT } from "@/lib/prompts";
-import { extractTextFromParts } from "@/lib/string-utils";
 import { waitUntil } from "@vercel/functions";
 import { convertToModelMessages } from "ai";
 
@@ -75,13 +74,8 @@ export const POST = withPublicApiHandler(
     );
 
     const messages = convertToModelMessages(body.messages);
-    const messagesWithoutQuery = messages.slice(0, -1);
-    const lastMessage =
-      messages.length > 0
-        ? extractTextFromParts(messages[messages.length - 1]!.content)
-        : null;
 
-    if (!lastMessage) {
+    if (messages.length === 0) {
       throw new AgentsetApiError({
         code: "bad_request",
         message: "Messages must contain at least one message",
@@ -116,29 +110,24 @@ export const POST = withPublicApiHandler(
       ? new KeywordStore(hosting.namespace.id)
       : undefined;
 
-    const result = agenticPipeline({
+    const result = streamAgenticResponse({
       model: languageModel,
       keywordStore,
-      queryOptions: {
-        embeddingModel,
-        vectorStore,
-        topK: hosting.topK,
-        rerank: {
-          model: hosting.rerankConfig?.model,
-          limit: hosting.rerankConfig?.limit ?? 15,
-        },
-        includeMetadata: true,
+      embeddingModel,
+      vectorStore,
+      topK: hosting.topK,
+      rerank: {
+        model: hosting.rerankConfig?.model,
+        limit: hosting.rerankConfig?.limit,
       },
       systemPrompt: hosting.systemPrompt ?? DEFAULT_SYSTEM_PROMPT.compile(),
       temperature: 0,
-      messagesWithoutQuery,
-      lastMessage,
+      messages,
       afterQueries: (totalQueries) => {
         incrementUsage(hosting.namespace.id, totalQueries);
       },
-      headers,
     });
 
-    return result;
+    return result.toUIMessageStreamResponse({ headers });
   },
 );
