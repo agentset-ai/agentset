@@ -98,7 +98,7 @@ export class Turbopuffer implements VectorStore<TurbopufferVectorFilter> {
         filters: filter,
         include_attributes: params.includeMetadata ? undefined : ["id", "text"],
         exclude_attributes: params.includeMetadata ? ["vector"] : undefined,
-        consistency: { level: "eventual" },
+        consistency: { level: params.consistency ?? "eventual" },
       };
 
       if (params.mode.type === "semantic" || params.mode.type === "keyword") {

@@ -11,6 +11,7 @@ export type QueryVectorStoreOptions = Omit<VectorStoreQueryOptions, "mode"> & {
   vectorStore: VectorStore;
   rerank?: false | { model?: RerankingModel; limit?: number };
   mode?: VectorStoreQueryOptions["mode"]["type"];
+  consistency?: VectorStoreQueryOptions["consistency"];
 };
 
 export const queryVectorStore = async ({
@@ -36,6 +37,7 @@ export const queryVectorStore = async ({
     minScore: options.minScore,
     includeMetadata: options.includeMetadata,
     includeRelationships: options.includeRelationships,
+    consistency: options.consistency,
   });
 
   // If re-ranking is enabled and we have a query, perform reranking

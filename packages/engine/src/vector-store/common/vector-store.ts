@@ -18,6 +18,7 @@ export interface VectorStoreQueryOptions<Filter = VectorFilter> {
   includeMetadata?: boolean;
   includeRelationships?: boolean;
   minScore?: number;
+  consistency?: "eventual" | "strong";
   mode:
     | {
         type: "semantic";
