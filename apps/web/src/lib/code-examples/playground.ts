@@ -52,24 +52,24 @@ console.log(result);
 
 export const pythonExample = (apiKey?: string) => /* python */ `
 from agentset import Agentset
-from openai import OpenAI as OpenAIClient
+from openai import OpenAI
 
 client = Agentset(
     namespace_id="{{namespace}}",
     token="${apiKey ?? "YOUR_API_KEY"}",
 )
 
-openai = OpenAIClient()
+openai = OpenAI()
 
 query = "What are the key findings?"
 
 # Search for relevant context
 results = client.search.execute(query=query)
-context = "\n\n".join([r.text for r in results.data])
+context = "\\n\\n".join([r.text for r in results.data])
 
 # Generate a response
 response = openai.responses.create(
-    model="gpt-5.1",
+    model="gpt-4.1",
     input=[
         {
             "role": "system",
@@ -82,5 +82,5 @@ response = openai.responses.create(
     ],
 )
 
-print(response.output_text)
+print(response)
 `;

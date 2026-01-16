@@ -58,7 +58,7 @@ export default function ApiDialog({
       <DialogTrigger asChild disabled>
         {trigger({ disabled: false })}
       </DialogTrigger>
-      <DialogContent className="sm:max-w-2xl">
+      <DialogContent className="sm:max-w-2xl" scrollableOverlay>
         <DialogHeader>
           <DialogTitle>{title}</DialogTitle>
           <DialogDescription>{description}</DialogDescription>
