@@ -386,26 +386,6 @@ Triggered when a user performs a search in the playground search interface.
 
 **Location:** `apps/web/src/app/app.agentset.ai/(dashboard)/[slug]/[namespaceSlug]/playground/search/page.client.tsx`
 
-## Benchmarking Events
-
-### `benchmark_evaluated`
-
-Triggered when a user runs a benchmark evaluation on their namespace.
-
-**Payload:**
-
-```typescript
-{
-  namespaceId: string;     // Namespace ID
-  mode: "normal" | "agentic"; // Evaluation mode
-  correctness: number;     // Correctness score
-  faithfulness: boolean;   // Whether response was faithful to context
-  relevance: boolean;      // Whether response was relevant to query
-}
-```
-
-**Location:** `apps/web/src/app/app.agentset.ai/(dashboard)/[slug]/[namespaceSlug]/benchmarks/page.client.tsx`
-
 ## Billing Events
 
 ### `billing_upgrade_clicked`
@@ -539,7 +519,6 @@ Events follow a `{object}_{action}` pattern:
 - `domain_*` - Custom domain management events
 - `hosting_*` - Hosting configuration events
 - `playground_*` - Playground feature events
-- `benchmark_*` - Benchmarking and evaluation events
 - `billing_*` - Billing and subscription events
 - `connectors_*` - Connectors and integration events
 
