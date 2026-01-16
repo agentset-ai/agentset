@@ -49,6 +49,7 @@ export const searchRouter = createTRPCRouter({
           : false,
         embeddingModel,
         vectorStore,
+        consistency: "strong",
       });
 
       // Track search usage
