@@ -40,7 +40,6 @@ Agentset is the open-source platform to build, evaluate, and ship production-rea
 
 - Turnkey RAG: ingestion, chunking, embeddings, and retrieval
 - Model agnostic: works with your choice of LLM, embeddings, and vector DB
-- Benchmarks and evals to track quality over time
 - Chat playground with message editing and citations
 - Production hosting with preview links and custom domains
 - API + typed SDKs, OpenAPI spec
