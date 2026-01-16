@@ -130,6 +130,7 @@ export const POST = withAuthApiHandler(
                 limit: body.rerankLimit,
               }
             : false,
+          consistency: "strong",
         },
         // maxQueries
       });
@@ -162,6 +163,7 @@ export const POST = withAuthApiHandler(
                 limit: body.rerankLimit,
               }
             : false,
+          consistency: "strong",
         },
         systemPrompt: body.systemPrompt,
         temperature: body.temperature,
@@ -191,6 +193,7 @@ export const POST = withAuthApiHandler(
             limit: body.rerankLimit,
           }
         : false,
+      consistency: "strong",
     });
 
     if (!data) {
