@@ -52,12 +52,17 @@ export const useMagicAuth = () => {
       },
     });
 
+  const reset = () => {
+    setSent(false);
+  };
+
   return {
     email,
     setEmail,
     sent,
     magicLogin,
     isSendingMagicLink,
+    reset,
   };
 };
 
@@ -111,23 +116,28 @@ export const useOtpAuth = () => {
   const [otpSent, setOtpSent] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const { mutateAsync: sendOtp, isPending: isSendingOtp } = useMutation({
-    mutationFn: async () => {
-      setError(null);
-      return authClient.emailOtp.sendVerificationOtp({
-        email: email.trim(),
-        type: "sign-in",
-        fetchOptions: { throw: true },
-      });
+  const { mutateAsync: sendOtpMutation, isPending: isSendingOtp } = useMutation(
+    {
+      mutationFn: async (emailOverride?: string) => {
+        setError(null);
+        const emailToUse = emailOverride ?? email;
+        return authClient.emailOtp.sendVerificationOtp({
+          email: emailToUse.trim(),
+          type: "sign-in",
+          fetchOptions: { throw: true },
+        });
+      },
+      onSuccess: () => {
+        logEvent("auth_otp_sent", { email });
+        setOtpSent(true);
+      },
+      onError: (err) => {
+        setError(err.message);
+      },
     },
-    onSuccess: () => {
-      logEvent("auth_otp_sent", { email });
-      setOtpSent(true);
-    },
-    onError: (err) => {
-      setError(err.message);
-    },
-  });
+  );
+
+  const sendOtp = (emailOverride?: string) => sendOtpMutation(emailOverride);
 
   const { mutateAsync: verifyOtp, isPending: isVerifyingOtp } = useMutation({
     mutationFn: async () => {

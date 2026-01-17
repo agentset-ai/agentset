@@ -19,8 +19,14 @@ export function LoginForm({
   ...props
 }: React.ComponentPropsWithoutRef<"div">) {
   const [mode, setMode] = useState<LoginMode>("magic");
-  const { magicLogin, isSendingMagicLink, sent, email, setEmail } =
-    useMagicAuth();
+  const {
+    magicLogin,
+    isSendingMagicLink,
+    sent,
+    email,
+    setEmail,
+    reset: resetMagic,
+  } = useMagicAuth();
   const {
     email: otpEmail,
     setEmail: setOtpEmail,
@@ -51,8 +57,10 @@ export function LoginForm({
     verifyOtp();
   };
 
-  const switchToOtp = () => {
+  const switchToOtp = async () => {
     setOtpEmail(email);
+    await sendOtp(email);
+    resetMagic();
     setMode("otp");
   };
 
@@ -120,6 +128,7 @@ export function LoginForm({
                     maxLength={6}
                     value={otp}
                     onChange={setOtp}
+                    onComplete={verifyOtp}
                     autoFocus
                   >
                     <InputOTPGroup>
@@ -140,7 +149,7 @@ export function LoginForm({
                     isLoading={isVerifyingOtp}
                     disabled={otp.length !== 6}
                   >
-                    Verify code
+                    {isVerifyingOtp ? "Verifying..." : "Verify code"}
                   </Button>
                 </div>
 
@@ -218,27 +227,32 @@ export function LoginForm({
                 />
               </div>
 
-              <div className="mt-8 grid gap-3 sm:grid-cols-2">
+              <div className="mt-8">
                 <Button
                   type="submit"
                   className="w-full"
                   isLoading={isSendingMagicLink}
                 >
-                  Magic link
-                </Button>
-                <Button
-                  type="button"
-                  variant="outline"
-                  className="w-full"
-                  onClick={switchToOtp}
-                >
-                  Login code
+                  Sign in
                 </Button>
               </div>
             </form>
           </div>
         )}
       </div>
+
+      {sent && (
+        <p className="mt-4 text-center text-sm text-gray-600">
+          Magic link not working?{" "}
+          <button
+            type="button"
+            onClick={switchToOtp}
+            className="cursor-pointer font-medium text-gray-800 underline underline-offset-4 hover:text-black"
+          >
+            Use a login code instead
+          </button>
+        </p>
+      )}
     </>
   );
 }
