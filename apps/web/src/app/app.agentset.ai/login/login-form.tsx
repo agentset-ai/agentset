@@ -41,8 +41,6 @@ export function LoginForm({
   const { googleLogin, isLoggingInWithGoogle } = useGoogleAuth();
   const { githubLogin, isLoggingInWithGithub } = useGithubAuth();
   const {
-    email: otpEmail,
-    setEmail: setOtpEmail,
     otp,
     setOtp,
     otpSent,
@@ -60,18 +58,12 @@ export function LoginForm({
     magicLogin();
   };
 
-  const handleOtpSend = (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    sendOtp();
-  };
-
   const handleOtpVerify = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    verifyOtp();
+    verifyOtp(email);
   };
 
   const switchToOtp = async () => {
-    setOtpEmail(email);
     await sendOtp(email);
     resetMagic();
     setMode("otp");
@@ -127,13 +119,13 @@ export function LoginForm({
               </a>
             </div>
 
-            {otpSent ? (
+            {otpSent && (
               <form onSubmit={handleOtpVerify}>
                 <h1 className="mt-8 text-base/6 font-medium">
                   Enter your code
                 </h1>
                 <p className="mt-1 text-sm/5 text-gray-600">
-                  We sent a 6-digit code to {otpEmail}
+                  We sent a 6-digit code to {email}
                 </p>
 
                 <div className="mt-8 flex justify-center">
@@ -160,9 +152,9 @@ export function LoginForm({
                     type="submit"
                     className="w-full"
                     isLoading={isVerifyingOtp}
-                    disabled={otp.length !== 6}
+                    disabled={otp.length !== 6 || isVerifyingOtp}
                   >
-                    {isVerifyingOtp ? "Verifying..." : "Verify code"}
+                    Verify code
                   </Button>
                 </div>
 
@@ -170,44 +162,11 @@ export function LoginForm({
                   <Button
                     variant="link"
                     type="button"
-                    onClick={() => sendOtp()}
-                    disabled={isSendingOtp}
+                    onClick={() => sendOtp(email)}
+                    isLoading={isSendingOtp}
                     className="text-sm text-gray-600"
                   >
-                    {isSendingOtp ? "Sending..." : "Resend code"}
-                  </Button>
-                </div>
-              </form>
-            ) : (
-              <form onSubmit={handleOtpSend}>
-                <h1 className="mt-8 text-base/6 font-medium">
-                  Sign in with code
-                </h1>
-                <p className="mt-1 text-sm/5 text-gray-600">
-                  We'll send a 6-digit code to your email.
-                </p>
-
-                <div className="mt-8 space-y-3">
-                  <Label className="text-sm/5 font-medium" htmlFor="otp-email">
-                    Email
-                  </Label>
-                  <Input
-                    id="otp-email"
-                    type="email"
-                    placeholder="m@example.com"
-                    required
-                    value={otpEmail}
-                    onChange={(e) => setOtpEmail(e.target.value)}
-                  />
-                </div>
-
-                <div className="mt-8">
-                  <Button
-                    type="submit"
-                    className="w-full"
-                    isLoading={isSendingOtp}
-                  >
-                    Send code
+                    Resend code
                   </Button>
                 </div>
               </form>

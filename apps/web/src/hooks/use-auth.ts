@@ -111,24 +111,23 @@ export const useGithubAuth = () => {
 
 export const useOtpAuth = () => {
   const redirect = useRedirectParam();
-  const [email, setEmail] = useState("");
   const [otp, setOtp] = useState("");
   const [otpSent, setOtpSent] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const { mutateAsync: sendOtpMutation, isPending: isSendingOtp } = useMutation(
     {
-      mutationFn: async (emailOverride?: string) => {
+      mutationFn: async (email: string) => {
         setError(null);
-        const emailToUse = emailOverride ?? email;
+
         return authClient.emailOtp.sendVerificationOtp({
-          email: emailToUse.trim(),
+          email: email.trim(),
           type: "sign-in",
           fetchOptions: { throw: true },
         });
       },
-      onSuccess: () => {
-        logEvent("auth_otp_sent", { email });
+      onSuccess: (_, email) => {
+        logEvent("auth_otp_sent", { email: email.trim() });
         setOtpSent(true);
       },
       onError: (err) => {
@@ -137,10 +136,8 @@ export const useOtpAuth = () => {
     },
   );
 
-  const sendOtp = (emailOverride?: string) => sendOtpMutation(emailOverride);
-
   const { mutateAsync: verifyOtp, isPending: isVerifyingOtp } = useMutation({
-    mutationFn: async () => {
+    mutationFn: async (email: string) => {
       setError(null);
       return authClient.signIn.emailOtp({
         email: email.trim(),
@@ -148,8 +145,8 @@ export const useOtpAuth = () => {
         fetchOptions: { throw: true },
       });
     },
-    onSuccess: () => {
-      logEvent("auth_otp_verified", { email });
+    onSuccess: (_, email) => {
+      logEvent("auth_otp_verified", { email: email.trim() });
       window.location.href = redirect;
     },
     onError: (err) => {
@@ -164,13 +161,11 @@ export const useOtpAuth = () => {
   };
 
   return {
-    email,
-    setEmail,
     otp,
     setOtp,
     otpSent,
     error,
-    sendOtp,
+    sendOtp: sendOtpMutation,
     isSendingOtp,
     verifyOtp,
     isVerifyingOtp,
