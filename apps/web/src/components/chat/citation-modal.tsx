@@ -2,6 +2,7 @@ import { useMemo } from "react";
 import { useHosting, useIsHosting } from "@/contexts/hosting-context";
 
 import { CodeBlock, CodeBlockCopyButton } from "@agentset/ui/ai/code-block";
+import { Response } from "@agentset/ui/ai/response";
 import { cn } from "@agentset/ui/cn";
 import {
   Dialog,
@@ -100,6 +101,7 @@ export function CitationModal({
         onOpenAutoFocus={(event) => {
           event.preventDefault(); // prevents Radix from auto-focusing the first focusable
         }}
+        scrollableOverlay
       >
         <DialogHeader>
           <DialogTitle>
@@ -107,20 +109,20 @@ export function CitationModal({
           </DialogTitle>
         </DialogHeader>
 
-        <div className="mt-4 max-h-[60vh] overflow-y-auto">
-          <p className="text-sm whitespace-pre-wrap">{source.text}</p>
+        <Response mode="static" className="mt-4">
+          {source.text}
+        </Response>
 
-          {stringifiedMetadata && (
-            <div className="border-border mt-6 border-t pt-6">
-              <h3 className="text-xs font-medium">Metadata</h3>
-              <div className="mt-2">
-                <CodeBlock code={stringifiedMetadata} language="json">
-                  <CodeBlockCopyButton />
-                </CodeBlock>
-              </div>
+        {stringifiedMetadata && (
+          <div className="border-border mt-6 overflow-hidden border-t pt-6">
+            <h3 className="text-xs font-medium">Metadata</h3>
+            <div className="mt-2">
+              <CodeBlock code={stringifiedMetadata} language="json">
+                <CodeBlockCopyButton />
+              </CodeBlock>
             </div>
-          )}
-        </div>
+          </div>
+        )}
       </DialogContent>
     </Dialog>
   );
