@@ -10,33 +10,33 @@ import { Spinner } from "@agentset/ui/spinner";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@agentset/ui/tooltip";
 
 type Setting = {
-  value: string;
-  provider: string;
+  title: string;
+  subtitle: string;
   icon: React.ElementType;
 };
 
 const IMMUTABLE_SETTINGS: Setting[] = [
   {
-    value: "text-embedding-3-large",
-    provider: "OpenAI",
-    icon: OpenAIIcon,
+    title: "Vector Database",
+    subtitle: "Turbopuffer",
+    icon: TurbopufferIcon,
   },
   {
-    value: "Cosine Similarity & BM25",
-    provider: "Turbopuffer",
-    icon: TurbopufferIcon,
+    title: "Embeddings",
+    subtitle: "text-embedding-3-large",
+    icon: OpenAIIcon,
   },
 ];
 
 const MUTABLE_SETTINGS: Setting[] = [
   {
-    value: "Zerank 2",
-    provider: "Zeroentropy",
+    title: "Reranker",
+    subtitle: "Zerank 2",
     icon: ZeroentropyIcon,
   },
   {
-    value: "gpt-4.1",
-    provider: "OpenAI",
+    title: "Generation",
+    subtitle: "gpt-4.1",
     icon: OpenAIIcon,
   },
 ];
@@ -49,8 +49,10 @@ const SettingCard = ({ setting }: { setting: Setting }) => {
       </div>
 
       <div className="flex flex-col">
-        <span className="truncate text-sm font-medium">{setting.provider}</span>
-        <span className="text-muted-foreground text-sm">{setting.value}</span>
+        <span className="truncate text-sm font-medium">{setting.title}</span>
+        <span className="text-muted-foreground text-sm">
+          {setting.subtitle}
+        </span>
       </div>
     </div>
   );
@@ -111,25 +113,25 @@ export default function CreateNamespaceSummaryStep({
     <div className="mt-4 flex flex-col gap-8">
       <div className="flex flex-col gap-3">
         <SectionHeader
-          title="Configuration"
+          title="Database"
           badge="Cannot be changed after creation"
           badgeVariant="warning"
         />
         <div className="grid grid-cols-2 gap-3">
           {IMMUTABLE_SETTINGS.map((setting) => (
-            <SettingCard key={setting.value} setting={setting} />
+            <SettingCard key={setting.title} setting={setting} />
           ))}
         </div>
       </div>
 
       <div className="flex flex-col gap-3">
         <SectionHeader
-          title="Default API Settings"
+          title="Retrieval"
           tooltip="Can be customized per API request"
         />
         <div className="grid grid-cols-2 gap-3">
           {MUTABLE_SETTINGS.map((setting) => (
-            <SettingCard key={setting.value} setting={setting} />
+            <SettingCard key={setting.title} setting={setting} />
           ))}
         </div>
       </div>
@@ -153,7 +155,7 @@ export default function CreateNamespaceSummaryStep({
             Customize
           </Button>
           <Button type="button" onClick={onUseDefaults} isLoading={isLoading}>
-            Use Defaults
+            Use Recommended
           </Button>
         </div>
       </DialogFooter>
