@@ -14,6 +14,9 @@ import { S3Icon } from "@agentset/ui/icons/s3";
 import { SlackIcon } from "@agentset/ui/icons/slack";
 import { OrbitingCircles } from "@agentset/ui/orbiting-circles";
 
+const mailSubject = "[Connector] Access Request";
+const mailBody = `Can you tell us about what connector you'd like access to and a bit about your use case? [you can delete this message]`;
+
 export default function EmptyState() {
   return (
     <div className="border-border w-full rounded-md border py-16">
@@ -47,11 +50,11 @@ export default function EmptyState() {
           }}
         >
           <a
-            href="mailto:connectors@agentset.ai?subject=%5BConnector%5D%20Access%20Request&body=Can%20you%20tell%20us%20about%20what%20connector%20you%27d%20like%20access%20to%20and%20a%20bit%20about%20your%20use%20case%3F%20%5Byou%20can%20delete%20this%20message%5D%0A%0A"
+            href={`mailto:connectors@agentset.ai?subject=${encodeURIComponent(mailSubject)}&body=${encodeURIComponent(mailBody)}`}
             target="_blank"
           >
             Get Access
-            <ArrowUpRightIcon className="ml-1 size-4" />
+            <ArrowUpRightIcon className="size-4" />
           </a>
         </Button>
       </div>
