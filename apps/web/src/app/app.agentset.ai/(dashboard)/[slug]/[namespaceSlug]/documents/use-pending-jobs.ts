@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { useNamespace } from "@/hooks/use-namespace";
 import { useTRPC } from "@/trpc/react";
 import { keepPreviousData, useQuery } from "@tanstack/react-query";
@@ -15,6 +16,96 @@ const PENDING_STATUSES: IngestJobStatus[] = [
   IngestJobStatus.CANCELLING,
 ];
 
+export type JobsStatus =
+  | { type: "idle" }
+  | { type: "processing" }
+  | { type: "error"; jobId: string; jobName: string | null; error: string };
+
+export function useJobsStatus(enabled: boolean) {
+  const namespace = useNamespace();
+  const trpc = useTRPC();
+  const [dismissedErrorJobId, setDismissedErrorJobId] = useState<string | null>(
+    null,
+  );
+  // Track when the hook was mounted to only show errors for jobs that failed after
+  const [mountedAt] = useState(() => new Date());
+
+  // Check for pending jobs
+  const { data: pendingData } = useQuery(
+    trpc.ingestJob.all.queryOptions(
+      {
+        namespaceId: namespace.id,
+        statuses: PENDING_STATUSES.join(","),
+        perPage: 1,
+      },
+      {
+        enabled,
+        refetchInterval: 15_000,
+        placeholderData: keepPreviousData,
+      },
+    ),
+  );
+
+  const hasPendingJobs = pendingData ? pendingData.records.length > 0 : false;
+
+  // Check for recently failed jobs
+  const { data: failedData } = useQuery(
+    trpc.ingestJob.all.queryOptions(
+      {
+        namespaceId: namespace.id,
+        statuses: IngestJobStatus.FAILED,
+        perPage: 1,
+        order: "desc",
+      },
+      {
+        enabled,
+        refetchInterval: 15_000,
+        placeholderData: keepPreviousData,
+      },
+    ),
+  );
+  const failedJob = failedData?.records[0];
+
+  // Determine the status to show
+  const getStatus = (): JobsStatus => {
+    // If there's a failed job that hasn't been dismissed and failed after mount, show error
+    const failedAfterMount =
+      failedJob?.failedAt && failedJob.failedAt > mountedAt;
+    if (
+      failedJob &&
+      failedAfterMount &&
+      failedJob.id !== dismissedErrorJobId &&
+      failedJob.error
+    ) {
+      return {
+        type: "error",
+        jobId: failedJob.id,
+        jobName: failedJob.name,
+        error: failedJob.error,
+      };
+    }
+
+    // If there are pending jobs, show processing
+    if (hasPendingJobs) {
+      return { type: "processing" };
+    }
+
+    return { type: "idle" };
+  };
+
+  const dismissError = () => {
+    if (failedJob) {
+      setDismissedErrorJobId(failedJob.id);
+    }
+  };
+
+  return {
+    status: getStatus(),
+    dismissError,
+  };
+}
+
+// Keep the old hook for backward compatibility if needed elsewhere
 export function useHasPendingJobs(enabled: boolean) {
   const namespace = useNamespace();
   const trpc = useTRPC();
@@ -27,7 +118,7 @@ export function useHasPendingJobs(enabled: boolean) {
       },
       {
         enabled,
-        refetchInterval: 15_000, // Refetch every 15 seconds
+        refetchInterval: 15_000,
         placeholderData: keepPreviousData,
       },
     ),
