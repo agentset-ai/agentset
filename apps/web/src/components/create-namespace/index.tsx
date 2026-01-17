@@ -37,7 +37,7 @@ const STEPS: Record<
     description: "Create a new namespace to start ingesting data.",
   },
   summary: {
-    title: "Recommended Settings",
+    title: "New Namespace",
     description:
       "Use recommended settings or customize your namespace configuration.",
   },
