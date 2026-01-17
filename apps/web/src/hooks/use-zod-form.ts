@@ -6,9 +6,11 @@ import { useForm } from "react-hook-form";
 export const useZodForm = <T extends z.ZodType<any, any>>(
   schema: T,
   options?: Omit<UseFormProps<z.infer<T>>, "resolver">,
+  schemaOptions?: Parameters<typeof zodResolver>[1],
+  resolverOptions?: Partial<Parameters<typeof zodResolver>[2]>,
 ) => {
   return useForm<z.infer<T>>({
-    resolver: zodResolver(schema) as any,
+    resolver: zodResolver(schema, schemaOptions, resolverOptions as any) as any,
     ...options,
   });
 };

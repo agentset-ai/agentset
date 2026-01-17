@@ -1,9 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import { zodResolver } from "@hookform/resolvers/zod";
+import { useZodForm } from "@/hooks/use-zod-form";
 import { PlusIcon } from "lucide-react";
-import { useForm } from "react-hook-form";
 import { z } from "zod/v4";
 
 import { Button } from "@agentset/ui/button";
@@ -52,9 +51,7 @@ export default function AddConnector() {
   const [selectedType, setSelectedType] = useState<string>("");
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
 
-  const form = useForm({
-    resolver: zodResolver(formSchema),
-  });
+  const form = useZodForm(formSchema);
 
   // when the provider changes, set the model to the default model for the provider
   // const currentEmbeddingProvider = form.watch("connectorProvider")?.provider;

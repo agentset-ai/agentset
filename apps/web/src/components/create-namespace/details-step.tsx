@@ -1,8 +1,7 @@
 import { useEffect, useMemo } from "react";
 import { useOrganization } from "@/hooks/use-organization";
+import { useZodForm } from "@/hooks/use-zod-form";
 import { trpcClient } from "@/trpc/react";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { useForm } from "react-hook-form";
 import { z } from "zod/v4";
 
 import { Button } from "@agentset/ui/button";
@@ -50,15 +49,19 @@ export default function CreateNamespaceDetailsStep({
   const { id } = useOrganization();
   const formSchema = useMemo(() => createFormSchema(id), [id]);
 
-  const form = useForm({
-    resolver: zodResolver(formSchema, undefined, { mode: "async" }),
-    reValidateMode: "onBlur",
-    defaultValues: {
-      name: "",
-      slug: "",
-      ...defaultValues,
+  const form = useZodForm(
+    formSchema,
+    {
+      reValidateMode: "onBlur",
+      defaultValues: {
+        name: "",
+        slug: "",
+        ...defaultValues,
+      },
     },
-  });
+    undefined,
+    { mode: "async" },
+  );
 
   const name = form.watch("name");
   const { formState, setValue } = form;
