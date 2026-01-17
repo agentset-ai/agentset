@@ -1,6 +1,7 @@
 "use client";
 
 import { logEvent } from "@/lib/analytics";
+import { ArrowUpRightIcon } from "lucide-react";
 
 import { Button } from "@agentset/ui/button";
 import { DiscordIcon } from "@agentset/ui/icons/discord";
@@ -45,8 +46,12 @@ export default function EmptyState() {
             logEvent("connectors_get_access_clicked");
           }}
         >
-          <a href="mailto:support@agentset.ai" target="_blank">
+          <a
+            href="mailto:connectors@agentset.ai?subject=%5BConnector%5D%20Access%20Request&body=Can%20you%20tell%20us%20about%20what%20connector%20you%27d%20like%20access%20to%20and%20a%20bit%20about%20your%20use%20case%3F%20%5Byou%20can%20delete%20this%20message%5D%0A%0A"
+            target="_blank"
+          >
             Get Access
+            <ArrowUpRightIcon className="ml-1 size-4" />
           </a>
         </Button>
       </div>
