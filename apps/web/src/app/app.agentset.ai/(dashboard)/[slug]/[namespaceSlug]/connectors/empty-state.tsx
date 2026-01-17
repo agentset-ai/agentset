@@ -1,6 +1,7 @@
 "use client";
 
 import { logEvent } from "@/lib/analytics";
+import { ArrowUpRightIcon } from "lucide-react";
 
 import { Button } from "@agentset/ui/button";
 import { DiscordIcon } from "@agentset/ui/icons/discord";
@@ -12,6 +13,9 @@ import { OneDriveIcon } from "@agentset/ui/icons/onedrive";
 import { S3Icon } from "@agentset/ui/icons/s3";
 import { SlackIcon } from "@agentset/ui/icons/slack";
 import { OrbitingCircles } from "@agentset/ui/orbiting-circles";
+
+const mailSubject = "[Connector] Access Request";
+const mailBody = `Can you tell us about what connector you'd like access to and a bit about your use case? [you can delete this message]`;
 
 export default function EmptyState() {
   return (
@@ -45,8 +49,12 @@ export default function EmptyState() {
             logEvent("connectors_get_access_clicked");
           }}
         >
-          <a href="mailto:support@agentset.ai" target="_blank">
+          <a
+            href={`mailto:connectors@agentset.ai?subject=${encodeURIComponent(mailSubject)}&body=${encodeURIComponent(mailBody)}`}
+            target="_blank"
+          >
             Get Access
+            <ArrowUpRightIcon className="size-4" />
           </a>
         </Button>
       </div>
