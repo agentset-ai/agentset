@@ -21,6 +21,7 @@ interface DataTableProps<TData, TValue> {
   data?: TData[];
   isLoading?: boolean;
   meta?: TableMeta<TData>;
+  pinnedTopContent?: React.ReactNode;
 }
 
 export function DataTable<TData, TValue>({
@@ -28,6 +29,7 @@ export function DataTable<TData, TValue>({
   data = [],
   isLoading,
   meta,
+  pinnedTopContent,
 }: DataTableProps<TData, TValue>) {
   const table = useReactTable({
     data,
@@ -58,6 +60,11 @@ export function DataTable<TData, TValue>({
           ))}
         </TableHeader>
         <TableBody>
+          {pinnedTopContent && (
+            <TableRow className="bg-muted/50 hover:bg-muted/50">
+              <TableCell colSpan={columns.length}>{pinnedTopContent}</TableCell>
+            </TableRow>
+          )}
           {isLoading ? (
             <TableRow>
               <TableCell colSpan={columns.length} className="h-24 text-center">
@@ -77,7 +84,7 @@ export function DataTable<TData, TValue>({
                 ))}
               </TableRow>
             ))
-          ) : (
+          ) : pinnedTopContent ? null : (
             <TableRow>
               <TableCell colSpan={columns.length} className="h-24 text-center">
                 No results.

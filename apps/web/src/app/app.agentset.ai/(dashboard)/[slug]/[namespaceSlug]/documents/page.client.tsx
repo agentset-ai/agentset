@@ -2,9 +2,9 @@
 
 import { useState } from "react";
 import { prefixId } from "@/lib/api/ids";
-import { InfoIcon } from "lucide-react";
+import { AlertCircleIcon, InfoIcon, XIcon } from "lucide-react";
 
-import { Alert, AlertDescription } from "@agentset/ui/alert";
+import { Button } from "@agentset/ui/button";
 import {
   Dialog,
   DialogContent,
@@ -21,7 +21,7 @@ import { PaginatedTable } from "./paginated-table";
 import { PaginatedTableHeader } from "./paginated-table-header";
 import { useDocuments } from "./use-documents";
 import { useJobs } from "./use-jobs";
-import { useHasPendingJobs } from "./use-pending-jobs";
+import { useJobsStatus } from "./use-pending-jobs";
 
 export default function JobsPage() {
   const [tab, setTab] = useState<"jobs" | "documents">("documents");
@@ -41,6 +41,10 @@ export default function JobsPage() {
     setExpandedJobId,
   } = useJobs(tab === "jobs");
 
+  const { status: jobsStatus, dismissError } = useJobsStatus(
+    tab === "documents",
+  );
+
   const {
     isLoading: isDocumentsLoading,
     data: documentsData,
@@ -53,7 +57,6 @@ export default function JobsPage() {
     handlePrevious: handlePreviousDocument,
     hasPrevious: hasPreviousDocument,
   } = useDocuments(undefined, tab === "documents");
-  const hasPendingJobs = useHasPendingJobs(tab === "documents");
 
   return (
     <>
@@ -114,18 +117,6 @@ export default function JobsPage() {
         </TabsContent>
 
         <TabsContent value="documents">
-          {hasPendingJobs && (
-            <div className="mb-5">
-              <Alert>
-                <InfoIcon className="text-muted-foreground size-4" />
-                <AlertDescription>
-                  Documents may take a moment to appear. Check the jobs tab for
-                  status.
-                </AlertDescription>
-              </Alert>
-            </div>
-          )}
-
           <PaginatedTable
             columns={documentColumns}
             data={documentsData}
@@ -133,6 +124,36 @@ export default function JobsPage() {
             onNext={handleNextDocument}
             onPrevious={handlePreviousDocument}
             hasPrevious={hasPreviousDocument}
+            pinnedContent={
+              jobsStatus.type === "error" ? (
+                <div className="flex items-center justify-center gap-2 py-1 text-sm">
+                  <AlertCircleIcon className="text-destructive size-4 shrink-0" />
+                  <span className="text-destructive">
+                    {jobsStatus.jobName
+                      ? `Job "${jobsStatus.jobName}" failed: `
+                      : "A job failed: "}
+                    {jobsStatus.error}
+                  </span>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="text-muted-foreground hover:text-foreground size-6 shrink-0"
+                    onClick={dismissError}
+                  >
+                    <XIcon className="size-4" />
+                    <span className="sr-only">Dismiss</span>
+                  </Button>
+                </div>
+              ) : jobsStatus.type === "processing" ? (
+                <div className="flex items-center justify-center gap-2 py-1 text-sm">
+                  <InfoIcon className="text-muted-foreground size-4" />
+                  <span className="text-muted-foreground">
+                    Documents are being processed and may take a moment to
+                    appear.
+                  </span>
+                </div>
+              ) : undefined
+            }
           />
         </TabsContent>
       </Tabs>
