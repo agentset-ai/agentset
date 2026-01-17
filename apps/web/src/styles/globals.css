@@ -141,15 +141,6 @@
         rotate(calc((var(--angle) * -1deg) - 360deg));
     }
   }
-
-  @keyframes blink {
-    0% {
-      opacity: 1;
-    }
-    50% {
-      opacity: 0;
-    }
-  }
 }
 
 @layer base {
