@@ -30,7 +30,7 @@ export function useJobsStatus(enabled: boolean) {
   // Track when the hook was mounted to only show errors for jobs that failed after
   const [mountedAt] = useState(() => new Date());
 
-  // Check for pending jobs
+  // Check for pending jobs - use dynamic refetch interval based on results
   const { data: pendingData } = useQuery(
     trpc.ingestJob.all.queryOptions(
       {
@@ -40,15 +40,18 @@ export function useJobsStatus(enabled: boolean) {
       },
       {
         enabled,
-        refetchInterval: 15_000,
         placeholderData: keepPreviousData,
+        refetchInterval: (query) => {
+          const hasPending = (query.state.data?.records.length ?? 0) > 0;
+          return hasPending ? 5_000 : 15_000;
+        },
       },
     ),
   );
 
   const hasPendingJobs = pendingData ? pendingData.records.length > 0 : false;
 
-  // Check for recently failed jobs
+  // Check for recently failed jobs - use same dynamic interval
   const { data: failedData } = useQuery(
     trpc.ingestJob.all.queryOptions(
       {
@@ -59,8 +62,8 @@ export function useJobsStatus(enabled: boolean) {
       },
       {
         enabled,
-        refetchInterval: 15_000,
         placeholderData: keepPreviousData,
+        refetchInterval: hasPendingJobs ? 5_000 : 15_000,
       },
     ),
   );
