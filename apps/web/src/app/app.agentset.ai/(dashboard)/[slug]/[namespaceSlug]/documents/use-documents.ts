@@ -12,7 +12,11 @@ const statusLabels = Object.values(DocumentStatus).map((status) => ({
   value: status,
 }));
 
-export function useDocuments(jobId?: string, enabled = true) {
+export function useDocuments(
+  jobId?: string,
+  enabled = true,
+  isProcessing = false,
+) {
   const namespace = useNamespace();
   const trpc = useTRPC();
   const [statuses, _setStatuses] = useState<DocumentStatus[]>([]);
@@ -36,7 +40,7 @@ export function useDocuments(jobId?: string, enabled = true) {
       },
       {
         placeholderData: keepPreviousData,
-        refetchInterval: 15_000, // Refetch every 15 seconds
+        refetchInterval: isProcessing ? 5_000 : 15_000,
         enabled,
       },
     ),

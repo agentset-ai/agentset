@@ -44,6 +44,7 @@ export default function JobsPage() {
   const { status: jobsStatus, dismissError } = useJobsStatus(
     tab === "documents",
   );
+  const isProcessing = jobsStatus.type === "processing";
 
   const {
     isLoading: isDocumentsLoading,
@@ -56,7 +57,7 @@ export default function JobsPage() {
     handleNext: handleNextDocument,
     handlePrevious: handlePreviousDocument,
     hasPrevious: hasPreviousDocument,
-  } = useDocuments(undefined, tab === "documents");
+  } = useDocuments(undefined, tab === "documents", isProcessing);
 
   return (
     <>
