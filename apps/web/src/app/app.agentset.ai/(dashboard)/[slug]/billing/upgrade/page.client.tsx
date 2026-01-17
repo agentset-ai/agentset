@@ -21,7 +21,7 @@ const plans = [FREE_PLAN, PRO_PLAN, ENTERPRISE_PLAN];
 export default function OrganizationBillingUpgradePageClient() {
   const organization = useOrganization();
   const { plan: currentPlan } = organization;
-  const [period, setPeriod] = useState<"monthly" | "yearly">("yearly");
+  const [period, setPeriod] = useState<"monthly" | "yearly">("monthly");
 
   const { buttonProps } = useCal();
 
