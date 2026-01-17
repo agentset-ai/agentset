@@ -2,13 +2,12 @@
 
 import { useMemo } from "react";
 import { useOrganization } from "@/hooks/use-organization";
+import { useZodForm } from "@/hooks/use-zod-form";
 import { logEvent } from "@/lib/analytics";
 import { authClient } from "@/lib/auth-client";
 import { useTRPC } from "@/trpc/react";
 import { useRouter } from "@bprogress/next/app";
-import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { z } from "zod/v4";
 
@@ -56,8 +55,7 @@ export default function SettingsPage() {
     [organization.slug],
   );
 
-  const form = useForm({
-    resolver: zodResolver(formSchema),
+  const form = useZodForm(formSchema, {
     defaultValues: {
       name: organization.name,
       slug: organization.slug,

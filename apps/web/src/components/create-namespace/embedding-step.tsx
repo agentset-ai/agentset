@@ -1,6 +1,4 @@
 import { useEffect, useMemo } from "react";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { useForm } from "react-hook-form";
 import { z } from "zod/v4";
 
 import { Button } from "@agentset/ui/button";
@@ -14,7 +12,6 @@ import {
   FormMessage,
 } from "@agentset/ui/form";
 import { Input } from "@agentset/ui/input";
-import { Label } from "@agentset/ui/label";
 import { Logo } from "@agentset/ui/logo";
 import { RadioButton } from "@agentset/ui/radio-button";
 import { RadioGroup } from "@agentset/ui/radio-group";
@@ -29,6 +26,7 @@ import { camelCaseToWords, capitalize } from "@agentset/utils";
 import { EmbeddingConfig, EmbeddingConfigSchema } from "@agentset/validation";
 
 import { embeddingModels } from "./models";
+import { useZodForm } from '@/hooks/use-zod-form';
 
 const formSchema = z.object({
   embeddingModel: EmbeddingConfigSchema,
@@ -59,8 +57,7 @@ export default function CreateNamespaceEmbeddingStep({
   onBack: () => void;
   defaultValues?: z.infer<typeof formSchema>;
 }) {
-  const form = useForm({
-    resolver: zodResolver(formSchema),
+  const form = useZodForm(formSchema, {
     defaultValues: defaultValues ?? {
       embeddingModel: {
         provider: "MANAGED_OPENAI",

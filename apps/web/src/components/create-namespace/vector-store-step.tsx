@@ -1,6 +1,4 @@
 import { useEffect, useMemo } from "react";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { useForm } from "react-hook-form";
 import { z } from "zod/v4";
 
 import { Button } from "@agentset/ui/button";
@@ -31,6 +29,7 @@ import {
 } from "@agentset/validation";
 
 import { vectorStores } from "./models";
+import { useZodForm } from '@/hooks/use-zod-form';
 
 const formSchema = z.object({
   vectorStore: createVectorStoreSchema,
@@ -53,8 +52,7 @@ export default function CreateNamespaceVectorStoreStep({
   isLoading: boolean;
   onBack: () => void;
 }) {
-  const form = useForm({
-    resolver: zodResolver(formSchema, undefined),
+  const form = useZodForm(formSchema, {
     defaultValues: {
       vectorStore: {
         provider: "MANAGED_TURBOPUFFER",
