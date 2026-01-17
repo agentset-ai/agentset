@@ -52,12 +52,17 @@ export const useMagicAuth = () => {
       },
     });
 
+  const reset = () => {
+    setSent(false);
+  };
+
   return {
     email,
     setEmail,
     sent,
     magicLogin,
     isSendingMagicLink,
+    reset,
   };
 };
 
@@ -106,31 +111,33 @@ export const useGithubAuth = () => {
 
 export const useOtpAuth = () => {
   const redirect = useRedirectParam();
-  const [email, setEmail] = useState("");
   const [otp, setOtp] = useState("");
   const [otpSent, setOtpSent] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const { mutateAsync: sendOtp, isPending: isSendingOtp } = useMutation({
-    mutationFn: async () => {
-      setError(null);
-      return authClient.emailOtp.sendVerificationOtp({
-        email: email.trim(),
-        type: "sign-in",
-        fetchOptions: { throw: true },
-      });
+  const { mutateAsync: sendOtpMutation, isPending: isSendingOtp } = useMutation(
+    {
+      mutationFn: async (email: string) => {
+        setError(null);
+
+        return authClient.emailOtp.sendVerificationOtp({
+          email: email.trim(),
+          type: "sign-in",
+          fetchOptions: { throw: true },
+        });
+      },
+      onSuccess: (_, email) => {
+        logEvent("auth_otp_sent", { email: email.trim() });
+        setOtpSent(true);
+      },
+      onError: (err) => {
+        setError(err.message);
+      },
     },
-    onSuccess: () => {
-      logEvent("auth_otp_sent", { email });
-      setOtpSent(true);
-    },
-    onError: (err) => {
-      setError(err.message);
-    },
-  });
+  );
 
   const { mutateAsync: verifyOtp, isPending: isVerifyingOtp } = useMutation({
-    mutationFn: async () => {
+    mutationFn: async (email: string) => {
       setError(null);
       return authClient.signIn.emailOtp({
         email: email.trim(),
@@ -138,8 +145,8 @@ export const useOtpAuth = () => {
         fetchOptions: { throw: true },
       });
     },
-    onSuccess: () => {
-      logEvent("auth_otp_verified", { email });
+    onSuccess: (_, email) => {
+      logEvent("auth_otp_verified", { email: email.trim() });
       window.location.href = redirect;
     },
     onError: (err) => {
@@ -154,13 +161,11 @@ export const useOtpAuth = () => {
   };
 
   return {
-    email,
-    setEmail,
     otp,
     setOtp,
     otpSent,
     error,
-    sendOtp,
+    sendOtp: sendOtpMutation,
     isSendingOtp,
     verifyOtp,
     isVerifyingOtp,
