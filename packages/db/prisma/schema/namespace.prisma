@@ -23,6 +23,7 @@ model Namespace {
   connections Connection[]
   ingestJobs  IngestJob[]
   documents   Document[]
+  webhooks    NamespaceWebhook[]
 
   totalIngestJobs      Int   @default(0) // Total number of ingest jobs in the namespace
   totalDocuments       Int   @default(0) // Total number of documents in the namespace

@@ -1,0 +1,32 @@
+model Webhook {
+  id String @id @default(cuid())
+
+  name                String
+  url                 String    @db.Text
+  secret              String
+  triggers            Json
+  consecutiveFailures Int       @default(0)
+  lastFailedAt        DateTime?
+  disabledAt          DateTime?
+  createdAt           DateTime  @default(now())
+  updatedAt           DateTime  @updatedAt
+
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  namespaces NamespaceWebhook[]
+
+  @@index(organizationId)
+}
+
+model NamespaceWebhook {
+  id          String @id @default(cuid())
+  namespaceId String
+  webhookId   String
+
+  namespace Namespace @relation(fields: [namespaceId], references: [id], onUpdate: Cascade, onDelete: Cascade)
+  webhook   Webhook   @relation(fields: [webhookId], references: [id], onUpdate: Cascade, onDelete: Cascade)
+
+  @@unique([namespaceId, webhookId])
+  @@index(webhookId)
+}
