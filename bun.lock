@@ -213,6 +213,22 @@
         "typescript": "catalog:",
       },
     },
+    "packages/tinybird": {
+      "name": "@agentset/tinybird",
+      "dependencies": {
+        "@agentset/utils": "workspace:*",
+        "@chronark/zod-bird": "^1.0.0",
+        "zod": "catalog:",
+      },
+      "devDependencies": {
+        "@agentset/eslint-config": "workspace:*",
+        "@agentset/prettier-config": "workspace:*",
+        "@agentset/tsconfig": "workspace:*",
+        "eslint": "catalog:",
+        "prettier": "catalog:",
+        "typescript": "catalog:",
+      },
+    },
     "packages/ui": {
       "name": "@agentset/ui",
       "dependencies": {
@@ -375,6 +391,8 @@
     "@agentset/stripe": ["@agentset/stripe@workspace:packages/stripe"],
 
     "@agentset/supavisor": ["@agentset/supavisor@workspace:tooling/supavisor"],
+
+    "@agentset/tinybird": ["@agentset/tinybird@workspace:packages/tinybird"],
 
     "@agentset/tsconfig": ["@agentset/tsconfig@workspace:tooling/typescript"],
 
@@ -597,6 +615,8 @@
     "@chevrotain/types": ["@chevrotain/types@10.5.0", "", {}, "sha512-f1MAia0x/pAVPWH/T73BJVyO2XU5tI4/iE7cnxb7tqdNTNhQI3Uq3XkqcoteTmD4t1aM0LbHCJOhgIDn07kl2A=="],
 
     "@chevrotain/utils": ["@chevrotain/utils@10.5.0", "", {}, "sha512-hBzuU5+JjB2cqNZyszkDHZgOSrUUT8V3dhgRl8Q9Gp6dAj/H5+KILGjbhDpc3Iy9qmqlm/akuOI2ut9VUtzJxQ=="],
+
+    "@chronark/zod-bird": ["@chronark/zod-bird@1.0.0", "", { "peerDependencies": { "zod": "^4.0.0" } }, "sha512-OWdZt5EULFgDaHTbkxkxN130ohapRxSMaYdaW/fZTcQP3z1c4cYk4izJwbbTPOP4GdQeys18Prls0xz4NpFV0A=="],
 
     "@clack/core": ["@clack/core@0.5.0", "", { "dependencies": { "picocolors": "1.1.1", "sisteransi": "1.0.5" } }, "sha512-p3y0FIOwaYRUPRcMO7+dlmLh8PSRcrjuTndsiA0WAFbWES0mLZlrjVoBRZ9DzkPFJZG6KGkJmoEAY0ZcVWTkow=="],
 

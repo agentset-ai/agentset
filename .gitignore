@@ -17,6 +17,10 @@ next-env.d.ts
 .nitro/
 .output/
 
+# tinybird
+.tinyb
+.venv
+
 # expo
 .expo/
 expo-env.d.ts
