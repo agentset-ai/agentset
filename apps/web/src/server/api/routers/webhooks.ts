@@ -1,5 +1,4 @@
 import type { WebhookTrigger } from "@/lib/webhook/types";
-import { webhookCache } from "@/lib/webhook/cache";
 import { createWebhook } from "@/lib/webhook/create-webhook";
 import { getWebhooks } from "@/lib/webhook/get-webhooks";
 import { samplePayload } from "@/lib/webhook/sample-events/payload";
@@ -10,10 +9,7 @@ import {
 } from "@/lib/webhook/schemas";
 import { createWebhookSecret } from "@/lib/webhook/secret";
 import { transformWebhook } from "@/lib/webhook/transform";
-import {
-  toggleWebhooksForOrganization,
-  updateWebhookCache,
-} from "@/lib/webhook/update-webhook";
+import { toggleWebhooksForOrganization } from "@/lib/webhook/update-webhook";
 import { validateWebhook } from "@/lib/webhook/validate-webhook";
 import { createTRPCRouter, protectedProcedure } from "@/server/api/trpc";
 import { TRPCError } from "@trpc/server";
@@ -265,9 +261,6 @@ export const webhooksRouter = createTRPCRouter({
         },
       });
 
-      // Update cache
-      await updateWebhookCache({ webhookId: webhook.id });
-
       return transformWebhook(webhook);
     }),
 
@@ -301,10 +294,9 @@ export const webhooksRouter = createTRPCRouter({
         where: { id: input.webhookId },
       });
 
-      await Promise.all([
-        toggleWebhooksForOrganization({ organizationId: input.organizationId }),
-        webhookCache.delete(input.webhookId),
-      ]);
+      await toggleWebhooksForOrganization({
+        organizationId: input.organizationId,
+      });
 
       return { success: true };
     }),
@@ -350,10 +342,9 @@ export const webhooksRouter = createTRPCRouter({
         },
       });
 
-      await Promise.all([
-        toggleWebhooksForOrganization({ organizationId: input.organizationId }),
-        updateWebhookCache({ webhookId: input.webhookId }),
-      ]);
+      await toggleWebhooksForOrganization({
+        organizationId: input.organizationId,
+      });
 
       return { disabledAt: updatedWebhook.disabledAt };
     }),
@@ -446,8 +437,6 @@ export const webhooksRouter = createTRPCRouter({
         where: { id: input.webhookId },
         data: { secret: newSecret },
       });
-
-      await updateWebhookCache({ webhookId: input.webhookId });
 
       return { secret: newSecret };
     }),

@@ -3,13 +3,10 @@ import { after } from "next/server";
 import { nanoid } from "nanoid";
 
 import { db } from "@agentset/db/client";
-import { WebhookAddedEmail } from "@agentset/emails";
+import { sendEmail, WebhookAddedEmail } from "@agentset/emails";
 import { WEBHOOK_ID_PREFIX } from "@agentset/utils";
 
 import type { createWebhookSchema } from "./schemas";
-import type { WebhookTrigger } from "./types";
-import { sendEmail } from "../resend";
-import { webhookCache } from "./cache";
 import { createWebhookSecret } from "./secret";
 
 export async function createWebhook({
@@ -75,15 +72,6 @@ export async function createWebhook({
         take: 1,
       },
     },
-  });
-
-  // Cache the webhook
-  await webhookCache.set({
-    id: webhook.id,
-    url: webhook.url,
-    secret: webhook.secret,
-    triggers: webhook.triggers as WebhookTrigger[],
-    disabledAt: webhook.disabledAt,
   });
 
   // Send webhook added email to organization owner

@@ -1,3 +1,5 @@
+export { sendEmail } from "./send";
+
 export { default as InviteUserEmail } from "./templates/invite-user";
 export { default as LoginEmail } from "./templates/login";
 export { default as FailedPayment } from "./templates/failed-payment";

@@ -1,6 +1,11 @@
 import { schemaTask } from "@trigger.dev/sdk";
 import { z } from "zod/v4";
 
+import {
+  sendEmail,
+  WebhookDisabledEmail,
+  WebhookFailedEmail,
+} from "@agentset/emails";
 import { recordWebhookEvent, webhookEventSchemaTB } from "@agentset/tinybird";
 import {
   WEBHOOK_FAILURE_DISABLE_THRESHOLD,
@@ -126,17 +131,60 @@ export const sendWebhookTask = schemaTask({
           lastFailedAt: new Date(),
         },
         select: {
+          id: true,
+          url: true,
           consecutiveFailures: true,
           disabledAt: true,
           organizationId: true,
         },
       });
 
-      // Check if we need to disable the webhook
+      // Skip if already disabled
+      if (webhook.disabledAt) {
+        throw error;
+      }
+
+      // Get org owner for email notifications
+      const getOrgOwner = async () => {
+        return db.member.findFirst({
+          where: { organizationId: webhook.organizationId, role: "owner" },
+          select: {
+            organization: { select: { name: true, slug: true } },
+            user: { select: { email: true } },
+          },
+        });
+      };
+
+      // Send notification email at thresholds (5, 10, 15)
       if (
-        !webhook.disabledAt &&
-        webhook.consecutiveFailures >= WEBHOOK_FAILURE_DISABLE_THRESHOLD
+        WEBHOOK_FAILURE_NOTIFY_THRESHOLDS.includes(
+          webhook.consecutiveFailures as 5 | 10 | 15,
+        )
       ) {
+        const orgOwner = await getOrgOwner();
+        if (orgOwner?.user.email) {
+          await sendEmail({
+            email: orgOwner.user.email,
+            subject: "Webhook is failing to deliver",
+            react: WebhookFailedEmail({
+              email: orgOwner.user.email,
+              organization: {
+                name: orgOwner.organization.name,
+                slug: orgOwner.organization.slug,
+              },
+              webhook: {
+                id: webhook.id,
+                url: webhook.url,
+                consecutiveFailures: webhook.consecutiveFailures,
+                disableThreshold: WEBHOOK_FAILURE_DISABLE_THRESHOLD,
+              },
+            }),
+          });
+        }
+      }
+
+      // Check if we need to disable the webhook
+      if (webhook.consecutiveFailures >= WEBHOOK_FAILURE_DISABLE_THRESHOLD) {
         await db.webhook.update({
           where: { id: webhookId },
           data: { disabledAt: new Date() },
@@ -156,17 +204,27 @@ export const sendWebhookTask = schemaTask({
             data: { webhookEnabled: false },
           });
         }
-      }
 
-      // Log notification thresholds (actual email notifications handled elsewhere)
-      if (
-        WEBHOOK_FAILURE_NOTIFY_THRESHOLDS.includes(
-          webhook.consecutiveFailures as 5 | 10 | 15,
-        )
-      ) {
-        console.log(
-          `Webhook ${webhookId} has failed ${webhook.consecutiveFailures} times`,
-        );
+        // Send disabled notification email
+        const orgOwner = await getOrgOwner();
+        if (orgOwner?.user.email) {
+          await sendEmail({
+            email: orgOwner.user.email,
+            subject: "Webhook has been disabled",
+            react: WebhookDisabledEmail({
+              email: orgOwner.user.email,
+              organization: {
+                name: orgOwner.organization.name,
+                slug: orgOwner.organization.slug,
+              },
+              webhook: {
+                id: webhook.id,
+                url: webhook.url,
+                disableThreshold: WEBHOOK_FAILURE_DISABLE_THRESHOLD,
+              },
+            }),
+          });
+        }
       }
 
       throw error;

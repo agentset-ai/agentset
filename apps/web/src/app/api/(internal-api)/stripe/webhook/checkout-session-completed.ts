@@ -1,11 +1,10 @@
 import { limiter } from "@/lib/bottleneck";
 import { APP_DOMAIN } from "@/lib/constants";
 import { log } from "@/lib/log";
-import { sendEmail } from "@/lib/resend";
 
 import type { Stripe } from "@agentset/stripe";
 import { db } from "@agentset/db/client";
-import { UpgradeEmail } from "@agentset/emails";
+import { sendEmail, UpgradeEmail } from "@agentset/emails";
 import { triggerMeterOrgDocuments } from "@agentset/jobs";
 import { stripe } from "@agentset/stripe";
 import {

@@ -16,8 +16,12 @@
   },
   "dependencies": {
     "@react-email/components": "^1.0.1",
+    "@react-email/render": "^1.0.1",
+    "@t3-oss/env-nextjs": "catalog:",
     "react": "catalog:react19",
-    "react-dom": "catalog:react19"
+    "react-dom": "catalog:react19",
+    "resend": "^6.7.0",
+    "zod": "catalog:"
   },
   "devDependencies": {
     "@agentset/eslint-config": "workspace:*",
