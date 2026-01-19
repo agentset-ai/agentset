@@ -24,7 +24,7 @@ export const deleteDocument = schemaTask({
     concurrencyLimit: 90,
   },
   schema: deleteDocumentBodySchema,
-  run: async ({ documentId }) => {
+  run: async ({ documentId, skipWebhooks }) => {
     const db = getDb();
 
     // Get document data
@@ -159,24 +159,26 @@ export const deleteDocument = schemaTask({
       select: { id: true },
     });
 
-    // Emit document.deleted webhook
-    await emitDocumentWebhook({
-      trigger: "document.deleted",
-      document: {
-        id: document.id,
-        name: document.name,
-        namespaceId: document.namespaceId,
-        organizationId: namespace.organizationId,
-        status: "DELETED",
-        source: document.source,
-        totalCharacters: document.totalCharacters,
-        totalChunks: document.totalChunks,
-        totalPages: document.totalPages,
-        error: document.error,
-        createdAt: document.createdAt,
-        updatedAt: new Date(),
-      },
-    });
+    // Emit document.deleted webhook (skip if deleting namespace/org)
+    if (!skipWebhooks) {
+      await emitDocumentWebhook({
+        trigger: "document.deleted",
+        document: {
+          id: document.id,
+          name: document.name,
+          namespaceId: document.namespaceId,
+          organizationId: namespace.organizationId,
+          status: "DELETED",
+          source: document.source,
+          totalCharacters: document.totalCharacters,
+          totalChunks: document.totalChunks,
+          totalPages: document.totalPages,
+          error: document.error,
+          createdAt: document.createdAt,
+          updatedAt: new Date(),
+        },
+      });
+    }
 
     return {
       documentId: document.id,

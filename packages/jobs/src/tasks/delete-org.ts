@@ -36,13 +36,18 @@ export const deleteOrganization = schemaTask({
       };
     }
 
-    // Get all ingest jobs for this namespace
+    // Delete webhooks first to prevent webhook events during cleanup
+    await db.webhook.deleteMany({
+      where: { organizationId },
+    });
+
+    // Get all namespaces for this organization
     const namespaces = await db.namespace.findMany({
       where: { organizationId },
       select: { id: true },
     });
 
-    // Trigger ingest job deletion tasks (parent-child pattern)
+    // Trigger namespace deletion tasks (parent-child pattern)
     if (namespaces.length > 0) {
       const batches = chunkArray(namespaces, BATCH_SIZE);
 

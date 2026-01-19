@@ -53,6 +53,7 @@ export const triggerDocumentJobBodySchema = z.object({
 export const DELETE_DOCUMENT_JOB_ID = "delete-document-job";
 export const deleteDocumentBodySchema = z.object({
   documentId: z.string(),
+  skipWebhooks: z.boolean().optional(),
 });
 export const triggerDeleteDocument = (
   body: z.infer<typeof deleteDocumentBodySchema>,
@@ -64,6 +65,7 @@ export const triggerDeleteDocument = (
 export const DELETE_INGEST_JOB_ID = "delete-ingest-job";
 export const deleteIngestJobBodySchema = z.object({
   jobId: z.string(),
+  skipWebhooks: z.boolean().optional(),
 });
 export const triggerDeleteIngestJob = (
   body: z.infer<typeof deleteIngestJobBodySchema>,

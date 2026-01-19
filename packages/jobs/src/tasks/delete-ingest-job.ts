@@ -17,7 +17,7 @@ export const deleteIngestJob = schemaTask({
     concurrencyLimit: 50,
   },
   schema: deleteIngestJobBodySchema,
-  run: async ({ jobId }) => {
+  run: async ({ jobId, skipWebhooks }) => {
     const db = getDb();
 
     // Get ingest job data
@@ -89,6 +89,7 @@ export const deleteIngestJob = schemaTask({
           batch.map((document) => ({
             payload: {
               documentId: document.id,
+              skipWebhooks,
             },
             options: {
               tags: [`doc_${document.id}`],
@@ -137,20 +138,22 @@ export const deleteIngestJob = schemaTask({
       }),
     ]);
 
-    // Emit ingest_job.deleted webhook
-    await emitIngestJobWebhook({
-      trigger: "ingest_job.deleted",
-      ingestJob: {
-        id: ingestJob.id,
-        name: ingestJob.name,
-        namespaceId: ingestJob.namespaceId,
-        organizationId: ingestJob.namespace.organizationId,
-        status: "DELETED",
-        error: ingestJob.error,
-        createdAt: ingestJob.createdAt,
-        updatedAt: new Date(),
-      },
-    });
+    // Emit ingest_job.deleted webhook (skip if deleting namespace/org)
+    if (!skipWebhooks) {
+      await emitIngestJobWebhook({
+        trigger: "ingest_job.deleted",
+        ingestJob: {
+          id: ingestJob.id,
+          name: ingestJob.name,
+          namespaceId: ingestJob.namespaceId,
+          organizationId: ingestJob.namespace.organizationId,
+          status: "DELETED",
+          error: ingestJob.error,
+          createdAt: ingestJob.createdAt,
+          updatedAt: new Date(),
+        },
+      });
+    }
 
     return {
       jobId: ingestJob.id,

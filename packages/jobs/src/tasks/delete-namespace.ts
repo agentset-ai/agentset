@@ -44,6 +44,11 @@ export const deleteNamespace = schemaTask({
       };
     }
 
+    // Delete webhook links to prevent webhook events during cleanup
+    await db.namespaceWebhook.deleteMany({
+      where: { namespaceId: namespace.id },
+    });
+
     // Get all ingest jobs for this namespace
     const ingestJobs = await db.ingestJob.findMany({
       where: { namespaceId: namespace.id },
@@ -59,6 +64,7 @@ export const deleteNamespace = schemaTask({
           batch.map((job) => ({
             payload: {
               jobId: job.id,
+              skipWebhooks: true,
             },
             options: {
               tags: [`job_${job.id}`],
