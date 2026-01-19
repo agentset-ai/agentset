@@ -1,12 +1,11 @@
 "use client";
 
 import type { WebhookProps } from "@/lib/webhook/types";
-import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useZodForm } from "@/hooks/use-zod-form";
 import { useTRPC } from "@/trpc/react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { RefreshCwIcon, SendIcon } from "lucide-react";
+import { InfoIcon, RefreshCwIcon } from "lucide-react";
 import { toast } from "sonner";
 import { z } from "zod/v4";
 
@@ -16,7 +15,6 @@ import { CopyButton } from "@agentset/ui/copy-button";
 import {
   Form,
   FormControl,
-  FormDescription,
   FormField,
   FormItem,
   FormLabel,
@@ -24,13 +22,10 @@ import {
 } from "@agentset/ui/form";
 import { Input } from "@agentset/ui/input";
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@agentset/ui/select";
-import { Separator } from "@agentset/ui/separator";
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@agentset/ui/tooltip";
 import {
   DOCUMENT_LEVEL_WEBHOOK_TRIGGERS,
   INGEST_JOB_LEVEL_WEBHOOK_TRIGGERS,
@@ -68,8 +63,6 @@ export default function AddEditWebhookForm({
   const queryClient = useQueryClient();
   const trpc = useTRPC();
   const isEditing = !!webhook;
-
-  const [testTrigger, setTestTrigger] = useState<string>("");
 
   const form = useZodForm(webhookFormSchema, {
     defaultValues: {
@@ -137,17 +130,6 @@ export default function AddEditWebhookForm({
     }),
   );
 
-  const sendTestMutation = useMutation(
-    trpc.webhook.sendTest.mutationOptions({
-      onSuccess: () => {
-        toast.success("Test webhook sent");
-      },
-      onError: (error) => {
-        toast.error(error.message);
-      },
-    }),
-  );
-
   const onSubmit = (data: WebhookFormValues) => {
     const payload = {
       ...data,
@@ -191,264 +173,194 @@ export default function AddEditWebhookForm({
 
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-10">
-        {/* Basic Information */}
-        <section>
-          <div>
-            <h2 className="text-lg font-medium">Basic Information</h2>
-            <p className="text-muted-foreground mt-1 text-sm">
-              Configure the basic details for your webhook endpoint
-            </p>
+      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-5 pb-20">
+        <FormField
+          control={form.control}
+          name="name"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Name</FormLabel>
+              <FormControl>
+                <Input
+                  placeholder="My Webhook"
+                  maxLength={40}
+                  autoFocus
+                  autoComplete="off"
+                  {...field}
+                />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        <FormField
+          control={form.control}
+          name="url"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>URL</FormLabel>
+              <FormControl>
+                <Input
+                  type="url"
+                  placeholder="https://example.com/webhook"
+                  autoComplete="off"
+                  {...field}
+                />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        {isEditing && webhook?.secret && (
+          <div className="space-y-2">
+            <div className="flex items-center gap-2">
+              <FormLabel>Signing secret</FormLabel>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <InfoIcon className="size-3.5 text-neutral-400" />
+                </TooltipTrigger>
+                <TooltipContent>
+                  A secret token used to sign the webhook payload.
+                </TooltipContent>
+              </Tooltip>
+            </div>
+            <div className="flex items-center justify-between rounded-md border border-neutral-200 bg-white px-3 py-1.5 dark:border-neutral-700 dark:bg-neutral-900">
+              <code className="text-nowrap font-mono text-sm text-neutral-500">
+                {webhook.secret}
+              </code>
+              <div className="flex items-center gap-1">
+                <CopyButton textToCopy={webhook.secret} />
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="icon"
+                  className="size-8"
+                  onClick={() =>
+                    regenerateSecretMutation.mutate({
+                      organizationId,
+                      webhookId: webhook.id,
+                    })
+                  }
+                  disabled={regenerateSecretMutation.isPending}
+                >
+                  <RefreshCwIcon className="size-4" />
+                </Button>
+              </div>
+            </div>
           </div>
+        )}
 
-          <Separator className="my-4" />
-
-          <div className="flex flex-col gap-6">
-            <FormField
-              control={form.control}
-              name="name"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Name</FormLabel>
-                  <FormControl>
-                    <Input placeholder="My Webhook" maxLength={40} {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={form.control}
-              name="url"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Endpoint URL</FormLabel>
-                  <FormControl>
-                    <Input
-                      type="url"
-                      placeholder="https://example.com/webhook"
-                      {...field}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            {isEditing && webhook?.secret && (
-              <div className="space-y-2">
-                <FormLabel>Signing Secret</FormLabel>
-                <div className="flex items-center justify-between rounded-md border px-3 py-2">
-                  <code className="font-mono text-sm">{webhook.secret}</code>
-                  <div className="flex items-center">
-                    <CopyButton textToCopy={webhook.secret} />
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      size="icon"
-                      className="h-8 w-8"
-                      onClick={() =>
-                        regenerateSecretMutation.mutate({
-                          organizationId,
-                          webhookId: webhook.id,
-                        })
-                      }
-                      disabled={regenerateSecretMutation.isPending}
-                    >
-                      <RefreshCwIcon className="h-4 w-4" />
-                    </Button>
+        <FormField
+          control={form.control}
+          name="triggers"
+          render={() => (
+            <FormItem>
+              <div className="space-y-4">
+                <div className="rounded-lg border border-neutral-200 p-4 dark:border-neutral-800">
+                  <div className="mb-3 flex flex-col gap-1">
+                    <h3 className="text-sm font-medium text-neutral-900 dark:text-neutral-100">
+                      Document events
+                    </h3>
+                    <span className="text-xs text-neutral-500">
+                      Triggered when documents are processed.
+                    </span>
+                  </div>
+                  <div className="flex flex-col gap-2">
+                    {DOCUMENT_LEVEL_WEBHOOK_TRIGGERS.map((trigger) => (
+                      <div key={trigger} className="group flex gap-2">
+                        <Checkbox
+                          id={trigger}
+                          checked={triggers.includes(trigger)}
+                          onCheckedChange={() => toggleTrigger(trigger)}
+                        />
+                        <label
+                          htmlFor={trigger}
+                          className="cursor-pointer text-sm text-neutral-600 select-none group-hover:text-neutral-800 dark:text-neutral-400 dark:group-hover:text-neutral-200"
+                        >
+                          {WEBHOOK_TRIGGER_DESCRIPTIONS[trigger]}
+                        </label>
+                      </div>
+                    ))}
                   </div>
                 </div>
-                <p className="text-muted-foreground text-xs">
-                  Use this secret to verify webhook signatures.
-                </p>
+
+                <div className="rounded-lg border border-neutral-200 p-4 dark:border-neutral-800">
+                  <div className="mb-3 flex flex-col gap-1">
+                    <h3 className="text-sm font-medium text-neutral-900 dark:text-neutral-100">
+                      Ingest job events
+                    </h3>
+                    <span className="text-xs text-neutral-500">
+                      Triggered when ingest jobs change state.
+                    </span>
+                  </div>
+                  <div className="flex flex-col gap-2">
+                    {INGEST_JOB_LEVEL_WEBHOOK_TRIGGERS.map((trigger) => (
+                      <div key={trigger} className="group flex gap-2">
+                        <Checkbox
+                          id={trigger}
+                          checked={triggers.includes(trigger)}
+                          onCheckedChange={() => toggleTrigger(trigger)}
+                        />
+                        <label
+                          htmlFor={trigger}
+                          className="cursor-pointer text-sm text-neutral-600 select-none group-hover:text-neutral-800 dark:text-neutral-400 dark:group-hover:text-neutral-200"
+                        >
+                          {WEBHOOK_TRIGGER_DESCRIPTIONS[trigger]}
+                        </label>
+                      </div>
+                    ))}
+                  </div>
+                </div>
               </div>
-            )}
-          </div>
-        </section>
+              <FormMessage className="mt-2" />
+            </FormItem>
+          )}
+        />
 
-        {/* Events */}
-        <section>
-          <div>
-            <h2 className="text-lg font-medium">Events</h2>
-            <p className="text-muted-foreground mt-1 text-sm">
-              Select the events that will trigger this webhook
-            </p>
-          </div>
-
-          <Separator className="my-4" />
-
+        {namespaces && namespaces.length > 0 && (
           <FormField
             control={form.control}
-            name="triggers"
+            name="namespaceIds"
             render={() => (
               <FormItem>
-                <div className="flex flex-col gap-4">
-                  {/* Document Events */}
-                  <div className="rounded-lg border p-4">
-                    <div className="mb-3">
-                      <h3 className="font-medium">Document Events</h3>
-                      <p className="text-muted-foreground text-xs">
-                        Triggered when documents are processed
-                      </p>
-                    </div>
-                    <div className="flex flex-col gap-2">
-                      {DOCUMENT_LEVEL_WEBHOOK_TRIGGERS.map((trigger) => (
-                        <div key={trigger} className="group flex gap-2">
-                          <Checkbox
-                            id={trigger}
-                            checked={triggers.includes(trigger)}
-                            onCheckedChange={() => toggleTrigger(trigger)}
-                          />
-                          <label
-                            htmlFor={trigger}
-                            className="text-muted-foreground group-hover:text-foreground cursor-pointer text-sm select-none"
-                          >
-                            {WEBHOOK_TRIGGER_DESCRIPTIONS[trigger]}
-                          </label>
-                        </div>
-                      ))}
-                    </div>
+                <div className="rounded-lg border border-neutral-200 p-4 dark:border-neutral-800">
+                  <div className="mb-3 flex flex-col gap-1">
+                    <h3 className="text-sm font-medium text-neutral-900 dark:text-neutral-100">
+                      Namespace filter
+                    </h3>
+                    <span className="text-xs text-neutral-500">
+                      Leave all unchecked to receive events from all namespaces.
+                    </span>
                   </div>
-
-                  {/* Ingest Job Events */}
-                  <div className="rounded-lg border p-4">
-                    <div className="mb-3">
-                      <h3 className="font-medium">Ingest Job Events</h3>
-                      <p className="text-muted-foreground text-xs">
-                        Triggered when ingest jobs change state
-                      </p>
-                    </div>
-                    <div className="flex flex-col gap-2">
-                      {INGEST_JOB_LEVEL_WEBHOOK_TRIGGERS.map((trigger) => (
-                        <div key={trigger} className="group flex gap-2">
-                          <Checkbox
-                            id={trigger}
-                            checked={triggers.includes(trigger)}
-                            onCheckedChange={() => toggleTrigger(trigger)}
-                          />
-                          <label
-                            htmlFor={trigger}
-                            className="text-muted-foreground group-hover:text-foreground cursor-pointer text-sm select-none"
-                          >
-                            {WEBHOOK_TRIGGER_DESCRIPTIONS[trigger]}
-                          </label>
-                        </div>
-                      ))}
-                    </div>
+                  <div className="flex flex-col gap-2">
+                    {namespaces.map((namespace) => (
+                      <div key={namespace.id} className="group flex gap-2">
+                        <Checkbox
+                          id={`ns-${namespace.id}`}
+                          checked={selectedNamespaces.includes(namespace.id)}
+                          onCheckedChange={() => toggleNamespace(namespace.id)}
+                        />
+                        <label
+                          htmlFor={`ns-${namespace.id}`}
+                          className="cursor-pointer text-sm text-neutral-600 select-none group-hover:text-neutral-800 dark:text-neutral-400 dark:group-hover:text-neutral-200"
+                        >
+                          {namespace.name}
+                        </label>
+                      </div>
+                    ))}
                   </div>
                 </div>
-                <FormMessage className="mt-2" />
+                <FormMessage />
               </FormItem>
             )}
           />
-        </section>
-
-        {/* Namespace Filter */}
-        {namespaces && namespaces.length > 0 && (
-          <section>
-            <div>
-              <h2 className="text-lg font-medium">Namespace Filter</h2>
-              <p className="text-muted-foreground mt-1 text-sm">
-                Optionally limit events to specific namespaces
-              </p>
-            </div>
-
-            <Separator className="my-4" />
-
-            <FormField
-              control={form.control}
-              name="namespaceIds"
-              render={() => (
-                <FormItem>
-                  <div className="rounded-lg border p-4">
-                    <div className="mb-3">
-                      <p className="text-muted-foreground text-xs">
-                        Leave all unchecked to receive events from all
-                        namespaces
-                      </p>
-                    </div>
-                    <div className="flex flex-col gap-2">
-                      {namespaces.map((namespace) => (
-                        <div key={namespace.id} className="group flex gap-2">
-                          <Checkbox
-                            id={`ns-${namespace.id}`}
-                            checked={selectedNamespaces.includes(namespace.id)}
-                            onCheckedChange={() =>
-                              toggleNamespace(namespace.id)
-                            }
-                          />
-                          <label
-                            htmlFor={`ns-${namespace.id}`}
-                            className="text-muted-foreground group-hover:text-foreground cursor-pointer text-sm select-none"
-                          >
-                            {namespace.name}
-                          </label>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-          </section>
         )}
 
-        {/* Test Webhook */}
-        {isEditing && (
-          <section>
-            <div>
-              <h2 className="text-lg font-medium">Test Webhook</h2>
-              <p className="text-muted-foreground mt-1 text-sm">
-                Send a test event to verify your endpoint
-              </p>
-            </div>
-
-            <Separator className="my-4" />
-
-            <div className="flex gap-2">
-              <Select value={testTrigger} onValueChange={setTestTrigger}>
-                <SelectTrigger className="w-full max-w-xs">
-                  <SelectValue placeholder="Select an event type" />
-                </SelectTrigger>
-                <SelectContent>
-                  {WEBHOOK_TRIGGERS.map((trigger) => (
-                    <SelectItem key={trigger} value={trigger}>
-                      {WEBHOOK_TRIGGER_DESCRIPTIONS[trigger]}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              <Button
-                type="button"
-                variant="outline"
-                disabled={!testTrigger || sendTestMutation.isPending}
-                onClick={() =>
-                  sendTestMutation.mutate({
-                    organizationId,
-                    webhookId: webhook.id,
-                    trigger: testTrigger as (typeof WEBHOOK_TRIGGERS)[number],
-                  })
-                }
-              >
-                <SendIcon className="mr-1.5 h-4 w-4" />
-                Send
-              </Button>
-            </div>
-          </section>
-        )}
-
-        {/* Actions */}
-        <div className="flex gap-3">
-          <Button type="submit" disabled={isPending} isLoading={isPending}>
-            {isEditing ? "Save Changes" : "Create Webhook"}
-          </Button>
-          <Button type="button" variant="outline" onClick={() => router.back()}>
-            Cancel
-          </Button>
-        </div>
+        <Button type="submit" disabled={isPending} isLoading={isPending}>
+          {isEditing ? "Save changes" : "Create webhook"}
+        </Button>
       </form>
     </Form>
   );

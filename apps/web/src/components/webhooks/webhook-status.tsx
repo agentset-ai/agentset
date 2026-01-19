@@ -14,14 +14,12 @@ export default function WebhookStatus({
   return (
     <span
       className={cn(
-        "inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium",
-        isDisabled
-          ? "bg-destructive/10 text-destructive"
-          : "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400",
+        "inline-flex rounded-full px-2 py-0.5 text-xs font-medium",
+        isDisabled ? "bg-red-100 text-red-600" : "bg-green-100 text-green-600",
         className,
       )}
     >
-      {isDisabled ? "Disabled" : "Active"}
+      {isDisabled ? "Disabled" : "Enabled"}
     </span>
   );
 }
