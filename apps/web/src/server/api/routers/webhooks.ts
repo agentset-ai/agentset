@@ -1,12 +1,6 @@
-import type { WebhookTrigger } from "@/lib/webhook/types";
 import { createWebhook } from "@/lib/webhook/create-webhook";
 import { getWebhooks } from "@/lib/webhook/get-webhooks";
 import { samplePayload } from "@/lib/webhook/sample-events/payload";
-import {
-  createWebhookSchema,
-  updateWebhookSchema,
-  webhookPayloadSchema,
-} from "@/lib/webhook/schemas";
 import { createWebhookSecret } from "@/lib/webhook/secret";
 import { transformWebhook } from "@/lib/webhook/transform";
 import { toggleWebhooksForOrganization } from "@/lib/webhook/update-webhook";
@@ -19,7 +13,14 @@ import { z } from "zod/v4";
 import { triggerSendWebhook } from "@agentset/jobs";
 import { isFreePlan } from "@agentset/stripe/plans";
 import { getWebhookEvents } from "@agentset/tinybird";
-import { WEBHOOK_EVENT_ID_PREFIX, WEBHOOK_TRIGGERS } from "@agentset/utils";
+import {
+  createWebhookSchema,
+  updateWebhookSchema,
+  webhookPayloadSchema,
+  WEBHOOK_EVENT_ID_PREFIX,
+  WEBHOOK_TRIGGERS,
+  type WebhookTrigger,
+} from "@agentset/webhooks";
 
 // Helper to check if organization has webhooks access (pro plan required)
 const requireProPlan = (plan: string) => {
@@ -133,8 +134,6 @@ export const webhooksRouter = createTRPCRouter({
       if (!webhook) {
         throw new TRPCError({ code: "NOT_FOUND" });
       }
-
-      console.log("test");
 
       const events = await getWebhookEvents({ webhookId: input.webhookId });
       return events.data;

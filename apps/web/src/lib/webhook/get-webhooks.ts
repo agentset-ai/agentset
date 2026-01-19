@@ -1,6 +1,6 @@
 import { db } from "@agentset/db/client";
 
-import type { WebhookTrigger } from "./types";
+import type { WebhookTrigger } from "@agentset/webhooks";
 
 interface GetWebhooksProps {
   organizationId: string;

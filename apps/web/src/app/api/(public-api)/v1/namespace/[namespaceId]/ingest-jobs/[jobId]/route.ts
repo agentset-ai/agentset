@@ -86,7 +86,10 @@ export const DELETE = withNamespaceApiHandler(
       });
     }
 
-    const data = await deleteIngestJob(jobId);
+    const data = await deleteIngestJob({
+      jobId,
+      organizationId: namespace.organizationId,
+    });
 
     return makeApiSuccessResponse({
       data: IngestJobSchema.parse({

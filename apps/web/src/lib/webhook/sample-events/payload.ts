@@ -1,4 +1,4 @@
-import type { WebhookTrigger } from "../types";
+import type { WebhookTrigger } from "@agentset/webhooks";
 
 import documentDeleted from "./document-deleted.json";
 import documentError from "./document-error.json";

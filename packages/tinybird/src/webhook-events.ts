@@ -1,6 +1,6 @@
 import { z } from "zod/v4";
 
-import { WEBHOOK_TRIGGERS } from "@agentset/utils";
+import { WEBHOOK_TRIGGERS } from "@agentset/webhooks";
 
 import { tb } from "./client";
 

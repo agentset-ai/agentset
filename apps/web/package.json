@@ -27,6 +27,7 @@
     "@agentset/ui": "workspace:*",
     "@agentset/utils": "workspace:*",
     "@agentset/validation": "workspace:*",
+    "@agentset/webhooks": "workspace:*",
     "@ai-sdk/react": "^2.0.44",
     "@bprogress/next": "^3.2.12",
     "@calcom/embed-react": "^1.5.3",

@@ -1,4 +1,5 @@
 import type { createIngestJobSchema } from "@/schemas/api/ingest-job";
+import { emitIngestJobWebhook } from "@/lib/webhook/emit";
 import type { z } from "zod/v4";
 
 import type { IngestJobBatchItem } from "@agentset/validation";
@@ -11,11 +12,13 @@ import { validateNamespaceFileKey } from "../uploads";
 
 export const createIngestJob = async ({
   plan,
+  organizationId,
   namespaceId,
   tenantId,
   data,
 }: {
   plan: string;
+  organizationId: string;
   namespaceId: string;
   tenantId?: string;
   data: z.infer<typeof createIngestJobSchema>;
@@ -144,6 +147,15 @@ export const createIngestJob = async ({
         externalId: data.externalId,
         payload: finalPayload,
       },
+      select: {
+        id: true,
+        name: true,
+        namespaceId: true,
+        status: true,
+        error: true,
+        createdAt: true,
+        updatedAt: true,
+      },
     }),
     db.namespace.update({
       where: { id: namespaceId },
@@ -158,6 +170,15 @@ export const createIngestJob = async ({
       select: { id: true },
     }),
   ]);
+
+  // Emit ingest_job.queued webhook
+  await emitIngestJobWebhook({
+    trigger: "ingest_job.queued",
+    ingestJob: {
+      ...job,
+      organizationId,
+    },
+  });
 
   const handle = await triggerIngestionJob(
     {

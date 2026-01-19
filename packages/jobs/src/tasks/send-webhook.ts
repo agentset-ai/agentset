@@ -8,32 +8,13 @@ import {
 } from "@agentset/emails";
 import { recordWebhookEvent, webhookEventSchemaTB } from "@agentset/tinybird";
 import {
+  createWebhookSignature,
   WEBHOOK_FAILURE_DISABLE_THRESHOLD,
   WEBHOOK_FAILURE_NOTIFY_THRESHOLDS,
-} from "@agentset/utils";
+} from "@agentset/webhooks";
 
 import { getDb } from "../db";
 import { SEND_WEBHOOK_JOB_ID, sendWebhookBodySchema } from "../schema";
-
-// Create HMAC-SHA256 signature
-const createWebhookSignature = async (secret: string, body: unknown) => {
-  const keyData = new TextEncoder().encode(secret);
-  const messageData = new TextEncoder().encode(JSON.stringify(body));
-
-  const cryptoKey = await crypto.subtle.importKey(
-    "raw",
-    keyData,
-    { name: "HMAC", hash: "SHA-256" },
-    false,
-    ["sign"],
-  );
-
-  const signature = await crypto.subtle.sign("HMAC", cryptoKey, messageData);
-  const signatureArray = Array.from(new Uint8Array(signature));
-  return signatureArray
-    .map((byte) => byte.toString(16).padStart(2, "0"))
-    .join("");
-};
 
 export const sendWebhookTask = schemaTask({
   id: SEND_WEBHOOK_JOB_ID,

@@ -2,9 +2,9 @@ import type { Webhook } from "@agentset/db";
 import type { z } from "zod/v4";
 
 import { db } from "@agentset/db/client";
+import type { createWebhookSchema } from "@agentset/webhooks";
 
 import { AgentsetApiError } from "../api/errors";
-import type { createWebhookSchema } from "./schemas";
 
 export async function validateWebhook({
   input,

@@ -1,6 +1,5 @@
 "use client";
 
-import type { WebhookProps } from "@/lib/webhook/types";
 import { useRouter } from "next/navigation";
 import { useZodForm } from "@/hooks/use-zod-form";
 import { useTRPC } from "@/trpc/react";
@@ -31,7 +30,8 @@ import {
   INGEST_JOB_LEVEL_WEBHOOK_TRIGGERS,
   WEBHOOK_TRIGGER_DESCRIPTIONS,
   WEBHOOK_TRIGGERS,
-} from "@agentset/utils";
+  type WebhookProps,
+} from "@agentset/webhooks";
 
 const webhookFormSchema = z.object({
   name: z.string().min(1, "Name is required").max(40, "Name is too long"),

@@ -1,5 +1,5 @@
 {
-  "name": "@agentset/tinybird",
+  "name": "@agentset/webhooks",
   "private": true,
   "type": "module",
   "exports": {
@@ -13,9 +13,9 @@
     "lint": "eslint",
     "typecheck": "tsc --noEmit --emitDeclarationOnly false"
   },
+  "prettier": "@agentset/prettier-config",
   "dependencies": {
-    "@agentset/webhooks": "workspace:*",
-    "@chronark/zod-bird": "^1.0.0",
+    "nanoid": "^5.1.5",
     "zod": "catalog:"
   },
   "devDependencies": {
@@ -25,6 +25,5 @@
     "eslint": "catalog:",
     "prettier": "catalog:",
     "typescript": "catalog:"
-  },
-  "prettier": "@agentset/prettier-config"
+  }
 }

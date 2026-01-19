@@ -1,4 +1,4 @@
-import type { WebhookProps } from "@/lib/webhook/types";
+import type { WebhookProps } from "@agentset/webhooks";
 import Link from "next/link";
 import { useOrganization } from "@/hooks/use-organization";
 import { WebhookIcon } from "lucide-react";

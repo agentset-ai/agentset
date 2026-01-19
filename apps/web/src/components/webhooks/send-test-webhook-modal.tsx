@@ -1,6 +1,5 @@
 "use client";
 
-import type { WebhookProps } from "@/lib/webhook/types";
 import { useCallback, useMemo, useState } from "react";
 import { useOrganization } from "@/hooks/use-organization";
 import { useTRPC } from "@/trpc/react";
@@ -23,7 +22,11 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@agentset/ui/select";
-import { WEBHOOK_TRIGGER_DESCRIPTIONS, WEBHOOK_TRIGGERS } from "@agentset/utils";
+import {
+  WEBHOOK_TRIGGER_DESCRIPTIONS,
+  WEBHOOK_TRIGGERS,
+  type WebhookProps,
+} from "@agentset/webhooks";
 
 interface SendTestWebhookModalProps {
   open: boolean;

@@ -87,13 +87,16 @@ export const DELETE = withNamespaceApiHandler(
       });
     }
 
-    const data = await deleteDocument(document.id);
+    const data = await deleteDocument({
+      documentId: document.id,
+      organizationId: namespace.organizationId,
+    });
 
     return makeApiSuccessResponse({
       data: DocumentSchema.parse({
         ...data,
         id: prefixId(data.id, "doc_"),
-        ingestJobId: prefixId(data.ingestJobId, "job_"),
+        namespaceId: prefixId(data.namespaceId, "ns_"),
       }),
       headers,
     });

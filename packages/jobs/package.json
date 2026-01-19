@@ -25,6 +25,7 @@
     "@agentset/tinybird": "workspace:*",
     "@agentset/utils": "workspace:*",
     "@agentset/validation": "workspace:*",
+    "@agentset/webhooks": "workspace:*",
     "@trigger.dev/sdk": "^4.3.0",
     "@upstash/ratelimit": "^2.0.5",
     "@upstash/redis": "^1.34.9",

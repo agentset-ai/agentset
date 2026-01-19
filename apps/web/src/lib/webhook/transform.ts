@@ -1,7 +1,5 @@
 import type { Webhook } from "@agentset/db";
-
-import type { WebhookTrigger } from "./types";
-import { WebhookSchema } from "./schemas";
+import { WebhookSchema, type WebhookTrigger } from "@agentset/webhooks";
 
 interface TransformWebhookProps
   extends Pick<

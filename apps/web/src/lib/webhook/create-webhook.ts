@@ -4,9 +4,10 @@ import { nanoid } from "nanoid";
 
 import { db } from "@agentset/db/client";
 import { sendEmail, WebhookAddedEmail } from "@agentset/emails";
-import { WEBHOOK_ID_PREFIX } from "@agentset/utils";
-
-import type { createWebhookSchema } from "./schemas";
+import {
+  createWebhookSchema,
+  WEBHOOK_ID_PREFIX,
+} from "@agentset/webhooks";
 import { createWebhookSecret } from "./secret";
 
 export async function createWebhook({

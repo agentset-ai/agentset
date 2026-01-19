@@ -131,13 +131,15 @@ export const processDocument = schemaTask({
       });
 
       // Emit document.error webhook
-      await emitDocumentWebhook({
-        trigger: "document.error",
-        document: {
-          ...document,
-          organizationId: document.namespace.organizationId,
-        },
-      });
+      if (document.namespace) {
+        await emitDocumentWebhook({
+          trigger: "document.error",
+          document: {
+            ...document,
+            organizationId: document.namespace.organizationId,
+          },
+        });
+      }
     } catch (e) {
       // skip not found errors
       if (
@@ -152,22 +154,42 @@ export const processDocument = schemaTask({
   run: async ({ documentId, ingestJob, cleanup: shouldCleanup }) => {
     const db = getDb();
 
-    // Get document configuration
-    const document = await db.document.findUnique({
+    // Update document status to processing and get document configuration
+    const document = await db.document.update({
       where: { id: documentId },
+      data: {
+        status: DocumentStatus.PROCESSING,
+        processingAt: new Date(),
+      },
       select: {
         id: true,
-        tenantId: true,
         name: true,
+        namespaceId: true,
+        status: true,
         source: true,
         config: true,
+        tenantId: true,
+        totalCharacters: true,
+        totalChunks: true,
         totalPages: true,
+        error: true,
+        createdAt: true,
+        updatedAt: true,
       },
     });
 
     if (!document) {
       throw new Error("Document not found");
     }
+
+    // Emit document.processing webhook
+    await emitDocumentWebhook({
+      trigger: "document.processing",
+      document: {
+        ...document,
+        organizationId: ingestJob.namespace.organization.id,
+      },
+    });
 
     // Get embedding model and vector store
     const [embeddingModel, vectorStore] = await Promise.all([
@@ -418,13 +440,15 @@ export const processDocument = schemaTask({
     });
 
     // Emit document.ready webhook
-    await emitDocumentWebhook({
-      trigger: "document.ready",
-      document: {
-        ...completedDocument,
-        organizationId: completedDocument.namespace.organizationId,
-      },
-    });
+    if (completedDocument.namespace) {
+      await emitDocumentWebhook({
+        trigger: "document.ready",
+        document: {
+          ...completedDocument,
+          organizationId: completedDocument.namespace.organizationId,
+        },
+      });
+    }
 
     let meterSuccess = null;
 

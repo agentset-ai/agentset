@@ -1,21 +1,18 @@
-import type {
-  DocumentEventPayload,
-  DocumentWebhookTrigger,
-  GenericWebhookEventData,
-  IngestJobEventPayload,
-  IngestJobWebhookTrigger,
-  WebhookTrigger,
-} from "@agentset/webhooks";
+import { db } from "@agentset/db/client";
+import { triggerSendWebhook } from "@agentset/jobs";
 import {
   emitDocumentWebhook as emitDocumentWebhookBase,
   emitIngestJobWebhook as emitIngestJobWebhookBase,
   emitWebhook as emitWebhookBase,
+  type DocumentEventPayload,
+  type DocumentWebhookTrigger,
+  type GenericWebhookEventData,
+  type IngestJobEventPayload,
+  type IngestJobWebhookTrigger,
+  type WebhookTrigger,
 } from "@agentset/webhooks";
 
-import { getDb } from "./db";
-import { triggerSendWebhook } from "./schema";
-
-// Emit webhook for an organization (jobs context)
+// Emit webhook for an organization (web app context)
 export const emitWebhook = async ({
   trigger,
   organizationId,
@@ -27,7 +24,6 @@ export const emitWebhook = async ({
   namespaceId?: string;
   data: GenericWebhookEventData;
 }) => {
-  const db = getDb();
   return emitWebhookBase({
     db,
     triggerSendWebhook,
@@ -38,7 +34,7 @@ export const emitWebhook = async ({
   });
 };
 
-// Helper to emit document webhook (jobs context)
+// Helper to emit document webhook (web app context)
 export const emitDocumentWebhook = async ({
   trigger,
   document,
@@ -46,7 +42,6 @@ export const emitDocumentWebhook = async ({
   trigger: DocumentWebhookTrigger;
   document: DocumentEventPayload;
 }) => {
-  const db = getDb();
   return emitDocumentWebhookBase({
     db,
     triggerSendWebhook,
@@ -55,7 +50,7 @@ export const emitDocumentWebhook = async ({
   });
 };
 
-// Helper to emit ingest job webhook (jobs context)
+// Helper to emit ingest job webhook (web app context)
 export const emitIngestJobWebhook = async ({
   trigger,
   ingestJob,
@@ -63,7 +58,6 @@ export const emitIngestJobWebhook = async ({
   trigger: IngestJobWebhookTrigger;
   ingestJob: IngestJobEventPayload;
 }) => {
-  const db = getDb();
   return emitIngestJobWebhookBase({
     db,
     triggerSendWebhook,

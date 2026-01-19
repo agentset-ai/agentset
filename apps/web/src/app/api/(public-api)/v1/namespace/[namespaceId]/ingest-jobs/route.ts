@@ -91,6 +91,7 @@ export const POST = withNamespaceApiHandler(
     try {
       const job = await createIngestJob({
         data: body,
+        organizationId: organization.id,
         namespaceId: namespace.id,
         tenantId,
         plan: organization.plan,

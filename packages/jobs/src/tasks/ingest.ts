@@ -15,7 +15,7 @@ import {
   TRIGGER_INGESTION_JOB_ID,
   triggerIngestionJobBodySchema,
 } from "../schema";
-import { emitIngestJobWebhook } from "../webhook";
+import { emitDocumentWebhook, emitIngestJobWebhook } from "../webhook";
 import { processDocument } from "./process-document";
 
 const BATCH_SIZE = 30;
@@ -411,7 +411,39 @@ export const ingestJob = schemaTask({
       }
     }
 
-    await db.$transaction([
+    // Emit document.queued webhooks for all created documents
+    if (documentsIds.length > 0) {
+      const queuedDocuments = await db.document.findMany({
+        where: { id: { in: documentsIds } },
+        select: {
+          id: true,
+          name: true,
+          namespaceId: true,
+          status: true,
+          source: true,
+          totalCharacters: true,
+          totalChunks: true,
+          totalPages: true,
+          error: true,
+          createdAt: true,
+          updatedAt: true,
+        },
+      });
+
+      await Promise.all(
+        queuedDocuments.map((doc) =>
+          emitDocumentWebhook({
+            trigger: "document.queued",
+            document: {
+              ...doc,
+              organizationId: ingestionJob.namespace.organization.id,
+            },
+          }),
+        ),
+      );
+    }
+
+    const [, , updatedJobForProcessing] = await db.$transaction([
       // Update total documents in namespace + organization
       db.namespace.update({
         where: { id: ingestionJob.namespace.id },
@@ -434,9 +466,26 @@ export const ingestJob = schemaTask({
           status: IngestJobStatus.PROCESSING,
           processingAt: new Date(),
         },
-        select: { id: true },
+        select: {
+          id: true,
+          name: true,
+          namespaceId: true,
+          status: true,
+          error: true,
+          createdAt: true,
+          updatedAt: true,
+        },
       }),
     ]);
+
+    // Emit ingest_job.processing webhook
+    await emitIngestJobWebhook({
+      trigger: "ingest_job.processing",
+      ingestJob: {
+        ...updatedJobForProcessing,
+        organizationId: ingestionJob.namespace.organization.id,
+      },
+    });
 
     const chunks = chunkArray(documentsIds, BATCH_SIZE);
     let success = true;

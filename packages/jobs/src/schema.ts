@@ -3,7 +3,7 @@ import { tasks } from "@trigger.dev/sdk";
 import { z } from "zod/v4";
 
 import { isEnterprisePlan, isProPlan } from "@agentset/stripe/plans";
-import { WEBHOOK_TRIGGERS } from "@agentset/utils";
+import { WEBHOOK_TRIGGERS } from "@agentset/webhooks";
 import {
   configSchema,
   EmbeddingConfigSchema,
@@ -41,6 +41,7 @@ export const triggerDocumentJobBodySchema = z.object({
       embeddingConfig: EmbeddingConfigSchema.nullable(),
       vectorStoreConfig: VectorStoreSchema.nullable(),
       organization: z.object({
+        id: z.string(),
         plan: z.string(),
         stripeId: z.string().optional().nullable(),
       }),
