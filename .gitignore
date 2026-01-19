@@ -21,6 +21,8 @@ next-env.d.ts
 .tinyb
 .venv
 
+.ref/
+
 # expo
 .expo/
 expo-env.d.ts

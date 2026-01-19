@@ -1,0 +1,10 @@
+{
+  "id": "job_sample123456789",
+  "name": "Website Crawl - example.com",
+  "namespaceId": "ns_sample123",
+  "organizationId": "org_sample123",
+  "status": "QUEUED_FOR_DELETION",
+  "error": null,
+  "createdAt": "2024-01-15T10:30:00.000Z",
+  "updatedAt": "2024-01-15T14:00:00.000Z"
+}

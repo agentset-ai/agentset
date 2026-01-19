@@ -1,9 +1,7 @@
 ---
 name: tailwindcss
 description: Best practices for using Tailwind CSS
-tags:
-  - tailwind
-  - css
+alwaysApply: true
 ---
 
 # Tailwind CSS Rules and Best Practices
@@ -152,7 +150,7 @@ Be precise with font sizes - know the actual pixel values:
 
 ```html
 <!-- ❌ Don't do this -->
-<div class="bg-red-500 bg-opacity-60">Old opacity syntax</div>
+<div class="bg-opacity-60 bg-red-500">Old opacity syntax</div>
 
 <!-- ✅ Do this instead -->
 <div class="bg-red-500/60">Modern opacity syntax</div>

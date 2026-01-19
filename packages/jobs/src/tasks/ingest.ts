@@ -15,6 +15,7 @@ import {
   TRIGGER_INGESTION_JOB_ID,
   triggerIngestionJobBodySchema,
 } from "../schema";
+import { emitIngestJobWebhook } from "../webhook";
 import { processDocument } from "./process-document";
 
 const BATCH_SIZE = 30;
@@ -36,14 +37,36 @@ export const ingestJob = schemaTask({
       (error instanceof Error ? error.message : null) || "Unknown error";
 
     try {
-      await db.ingestJob.update({
+      const ingestJob = await db.ingestJob.update({
         where: { id: payload.jobId },
         data: {
           status: IngestJobStatus.FAILED,
           error: errorMessage,
           failedAt: new Date(),
         },
-        select: { id: true },
+        select: {
+          id: true,
+          name: true,
+          namespaceId: true,
+          status: true,
+          error: true,
+          createdAt: true,
+          updatedAt: true,
+          namespace: {
+            select: {
+              organizationId: true,
+            },
+          },
+        },
+      });
+
+      // Emit ingest_job.error webhook
+      await emitIngestJobWebhook({
+        trigger: "ingest_job.error",
+        ingestJob: {
+          ...ingestJob,
+          organizationId: ingestJob.namespace.organizationId,
+        },
       });
     } catch (e) {
       // skip not found errors
@@ -470,7 +493,7 @@ export const ingestJob = schemaTask({
         ? `${overLimitCount} document(s) exceeded pages limit`
         : null;
 
-    await db.$transaction([
+    const [updatedJob] = await db.$transaction([
       db.ingestJob.update({
         where: { id: ingestionJob.id },
         data: {
@@ -488,7 +511,15 @@ export const ingestJob = schemaTask({
                 error: jobError,
               }),
         },
-        select: { id: true },
+        select: {
+          id: true,
+          name: true,
+          namespaceId: true,
+          status: true,
+          error: true,
+          createdAt: true,
+          updatedAt: true,
+        },
       }),
       db.namespace.update({
         where: { id: ingestionJob.namespace.id },
@@ -501,6 +532,15 @@ export const ingestJob = schemaTask({
         select: { id: true },
       }),
     ]);
+
+    // Emit webhook for job completion
+    await emitIngestJobWebhook({
+      trigger: jobFailed ? "ingest_job.error" : "ingest_job.ready",
+      ingestJob: {
+        ...updatedJob,
+        organizationId: ingestionJob.namespace.organization.id,
+      },
+    });
 
     return {
       ingestionJobId: ingestionJob.id,

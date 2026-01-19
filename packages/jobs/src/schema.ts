@@ -3,6 +3,7 @@ import { tasks } from "@trigger.dev/sdk";
 import { z } from "zod/v4";
 
 import { isEnterprisePlan, isProPlan } from "@agentset/stripe/plans";
+import { WEBHOOK_TRIGGERS } from "@agentset/utils";
 import {
   configSchema,
   EmbeddingConfigSchema,
@@ -124,4 +125,20 @@ export const triggerReIngestJob = (
   tasks.trigger(RE_INGEST_JOB_ID, body, {
     tags: [`job_${body.jobId}`],
     priority: getPriorityByPlan(plan),
+  });
+
+export const SEND_WEBHOOK_JOB_ID = "send-webhook";
+export const sendWebhookBodySchema = z.object({
+  webhookId: z.string(),
+  eventId: z.string(),
+  event: z.enum(WEBHOOK_TRIGGERS),
+  url: z.string(),
+  secret: z.string(),
+  payload: z.any(),
+});
+export const triggerSendWebhook = (
+  body: z.infer<typeof sendWebhookBodySchema>,
+) =>
+  tasks.trigger(SEND_WEBHOOK_JOB_ID, body, {
+    tags: [`webhook_${body.webhookId}`, `event_${body.eventId}`],
   });

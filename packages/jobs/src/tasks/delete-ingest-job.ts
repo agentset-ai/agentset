@@ -5,6 +5,7 @@ import { chunkArray } from "@agentset/utils";
 
 import { getDb } from "../db";
 import { DELETE_INGEST_JOB_ID, deleteIngestJobBodySchema } from "../schema";
+import { emitIngestJobWebhook } from "../webhook";
 import { deleteDocument } from "./delete-document";
 
 const BATCH_SIZE = 30;
@@ -24,9 +25,19 @@ export const deleteIngestJob = schemaTask({
       where: { id: jobId },
       select: {
         id: true,
+        name: true,
         tenantId: true,
         payload: true,
         namespaceId: true,
+        status: true,
+        error: true,
+        createdAt: true,
+        updatedAt: true,
+        namespace: {
+          select: {
+            organizationId: true,
+          },
+        },
       },
     });
 
@@ -125,6 +136,21 @@ export const deleteIngestJob = schemaTask({
         },
       }),
     ]);
+
+    // Emit ingest_job.deleted webhook
+    await emitIngestJobWebhook({
+      trigger: "ingest_job.deleted",
+      ingestJob: {
+        id: ingestJob.id,
+        name: ingestJob.name,
+        namespaceId: ingestJob.namespaceId,
+        organizationId: ingestJob.namespace.organizationId,
+        status: "DELETED",
+        error: ingestJob.error,
+        createdAt: ingestJob.createdAt,
+        updatedAt: new Date(),
+      },
+    });
 
     return {
       jobId: ingestJob.id,

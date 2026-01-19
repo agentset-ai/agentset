@@ -10,6 +10,7 @@ import { namespaceRouter } from "./routers/namespaces";
 import { organizationsRouter } from "./routers/organizations";
 import { searchRouter } from "./routers/search";
 import { uploadsRouter } from "./routers/uploads";
+import { webhooksRouter } from "./routers/webhooks";
 
 export const appRouter = createTRPCRouter({
   namespace: namespaceRouter,
@@ -22,6 +23,7 @@ export const appRouter = createTRPCRouter({
   hosting: hostingRouter,
   domain: domainsRouter,
   search: searchRouter,
+  webhook: webhooksRouter,
 });
 
 // export type definition of API

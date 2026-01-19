@@ -13,6 +13,7 @@ import {
   ShieldIcon,
   UnplugIcon,
   UsersIcon,
+  WebhookIcon,
 } from "lucide-react";
 
 export type SidebarItemType = {
@@ -45,6 +46,11 @@ export const dashboardItems: SidebarItemType[] = [
     title: "Team",
     url: createOrgUrl("/team"),
     icon: UsersIcon,
+  },
+  {
+    title: "Webhooks",
+    url: createOrgUrl("/webhooks"),
+    icon: WebhookIcon,
   },
   {
     title: "Billing",

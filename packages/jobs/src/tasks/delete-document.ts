@@ -13,6 +13,7 @@ import { chunkArray } from "@agentset/utils";
 import { getDb } from "../db";
 import { rateLimit } from "../rate-limit";
 import { DELETE_DOCUMENT_JOB_ID, deleteDocumentBodySchema } from "../schema";
+import { emitDocumentWebhook } from "../webhook";
 
 const BATCH_SIZE = 50;
 
@@ -31,14 +32,23 @@ export const deleteDocument = schemaTask({
       where: { id: documentId },
       select: {
         id: true,
+        name: true,
         tenantId: true,
         source: true,
         totalPages: true,
+        totalCharacters: true,
+        totalChunks: true,
+        status: true,
+        error: true,
+        createdAt: true,
+        updatedAt: true,
+        namespaceId: true,
         namespace: {
           select: {
             id: true,
             vectorStoreConfig: true,
             keywordEnabled: true,
+            organizationId: true,
           },
         },
       },
@@ -147,6 +157,25 @@ export const deleteDocument = schemaTask({
     await db.document.delete({
       where: { id: document.id },
       select: { id: true },
+    });
+
+    // Emit document.deleted webhook
+    await emitDocumentWebhook({
+      trigger: "document.deleted",
+      document: {
+        id: document.id,
+        name: document.name,
+        namespaceId: document.namespaceId,
+        organizationId: namespace.organizationId,
+        status: "DELETED",
+        source: document.source,
+        totalCharacters: document.totalCharacters,
+        totalChunks: document.totalChunks,
+        totalPages: document.totalPages,
+        error: document.error,
+        createdAt: document.createdAt,
+        updatedAt: new Date(),
+      },
     });
 
     return {

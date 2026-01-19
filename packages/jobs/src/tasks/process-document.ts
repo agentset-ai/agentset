@@ -29,6 +29,7 @@ import {
   TRIGGER_DOCUMENT_JOB_ID,
   triggerDocumentJobBodySchema,
 } from "../schema";
+import { emitDocumentWebhook } from "../webhook";
 
 const BATCH_SIZE = 30;
 
@@ -102,14 +103,40 @@ export const processDocument = schemaTask({
       (error instanceof Error ? error.message : null) || "Unknown error";
 
     try {
-      await db.document.update({
+      const document = await db.document.update({
         where: { id: payload.documentId },
         data: {
           status: DocumentStatus.FAILED,
           error: errorMessage,
           failedAt: new Date(),
         },
-        select: { id: true },
+        select: {
+          id: true,
+          name: true,
+          namespaceId: true,
+          status: true,
+          source: true,
+          totalCharacters: true,
+          totalChunks: true,
+          totalPages: true,
+          error: true,
+          createdAt: true,
+          updatedAt: true,
+          namespace: {
+            select: {
+              organizationId: true,
+            },
+          },
+        },
+      });
+
+      // Emit document.error webhook
+      await emitDocumentWebhook({
+        trigger: "document.error",
+        document: {
+          ...document,
+          organizationId: document.namespace.organizationId,
+        },
       });
     } catch (e) {
       // skip not found errors
@@ -361,7 +388,7 @@ export const processDocument = schemaTask({
       }
     }
 
-    await db.document.update({
+    const completedDocument = await db.document.update({
       where: { id: document.id },
       data: {
         status: DocumentStatus.COMPLETED,
@@ -370,7 +397,33 @@ export const processDocument = schemaTask({
         failedAt: null,
         error: null,
       },
-      select: { id: true },
+      select: {
+        id: true,
+        name: true,
+        namespaceId: true,
+        status: true,
+        source: true,
+        totalCharacters: true,
+        totalChunks: true,
+        totalPages: true,
+        error: true,
+        createdAt: true,
+        updatedAt: true,
+        namespace: {
+          select: {
+            organizationId: true,
+          },
+        },
+      },
+    });
+
+    // Emit document.ready webhook
+    await emitDocumentWebhook({
+      trigger: "document.ready",
+      document: {
+        ...completedDocument,
+        organizationId: completedDocument.namespace.organizationId,
+      },
     });
 
     let meterSuccess = null;
