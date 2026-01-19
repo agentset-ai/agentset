@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useNamespace } from "@/hooks/use-namespace";
-import { prefixId } from "@/lib/api/ids";
+import { prefixId } from "@agentset/utils";
 import { formatNumber } from "@/lib/utils";
 
 import { Badge } from "@agentset/ui/badge";

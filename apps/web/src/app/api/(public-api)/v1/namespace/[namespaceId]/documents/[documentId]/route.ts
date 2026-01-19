@@ -1,6 +1,6 @@
 import { AgentsetApiError } from "@/lib/api/errors";
 import { withNamespaceApiHandler } from "@/lib/api/handler";
-import { normalizeId, prefixId } from "@/lib/api/ids";
+import { normalizeId, prefixId } from "@agentset/utils";
 import { makeApiSuccessResponse } from "@/lib/api/response";
 import { DocumentSchema } from "@/schemas/api/document";
 import { deleteDocument } from "@/services/documents/delete";

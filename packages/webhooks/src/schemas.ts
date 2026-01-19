@@ -10,7 +10,7 @@ import {
 export const documentEventDataSchema = z.object({
   id: z.string().describe("Unique identifier for the document."),
   name: z.string().nullable().describe("Name of the document."),
-  namespaceId: z.string().nullable().describe("ID of the namespace."),
+  namespaceId: z.string().describe("ID of the namespace."),
   organizationId: z.string().describe("ID of the organization."),
   status: z.string().describe("Current status of the document."),
   source: z.unknown().describe("Source configuration of the document."),

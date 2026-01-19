@@ -3,12 +3,12 @@ import { tasks } from "@trigger.dev/sdk";
 import { z } from "zod/v4";
 
 import { isEnterprisePlan, isProPlan } from "@agentset/stripe/plans";
-import { WEBHOOK_TRIGGERS } from "@agentset/webhooks";
 import {
   configSchema,
   EmbeddingConfigSchema,
   VectorStoreSchema,
 } from "@agentset/validation";
+import { WEBHOOK_TRIGGERS } from "@agentset/webhooks";
 
 const getPriorityByPlan = (plan: string) => {
   if (isEnterprisePlan(plan)) return;
@@ -142,4 +142,5 @@ export const triggerSendWebhook = (
 ) =>
   tasks.trigger(SEND_WEBHOOK_JOB_ID, body, {
     tags: [`webhook_${body.webhookId}`, `event_${body.eventId}`],
+    idempotencyKey: body.eventId,
   });

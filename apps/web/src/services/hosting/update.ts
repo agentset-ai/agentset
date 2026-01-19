@@ -1,6 +1,6 @@
 import { env } from "@/env";
 import { AgentsetApiError } from "@/lib/api/errors";
-import { prefixId } from "@/lib/api/ids";
+import { prefixId } from "@agentset/utils";
 import { updateHostingSchema } from "@/schemas/api/hosting";
 import { getCache, waitUntil } from "@vercel/functions";
 import { nanoid } from "nanoid";

@@ -33,8 +33,8 @@ model Document {
   completedAt     DateTime?
   failedAt        DateTime?
 
-  namespaceId String?
-  namespace   Namespace? @relation(fields: [namespaceId], references: [id], onDelete: Cascade)
+  namespaceId String
+  namespace   Namespace @relation(fields: [namespaceId], references: [id], onDelete: Cascade)
 
   ingestJobId String
   ingestJob   IngestJob @relation(fields: [ingestJobId], references: [id], onDelete: Cascade)

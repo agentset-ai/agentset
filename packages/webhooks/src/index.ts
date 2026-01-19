@@ -58,19 +58,41 @@ export {
 // Signature
 export { createWebhookSignature } from "./signature";
 
+// Failure handling
+export {
+  disableWebhook,
+  getOrganizationOwner,
+  handleWebhookFailure,
+  resetWebhookFailureCount,
+} from "./failure";
+
+export type {
+  DisableWebhookParams,
+  GetOrganizationOwnerParams,
+  HandleWebhookFailureParams,
+  OrganizationOwnerResult,
+  ResetWebhookFailureCountParams,
+  WebhookFailureResult,
+} from "./failure";
+
 // Emit functions and transforms
 export {
+  emitBulkDocumentWebhooks,
   emitDocumentWebhook,
   emitIngestJobWebhook,
   emitWebhook,
+  getActiveWebhooks,
+  sendWebhooksWithCache,
   transformDocumentEventData,
   transformIngestJobEventData,
 } from "./emit";
 
 export type {
   DocumentWebhookInput,
+  EmitBulkDocumentWebhooksParams,
   EmitDocumentWebhookParams,
   EmitIngestJobWebhookParams,
   EmitWebhookParams,
   IngestJobWebhookInput,
+  WebhookForSending,
 } from "./emit";

@@ -88,7 +88,9 @@ function WebhookEventItem({
       </div>
 
       <span className="text-muted-foreground text-xs">
-        {formatDistanceToNow(new Date(event.timestamp), { addSuffix: true })}
+        {formatDistanceToNow(new Date(event.timestamp + "Z"), {
+          addSuffix: true,
+        })}
       </span>
     </button>
   );

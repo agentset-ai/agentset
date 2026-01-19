@@ -1,14 +1,9 @@
-import { nanoid } from "nanoid";
 import type { z } from "zod";
+import { nanoid } from "nanoid";
 
-import type { db } from "@agentset/db/client";
-import type { triggerSendWebhook } from "@agentset/jobs";
+import type { PrismaClient } from "@agentset/db";
+import { prefixId } from "@agentset/utils";
 
-import { WEBHOOK_EVENT_ID_PREFIX } from "./constants";
-import {
-  documentEventDataSchema,
-  ingestJobEventDataSchema,
-} from "./schemas";
 import type {
   DocumentEventPayload,
   DocumentWebhookTrigger,
@@ -17,6 +12,19 @@ import type {
   IngestJobWebhookTrigger,
   WebhookTrigger,
 } from "./types";
+import { WEBHOOK_EVENT_ID_PREFIX, WEBHOOK_TRIGGERS } from "./constants";
+import { documentEventDataSchema, ingestJobEventDataSchema } from "./schemas";
+
+// Generic trigger function type
+type TriggerSendWebhookFn = (body: {
+  webhookId: string;
+  eventId: string;
+  event: (typeof WEBHOOK_TRIGGERS)[number];
+  url: string;
+  secret: string;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  payload: any;
+}) => Promise<unknown>;
 
 // Re-export input types for convenience
 export type DocumentWebhookInput = DocumentEventPayload;
@@ -27,10 +35,12 @@ export const transformDocumentEventData = (
   document: DocumentEventPayload,
 ): z.infer<typeof documentEventDataSchema> => {
   return documentEventDataSchema.parse({
-    id: document.id,
+    id: prefixId(document.id, "doc_"),
     name: document.name,
-    namespaceId: document.namespaceId,
-    organizationId: document.organizationId,
+    namespaceId: document.namespaceId
+      ? prefixId(document.namespaceId, "ns_")
+      : document.namespaceId,
+    organizationId: prefixId(document.organizationId, "org_"),
     status: document.status,
     source: document.source,
     totalCharacters: document.totalCharacters,
@@ -47,10 +57,10 @@ export const transformIngestJobEventData = (
   ingestJob: IngestJobEventPayload,
 ): z.infer<typeof ingestJobEventDataSchema> => {
   return ingestJobEventDataSchema.parse({
-    id: ingestJob.id,
+    id: prefixId(ingestJob.id, "job_"),
     name: ingestJob.name,
-    namespaceId: ingestJob.namespaceId,
-    organizationId: ingestJob.organizationId,
+    namespaceId: prefixId(ingestJob.namespaceId, "ns_"),
+    organizationId: prefixId(ingestJob.organizationId, "org_"),
     status: ingestJob.status,
     error: ingestJob.error,
     createdAt: ingestJob.createdAt.toISOString(),
@@ -59,12 +69,19 @@ export const transformIngestJobEventData = (
 };
 
 export interface EmitWebhookParams {
-  db: typeof db;
-  triggerSendWebhook: typeof triggerSendWebhook;
+  db: PrismaClient;
+  triggerSendWebhook: TriggerSendWebhookFn;
   trigger: WebhookTrigger;
   organizationId: string;
   namespaceId?: string;
   data: GenericWebhookEventData;
+}
+
+// Webhook data needed for sending
+export interface WebhookForSending {
+  id: string;
+  url: string;
+  secret: string;
 }
 
 // Emit webhook for an organization
@@ -76,20 +93,11 @@ export const emitWebhook = async ({
   namespaceId,
   data,
 }: EmitWebhookParams) => {
-  // Check if organization has webhooks enabled
-  const org = await db.organization.findUnique({
-    where: { id: organizationId },
-    select: { webhookEnabled: true },
-  });
-
-  if (!org?.webhookEnabled) {
-    return;
-  }
-
-  // Find webhooks that match this trigger
+  // Single query: fetch webhooks with org webhookEnabled check at DB level
   const webhooks = await db.webhook.findMany({
     where: {
       organizationId,
+      organization: { webhookEnabled: true }, // Filter at DB level
       disabledAt: null,
       triggers: {
         array_contains: [trigger],
@@ -139,9 +147,84 @@ export const emitWebhook = async ({
   );
 };
 
+// Send webhooks with pre-fetched webhook list (for bulk operations)
+export const sendWebhooksWithCache = async ({
+  triggerSendWebhook,
+  trigger,
+  webhooks,
+  data,
+}: {
+  triggerSendWebhook: TriggerSendWebhookFn;
+  trigger: WebhookTrigger;
+  webhooks: WebhookForSending[];
+  data: GenericWebhookEventData;
+}) => {
+  if (webhooks.length === 0) {
+    return;
+  }
+
+  // Prepare webhook payload
+  const eventId = `${WEBHOOK_EVENT_ID_PREFIX}${nanoid(25)}`;
+  const payload = {
+    id: eventId,
+    event: trigger,
+    createdAt: new Date().toISOString(),
+    data,
+  };
+
+  // Trigger webhook deliveries
+  await Promise.all(
+    webhooks.map((webhook) =>
+      triggerSendWebhook({
+        webhookId: webhook.id,
+        eventId,
+        event: trigger,
+        url: webhook.url,
+        secret: webhook.secret,
+        payload,
+      }),
+    ),
+  );
+};
+
+// Get active webhooks for an organization and trigger (for bulk operations)
+export const getActiveWebhooks = async ({
+  db,
+  organizationId,
+  trigger,
+  namespaceId,
+}: {
+  db: PrismaClient;
+  organizationId: string;
+  trigger: WebhookTrigger;
+  namespaceId?: string;
+}): Promise<WebhookForSending[]> => {
+  return db.webhook.findMany({
+    where: {
+      organizationId,
+      organization: { webhookEnabled: true },
+      disabledAt: null,
+      triggers: {
+        array_contains: [trigger],
+      },
+      ...(namespaceId && {
+        OR: [
+          { namespaces: { none: {} } },
+          { namespaces: { some: { namespaceId } } },
+        ],
+      }),
+    },
+    select: {
+      id: true,
+      url: true,
+      secret: true,
+    },
+  });
+};
+
 export interface EmitDocumentWebhookParams {
-  db: typeof db;
-  triggerSendWebhook: typeof triggerSendWebhook;
+  db: PrismaClient;
+  triggerSendWebhook: TriggerSendWebhookFn;
   trigger: DocumentWebhookTrigger;
   document: DocumentEventPayload;
 }
@@ -166,9 +249,60 @@ export const emitDocumentWebhook = async ({
   });
 };
 
+export interface EmitBulkDocumentWebhooksParams {
+  db: PrismaClient;
+  triggerSendWebhook: TriggerSendWebhookFn;
+  trigger: DocumentWebhookTrigger;
+  documents: DocumentEventPayload[];
+  organizationId: string;
+  namespaceId?: string;
+}
+
+/**
+ * Emit webhooks for multiple documents in bulk.
+ * Fetches webhooks once and sends to all matching documents.
+ */
+export const emitBulkDocumentWebhooks = async ({
+  db,
+  triggerSendWebhook,
+  trigger,
+  documents,
+  organizationId,
+  namespaceId,
+}: EmitBulkDocumentWebhooksParams) => {
+  if (documents.length === 0) {
+    return;
+  }
+
+  // Fetch webhooks once for all documents
+  const webhooks = await getActiveWebhooks({
+    db,
+    organizationId,
+    trigger,
+    namespaceId,
+  });
+
+  if (webhooks.length === 0) {
+    return;
+  }
+
+  // Send webhooks for each document using the cached webhook list
+  await Promise.all(
+    documents.map((document) => {
+      const data = transformDocumentEventData(document);
+      return sendWebhooksWithCache({
+        triggerSendWebhook,
+        trigger,
+        webhooks,
+        data,
+      });
+    }),
+  );
+};
+
 export interface EmitIngestJobWebhookParams {
-  db: typeof db;
-  triggerSendWebhook: typeof triggerSendWebhook;
+  db: PrismaClient;
+  triggerSendWebhook: TriggerSendWebhookFn;
   trigger: IngestJobWebhookTrigger;
   ingestJob: IngestJobEventPayload;
 }

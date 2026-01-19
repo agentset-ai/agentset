@@ -15,7 +15,7 @@ import {
   TRIGGER_INGESTION_JOB_ID,
   triggerIngestionJobBodySchema,
 } from "../schema";
-import { emitDocumentWebhook, emitIngestJobWebhook } from "../webhook";
+import { emitBulkDocumentWebhooks, emitIngestJobWebhook } from "../webhook";
 import { processDocument } from "./process-document";
 
 const BATCH_SIZE = 30;
@@ -411,7 +411,7 @@ export const ingestJob = schemaTask({
       }
     }
 
-    // Emit document.queued webhooks for all created documents
+    // Emit document.queued webhooks for all created documents (bulk operation)
     if (documentsIds.length > 0) {
       const queuedDocuments = await db.document.findMany({
         where: { id: { in: documentsIds } },
@@ -430,17 +430,16 @@ export const ingestJob = schemaTask({
         },
       });
 
-      await Promise.all(
-        queuedDocuments.map((doc) =>
-          emitDocumentWebhook({
-            trigger: "document.queued",
-            document: {
-              ...doc,
-              organizationId: ingestionJob.namespace.organization.id,
-            },
-          }),
-        ),
-      );
+      // Use bulk emit to fetch webhooks once instead of N times
+      await emitBulkDocumentWebhooks({
+        trigger: "document.queued",
+        documents: queuedDocuments.map((doc) => ({
+          ...doc,
+          organizationId: ingestionJob.namespace.organization.id,
+        })),
+        organizationId: ingestionJob.namespace.organization.id,
+        namespaceId: ingestionJob.namespace.id,
+      });
     }
 
     const [, , updatedJobForProcessing] = await db.$transaction([

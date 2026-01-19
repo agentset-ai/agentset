@@ -1,6 +1,6 @@
 import { AgentsetApiError, exceededLimitError } from "@/lib/api/errors";
 import { withNamespaceApiHandler } from "@/lib/api/handler";
-import { prefixId } from "@/lib/api/ids";
+import { prefixId } from "@agentset/utils";
 import { makeApiSuccessResponse } from "@/lib/api/response";
 import { parseRequestBody } from "@/lib/api/utils";
 import {
