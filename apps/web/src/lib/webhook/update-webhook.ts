@@ -1,6 +1,7 @@
 import { db } from "@agentset/db/client";
 
 import { webhookCache } from "./cache";
+import { WebhookTrigger } from "./types";
 
 // Toggle webhooks for organization based on active webhook count
 export const toggleWebhooksForOrganization = async ({
@@ -47,7 +48,7 @@ export const updateWebhookCache = async ({
       id: webhook.id,
       url: webhook.url,
       secret: webhook.secret,
-      triggers: webhook.triggers as string[],
+      triggers: webhook.triggers as WebhookTrigger[],
       disabledAt: webhook.disabledAt,
     });
   }

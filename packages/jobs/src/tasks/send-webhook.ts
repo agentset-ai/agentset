@@ -1,7 +1,7 @@
 import { schemaTask } from "@trigger.dev/sdk";
 import { z } from "zod/v4";
 
-import { recordWebhookEvent } from "@agentset/tinybird";
+import { recordWebhookEvent, webhookEventSchemaTB } from "@agentset/tinybird";
 import {
   WEBHOOK_FAILURE_DISABLE_THRESHOLD,
   WEBHOOK_FAILURE_NOTIFY_THRESHOLDS,
@@ -71,7 +71,7 @@ export const sendWebhookTask = schemaTask({
         event_id: eventId,
         webhook_id: webhookId,
         task_id: taskId,
-        event: event as Parameters<typeof recordWebhookEvent>[0]["event"],
+        event: event as z.infer<typeof webhookEventSchemaTB>["event"],
         url,
         http_status: httpStatus,
         request_body: JSON.stringify(payload),
@@ -104,14 +104,13 @@ export const sendWebhookTask = schemaTask({
       // Record failure to Tinybird if not already recorded
       if (httpStatus === 0) {
         httpStatus = 503;
-        responseBody =
-          error instanceof Error ? error.message : "Unknown error";
+        responseBody = error instanceof Error ? error.message : "Unknown error";
 
         await recordWebhookEvent({
           event_id: eventId,
           webhook_id: webhookId,
           task_id: taskId,
-          event: event as Parameters<typeof recordWebhookEvent>[0]["event"],
+          event: event as z.infer<typeof webhookEventSchemaTB>["event"],
           url,
           http_status: httpStatus,
           request_body: JSON.stringify(payload),

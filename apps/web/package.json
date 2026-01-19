@@ -23,6 +23,7 @@
     "@agentset/jobs": "workspace:*",
     "@agentset/storage": "workspace:*",
     "@agentset/stripe": "workspace:*",
+    "@agentset/tinybird": "workspace:*",
     "@agentset/ui": "workspace:*",
     "@agentset/utils": "workspace:*",
     "@agentset/validation": "workspace:*",

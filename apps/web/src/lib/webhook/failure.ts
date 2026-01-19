@@ -1,14 +1,14 @@
 import type { Webhook } from "@agentset/db";
+import { db } from "@agentset/db/client";
+import { WebhookDisabledEmail, WebhookFailedEmail } from "@agentset/emails";
 import {
   WEBHOOK_FAILURE_DISABLE_THRESHOLD,
   WEBHOOK_FAILURE_NOTIFY_THRESHOLDS,
 } from "@agentset/utils";
 
-import { db } from "@agentset/db/client";
-import { WebhookDisabledEmail, WebhookFailedEmail } from "@agentset/emails";
-
 import { sendEmail } from "../resend";
 import { webhookCache } from "./cache";
+import { WebhookTrigger } from "./types";
 import { toggleWebhooksForOrganization } from "./update-webhook";
 
 export const handleWebhookFailure = async (webhookId: string) => {
@@ -63,7 +63,7 @@ export const handleWebhookFailure = async (webhookId: string) => {
         id: updatedWebhook.id,
         url: updatedWebhook.url,
         secret: updatedWebhook.secret,
-        triggers: updatedWebhook.triggers as string[],
+        triggers: updatedWebhook.triggers as WebhookTrigger[],
         disabledAt: updatedWebhook.disabledAt,
       }),
 
