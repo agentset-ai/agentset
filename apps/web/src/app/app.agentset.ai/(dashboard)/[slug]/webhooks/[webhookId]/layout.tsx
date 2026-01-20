@@ -8,12 +8,11 @@ export default function WebhookDetailLayout({
 }: {
   children: React.ReactNode;
 }) {
-  const params = useParams();
-  const webhookId = params.webhookId as string;
+  const params = useParams<{ webhookId: string }>();
 
   return (
-    <div className="space-y-6">
-      <WebhookHeader webhookId={webhookId} />
+    <div className="flex flex-col gap-6">
+      <WebhookHeader webhookId={params.webhookId} />
       {children}
     </div>
   );
