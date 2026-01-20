@@ -19,7 +19,9 @@ const getPriorityByPlan = (plan: string) => {
 export const TRIGGER_INGESTION_JOB_ID = "trigger-ingestion-job";
 export const triggerIngestionJobBodySchema = z.object({
   jobId: z.string(),
+  organizationId: z.string(),
 });
+
 export const triggerIngestionJob = (
   body: z.infer<typeof triggerIngestionJobBodySchema>,
   plan: string,

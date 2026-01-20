@@ -175,6 +175,7 @@ export const createIngestJob = async ({
   const handle = await triggerIngestionJob(
     {
       jobId: job.id,
+      organizationId,
     },
     plan,
   );

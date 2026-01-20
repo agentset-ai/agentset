@@ -61,11 +61,6 @@ export const ingestJob = schemaTask({
           error: true,
           createdAt: true,
           updatedAt: true,
-          namespace: {
-            select: {
-              organizationId: true,
-            },
-          },
         },
       });
 
@@ -74,7 +69,7 @@ export const ingestJob = schemaTask({
         trigger: "ingest_job.error",
         ingestJob: {
           ...ingestJob,
-          organizationId: ingestJob.namespace.organizationId,
+          organizationId: payload.organizationId,
         },
       });
     } catch (e) {

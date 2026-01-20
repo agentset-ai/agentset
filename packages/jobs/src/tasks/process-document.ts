@@ -122,24 +122,17 @@ export const processDocument = schemaTask({
           error: true,
           createdAt: true,
           updatedAt: true,
-          namespace: {
-            select: {
-              organizationId: true,
-            },
-          },
         },
       });
 
       // Emit document.error webhook
-      if (document.namespace) {
-        await emitDocumentWebhook({
-          trigger: "document.error",
-          document: {
-            ...document,
-            organizationId: document.namespace.organizationId,
-          },
-        });
-      }
+      await emitDocumentWebhook({
+        trigger: "document.error",
+        document: {
+          ...document,
+          organizationId: payload.ingestJob.namespace.organization.id,
+        },
+      });
     } catch (e) {
       // skip not found errors
       if (
@@ -431,24 +424,17 @@ export const processDocument = schemaTask({
         error: true,
         createdAt: true,
         updatedAt: true,
-        namespace: {
-          select: {
-            organizationId: true,
-          },
-        },
       },
     });
 
     // Emit document.ready webhook
-    if (completedDocument.namespace) {
-      await emitDocumentWebhook({
-        trigger: "document.ready",
-        document: {
-          ...completedDocument,
-          organizationId: completedDocument.namespace.organizationId,
-        },
-      });
-    }
+    await emitDocumentWebhook({
+      trigger: "document.ready",
+      document: {
+        ...completedDocument,
+        organizationId: ingestJob.namespace.organization.id,
+      },
+    });
 
     let meterSuccess = null;
 
