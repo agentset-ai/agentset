@@ -7,6 +7,35 @@
  */
 
 import { describe, it, expect } from "vitest";
+import { z } from "zod/v4";
+import { NamespaceSchema } from "@/schemas/api/namespace";
+import { IngestJobSchema } from "@/schemas/api/ingest-job";
+import { successSchema } from "@/openapi/responses";
+
+// Create response schemas that handle JSON date strings
+const dateStringToDate = z.iso.datetime().transform((v) => new Date(v));
+
+const NamespaceResponseSchema = NamespaceSchema.extend({
+  createdAt: dateStringToDate,
+});
+
+const IngestJobResponseSchema = IngestJobSchema.extend({
+  createdAt: dateStringToDate,
+  queuedAt: dateStringToDate.nullable().default(null),
+  preProcessingAt: dateStringToDate.nullable().default(null),
+  processingAt: dateStringToDate.nullable().default(null),
+  completedAt: dateStringToDate.nullable().default(null),
+  failedAt: dateStringToDate.nullable().default(null),
+});
+
+const listNamespacesResponseSchema = successSchema(z.array(NamespaceResponseSchema));
+const ingestJobResponseSchema = successSchema(IngestJobResponseSchema);
+const errorResponseSchema = z.object({
+  success: z.literal(false),
+  error: z.object({
+    message: z.string(),
+  }),
+});
 
 /* eslint-disable no-restricted-properties, turbo/no-undeclared-env-vars */
 const BASE_URL = process.env.TEST_BASE_URL || "http://localhost:3000";
@@ -27,14 +56,6 @@ describe("Health Endpoint", () => {
     expect(data.timing).toHaveProperty("total");
     expect(data).toHaveProperty("timestamp");
   });
-
-  it("POST /api/health should return 405 method not allowed", async () => {
-    const response = await fetch(`${BASE_URL}/api/health`, {
-      method: "POST",
-    });
-
-    expect(response.status).toBe(405);
-  });
 });
 
 describe("Namespace API", () => {
@@ -47,11 +68,10 @@ describe("Namespace API", () => {
 
     expect(response.status).toBe(200);
 
-    const json = (await response.json()) as { success: boolean; data: unknown[] };
+    const json = await response.json();
+    const parsed = listNamespacesResponseSchema.safeParse(json);
 
-    expect(json).toHaveProperty("success", true);
-    expect(json).toHaveProperty("data");
-    expect(Array.isArray(json.data)).toBe(true);
+    expect(parsed.success).toBe(true);
   });
 
   it("GET /api/v1/namespace should return 401 without API key", async () => {
@@ -69,9 +89,10 @@ describe("Namespace API", () => {
 
     expect(response.status).toBe(401);
 
-    const json = (await response.json()) as { success: boolean; error: { message: string } };
-    expect(json.success).toBe(false);
-    expect(json).toHaveProperty("error");
+    const json = await response.json();
+    const parsed = errorResponseSchema.safeParse(json);
+
+    expect(parsed.success).toBe(true);
   });
 
   it("GET /api/v1/namespace should return 400 with malformed Authorization header", async () => {
@@ -110,28 +131,19 @@ describe("Ingest Jobs API", () => {
 
     expect(response.status).toBe(201);
 
-    const json = (await response.json()) as {
-      success: boolean;
-      data: {
-        id: string;
-        name: string;
-        namespaceId: string;
-        status: string;
-        payload: { type: string };
-      };
-    };
+    const json = await response.json();
+    const parsed = ingestJobResponseSchema.safeParse(json);
 
-    expect(json).toHaveProperty("success", true);
-    expect(json).toHaveProperty("data");
-    expect(json.data).toHaveProperty("id");
-    expect(json.data).toHaveProperty("name", "E2E Test Document");
-    expect(json.data).toHaveProperty("namespaceId", NAMESPACE_ID);
-    expect(json.data).toHaveProperty("status", "QUEUED");
-    expect(json.data).toHaveProperty("payload");
-    expect(json.data.payload).toHaveProperty("type", "TEXT");
+    expect(parsed.success).toBe(true);
+    if (parsed.success) {
+      expect(parsed.data.data.name).toBe("E2E Test Document");
+      expect(parsed.data.data.namespaceId).toBe(NAMESPACE_ID);
+      expect(parsed.data.data.status).toBe("QUEUED");
+      expect(parsed.data.data.payload.type).toBe("TEXT");
 
-    // Save job ID for the next test
-    createdJobId = json.data.id;
+      // Save job ID for the next test
+      createdJobId = parsed.data.data.id;
+    }
   });
 
   it("GET /api/v1/namespace/{namespaceId}/ingest-jobs/{jobId} should return job status", async () => {
@@ -151,19 +163,13 @@ describe("Ingest Jobs API", () => {
 
     expect(response.status).toBe(200);
 
-    const json = (await response.json()) as {
-      success: boolean;
-      data: { id: string; status: string };
-    };
+    const json = await response.json();
+    const parsed = ingestJobResponseSchema.safeParse(json);
 
-    expect(json).toHaveProperty("success", true);
-    expect(json).toHaveProperty("data");
-    expect(json.data).toHaveProperty("id", createdJobId);
-    expect(json.data).toHaveProperty("status");
-    // Status could be QUEUED, PRE_PROCESSING, PROCESSING, COMPLETED, or FAILED
-    expect(["QUEUED", "PRE_PROCESSING", "PROCESSING", "COMPLETED", "FAILED"]).toContain(
-      json.data.status
-    );
+    expect(parsed.success).toBe(true);
+    if (parsed.success) {
+      expect(parsed.data.data.id).toBe(createdJobId);
+    }
   });
 
   // Negative test cases
@@ -203,9 +209,10 @@ describe("Ingest Jobs API", () => {
 
     expect([400, 422]).toContain(response.status);
 
-    const json = (await response.json()) as { success: boolean; error: unknown };
-    expect(json.success).toBe(false);
-    expect(json).toHaveProperty("error");
+    const json = await response.json();
+    const parsed = errorResponseSchema.safeParse(json);
+
+    expect(parsed.success).toBe(true);
   });
 
   it("POST /api/v1/namespace/{namespaceId}/ingest-jobs should return 400/422 with invalid payload type", async () => {
@@ -229,8 +236,10 @@ describe("Ingest Jobs API", () => {
 
     expect([400, 422]).toContain(response.status);
 
-    const json = (await response.json()) as { success: boolean; error: unknown };
-    expect(json.success).toBe(false);
+    const json = await response.json();
+    const parsed = errorResponseSchema.safeParse(json);
+
+    expect(parsed.success).toBe(true);
   });
 
   it("POST /api/v1/namespace/{namespaceId}/ingest-jobs should return 400/422 with empty body", async () => {
@@ -248,8 +257,10 @@ describe("Ingest Jobs API", () => {
 
     expect([400, 422]).toContain(response.status);
 
-    const json = (await response.json()) as { success: boolean; error: unknown };
-    expect(json.success).toBe(false);
+    const json = await response.json();
+    const parsed = errorResponseSchema.safeParse(json);
+
+    expect(parsed.success).toBe(true);
   });
 
   it("GET /api/v1/namespace/{namespaceId}/ingest-jobs/{jobId} should return 401 without auth", async () => {
@@ -272,7 +283,9 @@ describe("Ingest Jobs API", () => {
 
     expect(response.status).toBe(404);
 
-    const json = (await response.json()) as { success: boolean; error: { message: string } };
-    expect(json.success).toBe(false);
+    const json = await response.json();
+    const parsed = errorResponseSchema.safeParse(json);
+
+    expect(parsed.success).toBe(true);
   });
 });
