@@ -1,6 +1,6 @@
 import { z } from "zod/v4";
 
-import { DocumentStatusSchema, IngestJobStatusSchema } from "@agentset/db";
+import { DocumentStatusSchema, IngestJobStatusSchema } from "@agentset/db/schemas";
 import { documentPayloadSchema } from "@agentset/validation";
 
 import {

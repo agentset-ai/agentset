@@ -11,7 +11,7 @@ import {
   emitDocumentWebhook as emitDocumentWebhookBase,
   emitIngestJobWebhook as emitIngestJobWebhookBase,
   emitWebhook as emitWebhookBase,
-} from "@agentset/webhooks";
+} from "@agentset/webhooks/server";
 
 import { getDb } from "./db";
 import { triggerSendWebhook } from "./schema";

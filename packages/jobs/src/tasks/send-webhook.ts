@@ -8,12 +8,14 @@ import {
 import { recordWebhookEvent } from "@agentset/tinybird";
 import {
   createWebhookSignature,
+  WEBHOOK_FAILURE_DISABLE_THRESHOLD,
+} from "@agentset/webhooks";
+import {
   disableWebhook,
   getOrganizationOwner,
   handleWebhookFailure,
   resetWebhookFailureCount,
-  WEBHOOK_FAILURE_DISABLE_THRESHOLD,
-} from "@agentset/webhooks";
+} from "@agentset/webhooks/server";
 
 import { getDb } from "../db";
 import { SEND_WEBHOOK_JOB_ID, sendWebhookBodySchema } from "../schema";

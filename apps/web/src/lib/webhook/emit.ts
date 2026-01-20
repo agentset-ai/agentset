@@ -1,16 +1,18 @@
 import { db } from "@agentset/db/client";
 import { triggerSendWebhook } from "@agentset/jobs";
+import type {
+  DocumentEventPayload,
+  DocumentWebhookTrigger,
+  GenericWebhookEventData,
+  IngestJobEventPayload,
+  IngestJobWebhookTrigger,
+  WebhookTrigger,
+} from "@agentset/webhooks";
 import {
   emitDocumentWebhook as emitDocumentWebhookBase,
   emitIngestJobWebhook as emitIngestJobWebhookBase,
   emitWebhook as emitWebhookBase,
-  type DocumentEventPayload,
-  type DocumentWebhookTrigger,
-  type GenericWebhookEventData,
-  type IngestJobEventPayload,
-  type IngestJobWebhookTrigger,
-  type WebhookTrigger,
-} from "@agentset/webhooks";
+} from "@agentset/webhooks/server";
 
 // Emit webhook for an organization (web app context)
 export const emitWebhook = async ({
