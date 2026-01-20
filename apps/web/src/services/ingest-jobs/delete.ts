@@ -1,4 +1,5 @@
 import { emitIngestJobWebhook } from "@/lib/webhook/emit";
+import { waitUntil } from "@vercel/functions";
 
 import { IngestJobStatus } from "@agentset/db";
 import { db } from "@agentset/db/client";
@@ -27,15 +28,6 @@ export const deleteIngestJob = async ({
     },
   });
 
-  // Emit ingest_job.queued_for_deletion webhook
-  await emitIngestJobWebhook({
-    trigger: "ingest_job.queued_for_deletion",
-    ingestJob: {
-      ...job,
-      organizationId,
-    },
-  });
-
   const handle = await triggerDeleteIngestJob({
     jobId: job.id,
   });
@@ -47,6 +39,17 @@ export const deleteIngestJob = async ({
     },
     select: { id: true },
   });
+
+  // Emit ingest_job.queued_for_deletion webhook
+  waitUntil(
+    emitIngestJobWebhook({
+      trigger: "ingest_job.queued_for_deletion",
+      ingestJob: {
+        ...job,
+        organizationId,
+      },
+    }),
+  );
 
   return job;
 };

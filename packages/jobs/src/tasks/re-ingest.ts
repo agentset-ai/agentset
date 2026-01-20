@@ -5,7 +5,7 @@ import { chunkArray } from "@agentset/utils";
 
 import { getDb } from "../db";
 import { RE_INGEST_JOB_ID, reIngestJobBodySchema } from "../schema";
-import { emitDocumentWebhook } from "../webhook";
+import { emitBulkDocumentWebhooks } from "../webhook";
 import { processDocument } from "./process-document";
 
 const BATCH_SIZE = 30;
@@ -121,18 +121,16 @@ export const reIngestJob = schemaTask({
     ]);
 
     // Emit document.queued_for_resync webhooks
-    await Promise.all(
-      documents.map((doc) =>
-        emitDocumentWebhook({
-          trigger: "document.queued_for_resync",
-          document: {
-            ...doc,
-            status: DocumentStatus.QUEUED_FOR_RESYNC,
-            organizationId: ingestJob.namespace.organization.id,
-          },
-        }),
-      ),
-    );
+    await emitBulkDocumentWebhooks({
+      trigger: "document.queued_for_resync",
+      organizationId: ingestJob.namespace.organization.id,
+      namespaceId: ingestJob.namespace.id,
+      documents: documents.map((doc) => ({
+        ...doc,
+        status: DocumentStatus.QUEUED_FOR_RESYNC,
+        organizationId: ingestJob.namespace.organization.id,
+      })),
+    });
 
     const chunks = chunkArray(documents, BATCH_SIZE);
     let success = true;

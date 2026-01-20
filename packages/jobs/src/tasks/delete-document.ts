@@ -168,7 +168,7 @@ export const deleteDocument = schemaTask({
           name: document.name,
           namespaceId: document.namespaceId,
           organizationId: namespace.organizationId,
-          status: "DELETED",
+          status: "DELETING",
           source: document.source,
           totalCharacters: document.totalCharacters,
           totalChunks: document.totalChunks,

@@ -1,4 +1,5 @@
 import { emitDocumentWebhook } from "@/lib/webhook/emit";
+import { waitUntil } from "@vercel/functions";
 
 import { DocumentStatus } from "@agentset/db";
 import { db } from "@agentset/db/client";
@@ -20,6 +21,7 @@ export const deleteDocument = async ({
       id: true,
       name: true,
       namespaceId: true,
+      ingestJobId: true,
       status: true,
       source: true,
       totalCharacters: true,
@@ -31,18 +33,7 @@ export const deleteDocument = async ({
     },
   });
 
-  // Emit document.queued_for_deletion webhook
-  await emitDocumentWebhook({
-    trigger: "document.queued_for_deletion",
-    document: {
-      ...updatedDoc,
-      organizationId,
-    },
-  });
-
-  const handle = await triggerDeleteDocument({
-    documentId: updatedDoc.id,
-  });
+  const handle = await triggerDeleteDocument({ documentId: updatedDoc.id });
 
   await db.document.update({
     where: { id: updatedDoc.id },
@@ -50,6 +41,16 @@ export const deleteDocument = async ({
       workflowRunsIds: { push: handle.id },
     },
   });
+
+  waitUntil(
+    emitDocumentWebhook({
+      trigger: "document.queued_for_deletion",
+      document: {
+        ...updatedDoc,
+        organizationId,
+      },
+    }),
+  );
 
   return updatedDoc;
 };

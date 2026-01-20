@@ -1,13 +1,14 @@
+import { emitIngestJobWebhook } from "@/lib/webhook/emit";
 import {
   createIngestJobSchema,
   getIngestionJobsSchema,
 } from "@/schemas/api/ingest-job";
-import { emitIngestJobWebhook } from "@/lib/webhook/emit";
 import { createTRPCRouter, protectedProcedure } from "@/server/api/trpc";
 import { createIngestJob } from "@/services/ingest-jobs/create";
 import { deleteIngestJob } from "@/services/ingest-jobs/delete";
 import { getPaginationArgs, paginateResults } from "@/services/pagination";
 import { TRPCError } from "@trpc/server";
+import { waitUntil } from "@vercel/functions";
 import { z } from "zod/v4";
 
 import { IngestJobStatus } from "@agentset/db";
@@ -233,13 +234,15 @@ export const ingestJobRouter = createTRPCRouter({
       });
 
       // Emit ingest_job.queued_for_resync webhook
-      await emitIngestJobWebhook({
-        trigger: "ingest_job.queued_for_resync",
-        ingestJob: {
-          ...updatedJob,
-          organizationId: namespace.organizationId,
-        },
-      });
+      waitUntil(
+        emitIngestJobWebhook({
+          trigger: "ingest_job.queued_for_resync",
+          ingestJob: {
+            ...updatedJob,
+            organizationId: namespace.organizationId,
+          },
+        }),
+      );
 
       return ingestJob;
     }),

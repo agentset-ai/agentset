@@ -1,6 +1,7 @@
 import type { createIngestJobSchema } from "@/schemas/api/ingest-job";
-import { emitIngestJobWebhook } from "@/lib/webhook/emit";
 import type { z } from "zod/v4";
+import { emitIngestJobWebhook } from "@/lib/webhook/emit";
+import { waitUntil } from "@vercel/functions";
 
 import type { IngestJobBatchItem } from "@agentset/validation";
 import { IngestJobStatus } from "@agentset/db";
@@ -171,15 +172,6 @@ export const createIngestJob = async ({
     }),
   ]);
 
-  // Emit ingest_job.queued webhook
-  await emitIngestJobWebhook({
-    trigger: "ingest_job.queued",
-    ingestJob: {
-      ...job,
-      organizationId,
-    },
-  });
-
   const handle = await triggerIngestionJob(
     {
       jobId: job.id,
@@ -192,6 +184,17 @@ export const createIngestJob = async ({
     data: { workflowRunsIds: { push: handle.id } },
     select: { id: true },
   });
+
+  // Emit ingest_job.queued webhook
+  waitUntil(
+    emitIngestJobWebhook({
+      trigger: "ingest_job.queued",
+      ingestJob: {
+        ...job,
+        organizationId,
+      },
+    }),
+  );
 
   return job;
 };

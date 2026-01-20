@@ -1,45 +1,18 @@
 import type {
   DocumentEventPayload,
   DocumentWebhookTrigger,
-  GenericWebhookEventData,
   IngestJobEventPayload,
   IngestJobWebhookTrigger,
-  WebhookTrigger,
 } from "@agentset/webhooks";
 import {
   emitBulkDocumentWebhooks as emitBulkDocumentWebhooksBase,
   emitDocumentWebhook as emitDocumentWebhookBase,
   emitIngestJobWebhook as emitIngestJobWebhookBase,
-  emitWebhook as emitWebhookBase,
 } from "@agentset/webhooks/server";
 
 import { getDb } from "./db";
 import { triggerSendWebhook } from "./schema";
 
-// Emit webhook for an organization (jobs context)
-export const emitWebhook = async ({
-  trigger,
-  organizationId,
-  namespaceId,
-  data,
-}: {
-  trigger: WebhookTrigger;
-  organizationId: string;
-  namespaceId?: string;
-  data: GenericWebhookEventData;
-}) => {
-  const db = getDb();
-  return emitWebhookBase({
-    db,
-    triggerSendWebhook,
-    trigger,
-    organizationId,
-    namespaceId,
-    data,
-  });
-};
-
-// Helper to emit document webhook (jobs context)
 export const emitDocumentWebhook = async ({
   trigger,
   document,
@@ -56,7 +29,6 @@ export const emitDocumentWebhook = async ({
   });
 };
 
-// Helper to emit ingest job webhook (jobs context)
 export const emitIngestJobWebhook = async ({
   trigger,
   ingestJob,

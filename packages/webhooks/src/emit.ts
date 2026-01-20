@@ -233,7 +233,7 @@ export const emitDocumentWebhook = async ({
     triggerSendWebhook,
     trigger,
     organizationId: document.organizationId,
-    namespaceId: document.namespaceId ?? undefined,
+    namespaceId: document.namespaceId,
     data,
   });
 };

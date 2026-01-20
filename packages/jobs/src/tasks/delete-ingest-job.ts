@@ -147,7 +147,7 @@ export const deleteIngestJob = schemaTask({
           name: ingestJob.name,
           namespaceId: ingestJob.namespaceId,
           organizationId: ingestJob.namespace.organizationId,
-          status: "DELETED",
+          status: "DELETING",
           error: ingestJob.error,
           createdAt: ingestJob.createdAt,
           updatedAt: new Date(),
