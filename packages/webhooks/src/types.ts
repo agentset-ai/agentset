@@ -1,4 +1,4 @@
-import type { z } from "zod";
+import type { z } from "zod/v4";
 
 import type {
   DOCUMENT_LEVEL_WEBHOOK_TRIGGERS,

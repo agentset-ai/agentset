@@ -27,7 +27,8 @@
     "@neondatabase/serverless": "^1.0.2",
     "@prisma/adapter-neon": "^7.1.0",
     "@prisma/adapter-pg": "^7.1.0",
-    "@prisma/client": "^7.1.0"
+    "@prisma/client": "^7.1.0",
+    "zod": "catalog:"
   },
   "prisma": {
     "schema": "prisma/schema"

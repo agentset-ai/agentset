@@ -1,7 +1,8 @@
-import type { z } from "zod";
+import type { z } from "zod/v4";
 import { nanoid } from "nanoid";
 
 import type { PrismaClient } from "@agentset/db";
+import type { triggerSendWebhook } from "@agentset/jobs";
 import { prefixId } from "@agentset/utils";
 
 import type {
@@ -12,25 +13,14 @@ import type {
   IngestJobWebhookTrigger,
   WebhookTrigger,
 } from "./types";
-import { WEBHOOK_EVENT_ID_PREFIX, WEBHOOK_TRIGGERS } from "./constants";
+import { WEBHOOK_EVENT_ID_PREFIX } from "./constants";
 import { documentEventDataSchema, ingestJobEventDataSchema } from "./schemas";
 
-// Generic trigger function type
-type TriggerSendWebhookFn = (body: {
-  webhookId: string;
-  eventId: string;
-  event: (typeof WEBHOOK_TRIGGERS)[number];
-  url: string;
-  secret: string;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  payload: any;
-}) => Promise<unknown>;
+type TriggerSendWebhookFn = typeof triggerSendWebhook;
 
-// Re-export input types for convenience
 export type DocumentWebhookInput = DocumentEventPayload;
 export type IngestJobWebhookInput = IngestJobEventPayload;
 
-// Transform and validate document event data
 export const transformDocumentEventData = (
   document: DocumentEventPayload,
 ): z.infer<typeof documentEventDataSchema> => {
@@ -52,7 +42,6 @@ export const transformDocumentEventData = (
   });
 };
 
-// Transform and validate ingest job event data
 export const transformIngestJobEventData = (
   ingestJob: IngestJobEventPayload,
 ): z.infer<typeof ingestJobEventDataSchema> => {

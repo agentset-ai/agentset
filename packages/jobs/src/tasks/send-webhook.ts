@@ -1,12 +1,11 @@
 import { retry, schemaTask } from "@trigger.dev/sdk";
-import { z } from "zod/v4";
 
 import {
   sendEmail,
   WebhookDisabledEmail,
   WebhookFailedEmail,
 } from "@agentset/emails";
-import { recordWebhookEvent, webhookEventSchemaTB } from "@agentset/tinybird";
+import { recordWebhookEvent } from "@agentset/tinybird";
 import {
   createWebhookSignature,
   disableWebhook,
@@ -78,7 +77,7 @@ export const sendWebhookTask = schemaTask({
       event_id: eventId,
       webhook_id: webhookId,
       task_id: taskId,
-      event: event as z.infer<typeof webhookEventSchemaTB>["event"],
+      event: event,
       url,
       http_status: httpStatus,
       request_body: JSON.stringify(payload),

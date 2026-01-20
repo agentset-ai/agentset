@@ -1,4 +1,7 @@
-import { z } from "zod";
+import { z } from "zod/v4";
+
+import { DocumentStatusSchema, IngestJobStatusSchema } from "@agentset/db";
+import { documentPayloadSchema } from "@agentset/validation";
 
 import {
   DOCUMENT_LEVEL_WEBHOOK_TRIGGERS,
@@ -12,8 +15,10 @@ export const documentEventDataSchema = z.object({
   name: z.string().nullable().describe("Name of the document."),
   namespaceId: z.string().describe("ID of the namespace."),
   organizationId: z.string().describe("ID of the organization."),
-  status: z.string().describe("Current status of the document."),
-  source: z.unknown().describe("Source configuration of the document."),
+  status: DocumentStatusSchema.describe("Current status of the document."),
+  source: documentPayloadSchema.describe(
+    "Source configuration of the document.",
+  ),
   totalCharacters: z
     .number()
     .nullable()
@@ -44,7 +49,7 @@ export const ingestJobEventDataSchema = z.object({
   name: z.string().nullable().describe("Name of the ingest job."),
   namespaceId: z.string().describe("ID of the namespace."),
   organizationId: z.string().describe("ID of the organization."),
-  status: z.string().describe("Current status of the ingest job."),
+  status: IngestJobStatusSchema.describe("Current status of the ingest job."),
   error: z
     .string()
     .nullable()
@@ -77,126 +82,51 @@ export const webhookPayloadSchema = z.object({
   data: z.any().describe("The data associated with the event."),
 });
 
-// Helper to create document event schema
-const createDocumentEventSchema = (
-  event: (typeof DOCUMENT_LEVEL_WEBHOOK_TRIGGERS)[number],
-  description: string,
-) =>
-  z.object({
-    id: z.string().describe("Unique identifier for the event."),
-    event: z.literal(event),
-    createdAt: z.string().describe("When the event was created in UTC."),
-    data: documentEventDataSchema,
+export const webhookEventSchema = z
+  .union([
+    z
+      .object({
+        id: z.string(),
+        event: z.union(
+          DOCUMENT_LEVEL_WEBHOOK_TRIGGERS.map((trigger) => z.literal(trigger)),
+        ),
+        createdAt: z.string(),
+        data: documentEventDataSchema,
+      })
+      .meta({
+        description:
+          "Triggered when a document is queued, processed, ready, or deleted.",
+        id: "DocumentWebhookEvent",
+        outputId: "DocumentWebhookEvent",
+      }),
+    z
+      .object({
+        id: z.string(),
+        event: z.union(
+          INGEST_JOB_LEVEL_WEBHOOK_TRIGGERS.map((trigger) =>
+            z.literal(trigger),
+          ),
+        ),
+        createdAt: z.string(),
+        data: ingestJobEventDataSchema,
+      })
+      .meta({
+        description:
+          "Triggered when an ingest job is queued, processed, ready, or deleted.",
+        id: "IngestJobWebhookEvent",
+        outputId: "IngestJobWebhookEvent",
+      }),
+  ])
+  .meta({
+    description: "Webhook event schema",
+    "x-speakeasy-include": true,
+    id: "WebhookEvent",
   });
-
-// Helper to create ingest job event schema
-const createIngestJobEventSchema = (
-  event: (typeof INGEST_JOB_LEVEL_WEBHOOK_TRIGGERS)[number],
-  description: string,
-) =>
-  z.object({
-    id: z.string().describe("Unique identifier for the event."),
-    event: z.literal(event),
-    createdAt: z.string().describe("When the event was created in UTC."),
-    data: ingestJobEventDataSchema,
-  });
-
-// Individual document event schemas
-export const documentQueuedEventSchema = createDocumentEventSchema(
-  "document.queued",
-  "Triggered when a document is queued for processing.",
-);
-
-export const documentQueuedForResyncEventSchema = createDocumentEventSchema(
-  "document.queued_for_resync",
-  "Triggered when a document is queued for resyncing.",
-);
-
-export const documentQueuedForDeletionEventSchema = createDocumentEventSchema(
-  "document.queued_for_deletion",
-  "Triggered when a document is queued for deletion.",
-);
-
-export const documentProcessingEventSchema = createDocumentEventSchema(
-  "document.processing",
-  "Triggered when a document starts processing.",
-);
-
-export const documentErrorEventSchema = createDocumentEventSchema(
-  "document.error",
-  "Triggered when a document processing fails.",
-);
-
-export const documentReadyEventSchema = createDocumentEventSchema(
-  "document.ready",
-  "Triggered when a document is ready.",
-);
-
-export const documentDeletedEventSchema = createDocumentEventSchema(
-  "document.deleted",
-  "Triggered when a document is deleted.",
-);
-
-// Individual ingest job event schemas
-export const ingestJobQueuedEventSchema = createIngestJobEventSchema(
-  "ingest_job.queued",
-  "Triggered when an ingest job is queued.",
-);
-
-export const ingestJobQueuedForResyncEventSchema = createIngestJobEventSchema(
-  "ingest_job.queued_for_resync",
-  "Triggered when an ingest job is queued for resyncing.",
-);
-
-export const ingestJobQueuedForDeletionEventSchema = createIngestJobEventSchema(
-  "ingest_job.queued_for_deletion",
-  "Triggered when an ingest job is queued for deletion.",
-);
-
-export const ingestJobProcessingEventSchema = createIngestJobEventSchema(
-  "ingest_job.processing",
-  "Triggered when an ingest job starts processing.",
-);
-
-export const ingestJobErrorEventSchema = createIngestJobEventSchema(
-  "ingest_job.error",
-  "Triggered when an ingest job fails.",
-);
-
-export const ingestJobReadyEventSchema = createIngestJobEventSchema(
-  "ingest_job.ready",
-  "Triggered when an ingest job is ready.",
-);
-
-export const ingestJobDeletedEventSchema = createIngestJobEventSchema(
-  "ingest_job.deleted",
-  "Triggered when an ingest job is deleted.",
-);
-
-// Discriminated union of all webhook events - useful for OpenAPI spec generation
-export const webhookEventSchema = z.discriminatedUnion("event", [
-  // Document events
-  documentQueuedEventSchema,
-  documentQueuedForResyncEventSchema,
-  documentQueuedForDeletionEventSchema,
-  documentProcessingEventSchema,
-  documentErrorEventSchema,
-  documentReadyEventSchema,
-  documentDeletedEventSchema,
-  // Ingest job events
-  ingestJobQueuedEventSchema,
-  ingestJobQueuedForResyncEventSchema,
-  ingestJobQueuedForDeletionEventSchema,
-  ingestJobProcessingEventSchema,
-  ingestJobErrorEventSchema,
-  ingestJobReadyEventSchema,
-  ingestJobDeletedEventSchema,
-]);
 
 // Schema for creating a webhook
 export const createWebhookSchema = z.object({
   name: z.string().min(1).max(40),
-  url: z.string().url(),
+  url: z.url(),
   secret: z.string().optional(),
   triggers: z.array(z.enum(WEBHOOK_TRIGGERS)).min(1),
   namespaceIds: z.array(z.string()).optional(),
