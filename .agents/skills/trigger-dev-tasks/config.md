@@ -1,10 +1,4 @@
----
-description: Configure your Trigger.dev project with a trigger.config.ts file
-globs: packages/jobs/trigger.config.ts
-alwaysApply: false
----
-
-# Trigger.dev Configuration (v4)
+# Trigger.dev Configuration
 
 **Complete guide to configuring `trigger.config.ts` with build extensions**
 

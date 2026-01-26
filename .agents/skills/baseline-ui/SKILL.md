@@ -1,12 +1,22 @@
 ---
-name: ui-skills
-description: Opinionated constraints for building better interfaces with agents.
-globs: apps/web/**/*.tsx,apps/web/**/*.ts
+name: baseline-ui
+description: Enforces an opinionated UI baseline to prevent AI-generated interface slop.
 ---
 
-# UI Skills
+# Baseline UI
 
-Opinionated constraints for building better interfaces with agents.
+Enforces an opinionated UI baseline to prevent AI-generated interface slop.
+
+## How to use
+
+- `/baseline-ui`
+  Apply these constraints to any UI work in this conversation.
+
+- `/baseline-ui <file>`
+  Review the file against all constraints below and output:
+  - violations (quote the exact line/snippet)
+  - why it matters (1 short sentence)
+  - a concrete fix (code-level suggestion)
 
 ## Stack
 

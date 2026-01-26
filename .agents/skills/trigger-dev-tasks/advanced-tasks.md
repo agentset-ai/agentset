@@ -1,9 +1,3 @@
----
-description: Comprehensive rules to help you write advanced Trigger.dev tasks
-globs: packages/jobs/src/**/*.ts
-alwaysApply: false
----
-
 # Trigger.dev Advanced Tasks (v4)
 
 **Advanced patterns and features for writing tasks**
@@ -41,6 +35,145 @@ for await (const run of runs.subscribeToRunsWithTag("user_123")) {
 - Use prefixes: `user_123`, `org_abc`, `video:456`
 - Max 10 tags per run, 1-64 characters each
 - Tags don't propagate to child tasks automatically
+
+## Batch Triggering v2
+
+Enhanced batch triggering with larger payloads and streaming ingestion.
+
+### Limits
+
+- **Maximum batch size**: 1,000 items (increased from 500)
+- **Payload per item**: 3MB each (increased from 1MB combined)
+- Payloads > 512KB automatically offload to object storage
+
+### Rate Limiting (per environment)
+
+| Tier | Bucket Size | Refill Rate |
+|------|-------------|-------------|
+| Free | 1,200 runs | 100 runs/10 sec |
+| Hobby | 5,000 runs | 500 runs/5 sec |
+| Pro | 5,000 runs | 500 runs/5 sec |
+
+### Concurrent Batch Processing
+
+| Tier | Concurrent Batches |
+|------|-------------------|
+| Free | 1 |
+| Hobby | 10 |
+| Pro | 10 |
+
+### Usage
+
+```ts
+import { myTask } from "./trigger/myTask";
+
+// Basic batch trigger (up to 1,000 items)
+const runs = await myTask.batchTrigger([
+  { payload: { userId: "user-1" } },
+  { payload: { userId: "user-2" } },
+  { payload: { userId: "user-3" } },
+]);
+
+// Batch trigger with wait
+const results = await myTask.batchTriggerAndWait([
+  { payload: { userId: "user-1" } },
+  { payload: { userId: "user-2" } },
+]);
+
+for (const result of results) {
+  if (result.ok) {
+    console.log("Result:", result.output);
+  }
+}
+
+// With per-item options
+const batchHandle = await myTask.batchTrigger([
+  {
+    payload: { userId: "123" },
+    options: {
+      idempotencyKey: "user-123-batch",
+      tags: ["priority"],
+    },
+  },
+  {
+    payload: { userId: "456" },
+    options: {
+      idempotencyKey: "user-456-batch",
+    },
+  },
+]);
+```
+
+## Debouncing
+
+Consolidate multiple triggers into a single execution by debouncing task runs with a unique key and delay window.
+
+### Use Cases
+
+- **User activity updates**: Batch rapid user actions into a single run
+- **Webhook deduplication**: Handle webhook bursts without redundant processing
+- **Search indexing**: Combine document updates instead of processing individually
+- **Notification batching**: Group notifications to prevent user spam
+
+### Basic Usage
+
+```ts
+await myTask.trigger(
+  { userId: "123" },
+  {
+    debounce: {
+      key: "user-123-update",  // Unique identifier for debounce group
+      delay: "5s",              // Wait duration ("5s", "1m", or milliseconds)
+    },
+  }
+);
+```
+
+### Execution Modes
+
+**Leading Mode** (default): Uses payload/options from the first trigger; subsequent triggers only reschedule execution time.
+
+```ts
+// First trigger sets the payload
+await myTask.trigger({ action: "first" }, {
+  debounce: { key: "my-key", delay: "10s" }
+});
+
+// Second trigger only reschedules - payload remains "first"
+await myTask.trigger({ action: "second" }, {
+  debounce: { key: "my-key", delay: "10s" }
+});
+// Task executes with { action: "first" }
+```
+
+**Trailing Mode**: Uses payload/options from the most recent trigger.
+
+```ts
+await myTask.trigger(
+  { data: "latest-value" },
+  {
+    debounce: {
+      key: "trailing-example",
+      delay: "10s",
+      mode: "trailing",
+    },
+  }
+);
+```
+
+In trailing mode, these options update with each trigger:
+- `payload` — task input data
+- `metadata` — run metadata
+- `tags` — run tags (replaces existing)
+- `maxAttempts` — retry attempts
+- `maxDuration` — maximum compute time
+- `machine` — machine preset
+
+### Important Notes
+
+- Idempotency keys take precedence over debounce settings
+- Compatible with `triggerAndWait()` — parent runs block correctly on debounced execution
+- Debounce key is scoped to the task
 
 ## Concurrency & Queues
 
@@ -266,97 +399,6 @@ export const childTask = task({
 });
 ```
 
-## Advanced Triggering
-
-### Frontend Triggering (React)
-
-```tsx
-"use client";
-import { useTaskTrigger } from "@trigger.dev/react-hooks";
-import type { myTask } from "../trigger/tasks";
-
-function TriggerButton({ accessToken }: { accessToken: string }) {
-  const { submit, handle, isLoading } = useTaskTrigger<typeof myTask>("my-task", { accessToken });
-
-  return (
-    <button onClick={() => submit({ data: "from frontend" })} disabled={isLoading}>
-      Trigger Task
-    </button>
-  );
-}
-```
-
-### Large Payloads
-
-```ts
-// For payloads > 512KB (max 10MB)
-export const largeDataTask = task({
-  id: "large-data-task",
-  run: async (payload: { dataUrl: string }) => {
-    // Trigger.dev automatically handles large payloads
-    // For > 10MB, use external storage
-    const response = await fetch(payload.dataUrl);
-    const largeData = await response.json();
-
-    return { processed: largeData.length };
-  },
-});
-
-// Best practice: Use presigned URLs for very large files
-await largeDataTask.trigger({
-  dataUrl: "https://s3.amazonaws.com/bucket/large-file.json?presigned=true",
-});
-```
-
-### Advanced Options
-
-```ts
-await myTask.trigger(payload, {
-  delay: "2h30m", // Delay execution
-  ttl: "24h", // Expire if not started within 24 hours
-  priority: 100, // Higher priority (time offset in seconds)
-  tags: ["urgent", "user_123"],
-  metadata: { source: "api", version: "v2" },
-  queue: {
-    name: "priority-queue",
-    concurrencyLimit: 10,
-  },
-  idempotencyKey: "unique-operation-id",
-  idempotencyKeyTTL: "1h",
-  machine: { preset: "large-1x" },
-  maxAttempts: 5,
-});
-```
-
-## Hidden Tasks
-
-```ts
-// Hidden task - not exported, only used internally
-const internalProcessor = task({
-  id: "internal-processor",
-  run: async (payload: { data: string }) => {
-    return { processed: payload.data.toUpperCase() };
-  },
-});
-
-// Public task that uses hidden task
-export const publicWorkflow = task({
-  id: "public-workflow",
-  run: async (payload: { input: string }) => {
-    // Use hidden task internally
-    const result = await internalProcessor.triggerAndWait({
-      data: payload.input,
-    });
-
-    if (result.ok) {
-      return { output: result.output.processed };
-    }
-
-    throw new Error("Internal processing failed");
-  },
-});
-```
-
 ## Logging & Tracing
 
 ```ts
@@ -399,48 +441,33 @@ export const tracedTask = task({
 });
 ```
 
-## Usage Monitoring
+## Hidden Tasks
 
 ```ts
-import { task, usage } from "@trigger.dev/sdk";
-
-export const monitoredTask = task({
-  id: "monitored-task",
-  run: async (payload) => {
-    // Get current run cost
-    const currentUsage = await usage.getCurrent();
-    logger.info("Current cost", {
-      costInCents: currentUsage.costInCents,
-      durationMs: currentUsage.durationMs,
-    });
-
-    // Measure specific operation
-    const { result, compute } = await usage.measure(async () => {
-      return await expensiveOperation(payload);
-    });
-
-    logger.info("Operation cost", {
-      costInCents: compute.costInCents,
-      durationMs: compute.durationMs,
-    });
-
-    return result;
+// Hidden task - not exported, only used internally
+const internalProcessor = task({
+  id: "internal-processor",
+  run: async (payload: { data: string }) => {
+    return { processed: payload.data.toUpperCase() };
   },
 });
-```
 
-## Run Management
+// Public task that uses hidden task
+export const publicWorkflow = task({
+  id: "public-workflow",
+  run: async (payload: { input: string }) => {
+    // Use hidden task internally
+    const result = await internalProcessor.triggerAndWait({
+      data: payload.input,
+    });
 
-```ts
-// Cancel runs
-await runs.cancel("run_123");
+    if (result.ok) {
+      return { output: result.output.processed };
+    }
 
-// Replay runs with same payload
-await runs.replay("run_123");
-
-// Retrieve run with cost details
-const run = await runs.retrieve("run_123");
-console.log(`Cost: ${run.costInCents} cents, Duration: ${run.durationMs}ms`);
+    throw new Error("Internal processing failed");
+  },
+});
 ```
 
 ## Best Practices
@@ -451,7 +478,8 @@ console.log(`Cost: ${run.costInCents} cents, Duration: ${run.durationMs}ms`);
 - **Metadata**: Track progress for long-running tasks
 - **Machines**: Match machine size to computational requirements
 - **Tags**: Use consistent naming patterns for filtering
-- **Large Payloads**: Use external storage for files > 10MB
+- **Debouncing**: Use for user activity, webhooks, and notification batching
+- **Batch triggering**: Use for bulk operations up to 1,000 items
 - **Error Handling**: Distinguish between retryable and fatal errors
 
 Design tasks to be stateless, idempotent, and resilient to failures. Use metadata for state tracking and queues for resource management.

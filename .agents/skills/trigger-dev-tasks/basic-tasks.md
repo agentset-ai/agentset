@@ -1,12 +1,6 @@
----
-description: Only the most important rules for writing basic Trigger.dev tasks
-globs: packages/jobs/src/**/*.ts
-alwaysApply: false
----
-
 # Trigger.dev Basic Tasks (v4)
 
-**MUST use `@trigger.dev/sdk` (v4), NEVER `client.defineJob`**
+**MUST use `@trigger.dev/sdk`, NEVER `client.defineJob`**
 
 ## Basic Task
 
@@ -50,26 +44,6 @@ export const validatedTask = schemaTask({
 });
 ```
 
-## Scheduled Task
-
-```ts
-import { schedules } from "@trigger.dev/sdk";
-
-const dailyReport = schedules.task({
-  id: "daily-report",
-  cron: "0 9 * * *", // Daily at 9:00 AM UTC
-  // or with timezone: cron: { pattern: "0 9 * * *", timezone: "America/New_York" },
-  run: async (payload) => {
-    console.log("Scheduled run at:", payload.timestamp);
-    console.log("Last run was:", payload.lastTimestamp);
-    console.log("Next 5 runs:", payload.upcoming);
-
-    // Generate daily report logic
-    return { reportGenerated: true, date: payload.timestamp };
-  },
-});
-```
-
 ## Triggering Tasks
 
 ### From Backend Code
@@ -84,12 +58,45 @@ const handle = await tasks.trigger<typeof processData>("process-data", {
   data: [{ id: 1 }, { id: 2 }],
 });
 
-// Batch trigger
+// Batch trigger (up to 1,000 items, 3MB per payload)
 const batchHandle = await tasks.batchTrigger<typeof processData>("process-data", [
   { payload: { userId: "123", data: [{ id: 1 }] } },
   { payload: { userId: "456", data: [{ id: 2 }] } },
 ]);
 ```
+
+### Debounced Triggering
+
+Consolidate multiple triggers into a single execution:
+
+```ts
+// Multiple rapid triggers with same key = single execution
+await myTask.trigger(
+  { userId: "123" },
+  {
+    debounce: {
+      key: "user-123-update",  // Unique key for debounce group
+      delay: "5s",              // Wait before executing
+    },
+  }
+);
+
+// Trailing mode: use payload from LAST trigger
+await myTask.trigger(
+  { data: "latest-value" },
+  {
+    debounce: {
+      key: "trailing-example",
+      delay: "10s",
+      mode: "trailing",  // Default is "leading" (first payload)
+    },
+  }
+);
+```
+
+**Debounce modes:**
+- `leading` (default): Uses payload from first trigger, subsequent triggers only reschedule
+- `trailing`: Uses payload from most recent trigger
 
 ### From Inside Tasks (with Result handling)
 
@@ -175,6 +182,7 @@ export const taskWithWaits = task({
 - **Result vs Output**: `triggerAndWait()` returns a `Result` object with `ok`, `output`, `error` properties - NOT the direct task output
 - **Type safety**: Use `import type` for task references when triggering from backend
 - **Waits > 5 seconds**: Automatically checkpointed, don't count toward compute usage
+- **Debounce + idempotency**: Idempotency keys take precedence over debounce settings
 
 ## NEVER Use (v2 deprecated)
 
@@ -188,4 +196,4 @@ client.defineJob({
 });
 ```
 
-Use v4 SDK (`@trigger.dev/sdk`), check `result.ok` before accessing `result.output`
+Use SDK (`@trigger.dev/sdk`), check `result.ok` before accessing `result.output`
