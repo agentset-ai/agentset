@@ -87,6 +87,7 @@
         "@prisma/adapter-neon": "^7.1.0",
         "@prisma/adapter-pg": "^7.1.0",
         "@prisma/client": "^7.1.0",
+        "zod": "catalog:",
       },
       "devDependencies": {
         "@agentset/eslint-config": "workspace:*",
@@ -308,7 +309,10 @@
     "packages/webhooks": {
       "name": "@agentset/webhooks",
       "dependencies": {
+        "@agentset/db": "workspace:*",
         "@agentset/utils": "workspace:*",
+        "@agentset/validation": "workspace:*",
+        "@upstash/redis": "^1.34.9",
         "nanoid": "^5.1.5",
         "zod": "catalog:",
       },
