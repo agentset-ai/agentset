@@ -1,6 +1,7 @@
 import { schemaTask } from "@trigger.dev/sdk";
 
 import { chunkArray } from "@agentset/utils";
+import { webhookCache } from "@agentset/webhooks/server";
 
 import { getDb } from "../db";
 import {
@@ -40,6 +41,9 @@ export const deleteOrganization = schemaTask({
     await db.webhook.deleteMany({
       where: { organizationId },
     });
+
+    // Invalidate webhook cache
+    await webhookCache.invalidateOrg(organizationId);
 
     // Get all namespaces for this organization
     const namespaces = await db.namespace.findMany({

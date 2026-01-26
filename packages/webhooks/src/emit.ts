@@ -5,6 +5,7 @@ import type { PrismaClient } from "@agentset/db";
 import type { triggerSendWebhook } from "@agentset/jobs";
 import { prefixId } from "@agentset/utils";
 
+import type { CachedWebhook } from "./cache";
 import type {
   DocumentEventPayload,
   DocumentWebhookTrigger,
@@ -13,6 +14,7 @@ import type {
   IngestJobWebhookTrigger,
   WebhookTrigger,
 } from "./types";
+import { webhookCache } from "./cache";
 import { WEBHOOK_EVENT_ID_PREFIX } from "./constants";
 import { documentEventDataSchema, ingestJobEventDataSchema } from "./schemas";
 
@@ -83,29 +85,11 @@ export const emitWebhook = async ({
   data,
 }: EmitWebhookParams) => {
   // Single query: fetch webhooks with org webhookEnabled check at DB level
-  const webhooks = await db.webhook.findMany({
-    where: {
-      organizationId,
-      organization: { webhookEnabled: true }, // Filter at DB level
-      disabledAt: null,
-      triggers: {
-        array_contains: [trigger],
-      },
-      // If namespaceId provided, filter to webhooks that either:
-      // 1. Have no namespace filters (org-wide)
-      // 2. Include the specific namespace
-      ...(namespaceId && {
-        OR: [
-          { namespaces: { none: {} } },
-          { namespaces: { some: { namespaceId } } },
-        ],
-      }),
-    },
-    select: {
-      id: true,
-      url: true,
-      secret: true,
-    },
+  const webhooks = await getActiveWebhooks({
+    db,
+    organizationId,
+    trigger,
+    namespaceId,
   });
 
   if (webhooks.length === 0) {
@@ -122,17 +106,15 @@ export const emitWebhook = async ({
   };
 
   // Trigger webhook deliveries
-  await Promise.all(
-    webhooks.map((webhook) =>
-      triggerSendWebhook({
-        webhookId: webhook.id,
-        eventId,
-        event: trigger,
-        url: webhook.url,
-        secret: webhook.secret,
-        payload,
-      }),
-    ),
+  await triggerSendWebhook(
+    webhooks.map((webhook) => ({
+      webhookId: webhook.id,
+      eventId,
+      event: trigger,
+      url: webhook.url,
+      secret: webhook.secret,
+      payload,
+    })),
   );
 };
 
@@ -162,18 +144,70 @@ export const sendWebhooksWithCache = async ({
   };
 
   // Trigger webhook deliveries
-  await Promise.all(
-    webhooks.map((webhook) =>
-      triggerSendWebhook({
-        webhookId: webhook.id,
-        eventId,
-        event: trigger,
-        url: webhook.url,
-        secret: webhook.secret,
-        payload,
-      }),
-    ),
+  await triggerSendWebhook(
+    webhooks.map((webhook) => ({
+      webhookId: webhook.id,
+      eventId,
+      event: trigger,
+      url: webhook.url,
+      secret: webhook.secret,
+      payload,
+    })),
   );
+};
+
+// Fetch all webhooks for an organization from DB
+const fetchOrgWebhooksFromDb = async (
+  db: PrismaClient,
+  organizationId: string,
+): Promise<CachedWebhook[]> => {
+  const webhooks = await db.webhook.findMany({
+    where: {
+      organizationId,
+      organization: { webhookEnabled: true },
+    },
+    select: {
+      id: true,
+      url: true,
+      secret: true,
+      triggers: true,
+      disabledAt: true,
+      namespaces: {
+        select: { namespaceId: true },
+      },
+    },
+  });
+
+  return webhooks.map((w) => ({
+    id: w.id,
+    url: w.url,
+    secret: w.secret,
+    triggers: w.triggers as WebhookTrigger[],
+    disabledAt: w.disabledAt?.toISOString() ?? null,
+    namespaceIds: w.namespaces.map((n) => n.namespaceId),
+  }));
+};
+
+// Filter webhooks by trigger and namespace
+const filterWebhooks = (
+  webhooks: CachedWebhook[],
+  trigger: WebhookTrigger,
+  namespaceId?: string,
+): WebhookForSending[] => {
+  return webhooks
+    .filter((w) => {
+      // Must be enabled
+      if (w.disabledAt) return false;
+      // Must have the trigger
+      if (!w.triggers.includes(trigger)) return false;
+      // Namespace filtering: if webhook has no namespaces, it applies to all
+      // If it has namespaces, the namespaceId must match one of them
+      if (namespaceId && w.namespaceIds.length > 0) {
+        if (!w.namespaceIds.includes(namespaceId)) return false;
+      }
+      return true;
+    })
+    .map((w) => ({ id: w.id, url: w.url, secret: w.secret }));
 };
 
 // Get active webhooks for an organization and trigger (for bulk operations)
@@ -188,27 +222,18 @@ export const getActiveWebhooks = async ({
   trigger: WebhookTrigger;
   namespaceId?: string;
 }): Promise<WebhookForSending[]> => {
-  return db.webhook.findMany({
-    where: {
-      organizationId,
-      organization: { webhookEnabled: true },
-      disabledAt: null,
-      triggers: {
-        array_contains: [trigger],
-      },
-      ...(namespaceId && {
-        OR: [
-          { namespaces: { none: {} } },
-          { namespaces: { some: { namespaceId } } },
-        ],
-      }),
-    },
-    select: {
-      id: true,
-      url: true,
-      secret: true,
-    },
-  });
+  // Try cache first
+  let webhooks = await webhookCache.getOrgWebhooks(organizationId);
+
+  if (!webhooks) {
+    // Cache miss - fetch from DB and populate cache
+    webhooks = await fetchOrgWebhooksFromDb(db, organizationId);
+    // Don't await cache write to avoid blocking
+    void webhookCache.setOrgWebhooks(organizationId, webhooks);
+  }
+
+  // Filter in memory
+  return filterWebhooks(webhooks, trigger, namespaceId);
 };
 
 export interface EmitDocumentWebhookParams {

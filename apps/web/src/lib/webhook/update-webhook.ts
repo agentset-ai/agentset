@@ -1,4 +1,5 @@
 import { db } from "@agentset/db/client";
+import { webhookCache } from "@agentset/webhooks/server";
 
 // Toggle webhooks for organization based on active webhook count
 export const toggleWebhooksForOrganization = async ({
@@ -21,4 +22,7 @@ export const toggleWebhooksForOrganization = async ({
       webhookEnabled: activeWebhooksCount > 0,
     },
   });
+
+  // Invalidate webhook cache
+  await webhookCache.invalidateOrg(organizationId);
 };

@@ -1,5 +1,6 @@
 import type { PrismaClient } from "@agentset/db";
 
+import { webhookCache } from "./cache";
 import {
   WEBHOOK_FAILURE_DISABLE_THRESHOLD,
   WEBHOOK_FAILURE_NOTIFY_THRESHOLDS,
@@ -98,6 +99,9 @@ export const disableWebhook = async ({
       data: { webhookEnabled: false },
     });
   }
+
+  // Invalidate webhook cache
+  await webhookCache.invalidateOrg(organizationId);
 };
 
 export interface ResetWebhookFailureCountParams {

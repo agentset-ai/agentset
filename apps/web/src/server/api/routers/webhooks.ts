@@ -10,17 +10,18 @@ import { TRPCError } from "@trpc/server";
 import { nanoid } from "nanoid";
 import { z } from "zod/v4";
 
+import type { WebhookTrigger } from "@agentset/webhooks";
 import { triggerSendWebhook } from "@agentset/jobs";
 import { isFreePlan } from "@agentset/stripe/plans";
 import { getWebhookEvents } from "@agentset/tinybird";
 import {
   createWebhookSchema,
   updateWebhookSchema,
-  webhookPayloadSchema,
   WEBHOOK_EVENT_ID_PREFIX,
   WEBHOOK_TRIGGERS,
-  type WebhookTrigger,
+  webhookPayloadSchema,
 } from "@agentset/webhooks";
+import { webhookCache } from "@agentset/webhooks/server";
 
 // Helper to check if organization has webhooks access (pro plan required)
 const requireProPlan = (plan: string) => {
@@ -260,6 +261,9 @@ export const webhooksRouter = createTRPCRouter({
         },
       });
 
+      // Invalidate webhook cache
+      await webhookCache.invalidateOrg(input.organizationId);
+
       return transformWebhook(webhook);
     }),
 
@@ -436,6 +440,9 @@ export const webhooksRouter = createTRPCRouter({
         where: { id: input.webhookId },
         data: { secret: newSecret },
       });
+
+      // Invalidate webhook cache
+      await webhookCache.invalidateOrg(input.organizationId);
 
       return { secret: newSecret };
     }),

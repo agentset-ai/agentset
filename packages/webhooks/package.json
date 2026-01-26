@@ -19,6 +19,7 @@
     "@agentset/db": "workspace:*",
     "@agentset/utils": "workspace:*",
     "@agentset/validation": "workspace:*",
+    "@upstash/redis": "^1.34.9",
     "nanoid": "^5.1.5",
     "zod": "catalog:"
   },

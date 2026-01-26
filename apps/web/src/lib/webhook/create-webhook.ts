@@ -4,10 +4,9 @@ import { nanoid } from "nanoid";
 
 import { db } from "@agentset/db/client";
 import { sendEmail, WebhookAddedEmail } from "@agentset/emails";
-import {
-  createWebhookSchema,
-  WEBHOOK_ID_PREFIX,
-} from "@agentset/webhooks";
+import { createWebhookSchema, WEBHOOK_ID_PREFIX } from "@agentset/webhooks";
+import { webhookCache } from "@agentset/webhooks/server";
+
 import { createWebhookSecret } from "./secret";
 
 export async function createWebhook({
@@ -95,6 +94,9 @@ export async function createWebhook({
       });
     });
   }
+
+  // Invalidate webhook cache for organization
+  await webhookCache.invalidateOrg(organizationId);
 
   return webhook;
 }

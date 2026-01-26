@@ -142,9 +142,26 @@ export const sendWebhookBodySchema = z.object({
   payload: z.any(),
 });
 export const triggerSendWebhook = (
-  body: z.infer<typeof sendWebhookBodySchema>,
-) =>
-  tasks.trigger(SEND_WEBHOOK_JOB_ID, body, {
-    tags: [`webhook_${body.webhookId}`, `event_${body.eventId}`],
-    idempotencyKey: body.eventId,
+  body:
+    | z.infer<typeof sendWebhookBodySchema>
+    | z.infer<typeof sendWebhookBodySchema>[],
+) => {
+  if (Array.isArray(body) && body.length > 1) {
+    return tasks.batchTrigger(
+      SEND_WEBHOOK_JOB_ID,
+      body.map((b) => ({
+        payload: b,
+        options: {
+          tags: [`webhook_${b.webhookId}`, `event_${b.eventId}`],
+          idempotencyKey: b.eventId,
+        },
+      })),
+    );
+  }
+
+  const item = Array.isArray(body) ? body[0]! : body;
+  return tasks.trigger(SEND_WEBHOOK_JOB_ID, item, {
+    tags: [`webhook_${item.webhookId}`, `event_${item.eventId}`],
+    idempotencyKey: item.eventId,
   });
+};
