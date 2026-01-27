@@ -148,15 +148,6 @@ export const createIngestJob = async ({
         externalId: data.externalId,
         payload: finalPayload,
       },
-      select: {
-        id: true,
-        name: true,
-        namespaceId: true,
-        status: true,
-        error: true,
-        createdAt: true,
-        updatedAt: true,
-      },
     }),
     db.namespace.update({
       where: { id: namespaceId },
