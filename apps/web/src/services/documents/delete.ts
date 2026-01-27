@@ -17,20 +17,6 @@ export const deleteDocument = async ({
     data: {
       status: DocumentStatus.QUEUED_FOR_DELETE,
     },
-    select: {
-      id: true,
-      name: true,
-      namespaceId: true,
-      ingestJobId: true,
-      status: true,
-      source: true,
-      totalCharacters: true,
-      totalChunks: true,
-      totalPages: true,
-      error: true,
-      createdAt: true,
-      updatedAt: true,
-    },
   });
 
   const handle = await triggerDeleteDocument({ documentId: updatedDoc.id });

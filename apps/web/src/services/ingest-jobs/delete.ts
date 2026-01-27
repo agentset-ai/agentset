@@ -17,15 +17,6 @@ export const deleteIngestJob = async ({
     data: {
       status: IngestJobStatus.QUEUED_FOR_DELETE,
     },
-    select: {
-      id: true,
-      name: true,
-      namespaceId: true,
-      status: true,
-      error: true,
-      createdAt: true,
-      updatedAt: true,
-    },
   });
 
   const handle = await triggerDeleteIngestJob({
