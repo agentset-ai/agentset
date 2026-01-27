@@ -5,6 +5,7 @@ import { chunkArray } from "@agentset/utils";
 
 import { getDb } from "../db";
 import { DELETE_INGEST_JOB_ID, deleteIngestJobBodySchema } from "../schema";
+import { emitIngestJobWebhook } from "../webhook";
 import { deleteDocument } from "./delete-document";
 
 const BATCH_SIZE = 30;
@@ -16,7 +17,7 @@ export const deleteIngestJob = schemaTask({
     concurrencyLimit: 50,
   },
   schema: deleteIngestJobBodySchema,
-  run: async ({ jobId }) => {
+  run: async ({ jobId, skipWebhooks }) => {
     const db = getDb();
 
     // Get ingest job data
@@ -24,9 +25,19 @@ export const deleteIngestJob = schemaTask({
       where: { id: jobId },
       select: {
         id: true,
+        name: true,
         tenantId: true,
         payload: true,
         namespaceId: true,
+        status: true,
+        error: true,
+        createdAt: true,
+        updatedAt: true,
+        namespace: {
+          select: {
+            organizationId: true,
+          },
+        },
       },
     });
 
@@ -78,6 +89,7 @@ export const deleteIngestJob = schemaTask({
           batch.map((document) => ({
             payload: {
               documentId: document.id,
+              skipWebhooks,
             },
             options: {
               tags: [`doc_${document.id}`],
@@ -125,6 +137,23 @@ export const deleteIngestJob = schemaTask({
         },
       }),
     ]);
+
+    // Emit ingest_job.deleted webhook (skip if deleting namespace/org)
+    if (!skipWebhooks) {
+      await emitIngestJobWebhook({
+        trigger: "ingest_job.deleted",
+        ingestJob: {
+          id: ingestJob.id,
+          name: ingestJob.name,
+          namespaceId: ingestJob.namespaceId,
+          organizationId: ingestJob.namespace.organizationId,
+          status: "DELETING",
+          error: ingestJob.error,
+          createdAt: ingestJob.createdAt,
+          updatedAt: new Date(),
+        },
+      });
+    }
 
     return {
       jobId: ingestJob.id,

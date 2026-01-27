@@ -12,13 +12,13 @@ import {
   InviteUserEmail,
   LoginEmail,
   OTPEmail,
+  sendEmail,
   WelcomeEmail,
 } from "@agentset/emails";
 import { toSlug } from "@agentset/utils";
 
 import { env } from "../env";
 import { APP_DOMAIN } from "./constants";
-import { sendEmail } from "./resend";
 import { getBaseUrl } from "./utils";
 
 export const makeAuth = (params?: { baseUrl: string; isHosting: boolean }) => {

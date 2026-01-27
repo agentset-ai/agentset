@@ -21,6 +21,7 @@
     "./accordion": "./src/components/ui/accordion.tsx",
     "./timestamp-tooltip": "./src/components/timestamp-tooltip.tsx",
     "./alert": "./src/components/ui/alert.tsx",
+    "./alert-dialog": "./src/components/ui/alert-dialog.tsx",
     "./avatar": "./src/components/ui/avatar.tsx",
     "./badge": "./src/components/ui/badge.tsx",
     "./breadcrumb": "./src/components/ui/breadcrumb.tsx",

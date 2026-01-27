@@ -8,10 +8,10 @@ import {
 import type { Namespace } from "@agentset/db";
 import { NamespaceStatus } from "@agentset/db";
 import { db } from "@agentset/db/client";
+import { normalizeId } from "@agentset/utils";
 
 import type { HandlerParams } from "./base";
 import { AgentsetApiError } from "../errors";
-import { normalizeId } from "../ids";
 import { withApiHandler } from "./base";
 
 interface NamespaceHandler {

@@ -1,6 +1,5 @@
 import { AgentsetApiError } from "@/lib/api/errors";
 import { withApiHandler } from "@/lib/api/handler";
-import { prefixId } from "@/lib/api/ids";
 import { makeApiSuccessResponse } from "@/lib/api/response";
 import { parseRequestBody } from "@/lib/api/utils";
 import {
@@ -15,6 +14,7 @@ import {
 
 import { Prisma } from "@agentset/db";
 import { db } from "@agentset/db/client";
+import { prefixId } from "@agentset/utils";
 
 export const GET = withApiHandler(
   async ({ organization, headers }) => {

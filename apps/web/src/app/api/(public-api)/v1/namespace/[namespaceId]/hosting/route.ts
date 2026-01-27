@@ -1,6 +1,6 @@
 import { AgentsetApiError } from "@/lib/api/errors";
 import { withNamespaceApiHandler } from "@/lib/api/handler/namespace";
-import { prefixId } from "@/lib/api/ids";
+import { prefixId } from "@agentset/utils";
 import { makeApiSuccessResponse } from "@/lib/api/response";
 import { parseRequestBody } from "@/lib/api/utils";
 import { HostingSchema, updateHostingSchema } from "@/schemas/api/hosting";

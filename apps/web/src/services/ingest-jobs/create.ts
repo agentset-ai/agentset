@@ -1,5 +1,7 @@
 import type { createIngestJobSchema } from "@/schemas/api/ingest-job";
 import type { z } from "zod/v4";
+import { emitIngestJobWebhook } from "@/lib/webhook/emit";
+import { waitUntil } from "@vercel/functions";
 
 import type { IngestJobBatchItem } from "@agentset/validation";
 import { IngestJobStatus } from "@agentset/db";
@@ -11,11 +13,13 @@ import { validateNamespaceFileKey } from "../uploads";
 
 export const createIngestJob = async ({
   plan,
+  organizationId,
   namespaceId,
   tenantId,
   data,
 }: {
   plan: string;
+  organizationId: string;
   namespaceId: string;
   tenantId?: string;
   data: z.infer<typeof createIngestJobSchema>;
@@ -144,6 +148,15 @@ export const createIngestJob = async ({
         externalId: data.externalId,
         payload: finalPayload,
       },
+      select: {
+        id: true,
+        name: true,
+        namespaceId: true,
+        status: true,
+        error: true,
+        createdAt: true,
+        updatedAt: true,
+      },
     }),
     db.namespace.update({
       where: { id: namespaceId },
@@ -162,6 +175,7 @@ export const createIngestJob = async ({
   const handle = await triggerIngestionJob(
     {
       jobId: job.id,
+      organizationId,
     },
     plan,
   );
@@ -171,6 +185,17 @@ export const createIngestJob = async ({
     data: { workflowRunsIds: { push: handle.id } },
     select: { id: true },
   });
+
+  // Emit ingest_job.queued webhook
+  waitUntil(
+    emitIngestJobWebhook({
+      trigger: "ingest_job.queued",
+      ingestJob: {
+        ...job,
+        organizationId,
+      },
+    }),
+  );
 
   return job;
 };

@@ -118,7 +118,9 @@
     "ASSETS_S3_URL",
     "IMAGES_S3_BUCKET",
     "TRIGGER_SECRET_KEY",
-    "NEXT_PUBLIC_POSTHOG_KEY"
+    "NEXT_PUBLIC_POSTHOG_KEY",
+    "TINYBIRD_API_KEY",
+    "TINYBIRD_API_URL"
   ],
   "globalPassThroughEnv": [
     "NODE_ENV",

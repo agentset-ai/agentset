@@ -1,0 +1,17 @@
+{
+  "id": "doc_sample123456789",
+  "name": "sample-document.pdf",
+  "namespaceId": "ns_sample123",
+  "organizationId": "org_sample123",
+  "status": "READY",
+  "source": {
+    "type": "FILE",
+    "fileUrl": "https://example.com/sample.pdf"
+  },
+  "totalCharacters": 15000,
+  "totalChunks": 25,
+  "totalPages": 10,
+  "error": null,
+  "createdAt": "2024-01-15T10:30:00.000Z",
+  "updatedAt": "2024-01-15T10:35:00.000Z"
+}

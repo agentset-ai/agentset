@@ -5,6 +5,7 @@ import { chunkArray } from "@agentset/utils";
 
 import { getDb } from "../db";
 import { RE_INGEST_JOB_ID, reIngestJobBodySchema } from "../schema";
+import { emitBulkDocumentWebhooks } from "../webhook";
 import { processDocument } from "./process-document";
 
 const BATCH_SIZE = 30;
@@ -77,7 +78,18 @@ export const reIngestJob = schemaTask({
     // Get all documents for this ingest job
     const documents = await db.document.findMany({
       where: { ingestJobId: ingestJob.id },
-      select: { id: true },
+      select: {
+        id: true,
+        name: true,
+        namespaceId: true,
+        source: true,
+        totalCharacters: true,
+        totalChunks: true,
+        totalPages: true,
+        error: true,
+        createdAt: true,
+        updatedAt: true,
+      },
     });
 
     // Update status to pre-processing and reset document statuses
@@ -107,6 +119,18 @@ export const reIngestJob = schemaTask({
         },
       }),
     ]);
+
+    // Emit document.queued_for_resync webhooks
+    await emitBulkDocumentWebhooks({
+      trigger: "document.queued_for_resync",
+      organizationId: ingestJob.namespace.organization.id,
+      namespaceId: ingestJob.namespace.id,
+      documents: documents.map((doc) => ({
+        ...doc,
+        status: DocumentStatus.QUEUED_FOR_RESYNC,
+        organizationId: ingestJob.namespace.organization.id,
+      })),
+    });
 
     const chunks = chunkArray(documents, BATCH_SIZE);
     let success = true;

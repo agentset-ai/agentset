@@ -1,6 +1,7 @@
 import { schemaTask } from "@trigger.dev/sdk";
 
 import { chunkArray } from "@agentset/utils";
+import { webhookCache } from "@agentset/webhooks/server";
 
 import { getDb } from "../db";
 import {
@@ -36,13 +37,21 @@ export const deleteOrganization = schemaTask({
       };
     }
 
-    // Get all ingest jobs for this namespace
+    // Delete webhooks first to prevent webhook events during cleanup
+    await db.webhook.deleteMany({
+      where: { organizationId },
+    });
+
+    // Invalidate webhook cache
+    await webhookCache.invalidateOrg(organizationId);
+
+    // Get all namespaces for this organization
     const namespaces = await db.namespace.findMany({
       where: { organizationId },
       select: { id: true },
     });
 
-    // Trigger ingest job deletion tasks (parent-child pattern)
+    // Trigger namespace deletion tasks (parent-child pattern)
     if (namespaces.length > 0) {
       const batches = chunkArray(namespaces, BATCH_SIZE);
 

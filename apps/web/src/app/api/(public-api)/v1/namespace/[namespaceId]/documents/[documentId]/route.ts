@@ -1,12 +1,12 @@
 import { AgentsetApiError } from "@/lib/api/errors";
 import { withNamespaceApiHandler } from "@/lib/api/handler";
-import { normalizeId, prefixId } from "@/lib/api/ids";
 import { makeApiSuccessResponse } from "@/lib/api/response";
 import { DocumentSchema } from "@/schemas/api/document";
 import { deleteDocument } from "@/services/documents/delete";
 
 import { DocumentStatus } from "@agentset/db";
 import { db } from "@agentset/db/client";
+import { normalizeId, prefixId } from "@agentset/utils";
 
 export const GET = withNamespaceApiHandler(
   async ({ params, namespace, headers }) => {
@@ -87,7 +87,10 @@ export const DELETE = withNamespaceApiHandler(
       });
     }
 
-    const data = await deleteDocument(document.id);
+    const data = await deleteDocument({
+      documentId: document.id,
+      organizationId: namespace.organizationId,
+    });
 
     return makeApiSuccessResponse({
       data: DocumentSchema.parse({

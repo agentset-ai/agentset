@@ -6,7 +6,12 @@ import type {
   YoutubePartitionBody,
   YoutubePartitionResult,
 } from "@agentset/engine";
-import { DocumentStatus, IngestJobStatus, Prisma } from "@agentset/db";
+import {
+  Document,
+  DocumentStatus,
+  IngestJobStatus,
+  Prisma,
+} from "@agentset/db";
 import { env } from "@agentset/engine/env";
 import { chunkArray } from "@agentset/utils";
 
@@ -15,6 +20,11 @@ import {
   TRIGGER_INGESTION_JOB_ID,
   triggerIngestionJobBodySchema,
 } from "../schema";
+import {
+  emitBulkDocumentWebhooks,
+  emitDocumentWebhook,
+  emitIngestJobWebhook,
+} from "../webhook";
 import { processDocument } from "./process-document";
 
 const BATCH_SIZE = 30;
@@ -36,14 +46,31 @@ export const ingestJob = schemaTask({
       (error instanceof Error ? error.message : null) || "Unknown error";
 
     try {
-      await db.ingestJob.update({
+      const ingestJob = await db.ingestJob.update({
         where: { id: payload.jobId },
         data: {
           status: IngestJobStatus.FAILED,
           error: errorMessage,
           failedAt: new Date(),
         },
-        select: { id: true },
+        select: {
+          id: true,
+          name: true,
+          namespaceId: true,
+          status: true,
+          error: true,
+          createdAt: true,
+          updatedAt: true,
+        },
+      });
+
+      // Emit ingest_job.error webhook
+      await emitIngestJobWebhook({
+        trigger: "ingest_job.error",
+        ingestJob: {
+          ...ingestJob,
+          organizationId: payload.organizationId,
+        },
       });
     } catch (e) {
       // skip not found errors
@@ -289,8 +316,18 @@ export const ingestJob = schemaTask({
         });
 
         const createdDocs = await db.document.createManyAndReturn({
-          select: { id: true, status: true },
           data: docsWithStatus,
+        });
+
+        // Emit document.queued webhooks for all created documents (bulk operation)
+        await emitBulkDocumentWebhooks({
+          trigger: "document.queued",
+          documents: createdDocs.map((doc) => ({
+            ...doc,
+            organizationId: ingestionJob.namespace.organization.id,
+          })),
+          organizationId: ingestionJob.namespace.organization.id,
+          namespaceId: ingestionJob.namespace.id,
         });
 
         // Only add QUEUED docs to processing queue
@@ -310,6 +347,7 @@ export const ingestJob = schemaTask({
         // TODO: bring this back when we implement document external ID
         // externalId: ingestionJob.payload.externalId,
       };
+      let createdDocument: Document | null = null;
 
       // Handle single document types
       if (ingestionJob.payload.type === "TEXT") {
@@ -324,9 +362,9 @@ export const ingestJob = schemaTask({
             },
             totalCharacters: text.length,
           },
-          select: { id: true },
         });
 
+        createdDocument = document;
         documentsIds = [document.id];
       } else if (ingestionJob.payload.type === "FILE") {
         const { fileUrl } = ingestionJob.payload;
@@ -339,9 +377,9 @@ export const ingestJob = schemaTask({
               fileUrl: fileUrl,
             },
           },
-          select: { id: true },
         });
 
+        createdDocument = document;
         documentsIds = [document.id];
       } else if (ingestionJob.payload.type === "MANAGED_FILE") {
         const { key } = ingestionJob.payload;
@@ -354,10 +392,20 @@ export const ingestJob = schemaTask({
               key: key,
             },
           },
-          select: { id: true },
         });
 
+        createdDocument = document;
         documentsIds = [document.id];
+      }
+
+      if (createdDocument) {
+        await emitDocumentWebhook({
+          trigger: "document.queued",
+          document: {
+            ...createdDocument,
+            organizationId: ingestionJob.namespace.organization.id,
+          },
+        });
       }
     } else {
       // Handle batch document creation for multi-file types
@@ -366,7 +414,6 @@ export const ingestJob = schemaTask({
       for (let i = 0; i < batches.length; i++) {
         const fileBatch = batches[i]!;
         const batchResult = await db.document.createManyAndReturn({
-          select: { id: true },
           data: fileBatch.map(
             ({
               config,
@@ -384,11 +431,21 @@ export const ingestJob = schemaTask({
           ),
         });
 
+        // Emit document.queued webhooks for all created documents (bulk operation)
+        await emitBulkDocumentWebhooks({
+          trigger: "document.queued",
+          documents: batchResult.map((doc) => ({
+            ...doc,
+            organizationId: ingestionJob.namespace.organization.id,
+          })),
+          organizationId: ingestionJob.namespace.organization.id,
+          namespaceId: ingestionJob.namespace.id,
+        });
         documentsIds = documentsIds.concat(batchResult.map((doc) => doc.id));
       }
     }
 
-    await db.$transaction([
+    const [, , updatedJobForProcessing] = await db.$transaction([
       // Update total documents in namespace + organization
       db.namespace.update({
         where: { id: ingestionJob.namespace.id },
@@ -411,9 +468,26 @@ export const ingestJob = schemaTask({
           status: IngestJobStatus.PROCESSING,
           processingAt: new Date(),
         },
-        select: { id: true },
+        select: {
+          id: true,
+          name: true,
+          namespaceId: true,
+          status: true,
+          error: true,
+          createdAt: true,
+          updatedAt: true,
+        },
       }),
     ]);
+
+    // Emit ingest_job.processing webhook
+    await emitIngestJobWebhook({
+      trigger: "ingest_job.processing",
+      ingestJob: {
+        ...updatedJobForProcessing,
+        organizationId: ingestionJob.namespace.organization.id,
+      },
+    });
 
     const chunks = chunkArray(documentsIds, BATCH_SIZE);
     let success = true;
@@ -470,7 +544,7 @@ export const ingestJob = schemaTask({
         ? `${overLimitCount} document(s) exceeded pages limit`
         : null;
 
-    await db.$transaction([
+    const [updatedJob] = await db.$transaction([
       db.ingestJob.update({
         where: { id: ingestionJob.id },
         data: {
@@ -488,7 +562,15 @@ export const ingestJob = schemaTask({
                 error: jobError,
               }),
         },
-        select: { id: true },
+        select: {
+          id: true,
+          name: true,
+          namespaceId: true,
+          status: true,
+          error: true,
+          createdAt: true,
+          updatedAt: true,
+        },
       }),
       db.namespace.update({
         where: { id: ingestionJob.namespace.id },
@@ -501,6 +583,15 @@ export const ingestJob = schemaTask({
         select: { id: true },
       }),
     ]);
+
+    // Emit webhook for job completion
+    await emitIngestJobWebhook({
+      trigger: jobFailed ? "ingest_job.error" : "ingest_job.ready",
+      ingestJob: {
+        ...updatedJob,
+        organizationId: ingestionJob.namespace.organization.id,
+      },
+    });
 
     return {
       ingestionJobId: ingestionJob.id,

@@ -13,6 +13,7 @@ import { chunkArray } from "@agentset/utils";
 import { getDb } from "../db";
 import { rateLimit } from "../rate-limit";
 import { DELETE_DOCUMENT_JOB_ID, deleteDocumentBodySchema } from "../schema";
+import { emitDocumentWebhook } from "../webhook";
 
 const BATCH_SIZE = 50;
 
@@ -23,7 +24,7 @@ export const deleteDocument = schemaTask({
     concurrencyLimit: 90,
   },
   schema: deleteDocumentBodySchema,
-  run: async ({ documentId }) => {
+  run: async ({ documentId, skipWebhooks }) => {
     const db = getDb();
 
     // Get document data
@@ -31,14 +32,23 @@ export const deleteDocument = schemaTask({
       where: { id: documentId },
       select: {
         id: true,
+        name: true,
         tenantId: true,
         source: true,
         totalPages: true,
+        totalCharacters: true,
+        totalChunks: true,
+        status: true,
+        error: true,
+        createdAt: true,
+        updatedAt: true,
+        namespaceId: true,
         namespace: {
           select: {
             id: true,
             vectorStoreConfig: true,
             keywordEnabled: true,
+            organizationId: true,
           },
         },
       },
@@ -148,6 +158,27 @@ export const deleteDocument = schemaTask({
       where: { id: document.id },
       select: { id: true },
     });
+
+    // Emit document.deleted webhook (skip if deleting namespace/org)
+    if (!skipWebhooks) {
+      await emitDocumentWebhook({
+        trigger: "document.deleted",
+        document: {
+          id: document.id,
+          name: document.name,
+          namespaceId: document.namespaceId,
+          organizationId: namespace.organizationId,
+          status: "DELETING",
+          source: document.source,
+          totalCharacters: document.totalCharacters,
+          totalChunks: document.totalChunks,
+          totalPages: document.totalPages,
+          error: document.error,
+          createdAt: document.createdAt,
+          updatedAt: new Date(),
+        },
+      });
+    }
 
     return {
       documentId: document.id,

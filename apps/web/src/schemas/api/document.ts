@@ -1,9 +1,8 @@
 import { z } from "zod/v4";
 
-import { DocumentStatus } from "@agentset/db";
+import { DocumentStatusSchema } from "@agentset/db";
 import {
   documentConfigSchema,
-  // documentExternalIdSchema,
   documentPayloadSchema,
   documentPropertiesSchema,
 } from "@agentset/validation";
@@ -17,15 +16,10 @@ const nameSchema = z
   .default(null)
   .describe("The name of the document.");
 
-export const DocumentStatusSchema = z
-  .enum(DocumentStatus)
-  .meta({ id: "document-status", description: "The status of the document." });
-
 export const DocumentSchema = z
   .object({
     id: z.string().describe("The unique ID of the document."),
     ingestJobId: z.string().describe("The ingest job ID of the document."),
-    // externalId: documentExternalIdSchema,
     name: nameSchema,
     tenantId: z
       .string()

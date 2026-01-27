@@ -1,5 +1,5 @@
 import { withNamespaceApiHandler } from "@/lib/api/handler";
-import { normalizeId, prefixId } from "@/lib/api/ids";
+import { normalizeId, prefixId } from "@agentset/utils";
 import { makeApiSuccessResponse } from "@/lib/api/response";
 import { DocumentSchema, getDocumentsSchema } from "@/schemas/api/document";
 import { getPaginationArgs, paginateResults } from "@/services/pagination";

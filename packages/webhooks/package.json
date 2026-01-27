@@ -1,0 +1,34 @@
+{
+  "name": "@agentset/webhooks",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts",
+    "./server": "./src/server.ts"
+  },
+  "scripts": {
+    "build": "tsc",
+    "clean": "git clean -xdf .cache .turbo dist node_modules",
+    "dev": "tsc",
+    "format": "prettier --check . --ignore-path ../../.gitignore",
+    "lint": "eslint",
+    "typecheck": "tsc --noEmit --emitDeclarationOnly false"
+  },
+  "prettier": "@agentset/prettier-config",
+  "dependencies": {
+    "@agentset/db": "workspace:*",
+    "@agentset/utils": "workspace:*",
+    "@agentset/validation": "workspace:*",
+    "@upstash/redis": "^1.34.9",
+    "nanoid": "^5.1.5",
+    "zod": "catalog:"
+  },
+  "devDependencies": {
+    "@agentset/eslint-config": "workspace:*",
+    "@agentset/prettier-config": "workspace:*",
+    "@agentset/tsconfig": "workspace:*",
+    "eslint": "catalog:",
+    "prettier": "catalog:",
+    "typescript": "catalog:"
+  }
+}

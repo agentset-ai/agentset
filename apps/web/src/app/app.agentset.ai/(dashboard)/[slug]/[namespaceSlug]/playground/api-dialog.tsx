@@ -1,6 +1,6 @@
 import { useNamespace } from "@/hooks/use-namespace";
 import { useOrganization } from "@/hooks/use-organization";
-import { prefixId } from "@/lib/api/ids";
+import { prefixId } from "@agentset/utils";
 import { useTRPC } from "@/trpc/react";
 import { useQuery } from "@tanstack/react-query";
 import { ArrowUpRightIcon } from "lucide-react";

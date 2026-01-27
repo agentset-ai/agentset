@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import { AlertTriangleIcon } from "lucide-react";
 
 import { Button } from "@agentset/ui/button";
 import {
@@ -133,10 +132,7 @@ export function DeleteConfirmationDialog({
     <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle className="flex items-center gap-2">
-            <AlertTriangleIcon className="text-destructive size-5" />
-            {title}
-          </DialogTitle>
+          <DialogTitle className="flex items-center gap-2">{title}</DialogTitle>
           <DialogDescription>
             {description ??
               "This action cannot be undone. This will permanently delete this item and all associated data."}
@@ -160,7 +156,7 @@ export function DeleteConfirmationDialog({
           />
         </div>
 
-        <DialogFooter className="gap-2 sm:gap-0">
+        <DialogFooter className="gap-2">
           <Button variant="outline" onClick={() => handleOpenChange(false)}>
             Cancel
           </Button>

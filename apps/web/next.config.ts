@@ -31,6 +31,8 @@ const makeConfig = async (): Promise<NextConfig> => {
       "@agentset/ui",
       "@agentset/utils",
       "@agentset/validation",
+      "@agentset/webhooks",
+      "@agentset/tinybird",
     ],
 
     /** We already do linting and typechecking as separate tasks in CI */

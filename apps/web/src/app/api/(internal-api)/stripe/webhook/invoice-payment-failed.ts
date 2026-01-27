@@ -1,9 +1,8 @@
 import { APP_DOMAIN } from "@/lib/constants";
-import { sendEmail } from "@/lib/resend";
 
 import type { Stripe } from "@agentset/stripe";
 import { db } from "@agentset/db/client";
-import { FailedPayment } from "@agentset/emails";
+import { FailedPayment, sendEmail } from "@agentset/emails";
 
 export async function invoicePaymentFailed(event: Stripe.Event) {
   const {

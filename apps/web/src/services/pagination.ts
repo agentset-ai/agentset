@@ -1,6 +1,6 @@
 import type { paginationSchema } from "@/schemas/api/pagination";
 import type { z } from "zod/v4";
-import { normalizeId } from "@/lib/api/ids";
+import { normalizeId } from "@agentset/utils";
 import { decodeCursor, encodeCursor } from "@/lib/cursor";
 
 import { Prisma } from "@agentset/db";

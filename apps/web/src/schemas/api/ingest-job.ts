@@ -1,6 +1,6 @@
 import { z } from "zod/v4";
 
-import { IngestJobStatus } from "@agentset/db";
+import { IngestJobStatusSchema } from "@agentset/db";
 import {
   configSchema,
   ingestJobNameSchema,
@@ -11,12 +11,7 @@ import {
 import { csvToStringArray } from "../helpers";
 import { paginationSchema } from "./pagination";
 
-export const IngestJobStatusSchema = z.enum(IngestJobStatus).meta({
-  id: "ingest-job-status",
-  description: "The status of the ingest job.",
-});
-
-const externalIdSchema = z
+export const externalIdSchema = z
   .string()
   .nullable()
   .default(null)

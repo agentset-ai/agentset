@@ -15,6 +15,7 @@ model Organization {
   invitations Invitation[]
   namespaces  Namespace[]
   apiKeys     OrganizationApiKey[]
+  webhooks    Webhook[]
 
   totalNamespaces Int @default(0) // Total number of namespaces in the organization
   totalDocuments  Int @default(0) // Total number of documents in the organization
@@ -32,6 +33,8 @@ model Organization {
   stripeId          String?   @unique // Stripe customer ID
   billingCycleStart Int? // day of the month when the billing cycle starts
   paymentFailedAt   DateTime?
+
+  webhookEnabled Boolean @default(false)
 
   status OrganizationStatus @default(ACTIVE)
 

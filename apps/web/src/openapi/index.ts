@@ -1,7 +1,10 @@
-export const createOpenApiDocument = async () => {
-  const { createDocument } = await import("zod-openapi");
-  const { v1Paths } = await import("./v1");
+import { createDocument } from "zod-openapi";
 
+import { webhookEventSchema } from "@agentset/webhooks";
+
+import { v1Paths } from "./v1";
+
+export const createOpenApiDocument = () => {
   return createDocument({
     openapi: "3.1.1",
     info: {
@@ -38,6 +41,9 @@ export const createOpenApiDocument = async () => {
       ...v1Paths,
     },
     components: {
+      schemas: {
+        webhookEventSchema,
+      },
       securitySchemes: {
         token: {
           type: "http",

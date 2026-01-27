@@ -1,9 +1,9 @@
 import { revalidateTag } from "next/cache";
-import { sendEmail } from "@/lib/resend";
 import { waitUntil } from "@vercel/functions";
 
 import type { Stripe } from "@agentset/stripe";
 import { db } from "@agentset/db/client";
+import { sendEmail } from "@agentset/emails";
 
 const cancellationReasonMap = {
   customer_service: "you had a bad experience with our customer service",

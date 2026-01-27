@@ -3,7 +3,7 @@ import { env } from "@/env";
 import { waitUntil } from "@vercel/functions";
 import { PostHog } from "posthog-node";
 
-import { prefixId } from "./api/ids";
+import { prefixId } from "@agentset/utils";
 
 const posthog = env.NEXT_PUBLIC_POSTHOG_KEY
   ? new PostHog(env.NEXT_PUBLIC_POSTHOG_KEY, {

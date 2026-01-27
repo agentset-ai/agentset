@@ -100,7 +100,10 @@ export const documentsRouter = createTRPCRouter({
         throw new TRPCError({ code: "BAD_REQUEST" });
       }
 
-      const updatedDocument = await deleteDocument(input.documentId);
+      const updatedDocument = await deleteDocument({
+        documentId: input.documentId,
+        organizationId: namespace.organizationId,
+      });
 
       return updatedDocument;
     }),

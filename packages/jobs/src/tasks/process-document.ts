@@ -29,6 +29,7 @@ import {
   TRIGGER_DOCUMENT_JOB_ID,
   triggerDocumentJobBodySchema,
 } from "../schema";
+import { emitDocumentWebhook } from "../webhook";
 
 const BATCH_SIZE = 30;
 
@@ -102,14 +103,35 @@ export const processDocument = schemaTask({
       (error instanceof Error ? error.message : null) || "Unknown error";
 
     try {
-      await db.document.update({
+      const document = await db.document.update({
         where: { id: payload.documentId },
         data: {
           status: DocumentStatus.FAILED,
           error: errorMessage,
           failedAt: new Date(),
         },
-        select: { id: true },
+        select: {
+          id: true,
+          name: true,
+          namespaceId: true,
+          status: true,
+          source: true,
+          totalCharacters: true,
+          totalChunks: true,
+          totalPages: true,
+          error: true,
+          createdAt: true,
+          updatedAt: true,
+        },
+      });
+
+      // Emit document.error webhook
+      await emitDocumentWebhook({
+        trigger: "document.error",
+        document: {
+          ...document,
+          organizationId: payload.ingestJob.namespace.organization.id,
+        },
       });
     } catch (e) {
       // skip not found errors
@@ -125,22 +147,42 @@ export const processDocument = schemaTask({
   run: async ({ documentId, ingestJob, cleanup: shouldCleanup }) => {
     const db = getDb();
 
-    // Get document configuration
-    const document = await db.document.findUnique({
+    // Update document status to processing and get document configuration
+    const document = await db.document.update({
       where: { id: documentId },
+      data: {
+        status: DocumentStatus.PROCESSING,
+        processingAt: new Date(),
+      },
       select: {
         id: true,
-        tenantId: true,
         name: true,
+        namespaceId: true,
+        status: true,
         source: true,
         config: true,
+        tenantId: true,
+        totalCharacters: true,
+        totalChunks: true,
         totalPages: true,
+        error: true,
+        createdAt: true,
+        updatedAt: true,
       },
     });
 
     if (!document) {
       throw new Error("Document not found");
     }
+
+    // Emit document.processing webhook
+    await emitDocumentWebhook({
+      trigger: "document.processing",
+      document: {
+        ...document,
+        organizationId: ingestJob.namespace.organization.id,
+      },
+    });
 
     // Get embedding model and vector store
     const [embeddingModel, vectorStore] = await Promise.all([
@@ -361,7 +403,7 @@ export const processDocument = schemaTask({
       }
     }
 
-    await db.document.update({
+    const completedDocument = await db.document.update({
       where: { id: document.id },
       data: {
         status: DocumentStatus.COMPLETED,
@@ -370,7 +412,28 @@ export const processDocument = schemaTask({
         failedAt: null,
         error: null,
       },
-      select: { id: true },
+      select: {
+        id: true,
+        name: true,
+        namespaceId: true,
+        status: true,
+        source: true,
+        totalCharacters: true,
+        totalChunks: true,
+        totalPages: true,
+        error: true,
+        createdAt: true,
+        updatedAt: true,
+      },
+    });
+
+    // Emit document.ready webhook
+    await emitDocumentWebhook({
+      trigger: "document.ready",
+      document: {
+        ...completedDocument,
+        organizationId: ingestJob.namespace.organization.id,
+      },
     });
 
     let meterSuccess = null;

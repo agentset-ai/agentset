@@ -1,0 +1,17 @@
+{
+  "id": "doc_sample123456789",
+  "name": "sample-document.pdf",
+  "namespaceId": "ns_sample123",
+  "organizationId": "org_sample123",
+  "status": "FAILED",
+  "source": {
+    "type": "FILE",
+    "fileUrl": "https://example.com/sample.pdf"
+  },
+  "totalCharacters": null,
+  "totalChunks": null,
+  "totalPages": null,
+  "error": "Failed to parse document: unsupported format",
+  "createdAt": "2024-01-15T10:30:00.000Z",
+  "updatedAt": "2024-01-15T10:32:00.000Z"
+}

@@ -8,6 +8,7 @@ import {
   EmbeddingConfigSchema,
   VectorStoreSchema,
 } from "@agentset/validation";
+import { WEBHOOK_TRIGGERS } from "@agentset/webhooks";
 
 const getPriorityByPlan = (plan: string) => {
   if (isEnterprisePlan(plan)) return;
@@ -18,7 +19,9 @@ const getPriorityByPlan = (plan: string) => {
 export const TRIGGER_INGESTION_JOB_ID = "trigger-ingestion-job";
 export const triggerIngestionJobBodySchema = z.object({
   jobId: z.string(),
+  organizationId: z.string(),
 });
+
 export const triggerIngestionJob = (
   body: z.infer<typeof triggerIngestionJobBodySchema>,
   plan: string,
@@ -40,6 +43,7 @@ export const triggerDocumentJobBodySchema = z.object({
       embeddingConfig: EmbeddingConfigSchema.nullable(),
       vectorStoreConfig: VectorStoreSchema.nullable(),
       organization: z.object({
+        id: z.string(),
         plan: z.string(),
         stripeId: z.string().optional().nullable(),
       }),
@@ -51,6 +55,7 @@ export const triggerDocumentJobBodySchema = z.object({
 export const DELETE_DOCUMENT_JOB_ID = "delete-document-job";
 export const deleteDocumentBodySchema = z.object({
   documentId: z.string(),
+  skipWebhooks: z.boolean().optional(),
 });
 export const triggerDeleteDocument = (
   body: z.infer<typeof deleteDocumentBodySchema>,
@@ -62,6 +67,7 @@ export const triggerDeleteDocument = (
 export const DELETE_INGEST_JOB_ID = "delete-ingest-job";
 export const deleteIngestJobBodySchema = z.object({
   jobId: z.string(),
+  skipWebhooks: z.boolean().optional(),
 });
 export const triggerDeleteIngestJob = (
   body: z.infer<typeof deleteIngestJobBodySchema>,
@@ -125,3 +131,37 @@ export const triggerReIngestJob = (
     tags: [`job_${body.jobId}`],
     priority: getPriorityByPlan(plan),
   });
+
+export const SEND_WEBHOOK_JOB_ID = "send-webhook";
+export const sendWebhookBodySchema = z.object({
+  webhookId: z.string(),
+  eventId: z.string(),
+  event: z.enum(WEBHOOK_TRIGGERS),
+  url: z.string(),
+  secret: z.string(),
+  payload: z.any(),
+});
+export const triggerSendWebhook = (
+  body:
+    | z.infer<typeof sendWebhookBodySchema>
+    | z.infer<typeof sendWebhookBodySchema>[],
+) => {
+  if (Array.isArray(body) && body.length > 1) {
+    return tasks.batchTrigger(
+      SEND_WEBHOOK_JOB_ID,
+      body.map((b) => ({
+        payload: b,
+        options: {
+          tags: [`webhook_${b.webhookId}`, `event_${b.eventId}`],
+          idempotencyKey: b.eventId,
+        },
+      })),
+    );
+  }
+
+  const item = Array.isArray(body) ? body[0]! : body;
+  return tasks.trigger(SEND_WEBHOOK_JOB_ID, item, {
+    tags: [`webhook_${item.webhookId}`, `event_${item.eventId}`],
+    idempotencyKey: item.eventId,
+  });
+};
