@@ -90,7 +90,7 @@ export const DELETE = withNamespaceApiHandler(
         namespaceId: prefixId(hosting.namespaceId, "ns_"),
       }),
       headers,
-      status: 204,
+      status: 200,
     });
   },
   { logging: { routeName: "DELETE /v1/namespace/[namespaceId]/hosting" } },
