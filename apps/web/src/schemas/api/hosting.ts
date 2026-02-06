@@ -1,7 +1,12 @@
 import { slugSchema, uploadedImageSchema } from "@/schemas/api/misc";
 import { z } from "zod/v4";
 
-import { llmSchema, rerankerSchema } from "@agentset/validation";
+import {
+  DEFAULT_LLM,
+  DEFAULT_RERANKER,
+  llmSchema,
+  rerankerSchema,
+} from "@agentset/validation";
 
 export const HostingSchema = z
   .object({
@@ -80,11 +85,13 @@ export const HostingSchema = z
       })
       .nullable()
       .default(null)
+      .transform((value) => value ?? { model: DEFAULT_RERANKER, limit: 15 })
       .describe("Configuration for the reranking model."),
     llmConfig: z
       .object({ model: llmSchema })
       .nullable()
       .default(null)
+      .transform((value) => value ?? { model: DEFAULT_LLM })
       .describe("Configuration for the LLM model."),
     topK: z
       .number()

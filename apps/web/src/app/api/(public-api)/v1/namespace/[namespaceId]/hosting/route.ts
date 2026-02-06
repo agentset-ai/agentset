@@ -1,6 +1,5 @@
 import { AgentsetApiError } from "@/lib/api/errors";
 import { withNamespaceApiHandler } from "@/lib/api/handler/namespace";
-import { prefixId } from "@agentset/utils";
 import { makeApiSuccessResponse } from "@/lib/api/response";
 import { parseRequestBody } from "@/lib/api/utils";
 import { HostingSchema, updateHostingSchema } from "@/schemas/api/hosting";
@@ -8,6 +7,8 @@ import { deleteHosting } from "@/services/hosting/delete";
 import { enableHosting } from "@/services/hosting/enable";
 import { getHosting } from "@/services/hosting/get";
 import { updateHosting } from "@/services/hosting/update";
+
+import { prefixId } from "@agentset/utils";
 
 export const GET = withNamespaceApiHandler(
   async ({ namespace, headers }) => {
