@@ -1,6 +1,5 @@
 import { env } from "@/env";
 import { AgentsetApiError } from "@/lib/api/errors";
-import { prefixId } from "@agentset/utils";
 import { updateHostingSchema } from "@/schemas/api/hosting";
 import { getCache, waitUntil } from "@vercel/functions";
 import { nanoid } from "nanoid";
@@ -9,6 +8,7 @@ import { z } from "zod/v4";
 import { Prisma } from "@agentset/db";
 import { db } from "@agentset/db/client";
 import { deleteAsset, uploadImage } from "@agentset/storage";
+import { prefixId } from "@agentset/utils";
 
 export const updateHosting = async ({
   namespaceId,
@@ -85,7 +85,10 @@ export const updateHosting = async ({
         welcomeMessage: input.welcomeMessage,
         citationMetadataPath: input.citationMetadataPath,
         searchEnabled: input.searchEnabled,
-        ...(newRerankConfig && { rerankConfig: newRerankConfig }),
+        rerankConfig:
+          Object.keys(newRerankConfig).length > 0
+            ? newRerankConfig
+            : Prisma.DbNull,
         ...(input.llmModel && {
           llmConfig: { model: input.llmModel },
         }),
