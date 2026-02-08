@@ -3,11 +3,51 @@ import { NextResponse } from "next/server";
 import { parse } from "@/lib/middleware/utils";
 import { getSessionCookie } from "better-auth/cookies";
 
-import { db } from "@agentset/db/edge";
-
 import { HOSTING_PREFIX } from "../constants";
 import { getMiddlewareSession } from "./get-session";
+import {
+  getInternalMiddlewareHeaders,
+  getInternalMiddlewareUrl,
+} from "./internal-api";
 import HostingMiddleware from "./hosting";
+
+const getDefaultOrganizationSlug = async (
+  req: NextRequest,
+  filter: {
+    userId: string;
+    activeOrganizationId: string | null;
+  },
+) => {
+  const searchParams = new URLSearchParams({
+    userId: filter.userId,
+  });
+
+  if (filter.activeOrganizationId) {
+    searchParams.set("activeOrganizationId", filter.activeOrganizationId);
+  }
+
+  const response = await fetch(
+    getInternalMiddlewareUrl(
+      req,
+      `/api/middleware/default-org?${searchParams.toString()}`,
+    ),
+    {
+      headers: getInternalMiddlewareHeaders(req),
+      cache: "no-store",
+    },
+  );
+
+  if (!response.ok) {
+    return null;
+  }
+
+  try {
+    const data = (await response.json()) as { slug: string | null };
+    return data.slug;
+  } catch {
+    return null;
+  }
+};
 
 export default async function AppMiddleware(
   req: NextRequest,
@@ -42,24 +82,12 @@ export default async function AppMiddleware(
         return NextResponse.redirect(new URL("/login", req.url));
       }
 
-      const org = await db.organization.findFirst({
-        where: session.session.activeOrganizationId
-          ? {
-              id: session.session.activeOrganizationId,
-            }
-          : {
-              members: {
-                some: {
-                  userId: session.user.id,
-                },
-              },
-            },
-        select: {
-          slug: true,
-        },
+      const orgSlug = await getDefaultOrganizationSlug(req, {
+        userId: session.user.id,
+        activeOrganizationId: session.session.activeOrganizationId ?? null,
       });
 
-      if (org) return NextResponse.redirect(new URL(`/${org.slug}`, req.url));
+      if (orgSlug) return NextResponse.redirect(new URL(`/${orgSlug}`, req.url));
       return NextResponse.redirect(new URL("/create-organization", req.url));
     }
   }

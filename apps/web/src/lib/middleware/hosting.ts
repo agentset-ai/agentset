@@ -4,39 +4,97 @@ import { parse } from "@/lib/middleware/utils";
 import { getCache } from "@vercel/functions";
 import { getSessionCookie } from "better-auth/cookies";
 
-import type { Prisma } from "@agentset/db";
-import { db } from "@agentset/db/edge";
-
 import { HOSTING_PREFIX } from "../constants";
 import { getMiddlewareSession } from "./get-session";
+import {
+  getInternalMiddlewareHeaders,
+  getInternalMiddlewareUrl,
+} from "./internal-api";
 
-const getHosting = async (where: Prisma.HostingWhereInput) => {
-  return db.hosting.findFirst({
-    where,
-    select: {
-      id: true,
-      slug: true,
-      protected: true,
-      allowedEmailDomains: true,
-      allowedEmails: true,
-      namespaceId: true,
-    },
-  });
+type Hosting = {
+  id: string;
+  slug: string;
+  protected: boolean;
+  allowedEmailDomains: string[];
+  allowedEmails: string[];
+  namespaceId: string;
 };
 
-type Hosting = Awaited<ReturnType<typeof getHosting>>;
+type HostingFilter = { key: string; mode: "domain" | "slug"; value: string };
+
+const getHosting = async (
+  req: NextRequest,
+  filter: Pick<HostingFilter, "mode" | "value">,
+) => {
+  const searchParams = new URLSearchParams({
+    mode: filter.mode,
+    value: filter.value,
+  });
+
+  const response = await fetch(
+    getInternalMiddlewareUrl(req, `/api/middleware/hosting?${searchParams}`),
+    {
+      headers: getInternalMiddlewareHeaders(req),
+      cache: "no-store",
+    },
+  );
+
+  if (!response.ok) {
+    return null;
+  }
+
+  try {
+    const data = (await response.json()) as { hosting: Hosting | null };
+    return data.hosting;
+  } catch {
+    return null;
+  }
+};
+
+const getIsHostingMember = async (
+  req: NextRequest,
+  filter: { userId: string; namespaceId: string },
+) => {
+  const searchParams = new URLSearchParams({
+    userId: filter.userId,
+    namespaceId: filter.namespaceId,
+  });
+
+  const response = await fetch(
+    getInternalMiddlewareUrl(
+      req,
+      `/api/middleware/hosting/member?${searchParams.toString()}`,
+    ),
+    {
+      headers: getInternalMiddlewareHeaders(req),
+      cache: "no-store",
+    },
+  );
+
+  if (!response.ok) {
+    return false;
+  }
+
+  try {
+    const data = (await response.json()) as { isMember: boolean };
+    return data.isMember;
+  } catch {
+    return false;
+  }
+};
 
 const getCachedHosting = async (
-  filter: { key: string; where: Prisma.HostingWhereInput },
+  filter: HostingFilter,
   event: NextFetchEvent,
+  req: NextRequest,
 ) => {
-  let hosting: Hosting = null;
+  let hosting: Hosting | null = null;
   const cache = getCache();
   const cachedHosting = await cache.get(filter.key);
 
   if (cachedHosting) return cachedHosting as unknown as Hosting;
 
-  hosting = await getHosting(filter.where);
+  hosting = await getHosting(req, filter);
 
   // cache the hosting in background
   if (hosting) {
@@ -58,38 +116,33 @@ export default async function HostingMiddleware(
 ) {
   const { domain, path, fullPath: _fullPath } = parse(req);
 
-  let filter: { key: string; where: Prisma.HostingWhereInput };
+  let filter: HostingFilter;
   let fullPath = _fullPath;
   if (mode === "domain") {
     filter = {
       key: `domain:${domain}`,
-      where: {
-        domain: {
-          slug: domain,
-        },
-      },
+      mode: "domain",
+      value: domain,
     };
   } else {
     // fullPath will looks like this: /a/my-slug/...
     // we need to get the slug and the rest of the path
-    const slug = path.replace(HOSTING_PREFIX, "").split("/")[0];
+    const slug = path.replace(HOSTING_PREFIX, "").split("/")[0] ?? "";
     fullPath = fullPath.replace(`${HOSTING_PREFIX}${slug}`, "");
     if (fullPath === "") fullPath = "/";
 
     filter = {
       key: `slug:${slug}`,
-      where: {
-        slug,
-      },
+      mode: "slug",
+      value: slug,
     };
   }
 
-  const hosting = await getCachedHosting(filter, event);
+  const hosting = await getCachedHosting(filter, event, req);
 
   // 404
-  if (!hosting) {
+  if (!hosting)
     return NextResponse.rewrite(new URL(`/hosting-not-found`, req.url));
-  }
 
   const sessionCookie = getSessionCookie(req);
 
@@ -133,24 +186,13 @@ export default async function HostingMiddleware(
       !allowedEmailDomains.includes(emailDomain)
     ) {
       // check if they're members
-      const member = await db.member.findFirst({
-        where: {
-          userId: session.user.id,
-          organization: {
-            namespaces: {
-              some: {
-                id: hosting.namespaceId,
-              },
-            },
-          },
-        },
-        select: {
-          id: true,
-        },
+      const isMember = await getIsHostingMember(req, {
+        userId: session.user.id,
+        namespaceId: hosting.namespaceId,
       });
 
       // if they're not a member, rewrite to not-allowed
-      if (!member) {
+      if (!isMember) {
         return NextResponse.rewrite(
           new URL(`/${hosting.id}/not-allowed`, req.url),
         );
