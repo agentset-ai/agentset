@@ -7,7 +7,6 @@
     "./types": "./src/types/prisma.ts",
     "./trigger": "./src/trigger.ts",
     "./client": "./src/client.ts",
-    "./edge": "./src/edge.ts",
     "./browser": "./src/browser.ts",
     "./schemas": "./src/schemas.ts"
   },
@@ -25,8 +24,6 @@
     "typecheck": "tsc --noEmit --emitDeclarationOnly false"
   },
   "dependencies": {
-    "@neondatabase/serverless": "^1.0.2",
-    "@prisma/adapter-neon": "^7.1.0",
     "@prisma/adapter-pg": "^7.1.0",
     "@prisma/client": "^7.1.0",
     "zod": "catalog:"
