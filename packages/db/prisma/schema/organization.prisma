@@ -70,6 +70,7 @@ model Member {
   createdAt      DateTime
 
   @@unique([organizationId, userId])
+  @@index([userId])
   @@map("member")
 }
 

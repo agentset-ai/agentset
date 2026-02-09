@@ -3,12 +3,6 @@ generator client {
     output   = "../../generated"
 }
 
-generator clientEdge {
-    provider = "prisma-client"
-    output   = "../../generated-edge"
-    runtime  = "vercel-edge"
-}
-
 generator json {
     provider = "prisma-json-types-generator"
 }
