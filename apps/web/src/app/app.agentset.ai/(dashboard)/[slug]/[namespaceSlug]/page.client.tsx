@@ -2,10 +2,8 @@
 
 import { useState } from "react";
 import { useNamespace } from "@/hooks/use-namespace";
-import { prefixId } from "@agentset/utils";
 import { formatNumber } from "@/lib/utils";
 
-import { Badge } from "@agentset/ui/badge";
 import { Button } from "@agentset/ui/button";
 import {
   Card,
@@ -16,6 +14,7 @@ import {
 import { CopyButton } from "@agentset/ui/copy-button";
 import { Separator } from "@agentset/ui/separator";
 import { Skeleton } from "@agentset/ui/skeleton";
+import { prefixId } from "@agentset/utils";
 
 const SensitiveInfo = ({ info }: { info: unknown }) => {
   const [show, setShow] = useState(false);
@@ -160,14 +159,6 @@ export default function NamespacePage() {
             </p>
           )}
         </div>
-
-        {namespace.keywordEnabled && (
-          <div>
-            <h2 className="text-lg font-medium">Keyword And Hybrid Search</h2>
-            <Separator className="my-2" />
-            <Badge variant="success">Enabled</Badge>
-          </div>
-        )}
 
         {/* <div >
                 <h2 className="text-lg font-medium">File Store</h2>
