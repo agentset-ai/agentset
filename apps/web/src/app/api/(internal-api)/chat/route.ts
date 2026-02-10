@@ -52,7 +52,7 @@ const incrementUsage = (namespaceId: string, queries: number) => {
 };
 
 export const preferredRegion = "iad1"; // make this closer to the DB
-export const maxDuration = 60;
+export const maxDuration = 120;
 
 export const POST = withAuthApiHandler(
   async ({ req, namespace, tenantId, headers }) => {

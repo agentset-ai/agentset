@@ -16,7 +16,7 @@ import {
 import { hostingSearchSchema } from "./schema";
 
 export const preferredRegion = "iad1"; // make this closer to the DB
-export const maxDuration = 60;
+export const maxDuration = 120;
 
 export const POST = withPublicApiHandler(
   async ({ req, searchParams, headers }) => {
