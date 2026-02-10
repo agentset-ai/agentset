@@ -3,9 +3,15 @@ import { log } from "@/lib/log";
 
 import type { Stripe } from "@agentset/stripe";
 import { db } from "@agentset/db/client";
+import { stripe } from "@agentset/stripe";
 import { FREE_PLAN, planToOrganizationFields } from "@agentset/stripe/plans";
+import { webhookCache } from "@agentset/webhooks/server";
 
-import { revalidateOrganizationCache, sendCancellationFeedback } from "./utils";
+import {
+  revalidateOrganizationCache,
+  sendCancellationFeedback,
+  updateOrganizationPlan,
+} from "./utils";
 
 export async function customerSubscriptionDeleted(event: Stripe.Event) {
   const subscriptionDeleted = event.data.object as Stripe.Subscription;
@@ -23,6 +29,8 @@ export async function customerSubscriptionDeleted(event: Stripe.Event) {
     select: {
       id: true,
       slug: true,
+      plan: true,
+      paymentFailedAt: true,
       members: {
         select: {
           user: {
@@ -48,18 +56,47 @@ export async function customerSubscriptionDeleted(event: Stripe.Event) {
     return NextResponse.json({ received: true });
   }
 
+  // Check if the customer has another active subscription
+  const { data: activeSubscriptions } = await stripe.subscriptions.list({
+    customer: stripeId,
+    status: "active",
+  });
+
+  if (activeSubscriptions.length > 0) {
+    const activeSubscription = activeSubscriptions[0]!;
+    const priceId = activeSubscription.items.data[0]!.price.id;
+
+    await updateOrganizationPlan({
+      organization,
+      priceId,
+    });
+
+    return NextResponse.json({ received: true });
+  }
+
   revalidateOrganizationCache(organization.id);
 
   await Promise.allSettled([
     db.organization.update({
       where: {
-        stripeId,
+        id: organization.id,
       },
       data: {
-        paymentFailedAt: null,
         ...planToOrganizationFields(FREE_PLAN),
+        paymentFailedAt: null,
+        webhookEnabled: false,
       },
     }),
+    // Disable the webhooks
+    db.webhook.updateMany({
+      where: {
+        organizationId: organization.id,
+      },
+      data: {
+        disabledAt: new Date(),
+      },
+    }),
+    webhookCache.invalidateOrg(organization.id),
     log({
       message:
         ":cry: Organization *`" +
@@ -70,6 +107,5 @@ export async function customerSubscriptionDeleted(event: Stripe.Event) {
     sendCancellationFeedback({
       owners: organization.members.map(({ user }) => user),
     }),
-    // TODO: disable / delete other pro only features
   ]);
 }
