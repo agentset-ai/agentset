@@ -25,7 +25,6 @@ import {
   getNamespaceEmbeddingModel,
   getNamespaceLanguageModel,
   getNamespaceVectorStore,
-  KeywordStore,
   queryVectorStore,
 } from "@agentset/engine";
 
@@ -52,7 +51,6 @@ const incrementUsage = (namespaceId: string, queries: number) => {
   );
 };
 
-// export const runtime = "edge";
 export const preferredRegion = "iad1"; // make this closer to the DB
 export const maxDuration = 60;
 
@@ -142,13 +140,8 @@ export const POST = withAuthApiHandler(
     }
 
     if (body.mode === "agentic") {
-      const keywordStore = namespace.keywordEnabled
-        ? new KeywordStore(namespace.id, tenantId)
-        : undefined;
-
       const result = agenticPipeline({
         model: languageModel,
-        keywordStore,
         queryOptions: {
           embeddingModel,
           vectorStore,

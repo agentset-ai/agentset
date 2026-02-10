@@ -94,7 +94,6 @@ export const ingestJob = schemaTask({
         namespace: {
           select: {
             id: true,
-            keywordEnabled: true,
             embeddingConfig: true,
             vectorStoreConfig: true,
             organization: {

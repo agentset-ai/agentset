@@ -2,20 +2,17 @@ import { logger, schemaTask } from "@trigger.dev/sdk";
 import { Ratelimit } from "@upstash/ratelimit";
 
 import { DocumentStatus } from "@agentset/db";
-import { getNamespaceVectorStore, KeywordStore } from "@agentset/engine";
+import { getNamespaceVectorStore } from "@agentset/engine";
 import {
   deleteDocumentChunksFile,
   deleteDocumentImages,
   deleteObject,
 } from "@agentset/storage";
-import { chunkArray } from "@agentset/utils";
 
 import { getDb } from "../db";
 import { rateLimit } from "../rate-limit";
 import { DELETE_DOCUMENT_JOB_ID, deleteDocumentBodySchema } from "../schema";
 import { emitDocumentWebhook } from "../webhook";
-
-const BATCH_SIZE = 50;
 
 export const deleteDocument = schemaTask({
   id: DELETE_DOCUMENT_JOB_ID,
@@ -47,7 +44,6 @@ export const deleteDocument = schemaTask({
           select: {
             id: true,
             vectorStoreConfig: true,
-            keywordEnabled: true,
             organizationId: true,
           },
         },
@@ -104,34 +100,6 @@ export const deleteDocument = schemaTask({
     const deletedChunks = await vectorStore.deleteByFilter({
       documentId: document.id,
     });
-
-    // Clean up keyword store if enabled
-    if (namespace.keywordEnabled) {
-      logger.info("Deleting keyword chunks");
-      const keywordStore = new KeywordStore(namespace.id, document.tenantId);
-
-      let page = 1;
-      let hasNextPage = true;
-      const keywordChunkIds: string[] = [];
-
-      do {
-        const chunks = await keywordStore.listIds({
-          documentId: document.id,
-          page,
-        });
-
-        keywordChunkIds.push(...chunks.ids);
-        hasNextPage = chunks.hasNextPage;
-        page = chunks.currentPage + 1;
-      } while (hasNextPage);
-
-      if (keywordChunkIds.length > 0) {
-        const batches = chunkArray(keywordChunkIds, BATCH_SIZE);
-        for (const batch of batches) {
-          await keywordStore.deleteByIds(batch);
-        }
-      }
-    }
 
     logger.info("Deleting chunks.json");
     try {

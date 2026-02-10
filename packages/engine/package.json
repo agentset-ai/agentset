@@ -25,7 +25,6 @@
     "@ai-sdk/azure": "^2.0.30",
     "@ai-sdk/google": "^2.0.14",
     "@ai-sdk/openai": "^2.0.30",
-    "@azure/search-documents": "^12.1.0",
     "@llamaindex/core": "^0.5.8",
     "@pinecone-database/pinecone": "5.1.1",
     "@t3-oss/env-nextjs": "catalog:",

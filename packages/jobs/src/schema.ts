@@ -39,7 +39,6 @@ export const triggerDocumentJobBodySchema = z.object({
     config: configSchema.nullable(),
     namespace: z.object({
       id: z.string(),
-      keywordEnabled: z.boolean(),
       embeddingConfig: EmbeddingConfigSchema.nullable(),
       vectorStoreConfig: VectorStoreSchema.nullable(),
       organization: z.object({
