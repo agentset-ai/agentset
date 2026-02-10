@@ -8,10 +8,10 @@ export function useHostingChat() {
   const hosting = useHosting();
 
   return useChat<MyUIMessage>({
-    // storeId: "chat",
     transport: new DefaultChatTransport({
       api: `/api/hosting-chat?namespaceId=${hosting.namespaceId}`,
     }),
+    experimental_throttle: 100,
     onError: () => {
       toast.error("An error occurred, please try again!");
     },

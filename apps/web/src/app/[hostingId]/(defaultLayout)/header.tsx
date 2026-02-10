@@ -2,10 +2,10 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useHostingChat } from "@/components/chat/use-hosting-chat";
 import { useHosting } from "@/contexts/hosting-context";
 import { logEvent } from "@/lib/analytics";
 import { HOSTING_PREFIX } from "@/lib/constants";
+import { useChatProperty } from "ai-sdk-zustand";
 import { PlusIcon } from "lucide-react";
 
 import { Button } from "@agentset/ui/button";
@@ -13,7 +13,7 @@ import { Tabs, TabsList, TabsTrigger } from "@agentset/ui/tabs";
 
 export default function Header() {
   const { title, searchEnabled } = useHosting();
-  const { setMessages } = useHostingChat();
+  const setMessages = useChatProperty((state) => state.setMessages);
   const path = usePathname();
 
   const isSubPath = path.startsWith(HOSTING_PREFIX);

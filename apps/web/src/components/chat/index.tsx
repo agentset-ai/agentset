@@ -10,6 +10,7 @@ import { Messages } from "./messages";
 import { Overview } from "./overview";
 import { SuggestedActions } from "./suggested-actions";
 import { useNamespaceChat } from "./use-chat";
+import { useHostingChat } from "./use-hosting-chat";
 
 export default function Chat({
   type = "playground",
@@ -44,8 +45,9 @@ const PlaygroundChat = () => {
 };
 
 const HostingChat = () => {
+  const { messages } = useHostingChat();
   const { exampleQuestions, welcomeMessage, logo } = useHosting();
-  const isEmpty = useChatProperty((s) => s.messages.length === 0);
+  const isEmpty = messages.length === 0;
 
   return (
     <div

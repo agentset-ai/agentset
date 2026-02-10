@@ -10,7 +10,6 @@ export function useNamespaceChat() {
   const namespace = useNamespace();
 
   return useChat<MyUIMessage>({
-    // storeId: `chat-${namespace.id}`,
     transport: new DefaultChatTransport({
       api: `/api/chat?namespaceId=${namespace.id}`,
       prepareSendMessagesRequest({ messages, body }) {

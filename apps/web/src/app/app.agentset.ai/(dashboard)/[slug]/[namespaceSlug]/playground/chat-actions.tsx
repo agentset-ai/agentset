@@ -1,6 +1,5 @@
 "use client";
 
-import { useNamespaceChat } from "@/components/chat/use-chat";
 import { logEvent } from "@/lib/analytics";
 import {
   aiSdkExample,
@@ -8,6 +7,7 @@ import {
   pythonExample,
   tsSdkExample,
 } from "@/lib/code-examples/playground";
+import { useChatProperty } from "ai-sdk-zustand";
 import { Code2Icon, PlusIcon, Settings2Icon } from "lucide-react";
 
 import { Button } from "@agentset/ui/button";
@@ -17,7 +17,7 @@ import ApiDialog from "./api-dialog";
 import ChatSettings from "./chat-settings";
 
 export default function ChatActions() {
-  const { setMessages } = useNamespaceChat();
+  const setMessages = useChatProperty((state) => state.setMessages);
 
   const resetChat = () => {
     logEvent("chat_reset", { type: "playground" });
