@@ -16,7 +16,6 @@ import { formatSources } from "./utils";
 
 type AgenticPipelineOptions = {
   model: LanguageModel;
-
   queryOptions: Omit<QueryVectorStoreOptions, "query">;
   systemPrompt?: string;
   temperature?: number;
@@ -30,14 +29,13 @@ type AgenticPipelineOptions = {
 const agenticPipeline = ({
   model,
   queryOptions,
-
   headers,
   systemPrompt,
   temperature,
   messagesWithoutQuery,
   lastMessage,
   afterQueries,
-  maxEvals = 3,
+  maxEvals = 2,
   tokenBudget = 4096,
   includeLogs = true,
 }: AgenticPipelineOptions & {

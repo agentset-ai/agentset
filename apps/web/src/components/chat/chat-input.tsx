@@ -72,10 +72,14 @@ function PureMultimodalInput({ type }: { type: "playground" | "hosted" }) {
       </PromptInputBody>
 
       <PromptInputFooter>
-        <PromptInputTools>
-          <ChatInputModes />
-          {type === "playground" && <ChatModel />}
-        </PromptInputTools>
+        {type === "playground" ? (
+          <PromptInputTools>
+            <ChatInputModes />
+            <ChatModel />
+          </PromptInputTools>
+        ) : (
+          <div />
+        )}
 
         <PromptInputSubmit
           className="h-8"
