@@ -1,9 +1,15 @@
 import { revalidateTag } from "next/cache";
 import { waitUntil } from "@vercel/functions";
 
+import type { Organization } from "@agentset/db";
 import type { Stripe } from "@agentset/stripe";
 import { db } from "@agentset/db/client";
 import { sendEmail } from "@agentset/emails";
+import {
+  getPlanFromPriceId,
+  planToOrganizationFields,
+} from "@agentset/stripe/plans";
+import { webhookCache } from "@agentset/webhooks/server";
 
 const cancellationReasonMap = {
   customer_service: "you had a bad experience with our customer service",
@@ -65,4 +71,61 @@ export function revalidateOrganizationCache(organizationId: string) {
       }
     })(),
   );
+}
+
+export async function updateOrganizationPlan({
+  organization,
+  priceId,
+}: {
+  organization: Pick<Organization, "id" | "plan" | "paymentFailedAt">;
+  priceId: string;
+}) {
+  const newPlan = getPlanFromPriceId(priceId);
+
+  if (!newPlan) return;
+
+  const newPlanName = newPlan.name.toLowerCase();
+  const shouldDisableWebhooks = newPlanName === "free";
+
+  // If a organization upgrades/downgrades their subscription update their usage limit in the database
+  if (organization.plan !== newPlanName) {
+    await db.organization.update({
+      where: {
+        id: organization.id,
+      },
+      data: {
+        paymentFailedAt: null,
+        ...planToOrganizationFields(newPlan),
+        ...(shouldDisableWebhooks && { webhookEnabled: false }),
+      },
+      select: {
+        id: true,
+      },
+    });
+
+    revalidateOrganizationCache(organization.id);
+
+    // Disable the webhooks if the new plan does not support webhooks
+    if (shouldDisableWebhooks) {
+      await db.webhook.updateMany({
+        where: {
+          organizationId: organization.id,
+        },
+        data: {
+          disabledAt: new Date(),
+        },
+      });
+
+      await webhookCache.invalidateOrg(organization.id);
+    }
+  } else if (organization.paymentFailedAt) {
+    await db.organization.update({
+      where: {
+        id: organization.id,
+      },
+      data: {
+        paymentFailedAt: null,
+      },
+    });
+  }
 }

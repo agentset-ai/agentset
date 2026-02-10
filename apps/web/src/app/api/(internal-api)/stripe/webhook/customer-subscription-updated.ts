@@ -3,13 +3,9 @@ import { log } from "@/lib/log";
 
 import type { Stripe } from "@agentset/stripe";
 import { db } from "@agentset/db/client";
-import {
-  getPlanFromPriceId,
-  planToOrganizationFields,
-  PRO_PLAN_METERED,
-} from "@agentset/stripe/plans";
+import { getPlanFromPriceId, PRO_PLAN_METERED } from "@agentset/stripe/plans";
 
-import { revalidateOrganizationCache, sendCancellationFeedback } from "./utils";
+import { sendCancellationFeedback, updateOrganizationPlan } from "./utils";
 
 export async function customerSubscriptionUpdated(event: Stripe.Event) {
   const subscriptionUpdated = event.data.object as Stripe.Subscription;
@@ -19,7 +15,7 @@ export async function customerSubscriptionUpdated(event: Stripe.Event) {
     (item) =>
       item.price.lookup_key !== PRO_PLAN_METERED.monthly.lookupKey &&
       item.price.lookup_key !== PRO_PLAN_METERED.yearly.lookupKey,
-  )[0]?.price.id;
+  )[0]!.price.id;
   const plan = getPlanFromPriceId(priceId);
 
   if (!plan) {
@@ -68,34 +64,10 @@ export async function customerSubscriptionUpdated(event: Stripe.Event) {
     return NextResponse.json({ received: true });
   }
 
-  revalidateOrganizationCache(organization.id);
-
-  const newPlan = plan.name.toLowerCase();
-  // const shouldDisableWebhooks = newPlan === "free" || newPlan === "pro";
-
-  // If a organization upgrades/downgrades their subscription, update their usage limit in the database.
-  if (organization.plan !== newPlan) {
-    await db.organization.update({
-      where: {
-        stripeId,
-      },
-      data: {
-        paymentFailedAt: null,
-        ...planToOrganizationFields(plan),
-      },
-    });
-
-    // TODO: disable monetized features
-  } else if (organization.paymentFailedAt) {
-    await db.organization.update({
-      where: {
-        id: organization.id,
-      },
-      data: {
-        paymentFailedAt: null,
-      },
-    });
-  }
+  await updateOrganizationPlan({
+    organization,
+    priceId,
+  });
 
   const subscriptionCanceled =
     subscriptionUpdated.status === "active" &&
