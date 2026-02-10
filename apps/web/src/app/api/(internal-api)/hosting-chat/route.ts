@@ -13,7 +13,6 @@ import {
   getNamespaceEmbeddingModel,
   getNamespaceLanguageModel,
   getNamespaceVectorStore,
-  KeywordStore,
 } from "@agentset/engine";
 
 import { hostingChatSchema } from "./schema";
@@ -57,14 +56,12 @@ const getHosting = async (namespaceId: string) => {
           id: true,
           vectorStoreConfig: true,
           embeddingConfig: true,
-          keywordEnabled: true,
         },
       },
     },
   });
 };
 
-// export const runtime = "edge";
 export const preferredRegion = "iad1"; // make this closer to the DB
 export const maxDuration = 60;
 
@@ -112,13 +109,8 @@ export const POST = withPublicApiHandler(
       getNamespaceEmbeddingModel(hosting.namespace, "query"),
     ]);
 
-    const keywordStore = hosting.namespace.keywordEnabled
-      ? new KeywordStore(hosting.namespace.id)
-      : undefined;
-
     const result = agenticPipeline({
       model: languageModel,
-      keywordStore,
       queryOptions: {
         embeddingModel,
         vectorStore,

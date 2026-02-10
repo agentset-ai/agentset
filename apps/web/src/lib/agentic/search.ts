@@ -4,14 +4,13 @@ import type {
   QueryVectorStoreOptions,
   QueryVectorStoreResult,
 } from "@agentset/engine";
-import { KeywordStore, queryVectorStore } from "@agentset/engine";
+import { queryVectorStore } from "@agentset/engine";
 
 import type { Queries } from "./utils";
 import { evaluateQueries, generateQueries } from "./utils";
 
 export async function agenticSearch({
   model,
-  keywordStore,
   messages,
   queryOptions,
   maxEvals = 3,
@@ -21,7 +20,6 @@ export async function agenticSearch({
   model: LanguageModel;
   messages: ModelMessage[];
   queryOptions: Omit<QueryVectorStoreOptions, "query">;
-  keywordStore?: KeywordStore;
   maxEvals?: number;
   tokenBudget?: number;
   onQueries?: (queries: Queries) => void;
@@ -61,20 +59,6 @@ export async function agenticSearch({
             : []),
           ...newQueries,
         ].map(async (query) => {
-          if (keywordStore && query.type === "keyword") {
-            const keywordResult = await keywordStore.search(query.query, {
-              limit: 15,
-              includeMetadata: true,
-            });
-
-            totalQueries++;
-            return {
-              query: query.query,
-              unorderedIds: keywordResult.results.map((r) => r.id),
-              results: keywordResult.results,
-            };
-          }
-
           const queryResult = await queryVectorStore({
             query: query.query,
             mode: queryOptions.vectorStore.supportsKeyword()

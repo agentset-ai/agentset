@@ -10,12 +10,10 @@ import { db } from "@agentset/db/client";
 import {
   getNamespaceEmbeddingModel,
   getNamespaceVectorStore,
-  KeywordStore,
   queryVectorStore,
 } from "@agentset/engine";
 import { INFINITY_NUMBER } from "@agentset/utils";
 
-// export const runtime = "edge";
 export const preferredRegion = "iad1"; // make this closer to the DB
 
 export const POST = withNamespaceApiHandler(
@@ -46,7 +44,7 @@ export const POST = withNamespaceApiHandler(
       namespace.vectorStoreConfig?.provider === "MANAGED_PINECONE_OLD" ||
       namespace.vectorStoreConfig?.provider === "PINECONE";
 
-    if (body.mode === "keyword" && isPinecone && !namespace.keywordEnabled) {
+    if (body.mode === "keyword" && isPinecone) {
       throw new AgentsetApiError({
         code: "bad_request",
         message: "Keyword search is not enabled for this namespace",
@@ -61,38 +59,26 @@ export const POST = withNamespaceApiHandler(
     let results: QueryVectorStoreResult["results"] | undefined = [];
 
     // TODO: track the usage
-    if (body.mode === "keyword" && isPinecone) {
-      const store = new KeywordStore(namespace.id, tenantId);
-      results = (
-        await store.search(body.query, {
-          limit: body.topK,
-          minScore: body.minScore,
-          includeMetadata: body.includeMetadata,
-          includeRelationships: body.includeRelationships,
-          filter: body.keywordFilter,
-        })
-      ).results;
-    } else {
-      results = (
-        await queryVectorStore({
-          embeddingModel,
-          vectorStore,
-          query: body.query,
-          mode: body.mode,
-          topK: body.topK,
-          minScore: body.minScore,
-          filter: body.filter,
-          includeMetadata: body.includeMetadata,
-          includeRelationships: body.includeRelationships,
-          rerank: body.rerank
-            ? {
-                model: body.rerankModel,
-                limit: body.rerankLimit,
-              }
-            : false,
-        })
-      )?.results;
-    }
+
+    results = (
+      await queryVectorStore({
+        embeddingModel,
+        vectorStore,
+        query: body.query,
+        mode: body.mode,
+        topK: body.topK,
+        minScore: body.minScore,
+        filter: body.filter,
+        includeMetadata: body.includeMetadata,
+        includeRelationships: body.includeRelationships,
+        rerank: body.rerank
+          ? {
+              model: body.rerankModel,
+              limit: body.rerankLimit,
+            }
+          : false,
+      })
+    )?.results;
 
     if (!results) {
       throw new AgentsetApiError({

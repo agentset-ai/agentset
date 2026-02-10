@@ -30,6 +30,7 @@ model Namespace {
   totalPages           Float @default(0.0)
   totalPlaygroundUsage Int   @default(0) // Total number of playground requests in the namespace
 
+  // TODO: remove this
   keywordEnabled Boolean @default(false) // whether keyword + hybrid search is enabled
 
   hosting Hosting?

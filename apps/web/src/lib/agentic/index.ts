@@ -8,7 +8,7 @@ import {
   streamText,
 } from "ai";
 
-import type { KeywordStore, QueryVectorStoreOptions } from "@agentset/engine";
+import type { QueryVectorStoreOptions } from "@agentset/engine";
 
 import { NEW_MESSAGE_PROMPT } from "../prompts";
 import { agenticSearch } from "./search";
@@ -16,7 +16,7 @@ import { formatSources } from "./utils";
 
 type AgenticPipelineOptions = {
   model: LanguageModel;
-  keywordStore?: KeywordStore;
+
   queryOptions: Omit<QueryVectorStoreOptions, "query">;
   systemPrompt?: string;
   temperature?: number;
@@ -30,7 +30,7 @@ type AgenticPipelineOptions = {
 const agenticPipeline = ({
   model,
   queryOptions,
-  keywordStore,
+
   headers,
   systemPrompt,
   temperature,
@@ -68,7 +68,6 @@ const agenticPipeline = ({
       // step 1. generate queries
       const { chunks, queryToResult, totalQueries } = await agenticSearch({
         model,
-        keywordStore,
         messages,
         queryOptions,
         maxEvals,

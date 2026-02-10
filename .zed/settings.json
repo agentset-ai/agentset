@@ -1,0 +1,52 @@
+{
+  "lsp": {
+    "tailwindcss-language-server": {
+      "settings": {
+        "experimental": {
+          "classRegex": [
+            ["cva\\(([^)]*)\\)", "[\"'`]([^\"'`]*).*?[\"'`]"],
+            ["cx\\(([^)]*)\\)", "(?:'|\"|`)([^']*)(?:'|\"|`)"]
+          ],
+          "configFile": "./apps/web/src/styles/globals.css"
+        }
+      }
+    },
+    "typescript-language-server": {
+      "settings": {
+        "enablePromptUseWorkspaceTsdk": true,
+        "preferences.autoImportFileExcludePatterns": [
+          "radix-ui",
+          "next/router",
+          "next/dist",
+          "lucide-react/dist/lucide-react.suffixed"
+        ],
+        "tsdk": "node_modules/typescript/lib"
+      }
+    },
+    "eslint": {
+      "settings": {
+        "runtime": "node",
+        "rulesCustomizations": [
+          // set all eslint errors/warnings to show as warnings
+          { "rule": "*", "severity": "warn" }
+        ],
+        "workingDirectories": [
+          { "pattern": "apps/*/" },
+          { "pattern": "packages/*/" },
+          { "pattern": "tooling/*/" }
+        ]
+      }
+    }
+  },
+  "format_on_save": "on",
+  "formatter": [{ "code_action": "source.fixAll.eslint" }],
+  "file_scan_exclusions": [
+    "**/node_modules",
+    "**/dist",
+    "**/.next",
+    "**/.turbo",
+    ".git/**",
+    ".DS_Store",
+    "bun.lock"
+  ]
+}

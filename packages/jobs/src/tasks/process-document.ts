@@ -13,8 +13,6 @@ import {
   getNamespaceEmbeddingModel,
   getNamespaceVectorStore,
   getPartitionDocumentBody,
-  KeywordStore,
-  makeChunk,
 } from "@agentset/engine";
 import { env } from "@agentset/engine/env";
 import { getChunksJsonFromS3 } from "@agentset/storage";
@@ -38,13 +36,11 @@ const processBatch = async (
   {
     embeddingModel,
     vectorStore,
-    keywordStore,
     documentId,
     extraMetadata,
   }: {
     embeddingModel: Awaited<ReturnType<typeof getNamespaceEmbeddingModel>>;
     vectorStore: Awaited<ReturnType<typeof getNamespaceVectorStore>>;
-    keywordStore: KeywordStore | null;
     documentId: string;
     extraMetadata?: Record<string, unknown>;
   },
@@ -69,19 +65,6 @@ const processBatch = async (
 
   // Upsert to vector store
   await vectorStore.upsert({ chunks });
-
-  // Store in keyword store if enabled
-  if (keywordStore) {
-    const nodes = chunks.map((chunk) => makeChunk(chunk));
-    await keywordStore.upsert(
-      nodes.map((node, idx) => ({
-        id: node.id,
-        text: batch[idx]!.text,
-        documentId,
-        metadata: node.metadata,
-      })),
-    );
-  }
 
   return { tokens: results.usage.tokens };
 };
@@ -190,10 +173,6 @@ export const processDocument = schemaTask({
       getNamespaceVectorStore(ingestJob.namespace, document.tenantId),
     ]);
 
-    const keywordStore = ingestJob.namespace.keywordEnabled
-      ? new KeywordStore(ingestJob.namespace.id, document.tenantId)
-      : null;
-
     // Clean up existing chunks if requested
     if (shouldCleanup) {
       // pinecone has a limit of 5 requests per second per namespace
@@ -217,31 +196,6 @@ export const processDocument = schemaTask({
       await vectorStore.deleteByFilter({
         documentId: document.id,
       });
-
-      // Clean up keyword store if enabled
-      if (keywordStore) {
-        let page = 1;
-        let hasNextPage = true;
-        const keywordChunkIds: string[] = [];
-
-        do {
-          const chunks = await keywordStore.listIds({
-            documentId: document.id,
-            page,
-          });
-
-          keywordChunkIds.push(...chunks.ids);
-          hasNextPage = chunks.hasNextPage;
-          page = chunks.currentPage + 1;
-        } while (hasNextPage);
-
-        if (keywordChunkIds.length > 0) {
-          const batches = chunkArray(keywordChunkIds, BATCH_SIZE);
-          for (const batch of batches) {
-            await keywordStore.deleteByIds(batch);
-          }
-        }
-      }
     }
 
     let totalPages = 0;
@@ -294,7 +248,6 @@ export const processDocument = schemaTask({
         const { tokens } = await processBatch(batch, {
           embeddingModel,
           vectorStore,
-          keywordStore,
           documentId: document.id,
           extraMetadata: documentJson.metadata,
         });
@@ -382,7 +335,6 @@ export const processDocument = schemaTask({
         const { tokens } = await processBatch(chunkBatch, {
           embeddingModel,
           vectorStore,
-          keywordStore,
           documentId: document.id,
           extraMetadata: partitionBody.extra_metadata,
         });
