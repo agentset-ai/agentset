@@ -6,6 +6,19 @@ import type { Namespace } from "@agentset/db";
 import { env } from "../env";
 import { WrapEmbeddingModel } from "./wrap-model";
 
+// this maps the managed OpenAI model names to the actual model IDs in azure
+const managedOpenaiModelIds: Record<
+  NonNullable<
+    Extract<
+      Namespace["embeddingConfig"],
+      { provider: "MANAGED_OPENAI" }
+    >["model"]
+  >,
+  string
+> = {
+  "text-embedding-3-large": "text-embedding-3-large",
+};
+
 export const getNamespaceEmbeddingModel = async (
   namespace: Pick<Namespace, "embeddingConfig">,
   type: "document" | "query" = "query",
@@ -42,7 +55,7 @@ export const getNamespaceEmbeddingModel = async (
       const azure = createAzure(settings);
       model = azure.textEmbeddingModel(
         config.provider === "MANAGED_OPENAI"
-          ? env.DEFAULT_AZURE_EMBEDDING_DEPLOYMENT
+          ? managedOpenaiModelIds[config.model]
           : config.deployment,
       );
 
