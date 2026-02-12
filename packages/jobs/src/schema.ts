@@ -31,6 +31,26 @@ export const triggerIngestionJob = (
     priority: getPriorityByPlan(plan),
   });
 
+export const SEED_DEMO_NAMESPACE_JOB_ID = "seed-demo-namespace";
+export const seedDemoNamespaceBodySchema = z.object({
+  namespaceId: z.string(),
+  organizationId: z.string(),
+  templateId: z.string(),
+});
+export const triggerSeedDemoNamespace = (
+  body: z.infer<typeof seedDemoNamespaceBodySchema>,
+  plan: string,
+) =>
+  tasks.trigger(SEED_DEMO_NAMESPACE_JOB_ID, body, {
+    tags: [
+      `ns_${body.namespaceId}`,
+      `org_${body.organizationId}`,
+      `template_${body.templateId}`,
+    ],
+    priority: getPriorityByPlan(plan),
+    idempotencyKey: `seed_demo_${body.namespaceId}`,
+  });
+
 export const TRIGGER_DOCUMENT_JOB_ID = "trigger-document-job";
 export const triggerDocumentJobBodySchema = z.object({
   documentId: z.string(),

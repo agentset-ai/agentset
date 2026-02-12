@@ -7,11 +7,10 @@ import { useOrganization } from "@/hooks/use-organization";
 import { formatNumber } from "@/lib/utils";
 import { useTRPC } from "@/trpc/react";
 import { useQuery } from "@tanstack/react-query";
-import { FoldersIcon, PlusIcon } from "lucide-react";
+import { PlusIcon } from "lucide-react";
 
 import { Button } from "@agentset/ui/button";
 import { DataWrapper } from "@agentset/ui/data-wrapper";
-import { EmptyState } from "@agentset/ui/empty-state";
 import { Separator } from "@agentset/ui/separator";
 import { Skeleton } from "@agentset/ui/skeleton";
 

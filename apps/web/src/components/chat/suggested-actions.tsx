@@ -6,7 +6,7 @@ import { motion } from "motion/react";
 import { Button } from "@agentset/ui/button";
 
 interface SuggestedActionsProps {
-  exampleMessages: string[];
+  exampleMessages: readonly string[];
 }
 
 function PureSuggestedActions({ exampleMessages }: SuggestedActionsProps) {
