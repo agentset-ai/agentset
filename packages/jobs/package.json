@@ -18,6 +18,7 @@
   },
   "dependencies": {
     "@agentset/db": "workspace:*",
+    "@agentset/demo": "workspace:*",
     "@agentset/emails": "workspace:*",
     "@agentset/engine": "workspace:*",
     "@agentset/storage": "workspace:*",

@@ -15,19 +15,21 @@ Agentset is a **Turborepo monorepo** containing a Next.js web app and supporting
 ### Core Applications
 
 - `apps/web/` - Main Next.js application with App Router
-- `tooling/supavisor/` - Database tooling and setup
 
 ### Internal Packages (Workspace Dependencies)
 
 - `packages/db/` - Database schema, Prisma client, and types
-- `packages/ui/` - Shared UI components (Shadcn-based)
-- `packages/engine/` - RAG engine with vector stores and embeddings
+- `packages/demo/` - Demo data and templates
 - `packages/emails/` - Email templates and components (using react-email and resend)
+- `packages/engine/` - RAG engine with vector stores and embeddings
 - `packages/jobs/` - Background job definitions (Trigger.dev)
 - `packages/storage/` - File storage utilities (S3)
 - `packages/stripe/` - Payment processing utilities
+- `packages/tinybird/` - Data warehousing and analytics (Tinybird)
+- `packages/ui/` - Shared UI components (Shadcn-based)
 - `packages/utils/` - Shared utility functions
 - `packages/validation/` - Shared Zod schemas
+- `packages/webhooks/` - Webhook definitions and handlers
 - `tooling/` - Development and build tooling
 
 ## Package Management

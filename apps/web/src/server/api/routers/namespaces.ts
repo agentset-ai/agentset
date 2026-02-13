@@ -10,6 +10,8 @@ import { TRPCError } from "@trpc/server";
 import { z } from "zod/v4";
 
 import { NamespaceStatus } from "@agentset/db";
+import { getDemoTemplate } from "@agentset/demo";
+import { triggerSeedDemoNamespace } from "@agentset/jobs";
 
 const validateIsMember = async (
   ctx: ProtectedProcedureContext,
@@ -187,6 +189,86 @@ export const namespaceRouter = createTRPCRouter({
           data: { totalNamespaces: { increment: 1 } },
         }),
       ]);
+
+      return namespace;
+    }),
+  createDemoNamespace: protectedProcedure
+    .input(
+      z.object({
+        orgId: z.string(),
+        templateId: z.string(),
+      }),
+    )
+    .mutation(async ({ ctx, input }) => {
+      await validateIsMember(ctx, input.orgId, ["admin", "owner"]);
+
+      const template = getDemoTemplate(input.templateId);
+      if (!template) {
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          message: "Invalid template ID",
+        });
+      }
+
+      const organization = await ctx.db.organization.findUnique({
+        where: { id: input.orgId },
+        select: { id: true, plan: true },
+      });
+      if (!organization) {
+        throw new TRPCError({ code: "NOT_FOUND" });
+      }
+
+      let slug: string = template.id;
+      let suffix = 2;
+      while (true) {
+        const existing = await ctx.db.namespace.findUnique({
+          where: {
+            organizationId_slug: {
+              organizationId: input.orgId,
+              slug,
+            },
+          },
+          select: { id: true },
+        });
+
+        if (!existing) break;
+
+        slug = `${template.id}-${suffix}`;
+        suffix += 1;
+      }
+
+      const [namespace] = await ctx.db.$transaction([
+        ctx.db.namespace.create({
+          data: {
+            name: template.name,
+            slug,
+            demoId: template.id,
+            organizationId: input.orgId,
+            embeddingConfig: {
+              provider: "MANAGED_OPENAI",
+              model: "text-embedding-3-large",
+            },
+            vectorStoreConfig: {
+              provider: "MANAGED_TURBOPUFFER",
+            },
+          },
+        }),
+        ctx.db.organization.update({
+          where: { id: input.orgId },
+          data: {
+            totalNamespaces: { increment: 1 },
+          },
+        }),
+      ]);
+
+      await triggerSeedDemoNamespace(
+        {
+          namespaceId: namespace.id,
+          organizationId: organization.id,
+          templateId: template.id,
+        },
+        organization.plan,
+      );
 
       return namespace;
     }),

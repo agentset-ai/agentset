@@ -14,7 +14,7 @@ export function deleteDocumentImages(namespaceId: string, documentId: string) {
   });
 }
 
-const makeChunksKey = (namespaceId: string, documentId: string) =>
+export const makeChunksKey = (namespaceId: string, documentId: string) =>
   `namespaces/${namespaceId}/documents/${documentId}/chunks.json`;
 
 export async function deleteDocumentChunksFile(
@@ -60,7 +60,7 @@ export async function getChunksJsonFromS3<T>(
 
   try {
     return JSON.parse(file) as T;
-  } catch (error) {
+  } catch {
     return null;
   }
 }

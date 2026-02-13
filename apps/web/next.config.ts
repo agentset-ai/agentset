@@ -23,6 +23,7 @@ const makeConfig = async (): Promise<NextConfig> => {
     /** Enables hot reloading for local packages without a build step */
     transpilePackages: [
       "@agentset/db",
+      "@agentset/demo",
       "@agentset/emails",
       "@agentset/engine",
       "@agentset/jobs",
