@@ -21,13 +21,14 @@ const DEMO_TEMPLATES = {
           type: "FILE",
           fileUrl:
             "https://assets.agentset.ai/demos/academic-papers/1706.03762v7.pdf",
-          fileName: "1706.03762v7.pdf",
+          fileName: "attention-is-all-you-need.pdf",
         },
         {
           type: "FILE",
           fileUrl:
             "https://assets.agentset.ai/demos/academic-papers/1810.04805v2.pdf",
-          fileName: "1810.04805v2.pdf",
+          fileName:
+            "bert-pre-training-of-deep-bidirectional-transformers-for-language-understanding.pdf",
         },
       ],
     } satisfies PrismaJson.IngestJobPayload,
