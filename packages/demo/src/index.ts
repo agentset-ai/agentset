@@ -3,8 +3,8 @@ import { BadgeDollarSignIcon, BookIcon, GraduationCapIcon } from "lucide-react";
 import "@agentset/db/types";
 
 const DEMO_TEMPLATES = {
-  education: {
-    id: "education",
+  "academic-research": {
+    id: "academic-research",
     name: "Academic Research",
     description: "Transformer and BERT research papers.",
     icon: GraduationCapIcon,
@@ -32,9 +32,9 @@ const DEMO_TEMPLATES = {
       ],
     } satisfies PrismaJson.IngestJobPayload,
   },
-  financial: {
-    id: "financial",
-    name: "Financial Report",
+  "financial-reports": {
+    id: "financial-reports",
+    name: "Financial Reports",
     description: "NVIDIA's 2025 quarterly earnings reports.",
     icon: BadgeDollarSignIcon,
     exampleMessages: [
@@ -73,8 +73,8 @@ const DEMO_TEMPLATES = {
       ],
     } satisfies PrismaJson.IngestJobPayload,
   },
-  documentation: {
-    id: "documentation",
+  "technical-documentation": {
+    id: "technical-documentation",
     name: "Technical Documentation",
     description:
       "OpenAI API documentation for chat, error codes, and rate limits.",
