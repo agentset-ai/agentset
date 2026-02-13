@@ -261,35 +261,14 @@ export const namespaceRouter = createTRPCRouter({
         }),
       ]);
 
-      try {
-        await triggerSeedDemoNamespace(
-          {
-            namespaceId: namespace.id,
-            organizationId: organization.id,
-            templateId: template.id,
-          },
-          organization.plan,
-        );
-      } catch {
-        await ctx.db.$transaction([
-          ctx.db.namespace.delete({
-            where: {
-              id: namespace.id,
-            },
-          }),
-          ctx.db.organization.update({
-            where: { id: input.orgId },
-            data: {
-              totalNamespaces: { decrement: 1 },
-            },
-          }),
-        ]);
-
-        throw new TRPCError({
-          code: "INTERNAL_SERVER_ERROR",
-          message: "Failed to start demo setup. Please try again.",
-        });
-      }
+      await triggerSeedDemoNamespace(
+        {
+          namespaceId: namespace.id,
+          organizationId: organization.id,
+          templateId: template.id,
+        },
+        organization.plan,
+      );
 
       return namespace;
     }),
