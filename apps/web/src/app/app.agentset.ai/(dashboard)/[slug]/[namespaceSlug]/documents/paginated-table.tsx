@@ -20,6 +20,7 @@ interface PaginatedTableProps<T> {
   onNext?: ({ nextCursor }: { nextCursor?: string | null }) => void;
   onPrevious?: () => void;
   hasPrevious?: boolean;
+  emptyMessage?: string;
 }
 
 export function PaginatedTable<T>({
@@ -31,6 +32,7 @@ export function PaginatedTable<T>({
   onNext,
   onPrevious,
   hasPrevious,
+  emptyMessage,
 }: PaginatedTableProps<T>) {
   return (
     <div className="overflow-x-auto">
@@ -40,6 +42,7 @@ export function PaginatedTable<T>({
           data={data?.records}
           isLoading={isLoading}
           meta={meta}
+          emptyMessage={emptyMessage}
         />
       </div>
 

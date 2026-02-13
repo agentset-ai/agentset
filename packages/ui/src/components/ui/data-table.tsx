@@ -21,6 +21,7 @@ interface DataTableProps<TData, TValue> {
   data?: TData[];
   isLoading?: boolean;
   meta?: TableMeta<TData>;
+  emptyMessage?: string;
 }
 
 export function DataTable<TData, TValue>({
@@ -28,6 +29,7 @@ export function DataTable<TData, TValue>({
   data = [],
   isLoading,
   meta,
+  emptyMessage = "No results.",
 }: DataTableProps<TData, TValue>) {
   const table = useReactTable({
     data,
@@ -80,7 +82,7 @@ export function DataTable<TData, TValue>({
           ) : (
             <TableRow>
               <TableCell colSpan={columns.length} className="h-24 text-center">
-                No results.
+                {emptyMessage}
               </TableCell>
             </TableRow>
           )}

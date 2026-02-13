@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { prefixId } from "@agentset/utils";
 import { InfoIcon } from "lucide-react";
+import { useNamespace } from "@/hooks/use-namespace";
 
 import { Alert, AlertDescription } from "@agentset/ui/alert";
 import {
@@ -25,6 +26,10 @@ import { useHasPendingJobs } from "./use-pending-jobs";
 
 export default function JobsPage() {
   const [tab, setTab] = useState<"jobs" | "documents">("documents");
+  const namespace = useNamespace();
+  const emptyMessage = namespace.demoId
+    ? "Preparing your demo..."
+    : "No results found";
 
   const {
     isLoading: isJobsLoading,
@@ -101,6 +106,7 @@ export default function JobsPage() {
             columns={columns}
             data={jobsData}
             isLoading={isJobsLoading}
+            emptyMessage={emptyMessage}
             meta={
               {
                 expandedJobId,
@@ -130,6 +136,7 @@ export default function JobsPage() {
             columns={documentColumns}
             data={documentsData}
             isLoading={isDocumentsLoading}
+            emptyMessage={emptyMessage}
             onNext={handleNextDocument}
             onPrevious={handlePreviousDocument}
             hasPrevious={hasPreviousDocument}
