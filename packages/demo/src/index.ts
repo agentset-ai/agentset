@@ -5,14 +5,14 @@ import "@agentset/db/types";
 const DEMO_TEMPLATES = {
   education: {
     id: "education",
-    name: "Research Paper",
-    description: '"Attention Is All You Need" (2017)',
+    name: "Academic Research",
+    description: "Transformer and BERT research papers.",
     icon: GraduationCapIcon,
     exampleMessages: [
-      "What is the transformer architecture?",
-      "Explain the self-attention mechanism.",
-      "What are the key contributions of this paper?",
-      "How does multi-head attention work?",
+      "How does BERT differ from the original Transformer?",
+      "Why did the authors replace recurrence with self-attention?",
+      "Compare the pre-training objectives of BERT and GPT.",
+      "What benchmarks did BERT set new state-of-the-art on?",
     ],
     ingestJob: {
       type: "BATCH",
@@ -35,13 +35,13 @@ const DEMO_TEMPLATES = {
   financial: {
     id: "financial",
     name: "Financial Report",
-    description: "Google's yearly earnings reports.",
+    description: "NVIDIA's 2025 quarterly earnings reports.",
     icon: BadgeDollarSignIcon,
     exampleMessages: [
-      "Summarize year-over-year revenue growth.",
-      "What are the major cost drivers?",
-      "How did operating margins change this year?",
-      "What risks are highlighted in the report?",
+      "How did NVIDIA's data center revenue change across quarters?",
+      "What was the gross margin trend throughout 2025?",
+      "Which segments drove the most growth in Q4?",
+      "What forward-looking risks did management highlight?",
     ],
     ingestJob: {
       type: "BATCH",
@@ -76,13 +76,14 @@ const DEMO_TEMPLATES = {
   documentation: {
     id: "documentation",
     name: "Technical Documentation",
-    description: "Sample powerpoints, spreadsheets, PDFs, and more.",
+    description:
+      "OpenAI API documentation for chat, error codes, and rate limits.",
     icon: BookIcon,
     exampleMessages: [
-      "Summarize the quarterly business review deck.",
-      "What are the top open risks and owners?",
-      "List key customer commitments and due dates.",
-      "What initiatives are at risk this quarter?",
+      "How do I stream a chat completion response?",
+      "What does error code 429 mean and how do I handle it?",
+      "What are the rate limits for GPT-4 vs GPT-3.5?",
+      "How do I use function calling with the chat API?",
     ],
     ingestJob: {
       type: "BATCH",
