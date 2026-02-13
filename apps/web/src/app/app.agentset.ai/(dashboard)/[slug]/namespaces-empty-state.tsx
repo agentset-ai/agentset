@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useOrganization } from "@/hooks/use-organization";
+import { logEvent } from "@/lib/analytics";
 import { useTRPC } from "@/trpc/react";
 import { useRouter } from "@bprogress/next/app";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
@@ -85,6 +86,9 @@ export function NamespacesEmptyState({
     if (isCreatingDemo) return;
 
     setCreatingTemplateId(templateId);
+    logEvent("demo_template_selected", {
+      templateId,
+    });
     createDemoNamespace({
       orgId: organization.id,
       templateId,
