@@ -16,6 +16,7 @@
       "version": "0.1.0",
       "dependencies": {
         "@agentset/db": "workspace:*",
+        "@agentset/demo": "workspace:*",
         "@agentset/emails": "workspace:*",
         "@agentset/engine": "workspace:*",
         "@agentset/jobs": "workspace:*",
@@ -99,6 +100,18 @@
         "typescript": "catalog:",
       },
     },
+    "packages/demo": {
+      "name": "@agentset/demo",
+      "devDependencies": {
+        "@agentset/db": "workspace:*",
+        "@agentset/eslint-config": "workspace:*",
+        "@agentset/prettier-config": "workspace:*",
+        "@agentset/tsconfig": "workspace:*",
+        "eslint": "catalog:",
+        "prettier": "catalog:",
+        "typescript": "catalog:",
+      },
+    },
     "packages/emails": {
       "name": "@agentset/emails",
       "dependencies": {
@@ -158,6 +171,7 @@
       "version": "0.0.1",
       "dependencies": {
         "@agentset/db": "workspace:*",
+        "@agentset/demo": "workspace:*",
         "@agentset/emails": "workspace:*",
         "@agentset/engine": "workspace:*",
         "@agentset/storage": "workspace:*",
@@ -398,6 +412,8 @@
   },
   "packages": {
     "@agentset/db": ["@agentset/db@workspace:packages/db"],
+
+    "@agentset/demo": ["@agentset/demo@workspace:packages/demo"],
 
     "@agentset/emails": ["@agentset/emails@workspace:packages/emails"],
 

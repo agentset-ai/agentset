@@ -167,11 +167,16 @@ export async function checkFileExists(
 ) {
   try {
     await getFileMetadata(key, options);
-  } catch (e: any) {
-    if (e?.code === "NotFound" || e?.$metadata.httpStatusCode === 404) {
+  } catch (error: unknown) {
+    const e = error as {
+      code?: string;
+      $metadata?: { httpStatusCode?: number };
+    };
+
+    if (e.code === "NotFound" || e.$metadata?.httpStatusCode === 404) {
       return false; // File does not exist
     } else {
-      throw e; // Other errors (e.g., permission issues)
+      throw error; // Other errors (e.g., permission issues)
     }
   }
 

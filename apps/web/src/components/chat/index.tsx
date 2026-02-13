@@ -2,9 +2,9 @@
 
 import { useHosting } from "@/contexts/hosting-context";
 import { useNamespace } from "@/hooks/use-namespace";
-import { getDemoTemplate } from "@/lib/demo-templates";
 import { useChatProperty } from "ai-sdk-zustand";
 
+import { getDemoTemplate } from "@agentset/demo";
 import { cn } from "@agentset/ui/cn";
 
 import { MultimodalInput } from "./chat-input";
@@ -42,10 +42,10 @@ const PlaygroundChat = () => {
       )}
 
       <div className="mx-auto flex w-full flex-col gap-4 px-4 pb-4 md:max-w-3xl md:pb-6">
-        <MultimodalInput type="playground" />
         {template ? (
           <SuggestedActions exampleMessages={template.exampleMessages} />
         ) : null}
+        <MultimodalInput type="playground" />
       </div>
     </div>
   );

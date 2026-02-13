@@ -1,28 +1,15 @@
-import type { DemoTemplate, DemoTemplateId } from "@/lib/demo-templates";
 import { useState } from "react";
 import { useOrganization } from "@/hooks/use-organization";
-import { DEMO_TEMPLATE_LIST } from "@/lib/demo-templates";
-import { trpc } from "@/trpc/server";
+import { useTRPC } from "@/trpc/react";
 import { useRouter } from "@bprogress/next/app";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import {
-  ArrowRightIcon,
-  BadgeDollarSignIcon,
-  BuildingIcon,
-  FoldersIcon,
-  GraduationCapIcon,
-  LoaderCircleIcon,
-} from "lucide-react";
+import { ArrowRightIcon, FoldersIcon, LoaderCircleIcon } from "lucide-react";
 import { toast } from "sonner";
 
+import type { DemoTemplate, DemoTemplateId } from "@agentset/demo";
+import { DEMO_TEMPLATE_LIST } from "@agentset/demo";
 import { Button } from "@agentset/ui/button";
 import { Separator, SeparatorContent } from "@agentset/ui/separator";
-
-const iconByTemplate: Record<DemoTemplate["icon"], React.ElementType> = {
-  education: GraduationCapIcon,
-  financial: BadgeDollarSignIcon,
-  enterprise: BuildingIcon,
-};
 
 function TemplateCard({
   template,
@@ -35,12 +22,12 @@ function TemplateCard({
   isSelected: boolean;
   onSelect: (templateId: DemoTemplateId) => void;
 }) {
-  const Icon = iconByTemplate[template.icon];
+  const Icon = template.icon;
 
   return (
     <Button
       variant="ghost"
-      className="border-muted hover:bg-accent hover:text-accent-foreground h-full min-h-40 w-full flex-col items-start rounded-md border-2 px-4 py-4 text-left text-black"
+      className="border-muted hover:bg-accent hover:text-accent-foreground h-full min-h-40 w-full flex-col flex-wrap items-start rounded-md border-2 px-4 py-4 text-left whitespace-normal text-black"
       onClick={() => onSelect(template.id)}
       disabled={isPending}
     >
@@ -69,6 +56,7 @@ export function NamespacesEmptyState({
   createButton: React.ReactNode;
 }) {
   const router = useRouter();
+  const trpc = useTRPC();
   const organization = useOrganization();
   const [creatingTemplateId, setCreatingTemplateId] =
     useState<DemoTemplateId | null>(null);
@@ -82,7 +70,7 @@ export function NamespacesEmptyState({
             slug: organization.slug,
           });
           void queryClient.invalidateQueries({ queryKey });
-          router.push(`/${organization.slug}/${namespace.slug}/quick-start`);
+          router.push(`/${organization.slug}/${namespace.slug}/documents`);
         },
         onError: (error) => {
           toast.error(error.message);

@@ -1,5 +1,4 @@
 import type { ProtectedProcedureContext } from "@/server/api/trpc";
-import { getDemoTemplate } from "@/lib/demo-templates";
 import { createNamespaceSchema } from "@/schemas/api/namespace";
 import { createTRPCRouter, protectedProcedure } from "@/server/api/trpc";
 import { deleteNamespace } from "@/services/namespaces/delete";
@@ -11,6 +10,7 @@ import { TRPCError } from "@trpc/server";
 import { z } from "zod/v4";
 
 import { NamespaceStatus } from "@agentset/db";
+import { getDemoTemplate } from "@agentset/demo";
 import { triggerSeedDemoNamespace } from "@agentset/jobs";
 
 const validateIsMember = async (
@@ -218,7 +218,7 @@ export const namespaceRouter = createTRPCRouter({
         throw new TRPCError({ code: "NOT_FOUND" });
       }
 
-      let slug: string = template.slug;
+      let slug: string = template.id;
       let suffix = 2;
       while (true) {
         const existing = await ctx.db.namespace.findUnique({
@@ -233,7 +233,7 @@ export const namespaceRouter = createTRPCRouter({
 
         if (!existing) break;
 
-        slug = `${template.slug}-${suffix}`;
+        slug = `${template.id}-${suffix}`;
         suffix += 1;
       }
 
