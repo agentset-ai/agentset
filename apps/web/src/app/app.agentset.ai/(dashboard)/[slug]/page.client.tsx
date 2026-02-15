@@ -33,7 +33,7 @@ export default function DashboardPage() {
 
   if (organization.isLoading) {
     return (
-      <div className="flex h-full flex-col space-y-6 px-6 py-8">
+      <div className="flex h-full flex-col space-y-4 px-4 py-6 md:space-y-6 md:px-6 md:py-8">
         <div className="flex items-center justify-between">
           <div>
             <Skeleton className="mb-2 h-8 w-40" />
