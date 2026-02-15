@@ -100,14 +100,6 @@ Not sure where to start? Check existing issues: https://github.com/agentset-ai/a
 
 MIT :)
 
-## Star History
-
-[GitHub Star History](https://www.star-history.com/#agentset-ai/agentset)
-
-<a href="https://star-history.com/#agentset-ai/agentset&Date">
-  <img src="https://api.star-history.com/svg?repos=agentset-ai/agentset&type=Date" alt="Star History Chart" />
-</a>
-
 ---
 
 Made with ❤️ by the Agentset team.
