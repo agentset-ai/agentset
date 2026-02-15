@@ -4,7 +4,12 @@ import { logEvent } from "@/lib/analytics";
 import { useTRPC } from "@/trpc/react";
 import { useRouter } from "@bprogress/next/app";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { ArrowRightIcon, FoldersIcon, LoaderCircleIcon } from "lucide-react";
+import {
+  ArrowRightIcon,
+  FoldersIcon,
+  LoaderCircleIcon,
+  PlusIcon,
+} from "lucide-react";
 import { toast } from "sonner";
 
 import type { DemoTemplate, DemoTemplateId } from "@agentset/demo";
@@ -52,9 +57,9 @@ function TemplateCard({
 }
 
 export function NamespacesEmptyState({
-  createButton,
+  onCreateClick,
 }: {
-  createButton: React.ReactNode;
+  onCreateClick: () => void;
 }) {
   const router = useRouter();
   const trpc = useTRPC();
@@ -96,17 +101,22 @@ export function NamespacesEmptyState({
   };
 
   return (
-    <div className="flex flex-col items-center justify-center rounded-md border py-20">
+    <div className="flex flex-col items-center justify-center rounded-md border border-dashed py-16">
       <FoldersIcon className="text-muted-foreground mb-4 size-10" />
-      <h3 className="text-lg font-medium">Create your first namespace</h3>
-      <p className="text-muted-foreground mt-0.5 text-sm">
+      <h3 className="text-lg font-medium text-balance">
+        Create your first namespace
+      </h3>
+      <p className="text-muted-foreground mt-0.5 text-sm text-pretty">
         Create a new namespace to start uploading your data
       </p>
-      <div className="mt-4">{createButton}</div>
+      <Button variant="outline" className="mt-4" onClick={onCreateClick}>
+        <PlusIcon className="size-4" />
+        Create Namespace
+      </Button>
 
       <Separator className="my-10 max-w-xl">
         <SeparatorContent className="uppercase">
-          Or start with a template
+          Or try with sample data
         </SeparatorContent>
       </Separator>
 

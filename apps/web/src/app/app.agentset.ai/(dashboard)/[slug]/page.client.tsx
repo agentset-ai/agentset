@@ -71,57 +71,49 @@ export default function DashboardPage() {
         setOpen={setOpen}
       />
 
+      <div className="mb-5 flex justify-end">{createButton}</div>
+
       <DataWrapper
         data={namespaces}
         isLoading={isLoading}
         error={error}
         loadingState={
-          <div>
-            <div className="mb-5 flex justify-end">
-              <Skeleton className="h-9 w-40" />
-            </div>
-
-            <div className="grid grid-cols-1 gap-5 md:grid-cols-3">
-              {Array.from({ length: 6 }).map((_, index) => (
-                <Skeleton key={index} className="h-40" />
-              ))}
-            </div>
+          <div className="grid grid-cols-1 gap-5 md:grid-cols-3">
+            {Array.from({ length: 6 }).map((_, index) => (
+              <Skeleton key={index} className="h-40" />
+            ))}
           </div>
         }
-        emptyState={<NamespacesEmptyState createButton={createButton} />}
+        emptyState={
+          <NamespacesEmptyState onCreateClick={() => setOpen(true)} />
+        }
       >
         {(namespaces) => (
-          <div>
-            <div className="mb-5 flex justify-end">{createButton}</div>
-
-            <div className="grid grid-cols-1 gap-5 md:grid-cols-2 lg:grid-cols-3">
-              {namespaces.map((namespace) => {
-                const didNotFinishOnboarding =
-                  namespace.totalPlaygroundUsage === 0;
-                return (
-                  <Link
-                    key={namespace.id}
-                    href={`/${organization.slug}/${namespace.slug}${didNotFinishOnboarding ? "/quick-start" : ""}`}
-                    className="border-border hover:bg-muted min-h-30 rounded-md border p-6 transition-colors"
-                  >
-                    <p className="font-medium">{namespace.name}</p>
-                    <div className="text-muted-foreground mt-5 flex flex-wrap items-center gap-2 text-sm">
-                      <p>
-                        {formatNumber(namespace.totalPages, "compact")} pages
-                      </p>
-                      <Separator
-                        orientation="vertical"
-                        className="h-4 shrink-0"
-                      />
-                      <p>
-                        {formatNumber(namespace.totalDocuments, "compact")}{" "}
-                        documents
-                      </p>
-                    </div>
-                  </Link>
-                );
-              })}
-            </div>
+          <div className="grid grid-cols-1 gap-5 md:grid-cols-2 lg:grid-cols-3">
+            {namespaces.map((namespace) => {
+              const didNotFinishOnboarding =
+                namespace.totalPlaygroundUsage === 0;
+              return (
+                <Link
+                  key={namespace.id}
+                  href={`/${organization.slug}/${namespace.slug}${didNotFinishOnboarding ? "/quick-start" : ""}`}
+                  className="border-border hover:bg-muted min-h-30 rounded-md border p-6 transition-colors"
+                >
+                  <p className="font-medium">{namespace.name}</p>
+                  <div className="text-muted-foreground mt-5 flex flex-wrap items-center gap-2 text-sm">
+                    <p>{formatNumber(namespace.totalPages, "compact")} pages</p>
+                    <Separator
+                      orientation="vertical"
+                      className="h-4 shrink-0"
+                    />
+                    <p>
+                      {formatNumber(namespace.totalDocuments, "compact")}{" "}
+                      documents
+                    </p>
+                  </div>
+                </Link>
+              );
+            })}
           </div>
         )}
       </DataWrapper>
