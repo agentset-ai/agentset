@@ -82,11 +82,16 @@ export default function ChatSettings({
           </DialogDescription>
         </DialogHeader>
 
-        <form className="grid gap-4 py-4" onSubmit={handleSave}>
+        <form
+          className="grid gap-4"
+          onSubmit={handleSave}
+          id="chat-settings-form"
+        >
           <div className="grid gap-2">
-            <Label>Top K</Label>
+            <Label htmlFor="top-k">Top K</Label>
             <Input
               type="number"
+              id="top-k"
               min={1}
               value={topK}
               onChange={(e) => setTopK(Number(e.target.value))}
@@ -94,9 +99,10 @@ export default function ChatSettings({
           </div>
 
           <div className="grid gap-2">
-            <Label>Rerank Limit</Label>
+            <Label htmlFor="rerank-limit">Rerank Limit</Label>
             <Input
               type="number"
+              id="rerank-limit"
               min={1}
               value={rerankLimit}
               onChange={(e) => setRerankLimit(Number(e.target.value))}
@@ -104,8 +110,9 @@ export default function ChatSettings({
           </div>
 
           <div className="grid gap-2">
-            <Label>System Prompt</Label>
+            <Label htmlFor="system-prompt">System Prompt</Label>
             <Textarea
+              id="system-prompt"
               value={systemPrompt ?? defaultPrompt}
               onChange={(e) => setSystemPrompt(e.target.value)}
               className="max-h-[200px]"
@@ -113,9 +120,10 @@ export default function ChatSettings({
           </div>
 
           <div className="grid gap-2">
-            <Label>Temperature</Label>
+            <Label htmlFor="temperature">Temperature</Label>
             <Input
               type="number"
+              id="temperature"
               value={temperature}
               min={0}
               max={1}
@@ -125,20 +133,23 @@ export default function ChatSettings({
           </div>
 
           <div className="grid gap-2">
-            <Label>Re-ranker Model</Label>
+            <Label htmlFor="rerank-model">Re-ranker Model</Label>
             <RerankerSelector
+              id="rerank-model"
               value={rerankModel}
               onValueChange={setRerankModel}
             />
           </div>
-
-          <DialogFooter className="mt-5 flex justify-between">
-            <Button variant="outline" onClick={handleReset} type="button">
-              Reset
-            </Button>
-            <Button type="submit">Save</Button>
-          </DialogFooter>
         </form>
+
+        <DialogFooter className="flex justify-between">
+          <Button variant="outline" onClick={handleReset} type="button">
+            Reset
+          </Button>
+          <Button type="submit" form="chat-settings-form">
+            Save
+          </Button>
+        </DialogFooter>
       </DialogContent>
     </Dialog>
   );

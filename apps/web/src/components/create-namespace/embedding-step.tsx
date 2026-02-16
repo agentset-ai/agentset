@@ -250,7 +250,7 @@ export default function CreateNamespaceEmbeddingStep({
             ))}
         </div>
 
-        <DialogFooter className="mt-10 flex-row items-center justify-between sm:justify-between">
+        <DialogFooter className="flex-row items-center justify-between sm:justify-between">
           <p className="text-muted-foreground text-xs">
             Can't find the model you need?{" "}
             <a

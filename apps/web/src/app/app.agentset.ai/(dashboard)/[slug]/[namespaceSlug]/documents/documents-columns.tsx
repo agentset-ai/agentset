@@ -18,7 +18,7 @@ import { Button } from "@agentset/ui/button";
 import { YouTubeIcon } from "@agentset/ui/icons/youtube";
 import TimestampTooltip from "@agentset/ui/timestamp-tooltip";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@agentset/ui/tooltip";
-import { capitalize, truncate } from "@agentset/utils";
+import { capitalize } from "@agentset/utils";
 
 import { ChunksDrawer } from "./chunks-drawer";
 import DocumentActions from "./document-actions";

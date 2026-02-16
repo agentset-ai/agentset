@@ -1,9 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import { prefixId } from "@agentset/utils";
-import { InfoIcon } from "lucide-react";
 import { useNamespace } from "@/hooks/use-namespace";
+import { InfoIcon } from "lucide-react";
 
 import { Alert, AlertDescription } from "@agentset/ui/alert";
 import {
@@ -14,6 +13,7 @@ import {
   DialogTitle,
 } from "@agentset/ui/dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@agentset/ui/tabs";
+import { prefixId } from "@agentset/utils";
 
 import type { JobsTableMeta } from "./columns";
 import { columns } from "./columns";

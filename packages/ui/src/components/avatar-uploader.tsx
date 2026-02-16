@@ -359,7 +359,7 @@ export function AvatarUploader({
               <CropperCropArea />
             </Cropper>
           )}
-          <DialogFooter className="border-t px-4 py-6">
+          <DialogFooter>
             <div className="mx-auto flex w-full max-w-80 items-center gap-4">
               <ZoomOutIcon
                 className="shrink-0 opacity-60"

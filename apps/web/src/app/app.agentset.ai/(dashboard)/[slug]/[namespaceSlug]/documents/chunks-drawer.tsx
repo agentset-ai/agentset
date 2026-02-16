@@ -95,7 +95,7 @@ export function ChunksDrawer({
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
-      <SheetContent side="right" className="w-full gap-0 sm:max-w-2xl">
+      <SheetContent side="right" className="w-full gap-0 sm:max-w-xl!">
         <SheetHeader className="pb-0">
           <SheetTitle>{documentName ?? "Document Chunks"}</SheetTitle>
         </SheetHeader>

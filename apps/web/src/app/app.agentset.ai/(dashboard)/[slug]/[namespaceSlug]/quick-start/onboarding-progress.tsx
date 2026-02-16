@@ -77,7 +77,7 @@ const NamespaceOnboardingProgress = ({
                       <span className="bg-primary group-hover:bg-primary/80 relative z-10 flex size-8 items-center justify-center rounded-full">
                         <CheckIcon
                           aria-hidden="true"
-                          className="size-5 text-white"
+                          className="text-primary-foreground size-5"
                         />
                       </span>
                     </span>
@@ -144,7 +144,7 @@ const NamespaceOnboardingProgress = ({
                     className="group relative flex items-start"
                   >
                     <span aria-hidden="true" className="flex h-9 items-center">
-                      <span className="border-border relative z-10 flex size-8 items-center justify-center rounded-full border-2 bg-white">
+                      <span className="border-border bg-primary-foreground relative z-10 flex size-8 items-center justify-center rounded-full border-2">
                         <span className="group-hover:bg-border size-2.5 rounded-full bg-transparent" />
                       </span>
                     </span>

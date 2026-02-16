@@ -156,7 +156,7 @@ export function DeleteConfirmationDialog({
           />
         </div>
 
-        <DialogFooter className="gap-2">
+        <DialogFooter>
           <Button variant="outline" onClick={() => handleOpenChange(false)}>
             Cancel
           </Button>
