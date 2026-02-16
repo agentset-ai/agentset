@@ -11,6 +11,7 @@ import type { DemoTemplate, DemoTemplateId } from "@agentset/demo";
 import { DEMO_TEMPLATE_LIST } from "@agentset/demo";
 import { Button } from "@agentset/ui/button";
 import { Separator, SeparatorContent } from "@agentset/ui/separator";
+import { Spinner } from "@agentset/ui/spinner";
 
 function TemplateCard({
   template,
@@ -42,7 +43,7 @@ function TemplateCard({
       <p className="mt-auto flex items-center gap-2 text-xs">
         {isSelected ? "Creating..." : "Get Started"}
         {isSelected ? (
-          <LoaderCircleIcon className="size-3 animate-spin" />
+          <Spinner className="size-3" />
         ) : (
           <ArrowRightIcon className="size-3" />
         )}

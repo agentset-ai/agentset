@@ -9,8 +9,8 @@ import { toast } from "sonner";
 import { VList } from "virtua";
 
 import type { ChunksFile } from "@agentset/engine";
-import { CodeBlock, CodeBlockCopyButton } from "@agentset/ui/ai/code-block";
-import { Response } from "@agentset/ui/ai/response";
+import { SingleLanguageCodeBlock } from "@agentset/ui/ai/code-block";
+import { MessageResponse } from "@agentset/ui/ai/message";
 import { Button } from "@agentset/ui/button";
 import { cn } from "@agentset/ui/cn";
 import { Input } from "@agentset/ui/input";
@@ -194,13 +194,12 @@ function DocumentMetadata({
 
       {expanded && (
         <div className="w-full flex-1">
-          <CodeBlock
+          <SingleLanguageCodeBlock
             code={JSON.stringify(metadata, null, 2)}
             language="json"
             className="mt-1"
-          >
-            <CodeBlockCopyButton />
-          </CodeBlock>
+            header={false}
+          />
         </div>
       )}
     </div>
@@ -255,18 +254,17 @@ function ChunkItem({
         </div>
 
         {showMetadata && (
-          <CodeBlock
+          <SingleLanguageCodeBlock
             code={JSON.stringify(chunk.metadata, null, 2)}
             language="json"
             className="mt-2"
-          >
-            <CodeBlockCopyButton />
-          </CodeBlock>
+            header={false}
+          />
         )}
       </div>
 
       <div className="bg-secondary rounded-md rounded-t-none px-4 py-4">
-        <Response mode="static">{chunk.text}</Response>
+        <MessageResponse mode="static">{chunk.text}</MessageResponse>
       </div>
       <div className="h-4" />
     </>

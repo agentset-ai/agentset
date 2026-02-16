@@ -2,8 +2,8 @@
 
 import type { ComponentProps } from "react";
 import { useCallback } from "react";
+import { AnimatePresence, motion } from "framer-motion";
 import { ArrowDownIcon } from "lucide-react";
-import { AnimatePresence, motion } from "motion/react";
 import { StickToBottom, useStickToBottomContext } from "use-stick-to-bottom";
 
 import { Button } from "@agentset/ui/button";
@@ -93,7 +93,10 @@ export const ConversationScrollButton = ({
           className="absolute bottom-4 left-1/2 -translate-x-1/2"
         >
           <Button
-            className={cn("rounded-full", className)}
+            className={cn(
+              "dark:bg-background dark:hover:bg-muted rounded-full",
+              className,
+            )}
             onClick={handleScrollToBottom}
             size="icon"
             type="button"

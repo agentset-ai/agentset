@@ -4,16 +4,17 @@ import { CitationModal } from "./citation-modal";
 
 export const CitationButton = ({
   message,
+  citationNumber,
   ...props
 }: {
   children?: React.ReactNode;
   message?: MyUIMessage;
-  "data-citation"?: number;
+  citationNumber?: number;
   className?: string;
 }) => {
   if (!props.children) return null;
 
-  const idx = props["data-citation"] ? props["data-citation"] - 1 : undefined;
+  const idx = citationNumber ? citationNumber - 1 : undefined;
 
   const sources = message?.parts.find((a) => a.type === "data-agentset-sources")
     ?.data?.results;
