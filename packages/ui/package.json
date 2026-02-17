@@ -18,7 +18,6 @@
     "./logo": "./src/components/logo.tsx",
     "./orbiting-circles": "./src/components/orbiting-circles.tsx",
     "./radio-button": "./src/components/radio-button.tsx",
-    "./shiny-text": "./src/components/shiny-text.tsx",
     "./spinner": "./src/components/spinner.tsx",
     "./accordion": "./src/components/ui/accordion.tsx",
     "./timestamp-tooltip": "./src/components/timestamp-tooltip.tsx",

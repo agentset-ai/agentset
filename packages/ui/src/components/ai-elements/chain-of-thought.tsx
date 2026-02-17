@@ -13,7 +13,8 @@ import {
   CollapsibleContent,
   CollapsibleTrigger,
 } from "@agentset/ui/collapsible";
-import { ShinyText } from "@agentset/ui/shiny-text";
+
+import { Shimmer } from "./shimmer";
 
 type ChainOfThoughtContextValue = {
   isOpen: boolean;
@@ -70,10 +71,12 @@ export const ChainOfThought = memo(
   },
 );
 
-export type ChainOfThoughtHeaderProps = ComponentProps<
-  typeof CollapsibleTrigger
+export type ChainOfThoughtHeaderProps = Omit<
+  ComponentProps<typeof CollapsibleTrigger>,
+  "children"
 > & {
   isLoading?: boolean;
+  children?: string;
 };
 
 export const ChainOfThoughtHeader = memo(
@@ -91,13 +94,12 @@ export const ChainOfThoughtHeader = memo(
         >
           <div className="flex flex-1 items-center gap-2">
             <BrainIcon className="size-4 opacity-70 group-hover:opacity-100" />
-            <ShinyText
-              className="group-hover:text-foreground! w-fit text-left"
-              shimmerWidth={20}
-              disabled={!isLoading}
+            <Shimmer
+              animate={isLoading}
+              className="group-hover:text-foreground"
             >
               {children ?? "Chain of Thought"}
-            </ShinyText>
+            </Shimmer>
           </div>
           <ChevronDownIcon
             className={cn(

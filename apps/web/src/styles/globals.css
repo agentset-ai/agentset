@@ -118,18 +118,7 @@
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-ring: var(--sidebar-ring);
 
-  --animate-shiny-text: shiny-text 3s infinite;
   --animate-orbit: orbit calc(var(--duration) * 1s) linear infinite;
-
-  @keyframes shiny-text {
-    0% {
-      background-position: calc(-100% - var(--shiny-width)) 0;
-    }
-
-    100% {
-      background-position: calc(100% + var(--shiny-width)) 0;
-    }
-  }
 
   @keyframes orbit {
     0% {

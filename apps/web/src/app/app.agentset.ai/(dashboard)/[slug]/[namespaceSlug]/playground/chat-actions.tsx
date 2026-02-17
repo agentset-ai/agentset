@@ -52,13 +52,14 @@ export default function ChatActions() {
         <ApiDialog
           description="Use the API to query the vector store. You'll need make an API key first."
           tabs={[
-            { language: "bash", code: curlExample },
-            { language: "typescript", code: tsSdkExample },
+            { language: "bash", code: curlExample, title: "cURL" },
+            { language: "typescript", code: tsSdkExample, title: "TypeScript" },
             {
               language: "typescript",
               code: aiSdkExample,
+              title: "TypeScript (AI SDK)",
             },
-            { language: "python", code: pythonExample },
+            { language: "python", code: pythonExample, title: "Python" },
           ]}
           trigger={(props) => (
             <TooltipTrigger asChild>
