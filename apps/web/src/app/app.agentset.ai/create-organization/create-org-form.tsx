@@ -139,14 +139,14 @@ export function CreateOrgForm({
                 </FormItem>
               )}
             />
-
-            <SubmitWrapper>
-              <Button type="submit" className="w-full" isLoading={isLoading}>
-                Create
-              </Button>
-            </SubmitWrapper>
           </div>
         </div>
+
+        <SubmitWrapper>
+          <Button type="submit" isLoading={isLoading}>
+            Create
+          </Button>
+        </SubmitWrapper>
       </form>
     </Form>
   );

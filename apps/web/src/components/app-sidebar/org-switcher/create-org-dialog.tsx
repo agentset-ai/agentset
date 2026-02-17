@@ -19,24 +19,22 @@ function CreateOrganizationDialog({
 }) {
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <DialogPortal>
-        <DialogContent className="w-11/12 sm:max-w-[425px]">
-          <DialogHeader>
-            <DialogTitle>New Organization</DialogTitle>
-            <DialogDescription>
-              Create a new organization to collaborate with your team.
-            </DialogDescription>
-          </DialogHeader>
+      <DialogContent className="w-11/12 sm:max-w-[425px]">
+        <DialogHeader>
+          <DialogTitle>New Organization</DialogTitle>
+          <DialogDescription>
+            Create a new organization to collaborate with your team.
+          </DialogDescription>
+        </DialogHeader>
 
-          <CreateOrgForm
-            isDialog
-            onSuccess={() => {
-              setOpen(false);
-              toast.success("Organization created successfully");
-            }}
-          />
-        </DialogContent>
-      </DialogPortal>
+        <CreateOrgForm
+          isDialog
+          onSuccess={() => {
+            setOpen(false);
+            toast.success("Organization created successfully");
+          }}
+        />
+      </DialogContent>
     </Dialog>
   );
 }

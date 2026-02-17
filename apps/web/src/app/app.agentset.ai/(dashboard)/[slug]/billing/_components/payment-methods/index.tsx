@@ -33,10 +33,17 @@ function PaymentMethodsInner() {
   const organization = useOrganization();
   const trpc = useTRPC();
 
-  const { data: paymentMethods, isLoading } = useQuery(
-    trpc.billing.getPaymentMethods.queryOptions({
-      orgId: organization.id,
-    }),
+  const {
+    data: paymentMethods,
+    isLoading,
+    isEnabled,
+  } = useQuery(
+    trpc.billing.getPaymentMethods.queryOptions(
+      {
+        orgId: organization.id,
+      },
+      { enabled: !!organization.stripeId },
+    ),
   );
 
   const { mutateAsync: addPaymentMethod, isPending: isAdding } = useMutation(
@@ -47,9 +54,9 @@ function PaymentMethodsInner() {
     }),
   );
 
-  const regularPaymentMethods = paymentMethods?.filter(
-    (pm) => pm.type !== "us_bank_account",
-  );
+  const regularPaymentMethods = isEnabled
+    ? paymentMethods?.filter((pm) => pm.type !== "us_bank_account")
+    : [];
 
   const managePaymentMethods = async () => {
     const url = await addPaymentMethod({ orgId: organization.id });
