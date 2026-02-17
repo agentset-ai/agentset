@@ -1,3 +1,5 @@
+"use client";
+
 import { Fragment, useEffect } from "react";
 import { useZodForm } from "@/hooks/use-zod-form";
 import { logEvent } from "@/lib/analytics";
