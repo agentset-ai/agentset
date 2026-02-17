@@ -5,7 +5,8 @@ import Link from "next/link";
 import { useSession } from "@/hooks/use-session";
 import { authClient } from "@/lib/auth-client";
 import { useRouter } from "@bprogress/next/app";
-import { BadgeCheckIcon, LogOutIcon } from "lucide-react";
+import { BadgeCheckIcon, LogOutIcon, MoonIcon, SunIcon } from "lucide-react";
+import { useTheme } from "next-themes";
 
 import { EntityAvatar } from "@agentset/ui/avatar";
 import {
@@ -20,7 +21,7 @@ import { Skeleton } from "@agentset/ui/skeleton";
 
 export function NavUser() {
   const { session, isLoading } = useSession();
-
+  const { setTheme, resolvedTheme } = useTheme();
   const router = useRouter();
   const [isSigningOut, setIsSigningOut] = useState(false);
 
@@ -34,6 +35,10 @@ export function NavUser() {
       },
     });
     setIsSigningOut(false);
+  };
+
+  const handleToggleTheme = () => {
+    setTheme(resolvedTheme === "dark" ? "light" : "dark");
   };
 
   if (isLoading || !session)
@@ -86,6 +91,12 @@ export function NavUser() {
             <BadgeCheckIcon />
             Account
           </Link>
+        </DropdownMenuItem>
+
+        <DropdownMenuItem onClick={handleToggleTheme}>
+          <SunIcon className="not-dark:hidden" />
+          <MoonIcon className="dark:hidden" />
+          Toggle Theme
         </DropdownMenuItem>
 
         <DropdownMenuItem onClick={handleSignOut} disabled={isSigningOut}>

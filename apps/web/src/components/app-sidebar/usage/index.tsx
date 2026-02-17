@@ -53,7 +53,7 @@ export function Usage() {
                         100
                       : 0
                   }
-                  className="h-[2.5px]"
+                  className="bg-primary/20 h-[2.5px]"
                 />
               )}
             </div>
@@ -85,7 +85,7 @@ export function Usage() {
                         100
                       : 0
                   }
-                  className="h-[2.5px]"
+                  className="bg-primary/20 h-[2.5px]"
                 />
               )}
             </div>

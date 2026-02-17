@@ -99,19 +99,21 @@ function InviteMemberDialog() {
           </DialogDescription>
         </DialogHeader>
         <div className="flex flex-col gap-6">
-          <div className="flex flex-col gap-2">
-            <Label>Email</Label>
+          <div className="grid grid-cols-4 items-center gap-4">
+            <Label htmlFor="email">Email</Label>
             <Input
-              placeholder="Email"
+              id="email"
+              placeholder="user@example.com"
+              className="col-span-3"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
             />
           </div>
 
-          <div className="flex flex-col gap-2">
-            <Label>Role</Label>
+          <Label className="grid grid-cols-4 items-center gap-4" htmlFor="role">
+            Role
             <Select value={role} onValueChange={setRole}>
-              <SelectTrigger>
+              <SelectTrigger id="role" className="col-span-3 w-full">
                 <SelectValue placeholder="Select a role" />
               </SelectTrigger>
               <SelectContent>
@@ -119,7 +121,7 @@ function InviteMemberDialog() {
                 <SelectItem value="member">Member</SelectItem>
               </SelectContent>
             </Select>
-          </div>
+          </Label>
         </div>
         <DialogFooter>
           <Button isLoading={isPending} onClick={handleInvite}>

@@ -27,7 +27,7 @@ const PureChatInputModes = () => {
         disabled={!isClient}
       >
         <BoxIcon className="size-4" />
-        <span>Agentic</span>
+        Agentic
       </PromptInputButton>
 
       {isAdmin && (
@@ -37,7 +37,7 @@ const PureChatInputModes = () => {
           disabled={!isClient}
         >
           <TelescopeIcon className="size-4" />
-          <span>Deep Research</span>
+          Deep Research
         </PromptInputButton>
       )}
     </>

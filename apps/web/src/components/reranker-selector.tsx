@@ -14,6 +14,7 @@ interface RerankerSelectorProps {
   onValueChange: (value: RerankingModel) => void;
   placeholder?: string;
   disabled?: boolean;
+  id?: string;
 }
 
 export function RerankerSelector({
@@ -21,6 +22,7 @@ export function RerankerSelector({
   onValueChange,
   placeholder = "Select re-ranker model",
   disabled = false,
+  id,
 }: RerankerSelectorProps) {
   return (
     <Select
@@ -28,7 +30,7 @@ export function RerankerSelector({
       onValueChange={(value) => onValueChange(value as RerankingModel)}
       disabled={disabled}
     >
-      <SelectTrigger>
+      <SelectTrigger className="w-full" id={id}>
         <SelectValue placeholder={placeholder} />
       </SelectTrigger>
       <SelectContent>

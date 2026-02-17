@@ -1,11 +1,10 @@
 import { useNamespace } from "@/hooks/use-namespace";
 import { useOrganization } from "@/hooks/use-organization";
-import { prefixId } from "@agentset/utils";
 import { useTRPC } from "@/trpc/react";
 import { useQuery } from "@tanstack/react-query";
 import { ArrowUpRightIcon } from "lucide-react";
 
-import { CodeBlock, CodeBlockCopyButton } from "@agentset/ui/ai/code-block";
+import { CodeBlock, MultiLanguageCodeBlock } from "@agentset/ui/ai/code-block";
 import { Button } from "@agentset/ui/button";
 import {
   Dialog,
@@ -15,7 +14,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@agentset/ui/dialog";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@agentset/ui/tabs";
+import { prefixId } from "@agentset/utils";
 
 export default function ApiDialog({
   trigger,
@@ -28,7 +27,7 @@ export default function ApiDialog({
   description?: React.ReactNode;
   tabs: {
     language: React.ComponentProps<typeof CodeBlock>["language"];
-    title: string;
+    title?: string;
     code: (apiKey?: string) => string;
   }[];
 }) {
@@ -64,40 +63,27 @@ export default function ApiDialog({
           <DialogDescription>{description}</DialogDescription>
         </DialogHeader>
 
-        <Tabs className="max-w-full overflow-x-auto">
-          <div className="flex items-center justify-between">
-            <TabsList className="my-3">
-              {tabs.map((tab) => (
-                <TabsTrigger key={tab.title} value={tab.title}>
-                  {tab.title}
-                </TabsTrigger>
-              ))}
-            </TabsList>
-
-            {!defaultApiKey && (
-              <Button asChild size="sm">
-                <a
-                  href={`/${organization.slug}/settings/api-keys`}
-                  target="_blank"
-                >
-                  <ArrowUpRightIcon className="size-4" />
-                  Create API Key
-                </a>
-              </Button>
-            )}
-          </div>
-
-          {tabs.map((tab) => (
-            <TabsContent key={tab.title} value={tab.title}>
-              <CodeBlock
-                code={prepareExample(tab.code)}
-                language={tab.language}
+        {!defaultApiKey && (
+          <div className="flex items-center justify-end">
+            <Button asChild size="sm">
+              <a
+                href={`/${organization.slug}/settings/api-keys`}
+                target="_blank"
               >
-                <CodeBlockCopyButton />
-              </CodeBlock>
-            </TabsContent>
-          ))}
-        </Tabs>
+                <ArrowUpRightIcon className="size-4" />
+                Create API Key
+              </a>
+            </Button>
+          </div>
+        )}
+
+        <MultiLanguageCodeBlock
+          languages={tabs.map((tab) => ({
+            code: prepareExample(tab.code),
+            language: tab.language,
+            title: tab.title,
+          }))}
+        />
       </DialogContent>
     </Dialog>
   );

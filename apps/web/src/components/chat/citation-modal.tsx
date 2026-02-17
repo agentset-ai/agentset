@@ -1,8 +1,8 @@
 import { useMemo } from "react";
 import { useHosting, useIsHosting } from "@/contexts/hosting-context";
 
-import { CodeBlock, CodeBlockCopyButton } from "@agentset/ui/ai/code-block";
-import { Response } from "@agentset/ui/ai/response";
+import { SingleLanguageCodeBlock } from "@agentset/ui/ai/code-block";
+import { MessageResponse } from "@agentset/ui/ai/message";
 import { cn } from "@agentset/ui/cn";
 import {
   Dialog,
@@ -109,17 +109,19 @@ export function CitationModal({
           </DialogTitle>
         </DialogHeader>
 
-        <Response mode="static" className="mt-4">
+        <MessageResponse mode="static" className="mt-4">
           {source.text}
-        </Response>
+        </MessageResponse>
 
         {stringifiedMetadata && (
           <div className="border-border mt-6 overflow-hidden border-t pt-6">
             <h3 className="text-xs font-medium">Metadata</h3>
             <div className="mt-2">
-              <CodeBlock code={stringifiedMetadata} language="json">
-                <CodeBlockCopyButton />
-              </CodeBlock>
+              <SingleLanguageCodeBlock
+                code={stringifiedMetadata}
+                language="json"
+                header={false}
+              />
             </div>
           </div>
         )}

@@ -73,7 +73,7 @@ function WelcomeModal({
           </DialogDescription>
         </DialogHeader>
 
-        <DialogFooter className="mt-6">
+        <DialogFooter>
           <Button type="button" onClick={handleClose}>
             Get Started
           </Button>

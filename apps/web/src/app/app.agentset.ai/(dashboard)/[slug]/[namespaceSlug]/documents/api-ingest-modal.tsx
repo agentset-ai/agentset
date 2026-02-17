@@ -36,9 +36,9 @@ export function ApiIngestModal() {
         </>
       }
       tabs={[
-        { title: "cURL", language: "bash", code: curlExample },
-        { title: "Javascript", language: "typescript", code: tsSdkExample },
-        { title: "Python", language: "python", code: pythonExample },
+        { language: "bash", code: curlExample },
+        { language: "typescript", code: tsSdkExample },
+        { language: "python", code: pythonExample },
       ]}
     />
   );

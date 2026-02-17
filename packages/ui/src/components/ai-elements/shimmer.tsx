@@ -12,6 +12,7 @@ export type TextShimmerProps = {
   className?: string;
   duration?: number;
   spread?: number;
+  animate?: boolean;
 };
 
 const ShimmerComponent = ({
@@ -20,6 +21,7 @@ const ShimmerComponent = ({
   className,
   duration = 2,
   spread = 2,
+  animate = true,
 }: TextShimmerProps) => {
   const MotionComponent = motion.create(
     Component as keyof JSX.IntrinsicElements,
@@ -32,7 +34,7 @@ const ShimmerComponent = ({
 
   return (
     <MotionComponent
-      animate={{ backgroundPosition: "0% center" }}
+      animate={animate ? { backgroundPosition: "0% center" } : undefined}
       className={cn(
         "relative inline-block bg-size-[250%_100%,auto] bg-clip-text text-transparent",
         "[background-repeat:no-repeat,padding-box] [--bg:linear-gradient(90deg,#0000_calc(50%-var(--spread)),var(--color-background),#0000_calc(50%+var(--spread)))]",

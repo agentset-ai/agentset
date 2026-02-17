@@ -78,41 +78,4 @@ export const MessageStatus = ({
       </ChainOfThoughtContent>
     </ChainOfThought>
   );
-  // if (!status)
-  //   return (
-  //     <ShinyText
-  //       className="w-fit font-medium"
-  //       shimmerWidth={40}
-  //       disabled={!isLoading}
-  //     >
-  //       {isLoading ? "Generating answer..." : "Done!"}
-  //     </ShinyText>
-  //   );
-
-  // const queryString = queries
-  //   ? queries.data.map((q, idx) => (
-  //       <i key={idx}>
-  //         {q}
-  //         {idx < queries.data.length - 1 && ", "}
-  //       </i>
-  //     ))
-  //   : null;
-
-  // // TODO: Searched for 1, 2, 3, +x other terms
-  // return (
-  //   <ShinyText
-  //     className="w-fit font-medium"
-  //     shimmerWidth={status.data === "searching" ? 40 : 100}
-  //     disabled={!isLoading}
-  //   >
-  //     {isLoading
-  //       ? {
-  //           "generating-queries": "Generating queries...",
-  //           searching: "Searching for ",
-  //           "generating-answer": "Searched for ",
-  //         }[status.data]
-  //       : "Searched for "}
-  //     {queryString}
-  //   </ShinyText>
-  // );
 };

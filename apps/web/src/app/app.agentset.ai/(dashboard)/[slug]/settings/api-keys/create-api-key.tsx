@@ -125,16 +125,16 @@ export default function CreateApiKey({ orgId }: { orgId: string }) {
                 />
               </div>
 
-              <div className="grid grid-cols-4 items-center gap-4">
-                <Label htmlFor="scope" className="text-right">
-                  Scope
-                </Label>
-
+              <Label
+                className="grid grid-cols-4 items-center gap-4"
+                htmlFor="scope"
+              >
+                Scope
                 <Select
                   value={scope}
                   onValueChange={(value) => setScope(value as "all")}
                 >
-                  <SelectTrigger id="scope" className="col-span-3">
+                  <SelectTrigger className="col-span-3 w-full" id="scope">
                     <SelectValue placeholder="Select a scope" />
                   </SelectTrigger>
 
@@ -142,7 +142,7 @@ export default function CreateApiKey({ orgId }: { orgId: string }) {
                     <SelectItem value="all">All</SelectItem>
                   </SelectContent>
                 </Select>
-              </div>
+              </Label>
             </div>
 
             <DialogFooter>

@@ -9,8 +9,7 @@ interface CitationNode {
   data: {
     hName: "citation";
     hProperties: {
-      className: string;
-      "data-citation": number;
+      citationNumber: number;
     };
     hChildren: [{ type: "text"; value: string }];
   };
@@ -51,8 +50,7 @@ const remarkCitations: Plugin<[], Root> = () => {
           data: {
             hName: "citation",
             hProperties: {
-              className: "cursor-pointer text-blue-500 hover:underline",
-              "data-citation": citationNumber,
+              citationNumber,
             },
             hChildren: [{ type: "text", value: match[0] }],
           },

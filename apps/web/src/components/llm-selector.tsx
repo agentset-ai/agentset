@@ -14,6 +14,7 @@ interface LLMSelectorProps {
   onValueChange: (value: LLM) => void;
   placeholder?: string;
   disabled?: boolean;
+  id?: string;
 }
 
 export function LLMSelector({
@@ -21,6 +22,7 @@ export function LLMSelector({
   onValueChange,
   placeholder = "Select LLM model",
   disabled = false,
+  id,
 }: LLMSelectorProps) {
   return (
     <Select
@@ -28,7 +30,7 @@ export function LLMSelector({
       onValueChange={(value) => onValueChange(value as LLM)}
       disabled={disabled}
     >
-      <SelectTrigger>
+      <SelectTrigger id={id} className="w-full">
         <SelectValue placeholder={placeholder} />
       </SelectTrigger>
       <SelectContent>

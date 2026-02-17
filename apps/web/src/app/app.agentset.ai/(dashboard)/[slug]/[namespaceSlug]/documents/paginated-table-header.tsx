@@ -1,6 +1,8 @@
 import { FilterIcon, RefreshCcwIcon } from "lucide-react";
 
+import { DocumentStatus } from "@agentset/db/browser";
 import { Button } from "@agentset/ui/button";
+import { cn } from "@agentset/ui/cn";
 import {
   DropdownMenu,
   DropdownMenuCheckboxItem,
@@ -15,6 +17,26 @@ interface PaginatedTableHeaderProps<T extends string> {
   onRefresh: () => void;
   isRefreshing: boolean;
 }
+
+const getColorFromStatus = (status: string) => {
+  switch (status) {
+    case DocumentStatus.FAILED:
+    case DocumentStatus.CANCELLED:
+    case DocumentStatus.QUEUED_FOR_DELETE:
+    case DocumentStatus.DELETING:
+      return "bg-destructive";
+
+    case DocumentStatus.COMPLETED:
+      return "bg-green-500";
+
+    case DocumentStatus.PROCESSING:
+      return "bg-primary";
+
+    case DocumentStatus.PRE_PROCESSING:
+    default:
+      return "bg-neutral-300 dark:bg-neutral-700";
+  }
+};
 
 export function PaginatedTableHeader<T extends string>({
   statuses,
@@ -33,7 +55,7 @@ export function PaginatedTableHeader<T extends string>({
           </Button>
         </DropdownMenuTrigger>
 
-        <DropdownMenuContent align="end">
+        <DropdownMenuContent align="end" className="w-48">
           {statusLabels.map(({ label, value }) => (
             <DropdownMenuCheckboxItem
               key={value}
@@ -48,6 +70,12 @@ export function PaginatedTableHeader<T extends string>({
               }
               className="capitalize"
             >
+              <span
+                className={cn(
+                  getColorFromStatus(value),
+                  "block size-2 rounded-full",
+                )}
+              />
               {label}
             </DropdownMenuCheckboxItem>
           ))}

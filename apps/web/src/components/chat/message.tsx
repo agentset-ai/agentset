@@ -4,7 +4,7 @@ import { MyUIMessage } from "@/types/ai";
 import { PencilIcon } from "lucide-react";
 import { AnimatePresence, motion } from "motion/react";
 
-import { Action } from "@agentset/ui/ai/actions";
+import { MessageAction } from "@agentset/ui/ai/message";
 import { cn } from "@agentset/ui/cn";
 import { Logo } from "@agentset/ui/logo";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@agentset/ui/tooltip";
@@ -70,17 +70,13 @@ export const PreviewMessage = ({
                   return (
                     <div key={key} className="flex flex-row items-start gap-2">
                       {message.role === "user" && (
-                        <Tooltip>
-                          <TooltipTrigger asChild>
-                            <Action
-                              className="opacity-0 group-hover/message:opacity-100"
-                              onClick={() => setMode("edit")}
-                            >
-                              <PencilIcon />
-                            </Action>
-                          </TooltipTrigger>
-                          <TooltipContent>Edit message</TooltipContent>
-                        </Tooltip>
+                        <MessageAction
+                          className="opacity-0 group-hover/message:opacity-100"
+                          onClick={() => setMode("edit")}
+                          tooltip="Edit message"
+                        >
+                          <PencilIcon />
+                        </MessageAction>
                       )}
 
                       <div

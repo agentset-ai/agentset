@@ -6,7 +6,7 @@ import { BracesIcon, CopyIcon, FileTextIcon, ShareIcon } from "lucide-react";
 import { toast } from "sonner";
 import { useCopyToClipboard } from "usehooks-ts";
 
-import { Action } from "@agentset/ui/ai/actions";
+import { MessageAction } from "@agentset/ui/ai/message";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -69,9 +69,9 @@ export function ExportAction({ currentId, disabled }: ExportButtonProps) {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Action disabled={disabled} tooltip="Export">
+        <MessageAction disabled={disabled} tooltip="Export">
           <ShareIcon className="size-4" />
-        </Action>
+        </MessageAction>
       </DropdownMenuTrigger>
 
       <DropdownMenuContent align="start">

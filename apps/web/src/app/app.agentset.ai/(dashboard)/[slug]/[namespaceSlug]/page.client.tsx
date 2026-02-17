@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useNamespace } from "@/hooks/use-namespace";
 import { formatNumber } from "@/lib/utils";
 
+import { CodeSnippet } from "@agentset/ui/ai/snippet";
 import { Button } from "@agentset/ui/button";
 import {
   Card,
@@ -11,7 +12,6 @@ import {
   CardDescription,
   CardHeader,
 } from "@agentset/ui/card";
-import { CopyButton } from "@agentset/ui/copy-button";
 import { Separator } from "@agentset/ui/separator";
 import { Skeleton } from "@agentset/ui/skeleton";
 import { prefixId } from "@agentset/utils";
@@ -88,13 +88,7 @@ export default function NamespacePage() {
     <>
       <div className="flex items-center gap-5">
         <h3 className="text-xl font-bold">{namespace.name}</h3>
-        <pre className="bg-muted relative rounded-md px-3 py-2 pr-10 text-sm">
-          {id}
-          <CopyButton
-            className="absolute top-1/2 right-1 -translate-y-1/2"
-            textToCopy={id}
-          />
-        </pre>
+        <CodeSnippet code={id} />
       </div>
 
       <div className="mt-5 grid grid-cols-3 gap-4">

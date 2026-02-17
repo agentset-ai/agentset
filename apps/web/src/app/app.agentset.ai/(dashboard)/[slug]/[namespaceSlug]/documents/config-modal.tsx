@@ -3,7 +3,7 @@ import { useNamespace } from "@/hooks/use-namespace";
 import { useTRPC } from "@/trpc/react";
 import { useQuery } from "@tanstack/react-query";
 
-import { CodeBlock, CodeBlockCopyButton } from "@agentset/ui/ai/code-block";
+import { SingleLanguageCodeBlock } from "@agentset/ui/ai/code-block";
 import { Button } from "@agentset/ui/button";
 import {
   Dialog,
@@ -49,9 +49,11 @@ export function ConfigModal({ jobId }: { jobId: string }) {
         </DialogHeader>
 
         {configStr ? (
-          <CodeBlock code={configStr} language="json">
-            <CodeBlockCopyButton />
-          </CodeBlock>
+          <SingleLanguageCodeBlock
+            code={configStr}
+            language="json"
+            header={false}
+          />
         ) : (
           <Skeleton className="h-13 w-full" />
         )}

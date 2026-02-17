@@ -7,8 +7,10 @@ import { CopyIcon, LogsIcon, RefreshCcwIcon } from "lucide-react";
 import { toast } from "sonner";
 import { useCopyToClipboard } from "usehooks-ts";
 
-import { Action, Actions } from "@agentset/ui/ai/actions";
-import { Tooltip, TooltipContent, TooltipTrigger } from "@agentset/ui/tooltip";
+import {
+  MessageAction,
+  MessageActions as MessageActionsComponent,
+} from "@agentset/ui/ai/message";
 
 import { ExportAction } from "./export";
 import MessageLogs from "./logs";
@@ -43,44 +45,32 @@ function PureMessageActions({
   };
 
   return (
-    <Actions className="mt-2">
-      <Tooltip>
-        <TooltipTrigger asChild>
-          <Action disabled={isLoading} onClick={handleCopy}>
-            <CopyIcon className="size-4" />
-          </Action>
-        </TooltipTrigger>
-        <TooltipContent>Copy</TooltipContent>
-      </Tooltip>
+    <MessageActionsComponent className="mt-2">
+      <MessageAction disabled={isLoading} onClick={handleCopy} tooltip="Copy">
+        <CopyIcon className="size-4" />
+      </MessageAction>
 
-      <Tooltip>
-        <TooltipTrigger asChild>
-          <Action disabled={isLoading} onClick={handleRegenerate}>
-            <RefreshCcwIcon className="size-4" />
-          </Action>
-        </TooltipTrigger>
-        <TooltipContent>Regenerate</TooltipContent>
-      </Tooltip>
+      <MessageAction
+        disabled={isLoading}
+        onClick={handleRegenerate}
+        tooltip="Regenerate"
+      >
+        <RefreshCcwIcon className="size-4" />
+      </MessageAction>
 
       <ExportAction currentId={message.id} disabled={isLoading} />
 
       {!isHosting && (
-        <Tooltip>
-          <MessageLogs
-            message={message}
-            trigger={
-              <TooltipTrigger asChild>
-                <Action disabled={isLoading}>
-                  <LogsIcon className="size-4" />
-                </Action>
-              </TooltipTrigger>
-            }
-          />
-
-          <TooltipContent>Logs</TooltipContent>
-        </Tooltip>
+        <MessageLogs
+          message={message}
+          trigger={
+            <MessageAction disabled={isLoading} tooltip="Logs">
+              <LogsIcon className="size-4" />
+            </MessageAction>
+          }
+        />
       )}
-    </Actions>
+    </MessageActionsComponent>
   );
 }
 

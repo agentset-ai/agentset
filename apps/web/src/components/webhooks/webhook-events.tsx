@@ -13,7 +13,7 @@ import {
 import { toast } from "sonner";
 import { useCopyToClipboard } from "usehooks-ts";
 
-import { CodeBlock, CodeBlockCopyButton } from "@agentset/ui/ai/code-block";
+import { SingleLanguageCodeBlock } from "@agentset/ui/ai/code-block";
 import { Button } from "@agentset/ui/button";
 import { cn } from "@agentset/ui/cn";
 import {
@@ -169,16 +169,15 @@ function EventDetailSheet({
           {event.request_body !== undefined && event.request_body !== null && (
             <div className="flex flex-col gap-3">
               <h4 className="font-semibold">Request</h4>
-              <CodeBlock
+              <SingleLanguageCodeBlock
                 code={
                   typeof event.request_body === "string"
                     ? JSON.stringify(JSON.parse(event.request_body), null, 2)
                     : JSON.stringify(event.request_body, null, 2)
                 }
                 language="json"
-              >
-                <CodeBlockCopyButton />
-              </CodeBlock>
+                header={false}
+              />
             </div>
           )}
         </div>

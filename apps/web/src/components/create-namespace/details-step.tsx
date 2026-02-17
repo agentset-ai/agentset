@@ -106,7 +106,7 @@ export default function CreateNamespaceDetailsStep({
           />
         </div>
 
-        <DialogFooter className="mt-6">
+        <DialogFooter>
           <Button type="submit" isLoading={formState.isValidating}>
             Next
           </Button>
