@@ -2,7 +2,6 @@ import type { Row } from "@tanstack/react-table";
 import { useState } from "react";
 import { DeleteConfirmationDialog } from "@/components/delete-confirmation";
 import { useNamespace } from "@/hooks/use-namespace";
-import { prefixId } from "@agentset/utils";
 import { useTRPC } from "@/trpc/react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import {
@@ -21,6 +20,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@agentset/ui/dropdown-menu";
+import { prefixId } from "@agentset/utils";
 
 import type { JobCol } from "./columns";
 
@@ -105,7 +105,7 @@ export function JobActions({ row }: { row: Row<JobCol> }) {
           </Button>
         </DropdownMenuTrigger>
 
-        <DropdownMenuContent>
+        <DropdownMenuContent align="center">
           <DropdownMenuItem onClick={handleCopy}>
             <CopyIcon className="size-4" />
             Copy ID
@@ -122,6 +122,7 @@ export function JobActions({ row }: { row: Row<JobCol> }) {
           <DropdownMenuItem
             disabled={isDeleteDisabled}
             onClick={() => setDeleteDialogOpen(true)}
+            variant="destructive"
           >
             <Trash2Icon className="size-4" />
             Delete
