@@ -14,7 +14,10 @@
     "lint:fix": "bun run lint --fix",
     "preview": "next build && next start",
     "start": "bun --env-file=../../.env run next start",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:e2e": "vitest run test/e2e"
   },
   "dependencies": {
     "@agentset/db": "workspace:*",
@@ -76,11 +79,15 @@
     "@types/node": "^22.10.10",
     "@types/react": "catalog:react19",
     "@types/react-dom": "catalog:react19",
+    "@vitest/coverage-v8": "^3.2.4",
+    "@vitest/ui": "^3.2.4",
+    "dotenv": "^17.2.3",
     "eslint": "catalog:",
     "postcss": "^8.4.39",
     "prettier": "catalog:",
     "tailwindcss": "catalog:",
-    "typescript": "catalog:"
+    "typescript": "catalog:",
+    "vitest": "catalog:"
   },
   "prettier": "@agentset/prettier-config"
 }
