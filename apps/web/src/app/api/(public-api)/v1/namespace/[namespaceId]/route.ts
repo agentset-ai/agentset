@@ -83,7 +83,7 @@ export const DELETE = withNamespaceApiHandler(
         organizationId: prefixId(namespace.organizationId, "org_"),
       }),
       headers,
-      status: 204,
+      status: 200,
     });
   },
   { logging: { routeName: "DELETE /v1/namespace/[namespaceId]" } },
