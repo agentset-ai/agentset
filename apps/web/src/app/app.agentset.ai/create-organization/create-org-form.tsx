@@ -1,5 +1,3 @@
-"use client";
-
 import { Fragment, useEffect } from "react";
 import { useZodForm } from "@/hooks/use-zod-form";
 import { logEvent } from "@/lib/analytics";
@@ -139,14 +137,14 @@ export function CreateOrgForm({
                 </FormItem>
               )}
             />
-
-            <SubmitWrapper>
-              <Button type="submit" className="w-full" isLoading={isLoading}>
-                Create
-              </Button>
-            </SubmitWrapper>
           </div>
         </div>
+
+        <SubmitWrapper>
+          <Button type="submit" isLoading={isLoading}>
+            Create
+          </Button>
+        </SubmitWrapper>
       </form>
     </Form>
   );

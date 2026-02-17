@@ -18,10 +18,17 @@ import { Tooltip, TooltipContent, TooltipTrigger } from "@agentset/ui/tooltip";
 export default function OrganizationInvoicesClient() {
   const organization = useOrganization();
   const trpc = useTRPC();
-  const { data: invoices, isLoading } = useQuery(
-    trpc.billing.invoices.queryOptions({
-      orgId: organization.id,
-    }),
+  const {
+    data: invoices,
+    isLoading,
+    isEnabled,
+  } = useQuery(
+    trpc.billing.invoices.queryOptions(
+      {
+        orgId: organization.id,
+      },
+      { enabled: !!organization.stripeId },
+    ),
   );
 
   return (
@@ -45,7 +52,7 @@ export default function OrganizationInvoicesClient() {
 
       <div className="grid">
         <DataWrapper
-          data={invoices}
+          data={isEnabled ? invoices : []}
           isLoading={isLoading}
           emptyState={
             <EmptyState

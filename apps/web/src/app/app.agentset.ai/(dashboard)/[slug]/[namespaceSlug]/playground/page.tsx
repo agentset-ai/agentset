@@ -9,7 +9,7 @@ export default function PlaygroundPage() {
   return (
     <DashboardPageWrapper
       title="Chat"
-      className="p-0"
+      className="p-0 md:p-0"
       actions={<ChatActions />}
       requireNamespace
     >

@@ -69,7 +69,7 @@ export const NamespaceSwitcher = () => {
         <DropdownMenuTrigger asChild disabled={isLoading || isPending}>
           <Button
             variant="ghost"
-            className="focus-visible:bg-accent text-foreground h-8 px-0! focus-visible:ring-0"
+            className="focus-visible:bg-accent text-foreground h-8 px-2 focus-visible:ring-0"
           >
             <span className="text-muted-foreground truncate text-sm font-medium">
               {namespace.name}
