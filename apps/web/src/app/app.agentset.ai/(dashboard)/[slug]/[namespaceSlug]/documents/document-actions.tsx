@@ -3,13 +3,13 @@ import { useState } from "react";
 import { DeleteConfirmationDialog } from "@/components/delete-confirmation";
 import { useNamespace } from "@/hooks/use-namespace";
 import { logEvent } from "@/lib/analytics";
-import { prefixId } from "@agentset/utils";
 import { useTRPC } from "@/trpc/react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import {
   CopyIcon,
   DownloadIcon,
   EllipsisVerticalIcon,
+  ExternalLinkIcon,
   Trash2Icon,
 } from "lucide-react";
 import { toast } from "sonner";
@@ -22,6 +22,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@agentset/ui/dropdown-menu";
+import { prefixId } from "@agentset/utils";
 
 import type { DocumentCol } from "./documents-columns";
 
@@ -90,6 +91,8 @@ export default function DocumentActions({ row }: { row: Row<DocumentCol> }) {
     row.original.status === DocumentStatus.DELETING ||
     row.original.status === DocumentStatus.QUEUED_FOR_DELETE;
 
+  const source = row.original.source;
+
   return (
     <>
       <DropdownMenu>
@@ -99,22 +102,32 @@ export default function DocumentActions({ row }: { row: Row<DocumentCol> }) {
           </Button>
         </DropdownMenuTrigger>
 
-        <DropdownMenuContent>
+        <DropdownMenuContent align="center" className="min-w-36">
           <DropdownMenuItem onClick={handleCopy}>
             <CopyIcon className="size-4" />
             Copy ID
           </DropdownMenuItem>
 
-          {row.original.source.type === "MANAGED_FILE" && (
+          {source.type === "MANAGED_FILE" && (
             <DropdownMenuItem disabled={isDownloading} onClick={handleDownload}>
               <DownloadIcon className="size-4" />
               Download File
             </DropdownMenuItem>
           )}
 
+          {source.type === "FILE" && (
+            <DropdownMenuItem asChild>
+              <a href={source.fileUrl} target="_blank" rel="noreferrer">
+                <ExternalLinkIcon className="size-4" />
+                Open File
+              </a>
+            </DropdownMenuItem>
+          )}
+
           <DropdownMenuItem
             disabled={isDeleteDisabled}
             onClick={() => setDeleteDialogOpen(true)}
+            variant="destructive"
           >
             <Trash2Icon className="size-4" />
             Delete
