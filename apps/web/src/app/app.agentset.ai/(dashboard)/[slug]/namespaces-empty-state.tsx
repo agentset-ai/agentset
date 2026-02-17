@@ -4,7 +4,12 @@ import { logEvent } from "@/lib/analytics";
 import { useTRPC } from "@/trpc/react";
 import { useRouter } from "@bprogress/next/app";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { ArrowRightIcon, FoldersIcon, LoaderCircleIcon } from "lucide-react";
+import {
+  ArrowRightIcon,
+  FoldersIcon,
+  LoaderCircleIcon,
+  PlusIcon,
+} from "lucide-react";
 import { toast } from "sonner";
 
 import type { DemoTemplate, DemoTemplateId } from "@agentset/demo";
@@ -29,7 +34,7 @@ function TemplateCard({
   return (
     <Button
       variant="ghost"
-      className="border-muted hover:bg-accent hover:text-accent-foreground h-full min-h-40 w-full flex-col flex-wrap items-start rounded-md border-2 px-4 py-4 text-left whitespace-normal text-black"
+      className="border-muted hover:bg-accent hover:text-accent-foreground h-full min-h-32 w-full flex-col flex-wrap items-start rounded-md border-2 px-4 py-4 text-left whitespace-normal text-black md:min-h-40"
       onClick={() => onSelect(template.id)}
       disabled={isPending}
     >
@@ -53,9 +58,9 @@ function TemplateCard({
 }
 
 export function NamespacesEmptyState({
-  createButton,
+  onCreateClick,
 }: {
-  createButton: React.ReactNode;
+  onCreateClick: () => void;
 }) {
   const router = useRouter();
   const trpc = useTRPC();
@@ -97,21 +102,26 @@ export function NamespacesEmptyState({
   };
 
   return (
-    <div className="flex flex-col items-center justify-center rounded-md border py-20">
+    <div className="flex flex-col items-center justify-center rounded-md border border-dashed px-4 py-10 md:px-6 md:py-16">
       <FoldersIcon className="text-muted-foreground mb-4 size-10" />
-      <h3 className="text-lg font-medium">Create your first namespace</h3>
-      <p className="text-muted-foreground mt-0.5 text-sm">
+      <h3 className="text-center text-lg font-medium text-balance">
+        Create your first namespace
+      </h3>
+      <p className="text-muted-foreground mt-0.5 text-center text-sm text-pretty">
         Create a new namespace to start uploading your data
       </p>
-      <div className="mt-4">{createButton}</div>
+      <Button variant="outline" className="mt-4" onClick={onCreateClick}>
+        <PlusIcon className="size-4" />
+        Create Namespace
+      </Button>
 
-      <Separator className="my-10 max-w-xl">
+      <Separator className="my-6 max-w-xl md:my-10">
         <SeparatorContent className="uppercase">
-          Or start with a template
+          Or try with sample data
         </SeparatorContent>
       </Separator>
 
-      <div className="grid max-w-2xl grid-cols-1 gap-4 md:grid-cols-3">
+      <div className="grid w-full max-w-2xl grid-cols-1 gap-3 md:grid-cols-3 md:gap-4">
         {DEMO_TEMPLATE_LIST.map((template) => (
           <TemplateCard
             key={template.id}

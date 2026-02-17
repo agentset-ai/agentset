@@ -83,7 +83,12 @@ export default function DashboardPageWrapper({
         </div>
       </header>
 
-      <div className={cn("flex flex-1 flex-col px-8 py-10", className)}>
+      <div
+        className={cn(
+          "flex flex-1 flex-col px-4 py-6 md:px-8 md:py-10",
+          className,
+        )}
+      >
         {content}
       </div>
     </>
