@@ -1,5 +1,7 @@
 export const RERANKER_MODELS = {
   cohere: [
+    { model: "rerank-v4.0-pro", name: "Cohere Rerank v4.0 Pro" },
+    { model: "rerank-v4.0-fast", name: "Cohere Rerank v4.0 Fast" },
     { model: "rerank-v3.5", name: "Cohere Rerank v3.5" },
     { model: "rerank-english-v3.0", name: "Cohere Rerank English v3.0" },
     {
