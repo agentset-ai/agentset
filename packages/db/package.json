@@ -24,8 +24,8 @@
     "typecheck": "tsc --noEmit --emitDeclarationOnly false"
   },
   "dependencies": {
-    "@prisma/adapter-pg": "^7.1.0",
-    "@prisma/client": "^7.1.0",
+    "@prisma/adapter-pg": "^7.4.1",
+    "@prisma/client": "^7.4.1",
     "zod": "catalog:"
   },
   "prisma": {
@@ -38,8 +38,8 @@
     "@agentset/validation": "workspace:*",
     "eslint": "catalog:",
     "prettier": "catalog:",
-    "prisma": "^7.1.0",
-    "prisma-json-types-generator": "^4.0.1",
+    "prisma": "^7.4.1",
+    "prisma-json-types-generator": "^4.1.1",
     "typescript": "catalog:"
   },
   "prettier": "@agentset/prettier-config"
