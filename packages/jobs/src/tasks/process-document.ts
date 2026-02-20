@@ -399,7 +399,7 @@ export const processDocument = schemaTask({
     ) {
       try {
         await meterIngestedPages({
-          documentId: `doc_${document.id}`,
+          documentId: document.id,
           totalPages,
           stripeCustomerId,
         });

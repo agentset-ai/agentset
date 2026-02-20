@@ -1,3 +1,5 @@
+import { prefixId } from "@agentset/utils";
+
 import { stripe } from "./instance";
 import { PRO_PLAN_METERED } from "./plans";
 
@@ -15,7 +17,7 @@ export const meterIngestedPages = async ({
   if (value === 0) return;
 
   await stripe.billing.meterEvents.create({
-    identifier: documentId, // idempotency key
+    identifier: prefixId(documentId, "doc_"), // idempotency key
     event_name: PRO_PLAN_METERED.meterName,
     timestamp: Math.floor(Date.now() / 1000), // send timestamp in seconds
     payload: {
@@ -48,7 +50,7 @@ export const meterDocumentsPages = async ({
   await stripe.v2.billing.meterEventStream.create(
     {
       events: documents.map((document) => ({
-        identifier: document.id, // idempotency key
+        identifier: prefixId(document.id, "doc_"), // idempotency key
         event_name: PRO_PLAN_METERED.meterName,
         timestamp: billingRestartTimestamp.toString(),
         payload: {

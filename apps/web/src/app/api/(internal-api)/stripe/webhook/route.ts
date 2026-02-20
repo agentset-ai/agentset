@@ -9,12 +9,14 @@ import { checkoutSessionCompleted } from "./checkout-session-completed";
 import { customerSubscriptionDeleted } from "./customer-subscription-deleted";
 import { customerSubscriptionUpdated } from "./customer-subscription-updated";
 import { invoicePaymentFailed } from "./invoice-payment-failed";
+import { invoicePaymentSucceeded } from "./invoice-payment-succeeded";
 
 const relevantEvents = new Set([
   "checkout.session.completed",
   "customer.subscription.updated",
   "customer.subscription.deleted",
   "invoice.payment_failed",
+  "invoice.paid",
 ]);
 
 // POST /api/stripe/webhook – listen to Stripe webhooks
@@ -53,6 +55,9 @@ export const POST = async (req: Request) => {
         break;
       case "invoice.payment_failed":
         await invoicePaymentFailed(event);
+        break;
+      case "invoice.paid":
+        await invoicePaymentSucceeded(event);
         break;
     }
   } catch (error: any) {

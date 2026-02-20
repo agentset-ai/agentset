@@ -1,10 +1,8 @@
 import { schedules } from "@trigger.dev/sdk";
 
-import { isProPlan } from "@agentset/stripe/plans";
 import { getAdjustedBillingCycleStart } from "@agentset/utils";
 
 import { getDb } from "../db";
-import { meterOrgDocuments } from "../tasks/meter-org-documents";
 
 const limit = 100;
 export const usageCronJob = schedules.task({
@@ -78,22 +76,6 @@ export const usageCronJob = schedules.task({
             usageLastChecked: new Date(),
           },
         });
-
-        // track their usage for the billing cycle restart
-        const orgsToMeter = billingReset.filter(
-          (organization) =>
-            isProPlan(organization.plan) && organization.stripeId,
-        );
-
-        if (orgsToMeter.length > 0) {
-          await meterOrgDocuments.batchTrigger(
-            orgsToMeter.map(({ id }) => ({
-              payload: {
-                organizationId: id,
-              },
-            })),
-          );
-        }
       }
 
       // Update usageLastChecked for organizations
