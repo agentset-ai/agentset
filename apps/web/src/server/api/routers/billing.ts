@@ -80,6 +80,33 @@ export const billingRouter = createTRPCRouter({
       return { trackedPages: 0 };
     }
 
+    const subscription = (
+      await stripe.subscriptions.list({
+        customer: org.stripeId,
+        status: "active",
+        limit: 1,
+      })
+    ).data[0];
+
+    if (!subscription) {
+      return { trackedPages: 0 };
+    }
+
+    const item = subscription.items.data[0];
+    const currentPeriodStart =
+      "current_period_start" in subscription
+        ? (subscription.current_period_start as number)
+        : item?.current_period_start;
+
+    const currentPeriodEnd =
+      "current_period_end" in subscription
+        ? (subscription.current_period_end as number)
+        : item?.current_period_end;
+
+    if (!currentPeriodStart || !currentPeriodEnd) {
+      return { trackedPages: 0 };
+    }
+
     try {
       const meters = await stripe.billing.meters.list({ status: "active" });
       const meter = meters.data.find(
@@ -90,16 +117,12 @@ export const billingRouter = createTRPCRouter({
         return { trackedPages: 0 };
       }
 
-      const { firstDay, lastDay } = getFirstAndLastDay(
-        org.billingCycleStart ?? new Date().getDate(),
-      );
-
       const summaries = await stripe.billing.meters.listEventSummaries(
         meter.id,
         {
           customer: org.stripeId,
-          start_time: Math.floor(firstDay.getTime() / 1000),
-          end_time: Math.floor(lastDay.getTime() / 1000),
+          start_time: currentPeriodStart,
+          end_time: currentPeriodEnd,
         },
       );
 
