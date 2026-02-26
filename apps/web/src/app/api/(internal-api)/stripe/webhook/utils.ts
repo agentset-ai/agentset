@@ -1,12 +1,14 @@
 import { revalidateTag } from "next/cache";
+import { log } from "@/lib/log";
 import { waitUntil } from "@vercel/functions";
 
-import type { Organization } from "@agentset/db";
+import type { Organization, Prisma } from "@agentset/db";
 import type { Stripe } from "@agentset/stripe";
 import { db } from "@agentset/db/client";
 import { sendEmail } from "@agentset/emails";
 import {
   getPlanFromPriceId,
+  parseEnterprisePlanMetadata,
   planToOrganizationFields,
 } from "@agentset/stripe/plans";
 import { webhookCache } from "@agentset/webhooks/server";
@@ -74,20 +76,45 @@ export function revalidateOrganizationCache(organizationId: string) {
 }
 
 export async function updateOrganizationPlan({
+  event,
   organization,
-  priceId,
+  items,
+  metadata,
 }: {
+  event: string;
   organization: Pick<Organization, "id" | "plan" | "paymentFailedAt">;
-  priceId: string;
+  items: Stripe.SubscriptionItem[];
+  metadata?: Record<string, string> | null;
 }) {
+  // ignore metered plan
+  const priceId = items.filter(
+    (item) =>
+      item.price.recurring?.usage_type !== "metered" &&
+      !item.price.recurring?.meter,
+  )[0]?.price.id;
+
   const newPlan = getPlanFromPriceId(priceId);
+  const enterpriseFields = parseEnterprisePlanMetadata(metadata);
 
-  if (!newPlan) return;
+  let newPlanName: string;
+  let planData: Prisma.OrganizationUpdateInput;
 
-  const newPlanName = newPlan.name.toLowerCase();
+  if (newPlan) {
+    newPlanName = newPlan.name.toLowerCase();
+    planData = planToOrganizationFields(newPlan);
+  } else if (enterpriseFields) {
+    newPlanName = enterpriseFields.plan.toLowerCase();
+    planData = enterpriseFields;
+  } else {
+    await log({
+      message: `Invalid price ID in ${event} event: ${priceId}`,
+      type: "errors",
+    });
+    return;
+  }
+
   const shouldDisableWebhooks = newPlanName === "free";
 
-  // If a organization upgrades/downgrades their subscription update their usage limit in the database
   if (organization.plan !== newPlanName) {
     await db.organization.update({
       where: {
@@ -95,7 +122,7 @@ export async function updateOrganizationPlan({
       },
       data: {
         paymentFailedAt: null,
-        ...planToOrganizationFields(newPlan),
+        ...planData,
         ...(shouldDisableWebhooks && { webhookEnabled: false }),
       },
       select: {

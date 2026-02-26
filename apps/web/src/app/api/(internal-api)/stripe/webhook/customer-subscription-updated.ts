@@ -1,30 +1,12 @@
 import { NextResponse } from "next/server";
-import { log } from "@/lib/log";
 
 import type { Stripe } from "@agentset/stripe";
 import { db } from "@agentset/db/client";
-import { getPlanFromPriceId, PRO_PLAN_METERED } from "@agentset/stripe/plans";
 
 import { sendCancellationFeedback, updateOrganizationPlan } from "./utils";
 
 export async function customerSubscriptionUpdated(event: Stripe.Event) {
   const subscriptionUpdated = event.data.object as Stripe.Subscription;
-
-  // ignore metered plan
-  const priceId = subscriptionUpdated.items.data.filter(
-    (item) =>
-      item.price.lookup_key !== PRO_PLAN_METERED.monthly.lookupKey &&
-      item.price.lookup_key !== PRO_PLAN_METERED.yearly.lookupKey,
-  )[0]!.price.id;
-  const plan = getPlanFromPriceId(priceId);
-
-  if (!plan) {
-    await log({
-      message: `Invalid price ID in customer.subscription.updated event: ${priceId}`,
-      type: "errors",
-    });
-    return;
-  }
 
   const stripeId =
     typeof subscriptionUpdated.customer === "string"
@@ -65,8 +47,10 @@ export async function customerSubscriptionUpdated(event: Stripe.Event) {
   }
 
   await updateOrganizationPlan({
+    event: "customer.subscription.updated",
     organization,
-    priceId,
+    items: subscriptionUpdated.items.data,
+    metadata: subscriptionUpdated.metadata,
   });
 
   const subscriptionCanceled =

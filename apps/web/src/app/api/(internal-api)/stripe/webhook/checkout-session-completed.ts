@@ -3,15 +3,17 @@ import { APP_DOMAIN } from "@/lib/constants";
 import { log } from "@/lib/log";
 
 import type { Stripe } from "@agentset/stripe";
+import { Prisma } from "@agentset/db";
 import { db } from "@agentset/db/client";
 import { sendEmail, UpgradeEmail } from "@agentset/emails";
 import { triggerMeterOrgDocuments } from "@agentset/jobs";
 import { stripe } from "@agentset/stripe";
 import {
   getPlanFromPriceId,
+  parseEnterprisePlanMetadata,
   planToOrganizationFields,
-  PRO_PLAN_METERED,
 } from "@agentset/stripe/plans";
+import { capitalize } from "@agentset/utils";
 
 import { revalidateOrganizationCache } from "./utils";
 
@@ -33,6 +35,12 @@ export async function checkoutSessionCompleted(event: Stripe.Event) {
     return;
   }
 
+  const stripeId =
+    typeof checkoutSession.customer === "string"
+      ? checkoutSession.customer
+      : checkoutSession.customer.id;
+  const organizationId = checkoutSession.client_reference_id;
+
   const subscription = await stripe.subscriptions.retrieve(
     checkoutSession.subscription as string,
   );
@@ -40,26 +48,30 @@ export async function checkoutSessionCompleted(event: Stripe.Event) {
   // ignore metered plan
   const price = subscription.items.data.filter(
     (item) =>
-      item.price.lookup_key !== PRO_PLAN_METERED.monthly.lookupKey &&
-      item.price.lookup_key !== PRO_PLAN_METERED.yearly.lookupKey,
+      item.price.recurring?.usage_type !== "metered" &&
+      !item.price.recurring?.meter,
   )[0]?.price;
   const priceId = price?.id;
   const period = price?.recurring?.interval === "month" ? "monthly" : "yearly";
   const plan = getPlanFromPriceId(priceId);
+  const enterpriseFields = parseEnterprisePlanMetadata(subscription.metadata);
 
-  if (!plan) {
+  let planName: string;
+  let planData: Prisma.OrganizationUpdateInput;
+
+  if (plan) {
+    planName = capitalize(plan.name) as string;
+    planData = planToOrganizationFields(plan);
+  } else if (enterpriseFields) {
+    planName = capitalize(enterpriseFields.plan) as string;
+    planData = enterpriseFields;
+  } else {
     await log({
       message: `Invalid price ID in checkout.session.completed event: ${priceId}`,
       type: "errors",
     });
     return;
   }
-
-  const stripeId =
-    typeof checkoutSession.customer === "string"
-      ? checkoutSession.customer
-      : checkoutSession.customer.id;
-  const organizationId = checkoutSession.client_reference_id;
 
   // when the organization subscribes to a plan, set their stripe customer ID
   // in the database for easy identification in future webhook events
@@ -72,7 +84,7 @@ export async function checkoutSessionCompleted(event: Stripe.Event) {
       stripeId,
       billingCycleStart: new Date().getDate(),
       paymentFailedAt: null,
-      ...planToOrganizationFields(plan),
+      ...planData,
     },
     select: {
       slug: true,
@@ -100,11 +112,14 @@ export async function checkoutSessionCompleted(event: Stripe.Event) {
         sendEmail({
           email: user.email,
           replyTo: "contact@agentset.ai",
-          subject: `Thank you for upgrading to Agentset ${plan.name}!`,
+          subject: `Thank you for upgrading to Agentset ${planName}!`,
           react: UpgradeEmail({
             name: user.name || null,
             email: user.email,
-            plan,
+            plan: {
+              name: planName,
+              features: plan?.features ?? [],
+            },
             domain: APP_DOMAIN,
           }),
           variant: "marketing",
@@ -115,7 +130,7 @@ export async function checkoutSessionCompleted(event: Stripe.Event) {
       organizationId,
     }),
     log({
-      message: `🎉 New ${plan.name} subscriber: 
+      message: `🎉 New ${planName} subscriber: 
 Period: \`${period}\`
 Organization: \`${organization.slug}\`
 Members: \`${organization.members.map(({ user }) => user.email).join(", ")}\``,
