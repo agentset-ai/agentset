@@ -3,8 +3,8 @@ import { log } from "@/lib/log";
 
 import type { Stripe } from "@agentset/stripe";
 import { db } from "@agentset/db/client";
-import { stripe } from "@agentset/stripe";
-import { FREE_PLAN, planToOrganizationFields } from "@agentset/stripe/plans";
+import { planToOrganizationFields, stripe } from "@agentset/stripe";
+import { FREE_PLAN } from "@agentset/stripe/plans";
 import { webhookCache } from "@agentset/webhooks/server";
 
 import {
