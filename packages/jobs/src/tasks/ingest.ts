@@ -13,6 +13,7 @@ import {
   Prisma,
 } from "@agentset/db";
 import { env } from "@agentset/engine/env";
+import { isFreePlan } from "@agentset/stripe/plans";
 import { chunkArray } from "@agentset/utils";
 
 import { getDb } from "../db";
@@ -181,15 +182,18 @@ export const ingestJob = schemaTask({
         select: { plan: true, pagesLimit: true, totalPages: true },
       });
 
-      const isPro = org.plan === "pro";
-      const availablePages = isPro ? Infinity : org.pagesLimit - org.totalPages;
+      const allowOverage = !isFreePlan(org.plan);
+      const availablePages = allowOverage
+        ? Infinity
+        : org.pagesLimit - org.totalPages;
       let usedPages = 0;
 
       const batchDocuments = chunkArray(result.documents, 20);
       for (const batch of batchDocuments) {
         const docsWithStatus = batch.map((doc) => {
           const docPages = doc.total_characters / 1000;
-          const isOverLimit = !isPro && usedPages + docPages > availablePages;
+          const isOverLimit =
+            !allowOverage && usedPages + docPages > availablePages;
 
           if (!isOverLimit) {
             usedPages += docPages;
@@ -277,15 +281,18 @@ export const ingestJob = schemaTask({
         select: { plan: true, pagesLimit: true, totalPages: true },
       });
 
-      const isPro = org.plan === "pro";
-      const availablePages = isPro ? Infinity : org.pagesLimit - org.totalPages;
+      const allowOverage = !isFreePlan(org.plan);
+      const availablePages = allowOverage
+        ? Infinity
+        : org.pagesLimit - org.totalPages;
       let usedPages = 0;
 
       const batchDocuments = chunkArray(result.documents, 20);
       for (const batch of batchDocuments) {
         const docsWithStatus = batch.map((doc) => {
           const docPages = doc.total_characters / 1000;
-          const isOverLimit = !isPro && usedPages + docPages > availablePages;
+          const isOverLimit =
+            !allowOverage && usedPages + docPages > availablePages;
 
           if (!isOverLimit) {
             usedPages += docPages;

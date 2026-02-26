@@ -185,3 +185,27 @@ export const isFreePlan = (plan: string) => {
 export const isEnterprisePlan = (plan: string) => {
   return plan.toLowerCase() === "enterprise";
 };
+
+export const parseEnterprisePlanMetadata = (
+  metadata: Record<string, string> | null | undefined,
+) => {
+  if (!metadata || metadata.plan !== "enterprise") return null;
+
+  const apiRatelimit = Number(metadata.apiRatelimit);
+  const pagesLimit = Number(metadata.pagesLimit);
+  const searchLimit =
+    metadata.searchLimit === "infinity"
+      ? INFINITY_NUMBER
+      : Number(metadata.searchLimit);
+
+  if (isNaN(apiRatelimit) || isNaN(pagesLimit) || isNaN(searchLimit)) {
+    return null;
+  }
+
+  return {
+    plan: "enterprise",
+    apiRatelimit,
+    pagesLimit,
+    searchLimit,
+  } satisfies Prisma.OrganizationUpdateInput;
+};

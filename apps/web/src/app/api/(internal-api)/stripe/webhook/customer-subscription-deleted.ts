@@ -64,11 +64,11 @@ export async function customerSubscriptionDeleted(event: Stripe.Event) {
 
   if (activeSubscriptions.length > 0) {
     const activeSubscription = activeSubscriptions[0]!;
-    const priceId = activeSubscription.items.data[0]!.price.id;
 
     await updateOrganizationPlan({
       organization,
-      priceId,
+      items: activeSubscription.items.data,
+      metadata: activeSubscription.metadata,
     });
 
     return NextResponse.json({ received: true });

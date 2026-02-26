@@ -17,7 +17,7 @@ import {
 import { env } from "@agentset/engine/env";
 import { getChunksJsonFromS3 } from "@agentset/storage";
 import { meterIngestedPages } from "@agentset/stripe";
-import { isProPlan } from "@agentset/stripe/plans";
+import { isFreePlan } from "@agentset/stripe/plans";
 import { chunkArray } from "@agentset/utils";
 
 import { getDb } from "../db";
@@ -393,7 +393,7 @@ export const processDocument = schemaTask({
     // Log usage to stripe
     const stripeCustomerId = ingestJob.namespace.organization.stripeId;
     if (
-      isProPlan(ingestJob.namespace.organization.plan) &&
+      !isFreePlan(ingestJob.namespace.organization.plan) &&
       !!stripeCustomerId &&
       !shouldCleanup // don't log usage if re-processing
     ) {
