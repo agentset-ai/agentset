@@ -1,7 +1,10 @@
+import type { Stripe } from "stripe";
+
 import type { Prisma } from "@agentset/db";
 import { INFINITY_NUMBER } from "@agentset/utils";
 
 import { env } from "./env";
+import { stripe } from "./instance";
 
 export type PlanFeature = {
   id?: string;
@@ -186,10 +189,28 @@ export const isEnterprisePlan = (plan: string) => {
   return plan.toLowerCase() === "enterprise";
 };
 
-export const parseEnterprisePlanMetadata = (
-  metadata: Record<string, string> | null | undefined,
+export const parseEnterprisePlanMetadata = async (
+  items: Stripe.SubscriptionItem[],
 ) => {
-  if (!metadata || metadata.plan !== "enterprise") return null;
+  // get metadata from product
+  const productIds = [
+    ...new Set(
+      items.map((item) =>
+        typeof item.price.product === "string"
+          ? item.price.product
+          : item.price.product.id,
+      ),
+    ),
+  ];
+
+  if (productIds.length === 0) return null;
+
+  const products = await stripe.products.list({ ids: productIds });
+  const metadata = products.data.find(
+    (product) => product.metadata?.plan === "enterprise",
+  )?.metadata;
+
+  if (!metadata) return null;
 
   const apiRatelimit = Number(metadata.apiRatelimit);
   const pagesLimit = Number(metadata.pagesLimit);

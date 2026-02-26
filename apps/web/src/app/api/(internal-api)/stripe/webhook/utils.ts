@@ -79,12 +79,10 @@ export async function updateOrganizationPlan({
   event,
   organization,
   items,
-  metadata,
 }: {
   event: string;
   organization: Pick<Organization, "id" | "plan" | "paymentFailedAt">;
   items: Stripe.SubscriptionItem[];
-  metadata?: Record<string, string> | null;
 }) {
   // ignore metered plan
   const priceId = items.filter(
@@ -94,7 +92,9 @@ export async function updateOrganizationPlan({
   )[0]?.price.id;
 
   const newPlan = getPlanFromPriceId(priceId);
-  const enterpriseFields = parseEnterprisePlanMetadata(metadata);
+  const enterpriseFields = newPlan
+    ? null
+    : await parseEnterprisePlanMetadata(items);
 
   let newPlanName: string;
   let planData: Prisma.OrganizationUpdateInput;

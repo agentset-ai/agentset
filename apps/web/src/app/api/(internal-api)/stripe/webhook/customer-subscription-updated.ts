@@ -50,7 +50,6 @@ export async function customerSubscriptionUpdated(event: Stripe.Event) {
     event: "customer.subscription.updated",
     organization,
     items: subscriptionUpdated.items.data,
-    metadata: subscriptionUpdated.metadata,
   });
 
   const subscriptionCanceled =
