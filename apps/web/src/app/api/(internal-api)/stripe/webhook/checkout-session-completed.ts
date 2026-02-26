@@ -46,7 +46,8 @@ export async function checkoutSessionCompleted(event: Stripe.Event) {
   );
 
   // ignore metered plan
-  const price = subscription.items.data.filter(
+  const items = subscription.items.data;
+  const price = items.filter(
     (item) =>
       item.price.recurring?.usage_type !== "metered" &&
       !item.price.recurring?.meter,
@@ -54,7 +55,9 @@ export async function checkoutSessionCompleted(event: Stripe.Event) {
   const priceId = price?.id;
   const period = price?.recurring?.interval === "month" ? "monthly" : "yearly";
   const plan = getPlanFromPriceId(priceId);
-  const enterpriseFields = parseEnterprisePlanMetadata(subscription.metadata);
+  const enterpriseFields = plan
+    ? null
+    : await parseEnterprisePlanMetadata(items);
 
   let planName: string;
   let planData: Prisma.OrganizationUpdateInput;

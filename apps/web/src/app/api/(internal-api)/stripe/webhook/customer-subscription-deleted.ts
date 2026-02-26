@@ -69,7 +69,6 @@ export async function customerSubscriptionDeleted(event: Stripe.Event) {
       event: "customer.subscription.deleted",
       organization,
       items: activeSubscription.items.data,
-      metadata: activeSubscription.metadata,
     });
 
     return NextResponse.json({ received: true });
