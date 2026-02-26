@@ -47,6 +47,7 @@ export async function customerSubscriptionUpdated(event: Stripe.Event) {
   }
 
   await updateOrganizationPlan({
+    event: "customer.subscription.updated",
     organization,
     items: subscriptionUpdated.items.data,
     metadata: subscriptionUpdated.metadata,

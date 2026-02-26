@@ -66,6 +66,7 @@ export async function customerSubscriptionDeleted(event: Stripe.Event) {
     const activeSubscription = activeSubscriptions[0]!;
 
     await updateOrganizationPlan({
+      event: "customer.subscription.deleted",
       organization,
       items: activeSubscription.items.data,
       metadata: activeSubscription.metadata,

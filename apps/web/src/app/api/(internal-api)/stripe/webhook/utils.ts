@@ -1,4 +1,5 @@
 import { revalidateTag } from "next/cache";
+import { log } from "@/lib/log";
 import { waitUntil } from "@vercel/functions";
 
 import type { Organization, Prisma } from "@agentset/db";
@@ -75,10 +76,12 @@ export function revalidateOrganizationCache(organizationId: string) {
 }
 
 export async function updateOrganizationPlan({
+  event,
   organization,
   items,
   metadata,
 }: {
+  event: string;
   organization: Pick<Organization, "id" | "plan" | "paymentFailedAt">;
   items: Stripe.SubscriptionItem[];
   metadata?: Record<string, string> | null;
@@ -88,7 +91,7 @@ export async function updateOrganizationPlan({
     (item) =>
       item.price.recurring?.usage_type !== "metered" &&
       !item.price.recurring?.meter,
-  )[0]!.price.id;
+  )[0]?.price.id;
 
   const newPlan = getPlanFromPriceId(priceId);
   const enterpriseFields = parseEnterprisePlanMetadata(metadata);
@@ -103,6 +106,10 @@ export async function updateOrganizationPlan({
     newPlanName = enterpriseFields.plan.toLowerCase();
     planData = enterpriseFields;
   } else {
+    await log({
+      message: `Invalid price ID in ${event} event: ${priceId}`,
+      type: "errors",
+    });
     return;
   }
 
