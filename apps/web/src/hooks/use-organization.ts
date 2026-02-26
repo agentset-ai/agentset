@@ -13,7 +13,7 @@ export function useOrganization() {
       {
         enabled: !!slug,
         staleTime: Infinity,
-        refetchOnWindowFocus: false,
+        refetchOnWindowFocus: true,
         refetchOnMount: false,
       },
     ),

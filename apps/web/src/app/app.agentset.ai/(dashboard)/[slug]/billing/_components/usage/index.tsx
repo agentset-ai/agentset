@@ -4,9 +4,12 @@ import { useMemo } from "react";
 import Link from "next/link";
 import { useOrganization } from "@/hooks/use-organization";
 import { formatNumber } from "@/lib/utils";
+import { useTRPC } from "@/trpc/react";
 import NumberFlow from "@number-flow/react";
-import { BookIcon, FoldersIcon, PlugIcon, SearchIcon } from "lucide-react";
+import { useQuery } from "@tanstack/react-query";
+import { BookIcon, PlugIcon, SearchIcon } from "lucide-react";
 
+import { isFreePlan } from "@agentset/stripe/plans";
 import { Button } from "@agentset/ui/button";
 import { Card, CardDescription } from "@agentset/ui/card";
 import { cn } from "@agentset/ui/cn";
@@ -84,19 +87,7 @@ export default function PlanUsage() {
 
       <div className="grid grid-cols-[minmax(0,1fr)]">
         <div className="grid gap-4 sm:grid-cols-3 lg:gap-6">
-          <UsageTabCard
-            icon={FoldersIcon}
-            title="Namespaces"
-            usage={organization.totalNamespaces}
-            limit={3} // TODO: get from API
-          />
-
-          <UsageTabCard
-            icon={BookIcon}
-            title="Pages"
-            usage={organization.totalPages}
-            limit={organization.pagesLimit}
-          />
+          <PagesCard />
 
           <UsageTabCard
             icon={SearchIcon}
@@ -123,6 +114,68 @@ export default function PlanUsage() {
         </div>
       </div>
     </div>
+  );
+}
+
+function PagesCard() {
+  const organization = useOrganization();
+  const trpc = useTRPC();
+  const isEnabled = !isFreePlan(organization.plan) && !!organization.stripeId;
+  const { data: tracked, isLoading: isLoadingTracked } = useQuery(
+    trpc.billing.getTrackedPages.queryOptions(
+      { orgId: organization.id },
+      { enabled: isEnabled },
+    ),
+  );
+
+  const currentPages = organization.totalPages;
+  const limit = organization.pagesLimit;
+  const remaining = Math.max(0, limit - currentPages);
+
+  return (
+    <Card className="gap-0 px-4 py-3 lg:px-5 lg:py-5">
+      <BookIcon className="text-muted-foreground size-4" />
+      <CardDescription className="mt-1.5">Pages</CardDescription>
+
+      <div className="mt-2">
+        <NumberFlow
+          value={currentPages}
+          className="text-card-foreground text-xl leading-none"
+          format={{ notation: "standard" }}
+        />
+      </div>
+
+      <div className="mt-3">
+        <div className="bg-primary/10 h-1 w-full overflow-hidden rounded-full">
+          <Progress
+            value={Math.max(
+              Math.floor(
+                (currentPages / Math.max(0, currentPages, limit)) * 100,
+              ),
+              currentPages === 0 ? 0 : 1,
+            )}
+          />
+        </div>
+      </div>
+
+      <div className="mt-2 leading-none">
+        <span className="text-muted-foreground text-xs">
+          {`${formatNumber(remaining, "decimal")} remaining of ${formatNumber(limit, "decimal")}`}
+        </span>
+      </div>
+
+      {isEnabled && (
+        <div className="mt-2 leading-none">
+          {isLoadingTracked ? (
+            <Skeleton className="h-3.5 w-24" />
+          ) : tracked ? (
+            <span className="text-muted-foreground text-xs">
+              {formatNumber(tracked.trackedPages, "decimal")} billed this cycle
+            </span>
+          ) : null}
+        </div>
+      )}
+    </Card>
   );
 }
 
