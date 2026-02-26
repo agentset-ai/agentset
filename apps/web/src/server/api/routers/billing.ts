@@ -5,9 +5,11 @@ import { z } from "zod/v4";
 import { stripe } from "@agentset/stripe";
 import {
   getStripeEnvironment,
+  isFreePlan,
   isProPlan,
   PRO_PLAN_METERED,
 } from "@agentset/stripe/plans";
+import { getFirstAndLastDay } from "@agentset/utils";
 
 import { createTRPCRouter, protectedProcedure } from "../trpc";
 
@@ -57,13 +59,83 @@ export const billingRouter = createTRPCRouter({
         totalPages: true,
         totalDocuments: true,
         totalIngestJobs: true,
-        totalNamespaces: true,
         billingCycleStart: true,
         stripeId: true,
       },
     });
 
     return org!;
+  }),
+  getTrackedPages: organizationMiddleware.query(async ({ ctx }) => {
+    const org = await ctx.db.organization.findUnique({
+      where: { id: ctx.organization.id },
+      select: {
+        plan: true,
+        stripeId: true,
+        billingCycleStart: true,
+      },
+    });
+
+    if (!org || isFreePlan(org.plan) || !org.stripeId) {
+      return { trackedPages: 0 };
+    }
+
+    const subscription = (
+      await stripe.subscriptions.list({
+        customer: org.stripeId,
+        status: "active",
+        limit: 1,
+      })
+    ).data[0];
+
+    if (!subscription) {
+      return { trackedPages: 0 };
+    }
+
+    const item = subscription.items.data[0];
+    const currentPeriodStart =
+      "current_period_start" in subscription
+        ? (subscription.current_period_start as number)
+        : item?.current_period_start;
+
+    const currentPeriodEnd =
+      "current_period_end" in subscription
+        ? (subscription.current_period_end as number)
+        : item?.current_period_end;
+
+    if (!currentPeriodStart || !currentPeriodEnd) {
+      return { trackedPages: 0 };
+    }
+
+    try {
+      const meters = await stripe.billing.meters.list({ status: "active" });
+      const meter = meters.data.find(
+        (m) => m.event_name === PRO_PLAN_METERED.meterName,
+      );
+
+      if (!meter) {
+        return { trackedPages: 0 };
+      }
+
+      const summaries = await stripe.billing.meters.listEventSummaries(
+        meter.id,
+        {
+          customer: org.stripeId,
+          start_time: currentPeriodStart,
+          end_time: currentPeriodEnd,
+        },
+      );
+
+      const trackedPages = summaries.data.reduce(
+        (sum, s) => sum + s.aggregated_value,
+        0,
+      );
+
+      return { trackedPages };
+    } catch (error) {
+      console.error("Error fetching tracked pages from Stripe:", error);
+      return { trackedPages: 0 };
+    }
   }),
   upgrade: organizationMiddleware
     .input(
