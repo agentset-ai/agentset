@@ -28,6 +28,6 @@ export const getFileDownloadUrl: ZodOpenApiOperationObject = {
   ...makeCodeSamples(ts`
 const { url } = await ns.documents.getFileDownloadUrl("doc_123");
 const file = await fetch(url);
-fs.writeFileSync("file.pdf", await file.arrayBuffer());
+fs.writeFileSync("file.pdf", Buffer.from(await file.arrayBuffer()));
 `),
 };
