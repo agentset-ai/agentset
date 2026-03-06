@@ -10,3 +10,4 @@ export { default as WebhookAddedEmail } from "./templates/webhook-added";
 export { default as WebhookFailedEmail } from "./templates/webhook-failed";
 export { default as WebhookDisabledEmail } from "./templates/webhook-disabled";
 export { default as DataReadyEmail } from "./templates/data-ready-email";
+export { default as DataProcessingFailedEmail } from "./templates/data-processing-failed-email";

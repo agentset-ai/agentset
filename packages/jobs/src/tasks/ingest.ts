@@ -27,7 +27,11 @@ import {
   emitIngestJobWebhook,
 } from "../webhook";
 import { processDocument } from "./process-document";
-import { DataReadyEmail, sendEmail } from "@agentset/emails";
+import {
+  DataProcessingFailedEmail,
+  DataReadyEmail,
+  sendEmail,
+} from "@agentset/emails";
 import { getOrganizationOwner } from "@agentset/webhooks/server";
 
 const BATCH_SIZE = 30;
@@ -603,32 +607,32 @@ export const ingestJob = schemaTask({
       },
     });
 
-    // Send "Your data is ready!" email when all processing in the namespace is done
-    if (!jobFailed) {
-      try {
-        const activeJobCount = await db.ingestJob.count({
-          where: {
-            namespaceId: ingestionJob.namespace.id,
-            id: { not: ingestionJob.id },
-            status: {
-              in: [
-                IngestJobStatus.BACKLOG,
-                IngestJobStatus.QUEUED,
-                IngestJobStatus.QUEUED_FOR_RESYNC,
-                IngestJobStatus.PRE_PROCESSING,
-                IngestJobStatus.PROCESSING,
-              ],
-            },
+    // Send notification email when all processing in the namespace is done
+    try {
+      const activeJobCount = await db.ingestJob.count({
+        where: {
+          namespaceId: ingestionJob.namespace.id,
+          id: { not: ingestionJob.id },
+          status: {
+            in: [
+              IngestJobStatus.BACKLOG,
+              IngestJobStatus.QUEUED,
+              IngestJobStatus.QUEUED_FOR_RESYNC,
+              IngestJobStatus.PRE_PROCESSING,
+              IngestJobStatus.PROCESSING,
+            ],
           },
+        },
+      });
+
+      if (activeJobCount === 0) {
+        const owner = await getOrganizationOwner({
+          db,
+          organizationId: ingestionJob.namespace.organization.id,
         });
 
-        if (activeJobCount === 0) {
-          const owner = await getOrganizationOwner({
-            db,
-            organizationId: ingestionJob.namespace.organization.id,
-          });
-
-          if (owner) {
+        if (owner) {
+          if (!jobFailed) {
             await sendEmail({
               email: owner.email,
               subject: "Your data is ready!",
@@ -642,11 +646,26 @@ export const ingestJob = schemaTask({
               }),
               variant: "notifications",
             });
+          } else {
+            await sendEmail({
+              email: owner.email,
+              subject: "There was an issue processing your data",
+              react: DataProcessingFailedEmail({
+                email: owner.email,
+                namespace: {
+                  name: ingestionJob.namespace.name,
+                  slug: ingestionJob.namespace.slug,
+                },
+                organization: owner.organization,
+                error: jobError || "Failed to process documents",
+              }),
+              variant: "notifications",
+            });
           }
         }
-      } catch {
-        // Email notification is best-effort — don't fail the ingest job
       }
+    } catch {
+      // Email notification is best-effort — don't fail the ingest job
     }
 
     return {
