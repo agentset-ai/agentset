@@ -48,7 +48,7 @@ export async function sendCancellationFeedback({
           from: "Abdellatif <contact@agentset.ai>",
           replyTo: "contact@agentset.ai",
           subject: "Feedback for Agentset.ai?",
-          text: `Hey ${owner.name ? owner.name.split(" ")[0] : "there"}!\n\nSaw you canceled your Agentset subscription${reasonText ? ` and mentioned that ${reasonText}` : ""} – do you mind sharing if there's anything we could've done better on our side?\n\nWe're always looking to improve our product offering so any feedback would be greatly appreciated!\n\nThank you so much in advance!\n\nBest,\nAbdellatif\nCo-founder, Agentset.ai`,
+          text: `Hey ${owner.name ? owner.name.split(" ")[0] : "there"}!\n\nSaw you canceled your Agentset subscription${reasonText ? ` and mentioned that ${reasonText}` : ""} – do you mind sharing if there's anything we could've done better on our side?\n\nWe're always looking to improve our product offering so any feedback would be greatly appreciated.\n\nAbdellatif\nCo-founder, Agentset`,
         }),
     ),
   );
