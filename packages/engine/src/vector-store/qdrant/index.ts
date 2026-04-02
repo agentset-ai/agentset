@@ -172,9 +172,9 @@ export class Qdrant implements VectorStore<QdrantVectorFilter> {
   }
 
   async upsert({ chunks }: VectorStoreUpsertOptions): Promise<void> {
+    if (chunks.length === 0) return;
     const nodes = chunks.map((chunk) => makeChunk(chunk));
     const vectorSize = nodes[0]!.vector.length;
-
     await this.ensureCollection(vectorSize);
 
     const points = nodes.map((node) => ({
