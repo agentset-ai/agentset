@@ -1,9 +1,10 @@
-import { embed, EmbeddingModel } from "ai";
+import type { EmbeddingModel } from "ai";
+import { embed } from "ai";
 
-import { RerankingModel } from "@agentset/validation";
+import type { RerankingModel } from "@agentset/validation";
 
 import { getRerankingModel, rerank } from "../rerank";
-import { VectorStore, VectorStoreQueryOptions } from "./common/vector-store";
+import type { VectorStore, VectorStoreQueryOptions } from "./common/vector-store";
 
 export type QueryVectorStoreOptions = Omit<VectorStoreQueryOptions, "mode"> & {
   query: string;

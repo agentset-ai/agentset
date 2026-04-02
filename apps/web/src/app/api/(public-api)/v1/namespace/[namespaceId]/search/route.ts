@@ -39,12 +39,12 @@ export const POST = withNamespaceApiHandler(
       await parseRequestBody(req),
     );
 
-    const isPinecone =
+    const isKeywordUnsupported =
       namespace.vectorStoreConfig?.provider === "MANAGED_PINECONE" ||
       namespace.vectorStoreConfig?.provider === "MANAGED_PINECONE_OLD" ||
       namespace.vectorStoreConfig?.provider === "PINECONE";
 
-    if (body.mode === "keyword" && isPinecone) {
+    if (body.mode === "keyword" && isKeywordUnsupported) {
       throw new AgentsetApiError({
         code: "bad_request",
         message: "Keyword search is not enabled for this namespace",

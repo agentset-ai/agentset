@@ -1,7 +1,7 @@
 import type { Namespace } from "@agentset/db";
 
 import { env } from "../env";
-import { VectorStore } from "./common/vector-store";
+import type { VectorStore } from "./common/vector-store";
 
 export const getNamespaceVectorStore = async (
   namespace: Pick<Namespace, "vectorStoreConfig" | "id">,
@@ -63,6 +63,16 @@ export const getNamespaceVectorStore = async (
             : config.region,
         ...commonConfig,
       });
+    }
+
+    case "QDRANT": {
+      const { Qdrant } = await import("./qdrant/index");
+
+      return new Qdrant({
+        url: config.url,
+        apiKey: config.apiKey,
+        ...commonConfig,
+      }) as VectorStore;
     }
 
     default: {

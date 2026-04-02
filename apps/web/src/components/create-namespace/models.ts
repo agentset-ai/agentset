@@ -15,6 +15,7 @@ import {
   GoogleEmbeddingConfigSchema,
   OpenAIEmbeddingConfigSchema,
   PineconeVectorStoreConfigSchema,
+  QdrantVectorStoreConfigSchema,
   TurbopufferVectorStoreConfigSchema,
   VoyageEmbeddingConfigSchema,
 } from "@agentset/validation";
@@ -65,8 +66,7 @@ export const vectorStores: {
     comingSoon: true,
   },
   {
-    value: "qdrant",
+    value: QdrantVectorStoreConfigSchema.shape.provider.value,
     icon: QdrantIcon,
-    comingSoon: true,
   },
 ];
