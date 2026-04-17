@@ -182,7 +182,13 @@ export function LoginForm({
               </div>
               <h1 className="mt-8 text-base/6 font-medium">Welcome back!</h1>
               <p className="mt-1 text-sm/5 text-gray-600">
-                Sign in to your account to continue.
+                Don't have an account?{" "}
+                <a
+                  href="https://agentset.ai/schedule-demo"
+                  className="font-medium text-gray-900 underline underline-offset-2 hover:text-gray-700"
+                >
+                  Schedule a demo
+                </a>
               </p>
 
               <div className="mt-8 space-y-3">
