@@ -98,10 +98,10 @@ export const meterOrgDocuments = schemaTask({
         });
 
         const hasMore = documents.length > BATCH_SIZE;
-        const last = documents.at(-1) as
+        const items = hasMore ? documents.slice(0, BATCH_SIZE) : documents;
+        const last = items.at(-1) as
           | { id: string; createdAt: Date }
           | undefined;
-        const items = hasMore ? documents.slice(0, BATCH_SIZE) : documents;
 
         if (hasMore && last) {
           cursor = { id: last.id, createdAt: last.createdAt };
