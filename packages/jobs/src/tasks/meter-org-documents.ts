@@ -13,7 +13,7 @@ import {
   meterOrgDocumentsBodySchema,
 } from "../schema";
 
-const BATCH_SIZE = 300;
+const BATCH_SIZE = 100; // stripe has a limit of 100 events per request
 
 export const meterOrgDocuments = schemaTask({
   id: METER_ORG_DOCUMENTS_JOB_ID,
