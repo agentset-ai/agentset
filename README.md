@@ -103,3 +103,77 @@ MIT :)
 ---
 
 Made with ❤️ by the Agentset team.
+
+## FAQ
+
+### What is Agentset?
+
+Agentset is the open-source platform to build, evaluate, and ship production-ready RAG and agentic applications. It provides end-to-end tooling: ingestion, vector indexing, evaluation/benchmarks, chat playground, hosting, and a developer-friendly API.
+
+### How does Agentset compare to LangChain or LlamaIndex?
+
+- **Agentset**: Full RAG platform with ingestion, chunking, embeddings, retrieval, evaluation, chat playground, hosting, API, and SDKs
+- **LangChain**: Chain-based orchestration library, requires building your own RAG pipeline
+- **LlamaIndex**: Data framework for LLM apps, focused on indexing and retrieval
+
+Agentset provides a turnkey solution for RAG with built-in evaluation and production hosting.
+
+### What are the key features of Agentset?
+
+- **Turnkey RAG**: Ingestion, chunking, embeddings, and retrieval out of the box
+- **Model agnostic**: Works with your choice of LLM, embeddings, and vector DB
+- **Chat playground**: Message editing and citations
+- **Production hosting**: Preview links and custom domains
+- **API + typed SDKs**: OpenAPI spec included
+- **Built-in multi-tenancy**: Enterprise-ready
+
+### How do I get started with Agentset?
+
+**Agentset Cloud** (recommended for quick start):
+1. Sign up at https://app.agentset.ai/login
+2. No credit card required, 1,000 pages and 10,000 retrievals free tier
+
+**Self-host**:
+```bash
+# 1) Copy env and fill required values
+cp .env.example .env
+
+# 2) Install dependencies
+bun install
+
+# 3) Run database migrations
+bun db:deploy
+
+# 4) Start the app
+bun dev:web
+```
+
+### What tech stack does Agentset use?
+
+- TypeScript
+- Next.js
+- AI SDK
+- Prisma
+- Supabase
+- Trigger.dev
+
+### What LLM/embedding providers are supported?
+
+Agentset is model agnostic - works with your choice of:
+- OpenAI
+- Anthropic
+- Google Gemini
+- Local models (via compatible APIs)
+
+### How do I use the API?
+
+Agentset provides:
+- REST API with typed SDKs
+- OpenAPI spec for documentation
+- SDKs for popular languages
+
+### Where can I find help?
+
+- [Documentation](https://docs.agentset.ai)
+- [GitHub Issues](https://github.com/agentset-ai/agentset/issues)
+- [Discord](https://discord.com/invite/XNcrk6bv)
