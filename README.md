@@ -103,3 +103,66 @@ MIT :)
 ---
 
 Made with ❤️ by the Agentset team.
+
+## FAQ
+
+### What is Agentset?
+
+Agentset is an open-source platform to build, evaluate, and ship production-ready RAG (Retrieval-Augmented Generation) and agentic applications. It provides end-to-end tooling including ingestion, vector indexing, evaluation/benchmarks, chat playground, and hosting.
+
+### Key Features
+
+| Feature | Description |
+|---------|-------------|
+| Turnkey RAG | Ingestion, chunking, embeddings, and retrieval in one platform |
+| Model Agnostic | Works with your choice of LLM, embeddings, and vector DB |
+| Chat Playground | Interactive UI with message editing and citations |
+| Production Hosting | Preview links, custom domains, and multi-tenancy |
+| API + SDKs | Typed SDKs with OpenAPI spec |
+
+### How is Agentset different from other RAG tools?
+
+Agentset combines RAG infrastructure with production features:
+- **vs LangChain**: Agentset provides hosting + UI + multi-tenancy, not just chains
+- **vs LlamaIndex**: Agentset includes chat playground and evaluation tools
+- **vs Weaviate/Pinecone**: Agentset offers full-stack (ingestion → retrieval → UI)
+
+### Getting Started
+
+**Agentset Cloud** (recommended):
+1. Sign up at https://app.agentset.ai/login
+2. Free tier: 1,000 pages, 10,000 retrievals
+3. No credit card required
+
+**Self-host**:
+```bash
+cp .env.example .env
+bun install
+bun db:deploy
+bun dev:web
+```
+
+### Supported Models
+
+| Category | Providers |
+|----------|-----------|
+| LLMs | OpenAI, Anthropic, Google, Azure, Local models |
+| Embeddings | OpenAI, Cohere, HuggingFace, Local |
+| Vector DBs | Supabase (PostgreSQL pgvector), Pinecone, Weaviate, Qdrant |
+
+### Self-hosting Requirements
+
+- Node.js 18+ / Bun
+- PostgreSQL database (Supabase recommended)
+- Prisma ORM
+- Trigger.dev for background jobs
+
+### License
+
+MIT License - Free for commercial and personal use.
+
+### Help Resources
+
+- 📖 Documentation: https://docs.agentset.ai
+- 🐛 Issues: https://github.com/agentset-ai/agentset/issues
+- 💬 Discord: https://discord.com/invite/XNcrk6bv
