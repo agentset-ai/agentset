@@ -51,10 +51,11 @@ export const usageCronJob = schedules.task({
       const nonBillingReset: typeof organizations = [];
       const today = new Date().getDate();
       for (const organization of organizations) {
-        if (
-          typeof organization.billingCycleStart === "number" &&
-          getAdjustedBillingCycleStart(organization.billingCycleStart) === today
-        ) {
+        // organizations that never subscribed don't have a billingCycleStart,
+        // fall back to their creation day so their cycle still resets monthly
+        const cycleStart =
+          organization.billingCycleStart ?? organization.createdAt.getDate();
+        if (getAdjustedBillingCycleStart(cycleStart) === today) {
           billingReset.push(organization);
         } else {
           nonBillingReset.push(organization);
@@ -64,6 +65,27 @@ export const usageCronJob = schedules.task({
       // TODO: send 30-day summary email
       // TODO: only reset usage if it's not over usageLimit by 2x
       if (billingReset.length > 0) {
+        // Release pages deleted during the last cycle: they counted towards
+        // the quota until now. This runs BEFORE usageLastChecked is advanced
+        // so a failed release is retried instead of silently skipped for a
+        // month. Decrementing by the observed value (instead of resetting to
+        // 0) keeps deletions that happen while this cron runs, and the
+        // deletedPages guard makes overlapping runs idempotent. updateMany
+        // ignores organizations deleted since the findMany.
+        await Promise.all(
+          billingReset
+            .filter(({ deletedPages }) => deletedPages > 0)
+            .map(({ id, deletedPages }) =>
+              db.organization.updateMany({
+                where: { id, deletedPages: { gte: deletedPages } },
+                data: {
+                  totalPages: { decrement: deletedPages },
+                  deletedPages: { decrement: deletedPages },
+                },
+              }),
+            ),
+        );
+
         // Reset search usage for billing cycle restart
         await db.organization.updateMany({
           where: {

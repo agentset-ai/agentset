@@ -129,8 +129,10 @@ export const deleteIngestJob = schemaTask({
               ...(deletedDocuments > 0 && {
                 totalDocuments: { decrement: deletedDocuments },
               }),
+              // deleted pages keep counting towards the quota until the
+              // next billing cycle, so we don't decrement totalPages here
               ...(deletedPages > 0 && {
-                totalPages: { decrement: deletedPages },
+                deletedPages: { increment: deletedPages },
               }),
             },
           },

@@ -19,7 +19,10 @@ export const deleteDocument = async ({
     },
   });
 
-  const handle = await triggerDeleteDocument({ documentId: updatedDoc.id });
+  const handle = await triggerDeleteDocument({
+    documentId: updatedDoc.id,
+    updateCounters: true,
+  });
 
   await db.document.update({
     where: { id: updatedDoc.id },
