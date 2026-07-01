@@ -1,0 +1,245 @@
+---
+title: "URLs and Crawling"
+description: "Ingest web pages and crawl websites into Agentset"
+---
+
+Ingest content from the web by providing specific URLs or crawling entire sites.
+
+## Single URL
+
+Ingest a specific web page by providing its URL.
+
+<CodeGroup>
+```typescript TypeScript
+import { Agentset } from "agentset";
+
+const agentset = new Agentset({
+  apiKey: process.env.AGENTSET_API_KEY,
+});
+
+const ns = agentset.namespace("YOUR_NAMESPACE_ID");
+
+const job = await ns.ingestion.create({
+  payload: {
+    type: "CRAWL",
+    url: "https://agentset.ai/blog/intro-to-rag",
+    maxDepth: 1,
+  },
+});
+
+console.log(`Crawl started: ${job.id}`);
+```
+
+```python Python
+import os
+from agentset import Agentset
+
+client = Agentset(
+    namespace_id="YOUR_NAMESPACE_ID",
+    token=os.environ["AGENTSET_API_KEY"],
+)
+
+job = client.ingest_jobs.create(
+    payload={
+        "type": "CRAWL",
+        "url": "https://agentset.ai/blog/intro-to-rag",
+        "maxDepth": 1,
+    },
+)
+
+print(f"Crawl started: {job.data.id}")
+```
+</CodeGroup>
+
+## Crawling
+
+Crawl a website to ingest multiple pages automatically. Agentset follows links from a starting URL and processes each page it discovers.
+
+### Basic crawl
+
+Provide a starting URL to crawl a website.
+
+<CodeGroup>
+```typescript TypeScript
+import { Agentset } from "agentset";
+
+const agentset = new Agentset({
+  apiKey: process.env.AGENTSET_API_KEY,
+});
+
+const ns = agentset.namespace("YOUR_NAMESPACE_ID");
+
+const job = await ns.ingestion.create({
+  payload: {
+    type: "CRAWL",
+    url: "https://docs.agentset.ai",
+  },
+});
+
+console.log(`Crawl started: ${job.id}`);
+```
+
+```python Python
+import os
+from agentset import Agentset
+
+client = Agentset(
+    namespace_id="YOUR_NAMESPACE_ID",
+    token=os.environ["AGENTSET_API_KEY"],
+)
+
+job = client.ingest_jobs.create(
+    payload={
+        "type": "CRAWL",
+        "url": "https://docs.agentset.ai",
+    }
+)
+
+print(f"Crawl started: {job.data.id}")
+```
+</CodeGroup>
+
+### Crawl options
+
+Control how the crawler navigates your site with the `options` parameter.
+
+| Option | Type | Default | Description |
+| :--- | :--- | :--- | :--- |
+| `maxDepth` | number | 5 | How many links deep to follow from the starting URL. Depth 1 crawls only the initial page. |
+| `limit` | number | 50 | Maximum number of pages to crawl. |
+| `includePaths` | string[] | — | Only crawl URLs matching these path prefixes. |
+| `excludePaths` | string[] | — | Skip URLs matching these path prefixes. |
+| `headers` | object | — | Custom HTTP headers to send with requests. |
+
+### Limiting depth and pages
+
+Set `maxDepth` and `limit` to control the scope of your crawl.
+
+<CodeGroup>
+```typescript TypeScript
+const job = await ns.ingestion.create({
+  payload: {
+    type: "CRAWL",
+    url: "https://docs.agentset.ai",
+    maxDepth: 3,
+    limit: 100,
+  },
+});
+```
+
+```python Python
+job = client.ingest_jobs.create(
+    payload={
+        "type": "CRAWL",
+        "url": "https://docs.agentset.ai",
+        "maxDepth": 3,
+        "limit": 100,
+    }
+)
+```
+</CodeGroup>
+
+### Filtering paths
+
+Use `includePaths` to crawl only specific sections, or `excludePaths` to skip certain areas.
+
+<CodeGroup>
+```typescript TypeScript
+const job = await ns.ingestion.create({
+  payload: {
+    type: "CRAWL",
+    url: "https://docs.agentset.ai",
+    includePaths: ["/guides", "/api-reference"],
+    excludePaths: ["/blog", "/changelog"],
+  },
+});
+```
+
+```python Python
+job = client.ingest_jobs.create(
+    payload={
+        "type": "CRAWL",
+        "url": "https://docs.agentset.ai",
+        "includePaths": ["/guides", "/api-reference"],
+        "excludePaths": ["/blog", "/changelog"],
+    }
+)
+```
+</CodeGroup>
+
+### Authenticated crawling
+
+Pass custom headers to crawl pages that require authentication.
+
+<CodeGroup>
+```typescript TypeScript
+const job = await ns.ingestion.create({
+  payload: {
+    type: "CRAWL",
+    url: "https://internal.agentset.ai",
+    headers: {
+      Authorization: "Bearer your-token",
+    },
+  },
+});
+```
+
+```python Python
+job = client.ingest_jobs.create(
+    payload={
+        "type": "CRAWL",
+        "url": "https://internal.agentset.ai",
+        "headers": {
+            "Authorization": "Bearer your-token",
+        },
+    }
+)
+```
+</CodeGroup>
+
+## With metadata
+
+Attach metadata to ingested pages for [filtering](/search-and-retrieval/filtering) during search.
+
+<CodeGroup>
+```typescript TypeScript
+const job = await ns.ingestion.create({
+  payload: {
+    type: "CRAWL",
+    url: "https://docs.agentset.ai",
+  },
+  config: {
+    metadata: {
+      source: "documentation",
+      domain: "agentset.ai",
+    },
+  },
+});
+```
+
+```python Python
+job = client.ingest_jobs.create(
+    payload={
+        "type": "CRAWL",
+        "url": "https://docs.agentset.ai",
+    },
+    config={
+        "metadata": {
+            "source": "documentation",
+            "domain": "example.com",
+        },
+    },
+)
+```
+</CodeGroup>
+
+<Info>
+  URL ingestion and crawls are processed asynchronously. Learn how to [check upload status](/data-ingestion/upload-status).
+</Info>
+
+## Next steps
+
+- [API Reference](/api-reference/endpoint/ingest-jobs/create) — Crawl parameters and options
+- [Document Metadata](/data-ingestion/document-metadata) — Learn more about metadata filtering
+- [Upload Status](/data-ingestion/upload-status) — Monitor crawl progress
+- [Search](/search-and-retrieval/search) — Query your crawled content

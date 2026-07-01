@@ -1,0 +1,266 @@
+---
+title: 'Agentic RAG with AI SDK (legacy)'
+description: 'Legacy guide for building agentic RAG with the AgenticEngine. Use Agentic Search instead.'
+---
+
+<Warning>
+  This guide uses the legacy `AgenticEngine`, which runs a fixed query → evaluate → answer pipeline. For new projects, use [Agentic Search](/search-and-retrieval/agentic-search), where the model decides when and what to search using tools.
+</Warning>
+
+Build powerful agentic RAG (Retrieval-Augmented Generation) applications that can intelligently search through your knowledge base, evaluate queries, and provide accurate answers. This guide walks you through creating a complete chat application using Agentset's AgenticEngine with the AI SDK.
+
+The AgenticEngine provides an advanced agentic workflow that:
+- Generates relevant search queries from user messages
+- Retrieves and evaluates information from your knowledge base
+- Provides streaming responses with real-time status updates
+- Handles complex multi-step reasoning automatically
+
+## Prerequisites
+
+Before getting started, make sure you have:
+- A Next.js application set up
+- An Agentset API key and namespace configured
+- An OpenAI API key for the language model
+
+<Steps>
+  <Step title="Install Dependencies">
+    Install the required packages for building agentic RAG applications with AI SDK integration.
+
+    <CodeGroup>
+    ```bash npm
+    npm install ai @ai-sdk/openai @ai-sdk/react agentset @agentset/ai-sdk  
+    ```
+
+    ```bash yarn
+    yarn add ai @ai-sdk/openai @ai-sdk/react agentset @agentset/ai-sdk
+    ```
+
+    ```bash pnpm
+    pnpm add ai @ai-sdk/openai @ai-sdk/react agentset @agentset/ai-sdk
+    ```
+
+    ```bash bun
+    bun add ai @ai-sdk/openai @ai-sdk/react agentset @agentset/ai-sdk
+    ```
+    </CodeGroup>
+
+    **Key packages:**
+    - `@agentset/ai-sdk`: Provides the AgenticEngine for agentic RAG workflows
+    - `@ai-sdk/react`: React hooks for chat functionality with streaming support
+    - `agentset`: Core SDK for interacting with your knowledge base
+    - `ai`: AI SDK core with UI message utilities
+  </Step>
+
+  <Step title="Configure Your Language Model">
+    Set up your language model configuration that will be used by the AgenticEngine for query generation, evaluation, and answer synthesis.
+
+    ```typescript lib/llm.ts
+    import { createOpenAI } from '@ai-sdk/openai';
+
+    const openai = createOpenAI({
+      apiKey: process.env.OPENAI_API_KEY,
+    });
+
+    export const llmModel = openai.languageModel('gpt-5.1');
+    ```
+
+    Make sure to add your OpenAI API key to your environment variables:
+    ```bash .env.local
+    OPENAI_API_KEY=your_openai_api_key
+    AGENTSET_API_KEY=your_agentset_api_key
+    AGENTSET_NAMESPACE=your_namespace_id
+    ```
+  </Step>
+
+  <Step title="Create the API Route">
+    Create an API route that handles chat requests using the AgenticEngine with proper message validation and streaming support.
+
+    ```typescript app/api/chat/route.ts
+    import { AgenticEngine } from '@agentset/ai-sdk';
+    import { llmModel } from '@/lib/llm';
+    import { Agentset } from 'agentset';
+    import {
+      convertToModelMessages,
+      createUIMessageStreamResponse,
+      validateUIMessages,
+    } from 'ai';
+
+    const agentset = new Agentset({
+      apiKey: process.env.AGENTSET_API_KEY!,
+    });
+    const ns = agentset.namespace(process.env.AGENTSET_NAMESPACE!);
+
+    export const POST = async (req: Request) => {
+      const { messages: uiMessages } = await req.json();
+
+      const validated = await validateUIMessages({ messages: uiMessages });
+      const modelMessages = convertToModelMessages(validated);
+
+      const stream = AgenticEngine(
+        ns,
+        {
+          messages: modelMessages,
+          generateQueriesStep: { model: llmModel },
+          evaluateQueriesStep: { model: llmModel },
+          answerStep: { model: llmModel },
+        },
+        {
+          onError(error) {
+            console.log(error);
+            return 'Error';
+          },
+        },
+      );
+
+      return createUIMessageStreamResponse({ stream });
+    };
+    ```
+
+    **Key features:**
+    - **Message validation**: Ensures UI messages are properly formatted
+    - **Streaming response**: Provides real-time updates during the agentic process
+    - **Error handling**: Graceful error management with custom error messages
+    - **Three-step process**: Query generation → evaluation → answer synthesis
+  </Step>
+
+  <Step title="Build the Frontend Chat Interface">
+    Create a React component that provides a complete chat interface with support for agentic RAG status updates and query visibility.
+
+    ```typescript app/page.tsx
+    'use client';
+
+    import { useChat } from '@ai-sdk/react';
+    import type { AgentsetUIMessage } from '@agentset/ai-sdk';
+    import { useState } from 'react';
+    import { DefaultChatTransport } from 'ai';
+
+    export default function Home() {
+      const [input, setInput] = useState('');
+      const { messages, sendMessage } = useChat<AgentsetUIMessage>({
+        transport: new DefaultChatTransport({
+          api: '/api/chat',
+          prepareSendMessagesRequest({ messages, body }) {
+            return {
+              body: {
+                messages,
+                ...body,
+              },
+            };
+          },
+        }),
+
+        experimental_throttle: 100,
+        onError: () => {
+          console.error('An error occurred, please try again!');
+        },
+      });
+
+      const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+        const trimmedInput = input.trim();
+        if (trimmedInput === '') return;
+
+        e.preventDefault();
+        sendMessage({ text: trimmedInput });
+        setInput('');
+      };
+
+      return (
+        <div className='bg-white w-full min-h-screen text-black'>
+          <div className='max-w-7xl w-full min-h-svh mx-auto flex flex-col'>
+            <div className='flex-1 overflow-y-auto pt-10 flex flex-col gap-2'>
+              {messages.map(message => {
+                const status = message.parts.find(part => part.type === 'data-status');
+                const queries = message.parts.findLast(part => part.type === 'data-queries');
+
+                return (
+                  <div
+                    key={message.id}
+                    className={`${
+                      message.role === 'user'
+                        ? 'bg-blue-500 text-white p-2 rounded-md self-end w-fit'
+                        : 'bg-white p-2 rounded-md'
+                    }`}
+                  >
+                    {status ? <p>Status: {status.data}</p> : null}
+                    {queries ? <p>Queries: {queries.data.join(', ')}</p> : null}
+
+                    {message.parts.map((part, index) => {
+                      if (part.type === 'text') {
+                        const key = `message-${message.id}-part-${index}`;
+                        return <div key={key}>{part.text}</div>;
+                      }
+
+                      return null;
+                    })}
+                  </div>
+                );
+              })}
+            </div>
+
+            <form onSubmit={handleSubmit} className='flex items-center gap-2 mb-5'>
+              <input
+                placeholder='Ask a question'
+                value={input}
+                onChange={e => setInput(e.target.value)}
+                className='bg-white p-2 rounded-md flex-1 border border-gray-300'
+              />
+              <button type='submit' className='bg-blue-500 text-white p-2 rounded-md'>
+                Send
+              </button>
+            </form>
+          </div>
+        </div>
+      );
+    }
+    ```
+
+    **Enhanced features:**
+    - **Status updates**: Shows real-time progress of the agentic process
+    - **Query visibility**: Displays the generated search queries
+    - **Improved UX**: Better styling and responsive design
+    - **Type safety**: Uses `AgentsetUIMessage` type for better TypeScript support
+  </Step>
+
+  <Step title="Test Your Agentic RAG Application">
+    Start your Next.js application and test the agentic RAG functionality:
+
+    ```bash
+    npm run dev
+    ```
+
+    Your chat application will now:
+    1. **Generate queries** from user messages automatically
+    2. **Search your knowledge base** using the generated queries
+    3. **Evaluate results** and determine if more information is needed
+    4. **Synthesize answers** based on retrieved information
+    5. **Stream responses** with real-time status updates
+
+    Try asking complex questions that require multiple pieces of information from your knowledge base to see the agentic workflow in action.
+  </Step>
+</Steps>
+
+## Advanced Configuration
+
+The AgenticEngine supports several optional parameters for fine-tuning:
+
+- **`maxEvals`**: Maximum number of evaluation rounds (default: 3)
+- **`tokenBudget`**: Token budget for the entire process (default: 4096)
+- **`queryOptions`**: Search configuration like `topK`, `rerankLimit`, and `rerank` settings
+
+```typescript
+const stream = AgenticEngine(ns, {
+  messages: modelMessages,
+  generateQueriesStep: { model: llmModel },
+  evaluateQueriesStep: { model: llmModel },
+  answerStep: { model: llmModel },
+  maxEvals: 5,
+  tokenBudget: 8192,
+  queryOptions: { topK: 100, rerankLimit: 20, rerank: true }
+});
+```
+
+## Next steps
+
+- [API Reference](/api-reference/endpoint/search) — Search endpoint parameters and options
+- [Citations](/search-and-retrieval/citations) — Add source attribution to responses
+- [Ranking](/search-and-retrieval/ranking) — Customize result ranking

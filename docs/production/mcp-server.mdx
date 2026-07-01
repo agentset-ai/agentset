@@ -1,0 +1,73 @@
+---
+title: 'MCP Server'
+description: 'Documentation for the MCP Server Protocol'
+---
+
+The MCP Server Protocol allows you to run a local server that can be used with Claude and other AI assistants to access your data.
+
+## Installation
+
+Run the Agentset MCP server with your preferred package manager:
+
+<CodeGroup>
+```bash npm
+AGENTSET_API_KEY=your-api-key npx @agentset/mcp --ns your-namespace-id
+```
+
+```bash yarn
+AGENTSET_API_KEY=your-api-key yarn dlx @agentset/mcp --ns your-namespace-id
+```
+
+```bash pnpm
+AGENTSET_API_KEY=your-api-key pnpm dlx @agentset/mcp --ns your-namespace-id
+```
+
+```bash bun
+AGENTSET_API_KEY=your-api-key bunx @agentset/mcp --ns your-namespace-id
+```
+
+</CodeGroup>
+
+## Adding to Claude
+
+To add the MCP server to Claude, include the following configuration in your Claude settings:
+
+```json
+{
+  "mcpServers": {
+    "agentset": {
+      "command": "npx",
+      "args": ["-y", "@agentset/mcp@latest"],
+      "env": {
+        "AGENTSET_API_KEY": "agentset_xxx",
+        "AGENTSET_NAMESPACE_ID": "ns_xxx"
+      }
+    }
+  }
+}
+```
+
+## Tips
+
+### Passing namespace id as an environment variable
+
+```bash
+AGENTSET_API_KEY=your-api-key AGENTSET_NAMESPACE_ID=your-namespace-id npx @agentset/mcp
+```
+
+### Passing a custom tool description
+
+```bash
+AGENTSET_API_KEY=your-api-key npx @agentset/mcp --ns your-namespace-id -d "Your custom tool description"
+```
+
+### Passing a tenant id
+
+```bash
+AGENTSET_API_KEY=your-api-key npx @agentset/mcp --ns your-namespace-id -t your-tenant-id
+```
+
+## Next steps
+
+- [Search](/search-and-retrieval/search) — Learn about search configuration options
+- [Data Segregation](/production/data-segregation) — Use tenant IDs for multi-tenant applications

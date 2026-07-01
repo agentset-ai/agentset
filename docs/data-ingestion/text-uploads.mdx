@@ -1,0 +1,123 @@
+---
+title: "Text Uploads"
+description: "Upload text directly to Agentset"
+---
+
+Upload text to Agentset. This is useful when you're pulling content from databases or APIs, have your own document processing pipeline, or need to ingest user-generated content.
+
+## Basic text upload
+
+<CodeGroup>
+```typescript TypeScript
+import { Agentset } from "agentset";
+
+const agentset = new Agentset({
+  apiKey: process.env.AGENTSET_API_KEY,
+});
+
+const ns = agentset.namespace("YOUR_NAMESPACE_ID");
+
+const job = await ns.ingestion.create({
+  payload: {
+    type: "TEXT",
+    text: "Your content goes here. This can be any text you want to make searchable.",
+  },
+});
+
+console.log(`Upload started: ${job.id}`);
+```
+
+```python Python
+import os
+from agentset import Agentset
+
+client = Agentset(
+    namespace_id="YOUR_NAMESPACE_ID",
+    token=os.environ["AGENTSET_API_KEY"],
+)
+
+job = client.ingest_jobs.create(
+    payload={
+        "type": "TEXT",
+        "text": "Your content goes here. This can be any text you want to make searchable.",
+    }
+)
+
+print(f"Upload started: {job.data.id}")
+```
+</CodeGroup>
+
+## Adding a file name
+
+You can optionally provide a `fileName` to identify the text content in your namespace.
+
+<CodeGroup>
+```typescript TypeScript
+const job = await ns.ingestion.create({
+  payload: {
+    type: "TEXT",
+    text: "Meeting notes from Q4 planning session...",
+    fileName: "q4-planning-notes.txt",
+  },
+});
+```
+
+```python Python
+job = client.ingest_jobs.create(
+    payload={
+        "type": "TEXT",
+        "text": "Meeting notes from Q4 planning session...",
+        "fileName": "q4-planning-notes.txt",
+    }
+)
+```
+</CodeGroup>
+
+## With metadata
+
+Attach metadata to your text for [filtering](/search-and-retrieval/filtering) during search.
+
+<CodeGroup>
+```typescript TypeScript
+const job = await ns.ingestion.create({
+  payload: {
+    type: "TEXT",
+    text: "Product documentation for the v2.0 release...",
+    fileName: "v2-docs.txt",
+  },
+  config: {
+    metadata: {
+      version: "2.0",
+      category: "documentation",
+    },
+  },
+});
+```
+
+```python Python
+job = client.ingest_jobs.create(
+    payload={
+        "type": "TEXT",
+        "text": "Product documentation for the v2.0 release...",
+        "fileName": "v2-docs.txt",
+    },
+    config={
+        "metadata": {
+            "version": "2.0",
+            "category": "documentation",
+        },
+    },
+)
+```
+</CodeGroup>
+
+<Info>
+  Text uploads are processed asynchronously. Learn how to [check upload status](/data-ingestion/upload-status).
+</Info>
+
+## Next steps
+
+- [API Reference](/api-reference/endpoint/ingest-jobs/create) — Text upload parameters and options
+- [Document Metadata](/data-ingestion/document-metadata) — Learn more about metadata filtering
+- [Chunking Settings](/data-ingestion/chunking-settings) — Configure how text is split into chunks
+- [Search](/search-and-retrieval/search) — Query your uploaded content

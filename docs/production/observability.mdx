@@ -1,0 +1,313 @@
+---
+title: "Observability"
+description: "Trace and monitor your RAG pipeline"
+---
+
+RAG systems have multiple failure modes. When answers are wrong, the problem could be poor retrieval, LLM hallucination, or a weak system prompt. Without visibility into each step, you're debugging blind.
+
+Observability helps you:
+
+- **Find root causes** — Determine if bad answers stem from missing chunks or generation errors.
+- **Improve accuracy** — Identify failing queries and adjust prompts, or the search configuration.
+- **Track latency** — Measure time spent in retrieval vs generation to optimize the right component.
+- **Collect feedback** — Use thumbs up/down signals from users to surface problem areas.
+
+Agentset integrates with observability tools like [Langfuse](https://langfuse.com) and [Helicone](https://helicone.ai) to trace your RAG pipeline.
+
+## Tracing with Langfuse
+
+Langfuse traces LLM calls through OpenTelemetry. The patterns below reflect the [v5 JS/TS SDK](https://langfuse.com/docs/observability/sdk/typescript/instrumentation) and the [Python SDK](https://langfuse.com/docs/observability/sdk/python/instrumentation).
+
+### Initialize tracing
+
+Register the Langfuse span processor once at startup, before your application code runs. Only enable tracing when the keys are set so the SDK is a no-op in environments without credentials.
+
+<CodeGroup>
+```typescript instrumentation.ts
+import { LangfuseSpanProcessor } from "@langfuse/otel";
+import { NodeTracerProvider } from "@opentelemetry/sdk-trace-node";
+
+let provider: NodeTracerProvider | null = null;
+
+if (process.env.LANGFUSE_PUBLIC_KEY && process.env.LANGFUSE_SECRET_KEY) {
+  provider = new NodeTracerProvider({
+    spanProcessors: [
+      new LangfuseSpanProcessor({
+        publicKey: process.env.LANGFUSE_PUBLIC_KEY,
+        secretKey: process.env.LANGFUSE_SECRET_KEY,
+        baseUrl: process.env.LANGFUSE_BASE_URL,
+        // Redact secrets before they leave your infrastructure.
+        mask: ({ data }) =>
+          typeof data === "string"
+            ? data.replace(/Bearer\s+[A-Za-z0-9\-._~+/]+=*/gi, "Bearer [REDACTED]")
+            : data,
+      }),
+    ],
+  });
+  provider.register();
+}
+
+// Flush pending traces on graceful shutdown so none are lost.
+export const shutdownTracing = () => provider?.shutdown();
+```
+
+```python main.py
+import os
+from langfuse import get_client
+
+# Reads LANGFUSE_PUBLIC_KEY, LANGFUSE_SECRET_KEY, and LANGFUSE_HOST from the environment.
+langfuse = get_client()
+
+# Flush pending traces on graceful shutdown so none are lost.
+# langfuse.flush()
+```
+</CodeGroup>
+
+### Trace LLM calls
+
+With the AI SDK, set `experimental_telemetry` to capture each call as a generation. Use `functionId` to label the step and `metadata` to attach context you can filter on later. In Python, the `@observe` decorator traces the wrapped function; LLM calls are captured automatically through the [Langfuse OpenAI wrapper](https://langfuse.com/docs/integrations/openai).
+
+<CodeGroup>
+```typescript TypeScript
+import { Agentset } from "agentset";
+import { generateText } from "ai";
+import { openai } from "@ai-sdk/openai";
+
+const agentset = new Agentset();
+const ns = agentset.namespace("YOUR_NAMESPACE_ID");
+
+async function ragBot(question: string) {
+  const results = await ns.search(question);
+  const context = results.map((r) => r.text).join("\n\n");
+
+  const { text } = await generateText({
+    model: openai("gpt-5.1"),
+    system: `Answer based on this context:\n\n${context}`,
+    prompt: question,
+    experimental_telemetry: {
+      isEnabled: true,
+      functionId: "rag-answer",
+      metadata: { feature: "chat" },
+    },
+  });
+
+  return text;
+}
+```
+
+```python Python
+from langfuse.openai import openai
+from langfuse import observe
+from agentset import Agentset
+
+client = Agentset(namespace_id="YOUR_NAMESPACE_ID")
+
+@observe()
+def rag_bot(question: str):
+    results = client.search.execute(query=question)
+    context = "\n\n".join([r.text for r in results.data])
+
+    response = openai.responses.create(
+        model="gpt-5.1",
+        input=[
+            {"role": "system", "content": f"Answer based on this context:\n\n{context}"},
+            {"role": "user", "content": question},
+        ],
+    )
+
+    return response.output_text
+```
+</CodeGroup>
+
+### Group traces by session and user
+
+For multi-step or [agentic](/search-and-retrieval/agentic-search) flows, set trace-level attributes once so every search and generation in the request lands in the same trace. Setting a `sessionId` groups the turns of one conversation; `userId` lets you trace activity per user. Call this as early as possible in the request.
+
+<CodeGroup>
+```typescript TypeScript
+import { observe, propagateAttributes } from "@langfuse/tracing";
+
+const handleChatTurn = observe(
+  async (question: string, ctx: { chatId: string; userId: string }) => {
+    return propagateAttributes(
+      {
+        sessionId: ctx.chatId,
+        userId: ctx.userId,
+        tags: ["chat"],
+      },
+      async () => ragBot(question),
+    );
+  },
+  { name: "chat-message" },
+);
+```
+
+```python Python
+from langfuse import observe, get_client
+
+langfuse = get_client()
+
+@observe(name="chat-message")
+def handle_chat_turn(question: str, chat_id: str, user_id: str):
+    langfuse.update_current_trace(session_id=chat_id, user_id=user_id, tags=["chat"])
+    return rag_bot(question)
+```
+</CodeGroup>
+
+### Link prompts to traces
+
+If you manage system prompts in [Langfuse prompt management](https://langfuse.com/docs/prompts), link the prompt version to each generation. This tracks quality and cost per prompt version so you can compare iterations. Pass the prompt object through telemetry metadata as `langfusePrompt`.
+
+<CodeGroup>
+```typescript TypeScript
+import { LangfuseClient } from "@langfuse/client";
+import { generateText } from "ai";
+import { openai } from "@ai-sdk/openai";
+
+const langfuse = new LangfuseClient();
+
+async function ragBot(question: string) {
+  const prompt = await langfuse.prompt.get("rag-system-prompt");
+
+  const results = await ns.search(question);
+  const context = results.map((r) => r.text).join("\n\n");
+
+  const { text } = await generateText({
+    model: openai("gpt-5.1"),
+    system: prompt.compile({ context }),
+    prompt: question,
+    experimental_telemetry: {
+      isEnabled: true,
+      functionId: "rag-answer",
+      metadata: { langfusePrompt: prompt.toJSON() },
+    },
+  });
+
+  return text;
+}
+```
+
+```python Python
+from langfuse.openai import openai
+from langfuse import observe, get_client
+
+langfuse = get_client()
+
+@observe()
+def rag_bot(question: str):
+    prompt = langfuse.get_prompt("rag-system-prompt")
+
+    results = client.search.execute(query=question)
+    context = "\n\n".join([r.text for r in results.data])
+
+    return openai.responses.create(
+        model="gpt-5.1",
+        input=[
+            {"role": "system", "content": prompt.compile(context=context)},
+            {"role": "user", "content": question},
+        ],
+        langfuse_prompt=prompt,
+    ).output_text
+```
+</CodeGroup>
+
+### Log search results
+
+To inspect retrieval quality separately from generation, capture the search as its own observation within the trace. This shows which chunks were retrieved and their scores alongside the answer.
+
+<CodeGroup>
+```typescript TypeScript
+import { startObservation } from "@langfuse/tracing";
+
+async function search(question: string) {
+  const span = startObservation("retrieval", { input: question });
+  const results = await ns.search(question);
+  span.update({ output: results.map((r) => ({ id: r.id, score: r.score })) });
+  span.end();
+
+  return results;
+}
+```
+
+```python Python
+from langfuse import observe, get_client
+
+langfuse = get_client()
+
+@observe()
+def rag_bot(question: str):
+    with langfuse.start_as_current_observation(name="retrieval", input=question) as span:
+        results = client.search.execute(query=question)
+        span.update(output=[{"id": r.id, "score": r.score} for r in results.data])
+
+    # Continue with LLM call...
+```
+</CodeGroup>
+
+## Tracing with Helicone
+
+Helicone traces LLM calls through a proxy. Change your OpenAI base URL to route requests through Helicone.
+
+<CodeGroup>
+```typescript TypeScript
+import { Agentset } from "agentset";
+import { generateText } from "ai";
+import { createOpenAI } from "@ai-sdk/openai";
+
+const agentset = new Agentset();
+const ns = agentset.namespace("YOUR_NAMESPACE_ID");
+
+const openai = createOpenAI({
+  baseURL: "https://oai.helicone.ai/v1",
+  headers: {
+    "Helicone-Auth": `Bearer ${process.env.HELICONE_API_KEY}`,
+  },
+});
+
+async function ragBot(question: string) {
+  const results = await ns.search(question);
+  const context = results.map((r) => r.text).join("\n\n");
+
+  const { text } = await generateText({
+    model: openai("gpt-5.1"),
+    system: `Answer based on this context:\n\n${context}`,
+    prompt: question,
+  });
+
+  return text;
+}
+```
+
+```python Python
+from openai import OpenAI
+from agentset import Agentset
+import os
+
+client = Agentset(namespace_id="YOUR_NAMESPACE_ID")
+
+openai = OpenAI(
+    base_url="https://oai.helicone.ai/v1",
+    default_headers={"Helicone-Auth": f"Bearer {os.environ['HELICONE_API_KEY']}"},
+)
+
+def rag_bot(question: str):
+    results = client.search.execute(query=question)
+    context = "\n\n".join([r.text for r in results.data])
+
+    response = openai.responses.create(
+        model="gpt-5.1",
+        input=[
+            {"role": "system", "content": f"Answer based on this context:\n\n{context}"},
+            {"role": "user", "content": question},
+        ],
+    )
+
+    return response.output_text
+```
+</CodeGroup>
+
+## Next steps
+
+- [Search](/search-and-retrieval/search) — Configure search parameters
+- [Ranking](/search-and-retrieval/ranking) — Improve retrieval quality with reranking
+- [Data Segregation](/production/data-segregation) — Isolate data for multi-tenant applications

@@ -1,0 +1,138 @@
+---
+title: "Citations"
+description: "Include source citations in your RAG responses"
+---
+
+Add source citations to your RAG responses so users can verify information and explore the original documents. Citations link each statement in the generated response back to the specific chunk it came from.
+
+## Number your context chunks
+
+Include a number with each chunk in your context so the model can reference them.
+
+<CodeGroup>
+```typescript TypeScript
+import { Agentset } from "agentset";
+
+const agentset = new Agentset({
+  apiKey: process.env.AGENTSET_API_KEY,
+});
+
+const ns = agentset.namespace("YOUR_NAMESPACE_ID");
+
+const results = await ns.search("What is multi-head attention?");
+
+// Format chunks with numbers for citation
+const context = results
+  .map((r, i) => `[${i + 1}] ${r.text}`)
+  .join("\n\n");
+```
+
+```python Python
+import os
+from agentset import Agentset
+
+client = Agentset(
+    namespace_id="YOUR_NAMESPACE_ID",
+    token=os.environ["AGENTSET_API_KEY"],
+)
+
+results = client.search.execute(query="What is multi-head attention?")
+
+# Format chunks with numbers for citation
+context = "\n\n".join([f"[{i + 1}] {r.text}" for i, r in enumerate(results.data)])
+```
+</CodeGroup>
+
+This produces context like:
+
+```
+[1] Multi-head attention allows the model to jointly attend to information...
+
+[2] The Transformer uses multi-head attention in three different ways...
+```
+
+## Instruct the model to cite sources
+
+Use a system prompt that tells the model to include citation numbers in its response.
+
+```typescript
+import { generateText } from "ai";
+import { openai } from "@ai-sdk/openai";
+
+const systemPrompt = `You are an AI assistant. Answer questions based ONLY on the provided context.
+
+Guidelines:
+1. If the context does not contain information to answer the query, state clearly: "I cannot answer this question based on the available information."
+2. Only use information directly stated in the context—do not infer or add external knowledge.
+3. Citations are mandatory for every factual statement. Place the chunk number in brackets immediately after the statement with no space, like this: "The temperature is 20 degrees[3]"
+4. When helpful, include relevant quotes from the context with citations.
+5. Do not preface responses with "based on the context"—simply provide the cited answer.
+
+Context:
+${context}`;
+
+const { text } = await generateText({
+  model: openai("gpt-5.1"),
+  system: systemPrompt,
+  prompt: "What is multi-head attention?",
+});
+
+console.log(text);
+```
+
+The model will respond with inline citations:
+
+```
+Multi-head attention allows the model to jointly attend to information
+from different representation subspaces[1]. The Transformer uses this
+mechanism in three ways: encoder-decoder attention, encoder self-attention,
+and decoder self-attention[2].
+```
+
+## Render citations in your UI
+
+Parse the bracket notation and render citations as clickable elements. Use a regex to find citation patterns and replace them with interactive components.
+
+```tsx
+const CITATION_REGEX = /\[(\d+)\]/g;
+
+function renderWithCitations(text: string, sources: SearchResult[]) {
+  const parts = [];
+  let lastIndex = 0;
+  let match;
+
+  while ((match = CITATION_REGEX.exec(text)) !== null) {
+    // Add text before the citation
+    if (match.index > lastIndex) {
+      parts.push(text.slice(lastIndex, match.index));
+    }
+
+    // Add clickable citation
+    const num = parseInt(match[1], 10);
+    parts.push(
+      <button
+        key={match.index}
+        onClick={() => scrollToSource(sources[num - 1])}
+        className="text-blue-500 hover:underline"
+      >
+        [{num}]
+      </button>
+    );
+
+    lastIndex = match.index + match[0].length;
+  }
+
+  // Add remaining text
+  if (lastIndex < text.length) {
+    parts.push(text.slice(lastIndex));
+  }
+
+  return parts;
+}
+```
+
+## Next steps
+
+- [API Reference](/api-reference/endpoint/search) — Search endpoint parameters and options
+- [Agentic Search](/search-and-retrieval/agentic-search) — Let the model search on its own for complex questions
+- [Ranking](/search-and-retrieval/ranking) — Improve citation relevance with reranking

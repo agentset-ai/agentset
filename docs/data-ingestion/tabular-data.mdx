@@ -1,0 +1,119 @@
+---
+title: "Tabular Data"
+description: "Ingest spreadsheets, CSVs, and tables embedded in documents"
+---
+
+Agentset processes tabular data so that rows stay intact and headers remain associated with their values. This makes spreadsheets, CSVs, and tables embedded in documents searchable without losing structure.
+
+## Formats
+
+Agentset detects tabular data in two ways:
+
+| Method | Description |
+| :--- | :--- |
+| **Spreadsheet files** | Upload CSV, Excel (`.xls`, `.xlsx`), or OpenDocument (`.ods`) files directly. |
+| **Tables in documents** | Tables embedded in PDFs, Word docs, and presentations are automatically detected and extracted. |
+
+Both methods preserve table structure automatically—no configuration required.
+
+## Why table-aware processing matters
+
+Standard text chunking breaks tables at arbitrary points, separating headers from their data and splitting rows mid-content. This destroys the relationships that make tabular data meaningful.
+
+Consider a product inventory table:
+
+| Product | SKU | Price | Stock |
+| :--- | :--- | :--- | :--- |
+| Wireless Mouse | WM-001 | $29.99 | 150 |
+| USB Keyboard | KB-002 | $49.99 | 89 |
+| Monitor Stand | MS-003 | $79.99 | 34 |
+| Webcam HD | WC-004 | $89.99 | 67 |
+| USB Hub | UH-005 | $24.99 | 203 |
+| Laptop Stand | LS-006 | $59.99 | 56 |
+
+**Without table-aware processing**, a chunk boundary might fall between rows 3 and 4. Headers are lost from the second chunk.
+
+```text
+Chunk 1:
+"Product SKU Price Stock Wireless Mouse WM-001 $29.99 150 USB Keyboard
+KB-002 $49.99 89 Monitor Stand MS-003 $79.99"
+
+Chunk 2:
+"34 Webcam HD WC-004 $89.99 67 USB Hub UH-005 $24.99 203 Laptop Stand
+LS-006 $59.99 56"
+```
+
+**With Agentset**, chunks are generated as a markdown table, always containing the full header and are not split mid-row.
+
+```text
+Chunk 1:
+| Product        | SKU    | Price  | Stock |
+|----------------|--------|--------|-------|
+| Wireless Mouse | WM-001 | $29.99 | 150   |
+| USB Keyboard   | KB-002 | $49.99 | 89    |
+| Monitor Stand  | MS-003 | $79.99 | 34    |
+
+Chunk 2:
+| Product       | SKU    | Price  | Stock |
+|---------------|--------|--------|-------|
+| Webcam HD     | WC-004 | $89.99 | 67    |
+| USB Hub       | UH-005 | $24.99 | 203   |
+| Laptop Stand  | LS-006 | $59.99 | 56    |
+```
+
+A search for "laptop accessories under $50" can now match relevant rows because each row contains the full context needed for retrieval.
+
+## Upload a spreadsheet
+
+<CodeGroup>
+```typescript TypeScript
+import { Agentset } from "agentset";
+
+const agentset = new Agentset({
+  apiKey: process.env.AGENTSET_API_KEY,
+});
+
+const ns = agentset.namespace("YOUR_NAMESPACE_ID");
+
+const job = await ns.ingestion.create({
+  payload: {
+    type: "FILE",
+    fileUrl: "https://example.com/inventory.csv",
+  },
+});
+
+console.log(`Upload started: ${job.id}`);
+```
+
+```python Python
+import os
+from agentset import Agentset
+
+client = Agentset(
+    namespace_id="YOUR_NAMESPACE_ID",
+    token=os.environ["AGENTSET_API_KEY"],
+)
+
+job = client.ingest_jobs.create(
+    payload={
+        "type": "FILE",
+        "fileUrl": "https://example.com/inventory.csv",
+    }
+)
+
+print(f"Upload started: {job.data.id}")
+```
+</CodeGroup>
+
+Tables embedded in PDFs, Word documents, and presentations are processed the same way—upload the file and Agentset handles the rest. See [File Uploads](/data-ingestion/file-uploads) for uploading local files and other options.
+
+<Info>
+  Tables are automatically detected and processed. No additional configuration is required.
+</Info>
+
+## Next steps
+
+- [API Reference](/api-reference/endpoint/ingest-jobs/create) — Tabular data ingestion parameters
+- [File Uploads](/data-ingestion/file-uploads) — Learn about supported file types and upload methods
+- [Document Metadata](/data-ingestion/document-metadata) — Attach metadata for filtering
+- [Search](/search-and-retrieval/search) — Query your tabular content

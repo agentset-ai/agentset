@@ -1,0 +1,104 @@
+---
+title: "Upload Status"
+description: "Check the status of your document uploads"
+---
+
+Document uploads are processed asynchronously. After uploading, you can check the status to know when processing is complete.
+
+## Checking status
+
+<CodeGroup>
+```typescript TypeScript
+import { Agentset } from "agentset";
+
+const agentset = new Agentset({
+  apiKey: process.env.AGENTSET_API_KEY,
+});
+
+const ns = agentset.namespace("YOUR_NAMESPACE_ID");
+
+const job = await ns.ingestion.get("YOUR_JOB_ID");
+console.log(`Job status: ${job.status}`);
+```
+
+```python Python
+import os
+from agentset import Agentset
+
+client = Agentset(
+    namespace_id="YOUR_NAMESPACE_ID",
+    token=os.environ["AGENTSET_API_KEY"],
+)
+
+job = client.ingest_jobs.get("YOUR_JOB_ID")
+print(f"Job status: {job.data.status}")
+```
+</CodeGroup>
+
+## Polling for completion
+
+For longer-running uploads, you can poll until processing completes or fails.
+
+<CodeGroup>
+```typescript TypeScript
+import { Agentset } from "agentset";
+
+const agentset = new Agentset({
+  apiKey: process.env.AGENTSET_API_KEY,
+});
+
+const ns = agentset.namespace("YOUR_NAMESPACE_ID");
+
+let job = await ns.ingestion.get("YOUR_JOB_ID");
+
+while (job.status !== "COMPLETED" && job.status !== "FAILED") {
+  await new Promise((resolve) => setTimeout(resolve, 10000));
+  job = await ns.ingestion.get("YOUR_JOB_ID");
+  console.log(`Job status: ${job.status}`);
+}
+
+if (job.status === "COMPLETED") {
+  console.log("Job completed successfully!");
+} else {
+  console.log("Job failed");
+}
+```
+
+```python Python
+import os
+import time
+from agentset import Agentset
+
+client = Agentset(
+    namespace_id="YOUR_NAMESPACE_ID",
+    token=os.environ["AGENTSET_API_KEY"],
+)
+
+job = client.ingest_jobs.get("YOUR_JOB_ID")
+
+while job.data.status not in ["COMPLETED", "FAILED"]:
+    time.sleep(10)
+    job = client.ingest_jobs.get("YOUR_JOB_ID")
+    print(f"Job status: {job.data.status}")
+
+if job.data.status == "COMPLETED":
+    print("Job completed successfully!")
+else:
+    print("Job failed")
+```
+</CodeGroup>
+
+## Statuses
+
+| Status | Description |
+| :--- | :--- |
+| `PENDING` | Upload is queued and waiting to be processed |
+| `PROCESSING` | Upload is currently being processed |
+| `COMPLETED` | Upload finished successfully |
+| `FAILED` | Upload encountered an error |
+
+## Next steps
+
+- [API Reference](/api-reference/endpoint/ingest-jobs/get) — Ingest job status endpoint
+- [Search](/search-and-retrieval/search) — Query your uploaded content
+- [Document Metadata](/data-ingestion/document-metadata) — Learn more about metadata filtering

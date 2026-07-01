@@ -1,0 +1,118 @@
+---
+title: "Metadata"
+description: "Add custom metadata to documents for filtering and citations"
+---
+
+Attach metadata to documents to filter search results and provide citations. Metadata is returned with each search result, so you can display source links or restrict results by user, category, or date.
+
+## Adding metadata
+
+Pass metadata in the `config` object when creating an ingest job.
+
+<CodeGroup>
+```typescript TypeScript
+const job = await ns.ingestion.create({
+  payload: {
+    type: "FILE",
+    fileUrl: "https://example.com/report.pdf",
+  },
+  config: {
+    metadata: {
+      department: "engineering",
+      year: 2024,
+      public: true,
+    },
+  },
+});
+```
+
+```python Python
+job = client.ingest_jobs.create(
+    payload={
+        "type": "FILE",
+        "fileUrl": "https://example.com/report.pdf",
+    },
+    config={
+        "metadata": {
+            "department": "engineering",
+            "year": 2024,
+            "public": True,
+        },
+    },
+)
+```
+</CodeGroup>
+
+Metadata values must be primitive types. Nested objects are not supported.
+
+| Type | Example |
+| :--- | :--- |
+| String | `"engineering"` |
+| Number | `2024` |
+| Boolean | `true` |
+
+## Citations and source links
+
+Store source URLs and titles in metadata to display references in AI responses. See [Citations](/search-and-retrieval/citations) for implementation examples.
+
+<CodeGroup>
+```typescript TypeScript
+const job = await ns.ingestion.create({
+  payload: {
+    type: "TEXT",
+    text: "Product documentation for the v2.0 release...",
+  },
+  config: {
+    metadata: {
+      sourceUrl: "https://example.com/docs/v2",
+      title: "v2.0 Release Notes",
+    },
+  },
+});
+```
+
+```python Python
+job = client.ingest_jobs.create(
+    payload={
+        "type": "TEXT",
+        "text": "Product documentation for the v2.0 release...",
+    },
+    config={
+        "metadata": {
+            "sourceUrl": "https://example.com/docs/v2",
+            "title": "v2.0 Release Notes",
+        },
+    },
+)
+```
+</CodeGroup>
+
+## Filtering by metadata
+
+Use metadata to filter search results. See [Filtering](/search-and-retrieval/filtering) for examples including multi-tenant filtering, combining multiple conditions, and more.
+
+<CodeGroup>
+```typescript TypeScript
+const results = await ns.search("quarterly results", {
+  filter: {
+    department: "engineering",
+  },
+});
+```
+
+```python Python
+results = client.search.execute(
+    query="quarterly results",
+    filter={
+        "department": "engineering",
+    },
+)
+```
+</CodeGroup>
+
+## Next steps
+
+- [API Reference](/api-reference/endpoint/ingest-jobs/create) — Metadata parameters and options
+- [Filtering](/search-and-retrieval/filtering) — Filter search results by metadata
+- [Search](/search-and-retrieval/search) — Learn more about search options
+- [Data Segregation](/production/data-segregation) — Strategies for isolating data between tenants

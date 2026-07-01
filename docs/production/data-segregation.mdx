@@ -1,0 +1,115 @@
+---
+title: "Data Segregation"
+description: "Keep your users' data separate in multi-tenant applications"
+---
+
+When building apps where multiple users or customers share the same infrastructure, you need to keep their data separate. Agentset supports two approaches:
+
+- **Metadata filtering** — Tag documents with ownership, filter at query time.
+- **Tenant isolation** — Full database-level separation between customers.
+
+## Metadata filtering
+
+All data lives in the same tenant, you tag each document with ownership metadata. When searching, you filter to only return that user's data.
+
+This approach is easier to manage. You enforce access control in your backend by validating the user's access permissions.
+
+<CodeGroup>
+```typescript TypeScript
+await ns.search("quarterly report", {
+  filter: {
+    $or: [
+      { ownerId: user.id },
+      { teamId: user.teamId },
+      { visibility: "public" },
+    ],
+  },
+});
+```
+
+```python Python
+client.search.execute(
+    query="quarterly report",
+    filter={
+        "$or": [
+            {"ownerId": user.id},
+            {"teamId": user.team_id},
+            {"visibility": "public"},
+        ],
+    },
+)
+```
+</CodeGroup>
+
+See [Filtering](/search-and-retrieval/filtering) for more options.
+
+## Tenant isolation
+
+Tenant isolation provides full database-level isolation. Namespaces within your organization are standalone tenants.
+
+Within a single namespace, you can further manage tenants using the `x-tenant-id` header.
+
+### Using the tenant ID header
+
+Pass the `x-tenant-id` header on every request to scope it to a specific tenant. You must include this header when both ingesting and searching. Queries without a tenant ID uses the namespace's default tenant ID.
+
+<CodeGroup>
+```typescript TypeScript
+await ns.ingestion.create(
+  {
+    payload: { type: "TEXT", text: "Document content..." },
+  },
+  {
+    tenantId: "customer_123",
+  },
+);
+```
+
+```python Python
+client = Agentset(
+    namespace_id="YOUR_NAMESPACE_ID",
+    token=os.environ["AGENTSET_API_KEY"],
+    tenant_id="customer_123",
+)
+
+client.ingest_jobs.create(
+    payload={"type": "TEXT", "text": "Document content..."},
+)
+```
+</CodeGroup>
+
+Use the same header when searching to retrieve only that tenant's documents.
+
+<CodeGroup>
+```typescript TypeScript
+await ns.search(
+  "quarterly report",
+  {
+    topK: 10,
+  },
+  {
+    tenantId: "customer_123",
+  },
+);
+```
+
+```python Python
+client = Agentset(
+    namespace_id="YOUR_NAMESPACE_ID",
+    token=os.environ["AGENTSET_API_KEY"],
+    tenant_id="customer_123",
+)
+client.search.execute(
+    query="quarterly report",
+    top_k=10,
+)
+```
+</CodeGroup>
+
+Keep in mind that queries are scoped to a single tenant. If tenants need to share data, consider metadata filtering instead or store shared content separately.
+
+## Next steps
+
+- [API Reference](/api-reference/endpoint/search) — Search endpoint parameters and options
+- [Document Metadata](/data-ingestion/document-metadata) — Add metadata during ingestion
+- [Filtering](/search-and-retrieval/filtering) — Filter search results by metadata

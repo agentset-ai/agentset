@@ -1,0 +1,685 @@
+---
+title: "YouTube Knowledge Base"
+description: "Ingest YouTube playlists and videos, then build smart Q&A and video recommendations on top of the transcripts"
+---
+
+YouTube holds a wealth of knowledge: conference talks, podcasts, tutorials. Finding specific insights means scrubbing through hours of video. This cookbook shows you how to ingest YouTube content and turn it into a searchable knowledge base.
+
+**What you'll build:**
+
+1. **YouTube ingestion** that extracts transcripts from playlists and individual videos
+2. **Smart Q&A** that routes questions to the right source type automatically
+3. **Video recommendations** that surface relevant videos instead of synthesized answers
+
+We'll use AI engineering content as our example dataset: conference talks from AI Engineer World's Fair and podcast episodes. By the end, you'll have a system that understands when to cite technical deep-dives vs. practitioner discussions.
+
+## Prerequisites
+
+Before starting, ensure you have:
+
+- An Agentset account with a namespace and API key ([API Reference](/api-reference/tokens))
+- An OpenAI API key for response generation
+- The Agentset SDK installed (`npm install agentset` or `pip install agentset`)
+
+## YouTube content we'll ingest
+
+We'll ingest two types of YouTube content: a conference playlist (12 videos) and individual podcast episodes. Each will be tagged with metadata for smart routing later.
+
+<Tabs>
+  <Tab title="Conference Talks">
+    <Card icon="microphone" href="https://www.youtube.com/playlist?list=PLcfpQ4tk2k0W3T87n_MZGaV9WfWOmEWtQ">
+      Search & Retrieval track from AI Engineer World's Fair 2025 — 12 talks covering RAG, vector search, agent memory, and production AI systems
+    </Card>
+  </Tab>
+  <Tab title="Podcasts">
+    <CardGroup cols={2}>
+      <Card icon="podcast" href="https://youtu.be/ZWEOX610WEY">Inside GitHub's AI Revolution: Jared Palmer on Agent HQ & Coding Agents</Card>
+      <Card icon="podcast" href="https://youtu.be/eKuFqQKYRrA">AI prompt engineering in 2025: What works and what doesn't</Card>
+    </CardGroup>
+  </Tab>
+</Tabs>
+
+## Step 1: Ingest a YouTube playlist
+
+Pass a playlist URL and the ingestion automatically extracts each video's transcript, chunks it, and creates embeddings. We'll tag this content as `conference` for routing later.
+
+We will ingest this YouTube playlist
+<Frame>
+  <img src="/images/cookbooks/youtube-knowledge-base/playlist.png" alt="YouTube playlist" />
+</Frame>
+
+<CodeGroup>
+```typescript TypeScript
+import { Agentset } from "agentset";
+
+const agentset = new Agentset({
+  apiKey: process.env.AGENTSET_API_KEY,
+});
+
+const ns = agentset.namespace("ns_xxxx");
+
+const conferenceJob = await ns.ingestion.create({
+  name: "AI Engineer World's Fair - Search & Retrieval Track",
+  payload: {
+    type: "YOUTUBE",
+    urls: ["https://www.youtube.com/playlist?list=PLcfpQ4tk2k0W3T87n_MZGaV9WfWOmEWtQ"],
+    includeMetadata: true,
+  },
+  config: {
+    metadata: {
+      source_type: "conference",
+    },
+  },
+});
+
+console.log(`Conference ingestion started: ${conferenceJob.id}`);
+```
+
+```python Python
+import os
+from agentset import Agentset
+
+client = Agentset(
+    namespace_id="ns_xxxx",
+    token=os.environ["AGENTSET_API_KEY"],
+)
+
+conference_job = client.ingest_jobs.create(
+    name="AI Engineer World's Fair - Search & Retrieval Track",
+    payload={
+        "type": "YOUTUBE",
+        "urls": ["https://www.youtube.com/playlist?list=PLcfpQ4tk2k0W3T87n_MZGaV9WfWOmEWtQ"],
+        "includeMetadata": True,
+    },
+    config={
+        "metadata": {
+            "source_type": "conference",
+        },
+    },
+)
+
+print(f"Conference ingestion started: {conference_job.data.id}")
+```
+</CodeGroup>
+
+<Info>
+Each video in the playlist becomes a separate document with its own metadata (title, URL, duration). Transcripts are extracted and chunked automatically.
+</Info>
+
+## Step 2: Ingest individual YouTube videos
+
+You can also ingest individual video URLs. Here we'll add some podcast episodes and tag them as `podcast` to distinguish them from the conference playlist.
+
+We will ingest these YouTube videos
+<Tabs>
+  <Tab title="Video 1">
+    <Frame>
+      <img src="/images/cookbooks/youtube-knowledge-base/video-1.png" alt="YouTube podcast episodes" />
+    </Frame>
+  </Tab>
+  <Tab title="Video 2">
+    <Frame>
+      <img src="/images/cookbooks/youtube-knowledge-base/video-2.png" alt="YouTube podcast episodes" />
+    </Frame>
+  </Tab>
+</Tabs>
+<CodeGroup>
+```typescript TypeScript
+const podcastJob = await ns.ingestion.create({
+  name: "Podcast Episodes",
+  payload: {
+    type: "YOUTUBE",
+    urls: [
+      "https://youtu.be/ZWEOX610WEY",
+      "https://youtu.be/eKuFqQKYRrA",
+    ],
+    includeMetadata: true,
+  },
+  config: {
+    metadata: {
+      source_type: "podcast",
+    },
+  },
+});
+
+console.log(`Podcast ingestion started: ${podcastJob.id}`);
+```
+
+```python Python
+podcast_job = client.ingest_jobs.create(
+    name="Podcast Episodes",
+    payload={
+        "type": "YOUTUBE",
+        "urls": [
+            "https://youtu.be/ZWEOX610WEY",
+            "https://youtu.be/eKuFqQKYRrA",
+        ],
+        "includeMetadata": True,
+    },
+    config={
+        "metadata": {
+            "source_type": "podcast",
+        },
+    },
+)
+
+print(f"Podcast ingestion started: {podcast_job.data.id}")
+```
+</CodeGroup>
+
+<Info>
+Wait for both ingestion jobs to complete before searching. Check status [via the API](/api-reference/endpoint/ingest-jobs/get#response-data-status) or on the dashboard.
+</Info>
+
+## Step 3: Basic search
+
+Run a quick search to verify everything is ingested.
+
+<CodeGroup>
+```typescript TypeScript
+const results = await ns.search("How do I architect memory for AI agents?");
+
+console.log(results.map((r) => r.text).join("\n\n"));
+```
+
+```python Python
+results = client.search.execute(query="How do I architect memory for AI agents?")
+
+print("\n\n".join([r.text for r in results.data]))
+```
+</CodeGroup>
+
+{/* <Accordion title="Output">
+</Accordion> */}
+
+This returns results from all sources. Let's make it smarter by routing questions to the right source automatically.
+
+## Step 4: Smart source routing
+
+Not all questions need both sources. Technical *"how do I implement X"* questions benefit from conference talks. Questions about real-world experiences and opinions benefit from podcasts. Let's build a router that classifies questions and searches the right source.
+
+### Classify the question type
+
+Use an LLM to classify each question into one of three categories:
+
+<CodeGroup>
+```typescript TypeScript
+import { generateObject } from "ai";
+import { openai } from "@ai-sdk/openai";
+import { z } from "zod";
+
+const classificationSchema = z.object({
+  type: z.enum(["TECHNICAL", "OPINION", "BOTH"]),
+  reasoning: z.string(),
+});
+
+async function classifyQuestion(question: string) {
+  const { object } = await generateObject({
+    model: openai("gpt-5-nano"),
+    schema: classificationSchema,
+    prompt: `Classify this question into one category:
+
+- TECHNICAL: Implementation details, architecture, code, benchmarks, how things work
+- OPINION: Experiences, what works/doesn't, predictions, advice, real-world challenges
+- BOTH: Needs both technical details and practitioner perspectives
+
+Question: "${question}"`,
+  });
+
+  return object;
+}
+
+const classification = await classifyQuestion(
+  "How should I architect memory for an AI agent?"
+);
+
+console.log(classification);
+// { type: "TECHNICAL", reasoning: "..." }
+```
+
+```python Python
+import json
+from openai import OpenAI as OpenAIClient
+
+openai = OpenAIClient()
+
+def classify_question(question: str) -> dict:
+    response = openai.chat.completions.create(
+        model="gpt-5-nano",
+        response_format={"type": "json_object"},
+        messages=[
+            {
+                "role": "system",
+                "content": """Classify the question into one category and return JSON:
+{"type": "TECHNICAL" | "OPINION" | "BOTH", "reasoning": "..."}
+
+- TECHNICAL: Implementation details, architecture, code, benchmarks, how things work
+- OPINION: Experiences, what works/doesn't, predictions, advice, real-world challenges
+- BOTH: Needs both technical details and practitioner perspectives""",
+            },
+            {
+                "role": "user",
+                "content": question,
+            },
+        ],
+    )
+
+    return json.loads(response.choices[0].message.content)
+
+classification = classify_question(
+    "How should I architect memory for an AI agent?"
+)
+
+print(classification)
+# {"type": "TECHNICAL", "reasoning": "..."}
+```
+</CodeGroup>
+
+### Route to the right source
+
+Based on the classification, search the appropriate source:
+
+<CodeGroup>
+```typescript TypeScript
+async function routedSearch(question: string) {
+  const { type } = await classifyQuestion(question);
+
+  if (type === "TECHNICAL") {
+    return ns.search(question, {
+      filter: { source_type: "conference" },
+    });
+  }
+
+  if (type === "OPINION") {
+    return ns.search(question, {
+      filter: { source_type: "podcast" },
+    });
+  }
+
+  // BOTH: search both sources and combine
+  const [confResults, podResults] = await Promise.all([
+    ns.search(question, { filter: { source_type: "conference" }, topK: 5 }),
+    ns.search(question, { filter: { source_type: "podcast" }, topK: 5 }),
+  ]);
+
+  return [...confResults, ...podResults];
+}
+```
+
+```python Python
+def routed_search(question: str):
+    classification = classify_question(question)
+    query_type = classification["type"]
+
+    if query_type == "TECHNICAL":
+        return client.search.execute(
+            query=question,
+            filter={"source_type": "conference"},
+        ).data
+
+    if query_type == "OPINION":
+        return client.search.execute(
+            query=question,
+            filter={"source_type": "podcast"},
+        ).data
+
+    # BOTH: search both sources and combine
+    conf_results = client.search.execute(
+        query=question,
+        filter={"source_type": "conference"},
+        top_k=5,
+    ).data
+
+    pod_results = client.search.execute(
+        query=question,
+        filter={"source_type": "podcast"},
+        top_k=5,
+    ).data
+
+    return conf_results + pod_results
+```
+</CodeGroup>
+
+### Example: Technical question
+
+A question about implementation routes to conference talks:
+
+<CodeGroup>
+```typescript TypeScript
+// "How do vector search benchmarks work?" → TECHNICAL → conferences
+const results = await routedSearch("How do vector search benchmarks work?");
+
+console.log(results.map((r) => r.text).join("\n\n"));
+```
+
+```python Python
+# "How do vector search benchmarks work?" → TECHNICAL → conferences
+results = routed_search("How do vector search benchmarks work?")
+
+print("\n\n".join([r.text for r in results]))
+```
+</CodeGroup>
+
+{/* <Accordion title="Output">
+</Accordion> */}
+
+### Example: Opinion question
+
+A question about experiences routes to podcasts:
+
+<CodeGroup>
+```typescript TypeScript
+// "What prompt engineering techniques actually work?" → OPINION → podcasts
+const results = await routedSearch("What prompt engineering techniques actually work?");
+
+console.log(results.map((r) => r.text).join("\n\n"));
+```
+
+```python Python
+# "What prompt engineering techniques actually work?" → OPINION → podcasts
+results = routed_search("What prompt engineering techniques actually work?")
+
+print("\n\n".join([r.text for r in results]))
+```
+</CodeGroup>
+
+{/* <Accordion title="Output">
+</Accordion> */}
+
+### Example: Question needing both perspectives
+
+A broad question searches both sources:
+
+<CodeGroup>
+```typescript TypeScript
+// "What's the state of RAG in 2025?" → BOTH → conferences + podcasts
+const results = await routedSearch("What's the state of RAG in 2025?");
+
+console.log(results.map((r) => r.text).join("\n\n"));
+```
+
+```python Python
+# "What's the state of RAG in 2025?" → BOTH → conferences + podcasts
+results = routed_search("What's the state of RAG in 2025?")
+
+print("\n\n".join([r.text for r in results]))
+```
+</CodeGroup>
+
+{/* <Accordion title="Output">
+</Accordion> */}
+
+## Step 5: Generate answers with smart routing
+
+Combine the router with LLM generation to answer questions from the right sources.
+
+<CodeGroup>
+```typescript TypeScript
+import { Agentset } from "agentset";
+import { generateText, generateObject } from "ai";
+import { openai } from "@ai-sdk/openai";
+import { z } from "zod";
+
+const agentset = new Agentset({
+  apiKey: process.env.AGENTSET_API_KEY,
+});
+
+const ns = agentset.namespace("ns_xxxx");
+
+const SYSTEM_PROMPT = `You are an AI Engineering Assistant. Answer questions using only the provided context.
+
+Rules:
+1. Cite sources using [1], [2], etc.
+2. If the context doesn't contain the answer, say so.
+3. Be direct and practical.`;
+
+async function answerQuestion(question: string) {
+  // Route to the right source(s)
+  const results = await routedSearch(question);
+
+  // Build numbered context
+  const context = results
+    .map((r, i) => `[${i + 1}] ${r.text}`)
+    .join("\n\n");
+
+  // Generate answer
+  const { text } = await generateText({
+    model: openai("gpt-5.2"),
+    system: SYSTEM_PROMPT + `\n\nContext:\n${context}`,
+    prompt: question,
+  });
+
+  return text;
+}
+
+const answer = await answerQuestion(
+  "How should I layer techniques in a RAG pipeline?"
+);
+
+console.log(answer);
+```
+
+```python Python
+import os
+from agentset import Agentset
+from openai import OpenAI as OpenAIClient
+
+client = Agentset(
+    namespace_id="ns_xxxx",
+    token=os.environ["AGENTSET_API_KEY"],
+)
+
+openai = OpenAIClient()
+
+SYSTEM_PROMPT = """You are an AI Engineering Assistant. Answer questions using only the provided context.
+
+Rules:
+1. Cite sources using [1], [2], etc.
+2. If the context doesn't contain the answer, say so.
+3. Be direct and practical."""
+
+def answer_question(question: str) -> str:
+    # Route to the right source(s)
+    results = routed_search(question)
+
+    # Build numbered context
+    context = "\n\n".join([
+        f"[{i + 1}] {r.text}"
+        for i, r in enumerate(results)
+    ])
+
+    # Generate answer
+    response = openai.chat.completions.create(
+        model="gpt-5.2",
+        messages=[
+            {
+                "role": "system",
+                "content": SYSTEM_PROMPT + f"\n\nContext:\n{context}",
+            },
+            {
+                "role": "user",
+                "content": question,
+            },
+        ],
+    )
+
+    return response.choices[0].message.content
+
+answer = answer_question(
+    "How should I layer techniques in a RAG pipeline?"
+)
+
+print(answer)
+```
+</CodeGroup>
+
+{/* <Accordion title="Output">
+</Accordion> */}
+
+## Step 6: Video recommendations
+
+Sometimes you don't want an AI-generated answer. You want to know which video to watch. Let's build a recommender that returns video suggestions instead of synthesized text.
+
+<CodeGroup>
+```typescript TypeScript
+interface VideoRecommendation {
+  title: string;
+  url: string;
+  snippet: string;
+}
+
+async function recommendVideos(topic: string): Promise<VideoRecommendation[]> {
+  const results = await ns.search(topic, { topK: 10 });
+
+  // Group results by video (using title from metadata)
+  const videoMap = new Map<string, VideoRecommendation>();
+
+  for (const result of results) {
+    const title = result.metadata?.title as string;
+    const url = result.metadata?.url as string;
+
+    if (title && !videoMap.has(title)) {
+      videoMap.set(title, {
+        title,
+        url,
+        snippet: result.text.slice(0, 200) + "...",
+      });
+    }
+  }
+
+  return Array.from(videoMap.values()).slice(0, 5);
+}
+
+const recommendations = await recommendVideos("building AI agents for sales");
+
+for (const video of recommendations) {
+  console.log(`📺 ${video.title}`);
+  console.log(`   ${video.snippet}`);
+  console.log(`   Watch: ${video.url}\n`);
+}
+```
+
+```python Python
+def recommend_videos(topic: str) -> list[dict]:
+    results = client.search.execute(query=topic, top_k=10)
+
+    # Group results by video (using title from metadata)
+    video_map = {}
+
+    for result in results.data:
+        title = result.metadata.get("title")
+        url = result.metadata.get("url")
+
+        if title and title not in video_map:
+            video_map[title] = {
+                "title": title,
+                "url": url,
+                "snippet": result.text[:200] + "...",
+            }
+
+    return list(video_map.values())[:5]
+
+recommendations = recommend_videos("building AI agents for sales")
+
+for video in recommendations:
+    print(f"📺 {video['title']}")
+    print(f"   {video['snippet']}")
+    print(f"   Watch: {video['url']}\n")
+```
+</CodeGroup>
+
+{/* <Accordion title="Output">
+</Accordion> */}
+
+### Filter recommendations by source type
+
+You can also filter recommendations to only show conference talks or podcasts:
+
+<CodeGroup>
+```typescript TypeScript
+async function recommendConferenceTalks(topic: string) {
+  const results = await ns.search(topic, {
+    filter: { source_type: "conference" },
+    topK: 10,
+  });
+
+  const videoMap = new Map<string, VideoRecommendation>();
+
+  for (const result of results) {
+    const title = result.metadata?.title as string;
+    const url = result.metadata?.url as string;
+
+    if (title && !videoMap.has(title)) {
+      videoMap.set(title, {
+        title,
+        url,
+        snippet: result.text.slice(0, 200) + "...",
+      });
+    }
+  }
+
+  return Array.from(videoMap.values()).slice(0, 3);
+}
+
+const talks = await recommendConferenceTalks("enterprise RAG scaling");
+
+console.log("Conference talks on this topic:\n");
+for (const talk of talks) {
+  console.log(`📺 ${talk.title}`);
+  console.log(`   Watch: ${talk.url}\n`);
+}
+```
+
+```python Python
+def recommend_conference_talks(topic: str) -> list[dict]:
+    results = client.search.execute(
+        query=topic,
+        filter={"source_type": "conference"},
+        top_k=10,
+    )
+
+    video_map = {}
+
+    for result in results.data:
+        title = result.metadata.get("title")
+        url = result.metadata.get("url")
+
+        if title and title not in video_map:
+            video_map[title] = {
+                "title": title,
+                "url": url,
+                "snippet": result.text[:200] + "...",
+            }
+
+    return list(video_map.values())[:3]
+
+talks = recommend_conference_talks("enterprise RAG scaling")
+
+print("Conference talks on this topic:\n")
+for talk in talks:
+    print(f"📺 {talk['title']}")
+    print(f"   Watch: {talk['url']}\n")
+```
+</CodeGroup>
+
+{/* <Accordion title="Output">
+</Accordion> */}
+
+## Recap
+
+You've turned YouTube content into a searchable knowledge base. Here's what you learned:
+
+- **YouTube ingestion**: Extract transcripts from playlists and individual videos with a single API call — no manual downloading or processing
+- **Metadata tagging**: Label content by type (`conference`, `podcast`) during ingestion for downstream filtering
+- **Smart routing**: Use an LLM to classify questions and automatically search the right source
+- **Q&A generation**: Generate answers with citations from routed results
+- **Video recommendations**: Return video suggestions instead of synthesized answers
+
+The YouTube ingestion handles transcript extraction, chunking, and embedding automatically. You can apply the same routing and recommendation patterns to any content type you ingest.
+
+## Next steps
+
+- [Multimodal Input](/data-ingestion/multimodal-input) - YouTube ingestion options, transcript languages, and supported formats
+- [Filtering operators](/search-and-retrieval/filtering) - Learn `$in`, `$or`, `$exists` for complex queries
+- [Citations](/search-and-retrieval/citations) - Advanced citation patterns for your UI
+- [Agentic Search](/search-and-retrieval/agentic-search) — Let the model search on its own for complex questions

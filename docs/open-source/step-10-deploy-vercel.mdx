@@ -1,0 +1,64 @@
+---
+title: 'Step 10: Deploy to Vercel'
+'og:title': 'Deploy Agentset to Vercel'
+description: 'Deploy your self-hosted Agentset instance to production'
+---
+
+Once you've set up all of the above services, you can now deploy your app to Vercel.
+
+<Steps>
+  <Step title="Deploy code to GitHub">
+    If you haven't already, push up your cloned repository to GitHub by running the following commands:
+
+    ```bash Terminal
+    git add .
+    git commit -m "Initial commit"
+    git push origin main
+    ```
+
+  </Step>
+
+  <Step title="Create a new Vercel project">
+    In your [Vercel account](https://vercel.com/), create a new project. Then, select your GitHub repository and click **Import**.
+
+    Make sure that your **Framework Preset** is set to **Next.js** and the **Root Directory** is set to `apps/web`.
+
+    <Frame>
+    ![Vercel Framework Preset and Root Directory](/images/self-hosting/vercel-framework-preset.png)
+    </Frame>
+
+    In the **Environment Variables** section, add all of the environment variables from your `.env` file by copying all of them and pasting it into the first input field. A few notes:
+
+    - Replace the `BETTER_AUTH_URL` environment variable with the app domain that you will be using (e.g. `https://app.acme.com`).
+
+    Click on **Deploy** to deploy your project.
+
+    <Tip>
+      If you get a `No Output Directory called "public" was found after the build
+      completed` error, make sure that your [Vercel deployment
+      settings](https://vercel.com/docs/deployments/configure-a-build) to make sure that they match the following:
+
+    <Frame>
+    ![Vercel Deploy settings](/images/self-hosting/vercel-deploy-settings.png)
+    </Frame>
+
+    </Tip>
+
+    </Step>
+
+  <Step title="Done!">
+  Once the deployment is complete, you should be able to visit your app domain (e.g. `https://app.acme.com`) and see the following login page:
+
+<Frame>![Login Page](/images/self-hosting/login.png)</Frame>
+
+</Step>
+
+</Steps>
+
+## Next Steps
+
+Congratulations! You've successfully self-hosted Agentset. If you run into any issues or have questions, please:
+
+- Check out our [GitHub repository](https://github.com/agentset-ai/agentset) for the latest updates
+- Join our [Discord community](https://discord.gg/AqMkKAYZCu) for support
+- Reach out to us at [contact@agentset.ai](mailto:contact@agentset.ai)

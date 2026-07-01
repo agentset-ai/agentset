@@ -1,0 +1,149 @@
+---
+title: "Ranking"
+description: "Customize how search results are ranked and scored"
+---
+
+Agentset provides built-in reranking, but you can also implement custom ranking logic to tune results for your specific use case.
+
+## Built-in reranking
+
+Agentset reranks results by default using a cross-encoder model. Configure this behavior in your search request.
+
+<CodeGroup>
+```typescript TypeScript
+const results = await ns.search("product features", {
+  topK: 50,
+  rerank: true,
+  rerankLimit: 10,
+  rerankModel: "cohere:rerank-v3.5",
+});
+```
+
+```python Python
+results = client.search.execute(
+    query="product features",
+    top_k=50,
+    rerank=True,
+    rerank_limit=10,
+    rerank_model="cohere:rerank-v3.5",
+)
+```
+</CodeGroup>
+
+See [Search](/search-and-retrieval/search#reranking) for available rerank models and parameters.
+
+## Custom score weighting
+
+Apply weights to boost or penalize results based on metadata. This is useful when certain document types should rank higher or lower for your use case.
+
+<CodeGroup>
+```typescript TypeScript
+const results = await ns.search(query, { topK: 20 });
+
+// Apply weights based on document type
+const weighted = results
+  .map((result) => {
+    let weight = 1.0;
+
+    // Boost official documentation
+    if (result.metadata?.category === "official-docs") {
+      weight = 1.2;
+    }
+
+    // Penalize older content
+    if (result.metadata?.year < 2023) {
+      weight = 0.8;
+    }
+
+    return {
+      ...result,
+      weightedScore: result.score * weight,
+    };
+  })
+  .sort((a, b) => b.weightedScore - a.weightedScore);
+```
+
+```python Python
+results = client.search.execute(query=query, top_k=20)
+
+# Apply weights based on document type
+weighted = []
+for result in results.data:
+    weight = 1.0
+
+    # Boost official documentation
+    if result.metadata.get("category") == "official-docs":
+        weight = 1.2
+
+    # Penalize older content
+    if result.metadata.get("year", 2024) < 2023:
+        weight = 0.8
+
+    weighted.append({
+        **result.__dict__,
+        "weighted_score": result.score * weight,
+    })
+
+weighted.sort(key=lambda x: x["weighted_score"], reverse=True)
+```
+</CodeGroup>
+## Combining strategies
+
+Combine reranking with custom weighting for fine-grained control.
+
+<CodeGroup>
+```typescript TypeScript
+// 1. Get reranked results
+const results = await ns.search(query, {
+  topK: 50,
+  rerank: true,
+  rerankLimit: 20,
+});
+
+// 2. Apply custom weights
+const final = results
+  .map((result) => {
+    let score = result.score;
+
+    // Apply domain-specific weighting
+    if (result.metadata?.docType === "faq") {
+      score *= 1.1; // Boost FAQs
+    }
+
+    return { ...result, finalScore: score };
+  })
+  .sort((a, b) => b.finalScore - a.finalScore)
+  .slice(0, 10);
+```
+
+```python Python
+# 1. Get reranked results
+results = client.search.execute(
+    query=query,
+    top_k=50,
+    rerank=True,
+    rerank_limit=20,
+)
+
+# 2. Apply custom weights
+final = []
+for result in results.data:
+    score = result.score
+
+    # Apply domain-specific weighting
+    if result.metadata.get("doc_type") == "faq":
+        score *= 1.1  # Boost FAQs
+
+    final.append({**result.__dict__, "final_score": score})
+
+final.sort(key=lambda x: x["final_score"], reverse=True)
+final = final[:10]
+```
+</CodeGroup>
+
+## Next steps
+
+- [API Reference](/api-reference/endpoint/search) — Reranking parameters and options
+- [Filtering](/search-and-retrieval/filtering) — Narrow results before ranking
+- [Citations](/search-and-retrieval/citations) — Add source attribution to responses
+- [Agentic Search](/search-and-retrieval/agentic-search) — Let the model search on its own for complex questions

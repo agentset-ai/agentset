@@ -1,0 +1,30 @@
+---
+title: "Why RAG-as-a-Service"
+description: "Prototypes take a week. Production takes months. RAG-as-a-service closes the gap."
+---
+
+## The 80% problem
+
+Frameworks like LangChain and LlamaIndex are great for prototypes. You can follow a tutorial, connect your documents, and have a working demo in a few days. Run it on a few documents and the results look promising.
+
+Then you deploy to production. Results appear to be subpar, users quickly notice.
+
+Getting from 80% to 95% takes months of work:
+- Building and testing document parsing pipelines
+- Experimenting with chunking strategies and chunk sizes
+- Tuning hybrid search (semantic + keyword)
+- Configuring and testing rerankers
+
+Each component affects accuracy, and getting the compounding benefit of optimizing every step is a full-time job.
+
+## What RAG-as-a-service provides
+
+Instead of building and maintaining this infrastructure yourself, RAG-as-a-service gives you:
+
+- **Parsing and chunking** — Optimized pipelines that produce clean, logical chunks across 22+ file formats without custom code per format.
+- **Query generation** — Automatic multi-query expansion from conversation context, covering more ground than a single hybrid search.
+- **Reranking** — Built-in reranking that significantly improves chunk relevance, often compensating for suboptimal upstream choices.
+- **Scale** — Ingest and search millions of documents without managing vector storage, object storage, indexing, or compute.
+- **Continuous improvement** — Automatic access to new retrieval methods as they emerge, without changing your code.
+
+Ready to give it a try? The [quickstart](/get-started/quickstart) walks you through your first search in under 5 minutes.

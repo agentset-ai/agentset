@@ -1,0 +1,56 @@
+---
+title: 'Pagination'
+'og:title': 'All endpoints that list resources support pagination.'
+description: 'Learn how to paginate through resources in the API.'
+---
+
+The pagination feature allows you to retrieve a subset of resources from the API. This is useful when you have a large number of resources and you want to retrieve them in smaller chunks.
+
+These list API methods share a common set of parameters that allow you to control the number of items returned and the page number. For example, you can:
+
+- [retrieve a list of ingest jobs](/api-reference/endpoint/ingest-jobs/list)
+- [retrieve a list of documents](/api-reference/endpoint/documents/list)
+
+## Parameters
+
+<ParamField body='page' type='string' default='1'>
+  The page number to retrieve. By default, the first page is returned.
+</ParamField>
+
+<ParamField body='pageSize' type='string'>
+  The number of items to retrieve per page. The default value varies by endpoint. Maximum
+  value is 100.
+</ParamField>
+
+<ParamField body='sortBy' type='string'>
+  The field to sort the results by.
+</ParamField>
+
+<ParamField body='sortOrder' type='string'>
+  The order to sort the results by. Can be `asc` or `desc`.
+</ParamField>
+
+## Example
+
+The following example demonstrates how to retrieve the first page of 10 ingest jobs:
+
+<CodeGroup>
+
+```bash cURL
+curl --request GET \
+  --url https://api.agentset.ai/v1/namespace/{namespace_id}/ingest-jobs?perPage=10 \
+  --header 'Authorization: Bearer <token>'
+```
+
+```typescript TypeScript
+const agentset = new Agentset({
+  apiKey: 'your_api_key_here',
+});
+const ns = agentset.namespace('my-knowledge-base');
+
+const res = await ns.ingestion.all({
+  pageSize: 10,
+});
+```
+
+</CodeGroup>

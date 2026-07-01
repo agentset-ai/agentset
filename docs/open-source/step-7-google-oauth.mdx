@@ -1,0 +1,32 @@
+---
+title: 'Step 7: Google OAuth'
+'og:title': 'Set up Google OAuth for Agentset'
+description: 'Configure Google authentication for user sign-in'
+---
+
+Next, you'll need to set up Google OAuth. This will allow you to sign in to Agentset with your Google account.
+
+<Steps>
+
+  <Step title="Create Google OAuth App">
+
+    In your [Google Cloud Console](https://console.cloud.google.com/), create a new OAuth client ID and client secret.
+
+  </Step>
+
+  <Step title="Set up Google OAuth environment variables">
+
+    Once your Google OAuth App is created, copy the `Client ID` and `Client Secret` into your `.env` file as the `GOOGLE_CLIENT_ID` and `GOOGLE_CLIENT_SECRET` environment variables.
+
+    ```TypeScript .env
+    GOOGLE_CLIENT_ID=your_google_client_id
+    GOOGLE_CLIENT_SECRET=your_google_client_secret
+    ```
+
+  </Step>
+
+</Steps>
+
+## Next Steps
+
+Once you've completed the Google OAuth setup, proceed to [Step 8: Cloudflare R2](/open-source/step-8-cloudflare-r2) to set up file storage.

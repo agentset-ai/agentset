@@ -1,0 +1,185 @@
+---
+title: "File Uploads"
+description: "Upload files to Agentset"
+---
+
+Upload documents to Agentset for processing. You can either provide a URL to a publicly accessible file, or upload files directly from your application.
+
+## Supported file types
+
+Agentset supports the following file formats for ingestion.
+
+| Type | Extensions |
+| :--- | :--- |
+| PDF | `.pdf` |
+| Spreadsheet | `.csv`, `.xls`, `.xlsx`, `.ods` |
+| Word | `.doc`, `.docx`, `.odt` |
+| Presentation | `.ppt`, `.pptx`, `.odp` |
+| HTML | `.html`, `.htm` |
+| EPUB | `.epub` |
+| Image | `.png`, `.jpg`, `.jpeg`, `.webp`, `.gif`, `.tiff` |
+| Outlook | `.msg` |
+| Plain text | `.txt` |
+| Markdown | `.md` |
+| JSON | `.json`, `.jsonl` |
+| XML | `.xml` |
+| RSS | `.rss`, `.atom` |
+
+## Upload from URL
+
+Provide a URL to a file and Agentset will fetch and process it.
+
+<CodeGroup>
+```typescript TypeScript
+import { Agentset } from "agentset";
+
+const agentset = new Agentset({
+  apiKey: process.env.AGENTSET_API_KEY,
+});
+
+const ns = agentset.namespace("YOUR_NAMESPACE_ID");
+
+const job = await ns.ingestion.create({
+  payload: {
+    type: "FILE",
+    fileUrl: "https://example.com/document.pdf",
+  },
+});
+
+console.log(`Upload started: ${job.id}`);
+```
+
+```python Python
+import os
+from agentset import Agentset
+
+client = Agentset(
+    namespace_id="YOUR_NAMESPACE_ID",
+    token=os.environ["AGENTSET_API_KEY"],
+)
+
+job = client.ingest_jobs.create(
+    payload={
+        "type": "FILE",
+        "fileUrl": "https://example.com/document.pdf",
+    }
+)
+
+print(f"Upload started: {job.data.id}")
+```
+</CodeGroup>
+
+## Direct upload
+
+Upload files directly from your application using presigned URLs. This is useful when files aren't publicly accessible.
+
+<CodeGroup>
+```typescript TypeScript
+import fs from "fs";
+
+const upload = await ns.uploads.upload({
+  file: fs.createReadStream("./document.pdf"),
+  contentType: "application/pdf",
+});
+
+// Create an ingest job for the uploaded file
+const job = await ns.ingestion.create({
+  payload: {
+    type: "MANAGED_FILE",
+    key: upload.key,
+    fileName: "document.pdf",
+  },
+});
+
+console.log(`Upload started: ${job.id}`);
+```
+
+```python Python
+import os
+
+with open("./document.pdf", "rb") as f:
+    file = f.read()
+
+# Get a presigned upload URL
+upload = client.uploads.create(
+    file_name="document.pdf",
+    file_size=len(file),
+    content_type="application/pdf",
+)
+
+# Upload the file
+import requests
+requests.put(
+    upload.data.url,
+    data=file,
+    headers={"Content-Type": "application/pdf"},
+)
+
+# Create an ingest job for the uploaded file
+job = client.ingest_jobs.create(
+    payload={
+        "type": "MANAGED_FILE",
+        "key": upload.data.key,
+        "fileName": "document.pdf",
+    }
+)
+
+print(f"Upload started: {job.data.id}")
+```
+</CodeGroup>
+
+## With metadata
+
+Attach metadata to your files for [filtering](/search-and-retrieval/filtering) during search.
+
+<CodeGroup>
+```typescript TypeScript
+const job = await ns.ingestion.create({
+  name: "Q4 2024 Report",
+  payload: {
+    type: "FILE",
+    fileUrl: "https://example.com/quarterly-report.pdf",
+  },
+  config: {
+    metadata: {
+      quarter: "Q4",
+      year: "2024",
+      type: "financial",
+    },
+  },
+});
+```
+
+```python Python
+job = client.ingest_jobs.create(
+    name="Q4 2024 Report",
+    payload={
+        "type": "FILE",
+        "fileUrl": "https://example.com/quarterly-report.pdf",
+    },
+    config={
+        "metadata": {
+            "quarter": "Q4",
+            "year": "2024",
+            "type": "financial",
+        },
+    },
+)
+```
+</CodeGroup>
+
+## File size limit
+
+The maximum file size is 200 MB.
+
+<Info>
+  File uploads are processed asynchronously. Learn how to [check upload status](/data-ingestion/upload-status).
+</Info>
+
+## Next steps
+
+- [API Reference](/api-reference/endpoint/ingest-jobs/create) — File upload parameters and options
+- [Document Metadata](/data-ingestion/document-metadata) — Learn more about metadata filtering
+- [Chunking Settings](/data-ingestion/chunking-settings) — Configure how files are split into chunks
+- [Multimodal Input](/data-ingestion/multimodal-input) — Process images and other media
+- [Search](/search-and-retrieval/search) — Query your uploaded content

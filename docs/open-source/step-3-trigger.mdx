@@ -1,0 +1,68 @@
+---
+title: 'Step 3: Trigger.dev'
+'og:title': 'Set up Trigger.dev for Agentset'
+description: 'Configure Trigger.dev for workflow orchestration and background jobs'
+---
+
+Next, you'll need to set up [Trigger.dev](https://trigger.dev) for workflow orchestration and background job processing.
+
+<Steps>
+
+  <Step title="Create Trigger.dev account and project">
+
+In your [Trigger.dev account](https://cloud.trigger.dev/), create a new project. Once created, you'll need to copy the project ID and secret key.
+
+  </Step>
+
+  <Step title="Set up Trigger.dev environment variables">
+
+Add the `TRIGGER_SECRET_KEY` to your root `.env` file:
+
+```TypeScript .env
+TRIGGER_SECRET_KEY=tr_dev_xxx # Your Trigger.dev secret key
+```
+
+  </Step>
+
+  <Step title="Set up jobs environment">
+
+Create a `.env` file in the `packages/jobs` directory and add your Trigger.dev project ID:
+
+```bash Terminal
+# Create the .env file in packages/jobs
+echo "TRIGGER_PROJECT_ID=your_project_id_here" > packages/jobs/.env
+```
+
+Replace `your_project_id_here` with your actual Trigger.dev project ID.
+
+  </Step>
+
+  <Step title="Start the Trigger.dev development server">
+
+Navigate to the jobs directory and start the Trigger.dev development server:
+
+```bash Terminal
+cd packages/jobs && pnpm trigger:dev
+```
+
+This will connect your local development environment to Trigger.dev and allow you to run background jobs.
+
+  </Step>
+
+    <Step title="Deploy the Trigger.dev jobs">
+
+Navigate to the jobs directory and deploy the Trigger.dev jobs:
+
+```bash Terminal
+cd packages/jobs && pnpm trigger:deploy
+```
+
+This will build and deploy the Trigger.dev jobs to your Trigger.dev project.
+
+  </Step>
+
+</Steps>
+
+## Next Steps
+
+Once you've completed the Trigger.dev setup, proceed to [Step 4: Partitioner API](/open-source/step-4-partitioner-api) to set up document partitioning.
