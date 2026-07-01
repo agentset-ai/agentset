@@ -36,6 +36,7 @@
     "@agentset/prettier-config": "workspace:*",
     "@agentset/tsconfig": "workspace:*",
     "@agentset/validation": "workspace:*",
+    "@types/pg": "^8.20.0",
     "eslint": "catalog:",
     "prettier": "catalog:",
     "prisma": "^7.4.1",
