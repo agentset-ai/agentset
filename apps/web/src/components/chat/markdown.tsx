@@ -18,7 +18,9 @@ export const Markdown = ({ children, isLoading, message }: MarkdownProps) => {
   return (
     <MessageResponse
       allowedTags={{
-        citation: ["citationNumber"],
+        // citationNumber: legacy [n] citations (remark plugin)
+        // ids: agentic <citation ids="..." /> tags emitted by the model
+        citation: ["citationNumber", "ids"],
       }}
       animated={{ animation: "fadeIn" }}
       isAnimating={isLoading && message?.role === "assistant"}

@@ -2,6 +2,8 @@ export * from "./embedding";
 export * from "./llm";
 export * from "./vector-store";
 export * from "./vector-store/query";
+export * from "./vector-store/expand";
+export * from "./vector-store/common/vector-store";
 
 export * from "./rerank/cohere";
 export * from "./chunk";

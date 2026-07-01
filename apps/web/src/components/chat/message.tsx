@@ -56,6 +56,9 @@ export const PreviewMessage = ({
               const key = `message-${message.id}-part-${index}`;
 
               if (type === "reasoning") {
+                // reasoning models may emit encrypted-only reasoning parts
+                if (!part.text.trim()) return null;
+
                 return (
                   <MessageReasoning
                     key={key}

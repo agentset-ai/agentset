@@ -1,0 +1,50 @@
+---
+title: "Playground"
+description: "Test your namespace with agentic search in the dashboard"
+---
+
+The playground lets you test your namespace from the dashboard without writing code. The chat playground answers questions with [agentic search](/search-and-retrieval/agentic-search): the model searches your documents itself, deciding what to look for and when it has enough context to answer. The playground also includes a search tab for running queries directly.
+
+## How it works
+
+When you send a message, the model streams a short plan (shown as "Planning..." in the chat), then runs a tool-calling loop of up to 20 steps with two tools:
+
+| Tool | Description |
+| :--- | :--- |
+| `search` | Searches the namespace with a query the model writes, in `semantic` or `keyword` mode. Keyword search is available on Turbopuffer-backed namespaces (the default for managed namespaces). |
+| `expand` | Fetches roughly 10 surrounding chunks (5 before, 5 after by position in the document) when a retrieved chunk is cut off or needs nearby context. Available on Turbopuffer-backed namespaces; not yet supported on Pinecone-backed namespaces. |
+
+The chat shows the progress of each search and expand call as the model works, then streams the final answer.
+
+## Modes
+
+The chat playground has two modes:
+
+| Mode | Behavior |
+| :--- | :--- |
+| **Accurate** (default) | Each semantic search fetches Top K chunks (default 30) and reranks them down to the Rerank Limit (default 10) with the configured re-ranker. |
+| **Fast** | Skips reranking. Each search returns the Rerank Limit (default 10) chunks directly. |
+
+## Citations
+
+Answers cite sources with inline pills resolved from the retrieved chunks. Click a pill to view the source text and its metadata.
+
+## Parameters
+
+Open the parameters dialog to tune retrieval and generation:
+
+| Parameter | Description |
+| :--- | :--- |
+| **Top K** | Number of chunks fetched per semantic search, before reranking (default 30) |
+| **Rerank Limit** | Number of chunks the model sees per search (default 10) |
+| **System Prompt** | Instructions for the assistant. Defaults to a prompt tuned for agentic search |
+| **Re-ranker** | Model used to rerank results in Accurate mode |
+| **Temperature** | Sampling temperature. Has no effect on reasoning models like GPT-5.5 |
+
+Use the model picker to change the language model. GPT-5.5 is the default.
+
+## Next steps
+
+- [Agentic Search](/search-and-retrieval/agentic-search) — Build the same tool-calling loop in your own app
+- [Search](/search-and-retrieval/search) — Query your namespace through the API
+- [Hosting UI](/production/hosting-ui) — Share a prebuilt chat interface with your users

@@ -1,6 +1,7 @@
+import type { MyUIMessage } from "@/types/ai";
 import SearchChunk from "@/components/search-chunk";
-import { MyUIMessage } from "@/types/ai";
 
+import type { QueryVectorStoreResult } from "@agentset/engine";
 import {
   Accordion,
   AccordionContent,
@@ -25,15 +26,33 @@ export default function MessageLogs({
   message: MyUIMessage;
   trigger: React.ReactNode;
 }) {
-  const annotation = message.parts?.find(
+  const annotation = message.parts.find(
     (a) => a.type === "data-agentset-sources",
   );
+
+  // agentic messages carry their retrieval logs on the tool parts
+  const toolLogs = message.parts
+    .filter(
+      (p) =>
+        (p.type === "tool-search" || p.type === "tool-expand") &&
+        p.state === "output-available",
+    )
+    .map((part) => ({
+      query:
+        part.type === "tool-search"
+          ? `[${part.input.mode}] ${part.input.query}`
+          : `expand: ${part.input.documentId} @ ${part.input.sequence_number}`,
+      results: part.output as unknown as QueryVectorStoreResult["results"],
+      unorderedIds: null,
+    }));
 
   const sources = annotation
     ? "query" in annotation.data
       ? annotation.data
       : annotation.data.logs
-    : null;
+    : toolLogs.length > 0
+      ? toolLogs
+      : null;
   const hasMultipleQueries = Array.isArray(sources);
 
   return (
@@ -61,9 +80,12 @@ export default function MessageLogs({
                         <Tabs defaultValue="chunks">
                           <TabsList className="my-3 w-full">
                             <TabsTrigger value="chunks">Chunks</TabsTrigger>
-                            <TabsTrigger value="re-ranked">
-                              Re-ranked
-                            </TabsTrigger>
+                            {/* tool-based logs carry no pre-rerank order to diff against */}
+                            {source.unorderedIds && (
+                              <TabsTrigger value="re-ranked">
+                                Re-ranked
+                              </TabsTrigger>
+                            )}
                           </TabsList>
 
                           <TabsContent value="query">

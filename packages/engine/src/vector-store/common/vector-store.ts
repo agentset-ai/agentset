@@ -35,6 +35,16 @@ export interface VectorStoreQueryOptions<Filter = VectorFilter> {
       };
 }
 
+export interface VectorStoreOrderedQueryOptions<Filter = VectorFilter> {
+  filter: Filter;
+  orderBy: {
+    attribute: string;
+    direction: "asc" | "desc";
+  };
+  topK: number;
+  includeMetadata?: boolean;
+}
+
 export interface VectorStoreUpsertOptions {
   chunks: {
     documentId: string;
@@ -74,6 +84,13 @@ export abstract class VectorStore<Filter = VectorFilter> {
   abstract query(
     options: VectorStoreQueryOptions<Filter>,
   ): Promise<VectorStoreQueryResponse>;
+  /**
+   * Fetches rows matching a filter, ordered by a metadata attribute (no
+   * vector/text ranking). Check `supportsOrderedQuery()` before calling.
+   */
+  abstract queryOrdered(
+    options: VectorStoreOrderedQueryOptions<Filter>,
+  ): Promise<VectorStoreQueryResponse>;
   abstract upsert(options: VectorStoreUpsertOptions): Promise<void>;
 
   abstract deleteByIds(
@@ -87,4 +104,6 @@ export abstract class VectorStore<Filter = VectorFilter> {
   abstract warmCache(): Promise<"UNSUPPORTED" | void>;
 
   abstract supportsKeyword(): boolean;
+
+  abstract supportsOrderedQuery(): boolean;
 }

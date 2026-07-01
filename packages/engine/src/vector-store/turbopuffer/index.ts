@@ -6,6 +6,7 @@ import { makeChunk, metadataToChunk } from "../../chunk";
 import {
   VectorStore,
   VectorStoreMetadata,
+  VectorStoreOrderedQueryOptions,
   VectorStoreQueryOptions,
   VectorStoreQueryResponse,
   VectorStoreUpsertOptions,
@@ -178,6 +179,37 @@ export class Turbopuffer implements VectorStore<TurbopufferVectorFilter> {
     }
   }
 
+  async queryOrdered(
+    params: VectorStoreOrderedQueryOptions<TurbopufferVectorFilter>,
+  ): Promise<VectorStoreQueryResponse> {
+    const filter = this.filterTranslator.translate(params.filter);
+
+    try {
+      const result = await this.client.query({
+        rank_by: [params.orderBy.attribute, params.orderBy.direction],
+        top_k: params.topK,
+        filters: filter,
+        include_attributes: params.includeMetadata ? undefined : ["id", "text"],
+        exclude_attributes: params.includeMetadata ? ["vector"] : undefined,
+        consistency: { level: "eventual" },
+      });
+
+      return filterFalsy(
+        (result.rows ?? []).map(({ id, $dist: _dist, text, ...metadata }) => ({
+          id: id.toString(),
+          text: text as string,
+          metadata: params.includeMetadata
+            ? (metadata as VectorStoreMetadata)
+            : undefined,
+        })),
+      );
+    } catch (e) {
+      // if the namespace is not found, return an empty array
+      if (e instanceof TurbopufferClient.NotFoundError) return [];
+      throw e;
+    }
+  }
+
   async upsert({ chunks }: VectorStoreUpsertOptions) {
     const nodes = chunks.map((chunk) =>
       makeChunk(chunk, { removeTextFromMetadata: true }),
@@ -269,6 +301,10 @@ export class Turbopuffer implements VectorStore<TurbopufferVectorFilter> {
   }
 
   supportsKeyword() {
+    return true;
+  }
+
+  supportsOrderedQuery() {
     return true;
   }
 }

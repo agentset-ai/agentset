@@ -76,11 +76,18 @@ export type ChainOfThoughtHeaderProps = Omit<
   "children"
 > & {
   isLoading?: boolean;
+  showIcon?: boolean;
   children?: string;
 };
 
 export const ChainOfThoughtHeader = memo(
-  ({ className, children, isLoading, ...props }: ChainOfThoughtHeaderProps) => {
+  ({
+    className,
+    children,
+    isLoading,
+    showIcon = true,
+    ...props
+  }: ChainOfThoughtHeaderProps) => {
     const { isOpen, setIsOpen } = useChainOfThought();
 
     return (
@@ -93,7 +100,9 @@ export const ChainOfThoughtHeader = memo(
           {...props}
         >
           <div className="flex flex-1 items-center gap-2">
-            <BrainIcon className="size-4 opacity-70 group-hover:opacity-100" />
+            {showIcon && (
+              <BrainIcon className="size-4 opacity-70 group-hover:opacity-100" />
+            )}
             <Shimmer
               animate={isLoading}
               className="group-hover:text-foreground"

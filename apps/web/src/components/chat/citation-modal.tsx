@@ -1,3 +1,4 @@
+import type { FormattedChunk } from "@/lib/agentic-search/format-chunk";
 import { useMemo } from "react";
 import { useHosting, useIsHosting } from "@/contexts/hosting-context";
 
@@ -54,6 +55,83 @@ const useHostingCitationName = ({
 
   return citationName ? citationName : `[${sourceIndex}]`;
 };
+
+const stringifyMetadata = (metadata?: Record<string, unknown>) => {
+  if (!metadata || Object.keys(metadata).length === 0) return null;
+  try {
+    return JSON.stringify(metadata, null, 2);
+  } catch {
+    return "Failed to parse metadata!";
+  }
+};
+
+/**
+ * Pill-style citation for agentic search: one citation can reference multiple
+ * chunks, resolved by id from the message's tool outputs.
+ */
+export function ChunksCitationModal({ chunks }: { chunks: FormattedChunk[] }) {
+  const label = chunks[0]?.filename ?? "Source";
+
+  return (
+    <Dialog>
+      <DialogTrigger asChild>
+        <button
+          className="bg-muted text-muted-foreground hover:bg-primary hover:text-primary-foreground mx-0.5 cursor-pointer rounded-full px-2 py-0.5 text-sm font-medium hover:no-underline"
+          type="button"
+        >
+          {truncate(label, 25, "...")}
+          {chunks.length > 1 && (
+            <span className="ms-1">+{chunks.length - 1}</span>
+          )}
+        </button>
+      </DialogTrigger>
+
+      <DialogContent
+        className="sm:max-w-2xl"
+        onOpenAutoFocus={(event) => {
+          event.preventDefault(); // prevents Radix from auto-focusing the first focusable
+        }}
+        scrollableOverlay
+      >
+        <DialogHeader>
+          <DialogTitle>{chunks.length > 1 ? "Sources" : label}</DialogTitle>
+        </DialogHeader>
+
+        {chunks.map((chunk, index) => {
+          const stringifiedMetadata = stringifyMetadata(chunk.metadata);
+
+          return (
+            <div
+              key={chunk.id}
+              className={cn(index > 0 && "border-border mt-6 border-t pt-6")}
+            >
+              {chunks.length > 1 && chunk.filename && (
+                <h3 className="mb-2 text-xs font-medium">{chunk.filename}</h3>
+              )}
+
+              <MessageResponse mode="static" className="mt-2">
+                {chunk.text}
+              </MessageResponse>
+
+              {stringifiedMetadata && (
+                <div className="mt-4">
+                  <h3 className="text-xs font-medium">Metadata</h3>
+                  <div className="mt-2">
+                    <SingleLanguageCodeBlock
+                      code={stringifiedMetadata}
+                      language="json"
+                      header={false}
+                    />
+                  </div>
+                </div>
+              )}
+            </div>
+          );
+        })}
+      </DialogContent>
+    </Dialog>
+  );
+}
 
 export function CitationModal({
   source,
