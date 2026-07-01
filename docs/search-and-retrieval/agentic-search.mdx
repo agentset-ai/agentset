@@ -1,0 +1,192 @@
+---
+title: "Agentic Search"
+description: "Recommended Search Approach"
+---
+
+Instead of making making the search yourself, let the model use Agentset as a search tool. The model decides what to search for, and follow-up with additional queries as necessary. 
+
+This handles multi-part questions, follow-ups, and ambiguous queries better than [simple RAG](/search-and-retrieval/simple-rag), which retrieves only once before generating.
+
+This guide uses the [Vercel AI SDK](https://sdk.vercel.dev) to wire an Agentset search tool into a tool-calling loop.
+
+## Prerequisites
+
+- An Agentset API key and namespace ID.
+- An OpenAI API key (or another AI SDK provider).
+
+Install the dependencies:
+
+```bash
+npm install agentset ai @ai-sdk/openai zod
+```
+
+Set your environment variables:
+
+```bash .env.local
+AGENTSET_API_KEY=your_agentset_api_key
+AGENTSET_NAMESPACE=your_namespace_id
+OPENAI_API_KEY=your_openai_api_key
+```
+
+## System prompt
+
+Use the system prompt below as a starting point and modify it for your use case:
+<Accordion title="Sample system prompt">
+```text
+You are a knowledge base assistant. Answer the user's question using only the
+information returned by the search tool.
+
+## Searching
+
+- Always search before answering. Never answer from prior knowledge.
+- Write focused queries. For a multi-part question, run a separate search for
+  each part rather than one broad query.
+- If the first results are weak, rephrase and search again with different terms.
+
+## Answering
+
+- Base every statement on the search results. Do not infer or add outside
+  knowledge.
+- If the results do not contain the answer, say so plainly. Do not guess.
+- Be concise and direct. Do not preface answers with "based on the context."
+
+## Citations
+
+- Cite every factual statement using the chunk id, like this: [<id>].
+- Cite multiple sources as [<id1>], [<id2>].
+- Only cite ids that appear in your search results. Never invent an id.
+```
+</Accordion>
+
+## Define the search tool
+
+Wrap [`ns.search`](/search-and-retrieval/search) in an AI SDK tool. The model calls this tool with a query it generates, so describe the tool and its input clearly.
+
+```typescript
+import { Agentset } from "agentset";
+import { tool } from "ai";
+import { z } from "zod";
+
+const agentset = new Agentset({
+  apiKey: process.env.AGENTSET_API_KEY,
+});
+
+const ns = agentset.namespace(process.env.AGENTSET_NAMESPACE!);
+
+const searchTool = tool({
+  description: "Search the knowledge base for information to answer the user's question.",
+  inputSchema: z.object({
+    query: z.string().describe("The search query."),
+  }),
+  execute: async ({ query }) => {
+    const results = await ns.search(query, { topK: 10, rerank: true });
+
+    return results.map((r) => ({
+      id: r.id,
+      text: r.text,
+    }));
+  },
+});
+```
+
+## Run the agentic loop
+
+Pass the tool to `streamText`. Set `stopWhen` so the model can run several searches before answering—without a limit, a tool-calling loop can run indefinitely.
+
+```typescript
+import { openai } from "@ai-sdk/openai";
+import { streamText, stepCountIs } from "ai";
+
+const result = streamText({
+  model: openai("gpt-5.1"),
+  system: [
+    "Answer the user's question using the search tool.",
+    "Search whenever you need information. Run multiple searches for multi-part questions.",
+    "Only answer from search results. If they don't contain the answer, say so.",
+  ].join("\n"),
+  prompt: "How does the billing system handle failed payments and refunds?",
+  tools: { search: searchTool },
+  stopWhen: stepCountIs(10),
+});
+
+for await (const chunk of result.textStream) {
+  process.stdout.write(chunk);
+}
+```
+
+The model runs the `search` tool as many times as it needs, then streams the final answer. Multi-part questions—like the billing example above—typically trigger separate searches for "failed payments" and "refunds."
+
+## Multi-turn conversations
+
+For a chat application, pass the full message history as `messages` instead of a single `prompt`. The model uses earlier turns to interpret follow-up questions and search accordingly.
+
+```typescript
+import { openai } from "@ai-sdk/openai";
+import { streamText, stepCountIs, type ModelMessage } from "ai";
+
+const messages: ModelMessage[] = [
+  { role: "user", content: "What regions is the API available in?" },
+  { role: "assistant", content: "The API is available in US, EU, and APAC regions." },
+  { role: "user", content: "Which one has the lowest latency?" },
+];
+
+const result = streamText({
+  model: openai("gpt-5.1"),
+  system: "Answer the user's questions using the search tool.",
+  messages,
+  tools: { search: searchTool },
+  stopWhen: stepCountIs(10),
+});
+```
+
+## Add citations
+
+Return a stable identifier with each chunk and instruct the model to cite by it. Because the model reads chunks across several searches, citing by ID is more reliable than position-based numbering.
+
+```typescript
+const searchTool = tool({
+  description: "Search the knowledge base.",
+  inputSchema: z.object({
+    query: z.string().describe("The search query."),
+  }),
+  execute: async ({ query }) => {
+    const results = await ns.search(query, { topK: 10, rerank: true });
+
+    // Expose a short id the model cites by, plus metadata for your UI.
+    return results.map((r) => ({
+      id: r.id,
+      text: r.text,
+      source: r.metadata?.filename,
+    }));
+  },
+});
+```
+
+Add the citation contract to your system prompt:
+
+```text
+Cite every factual statement using the chunk id in the form [id].
+Only cite ids that appear in the search results.
+```
+
+See [Citations](/search-and-retrieval/citations) for rendering citations in your UI.
+
+## Tune retrieval
+
+Configure the underlying search per call to balance recall, relevance, and token usage.
+
+| Option | Recommendation |
+| :--- | :--- |
+| `topK` | Raise for broad questions, lower to save tokens. The model can search again if needed. |
+| `rerank` | Keep enabled to surface the most relevant chunks first. |
+| `mode` | Use `keyword` for exact terms (error codes, IDs); `semantic` (default) otherwise. |
+| `filter` | Scope results by [metadata](/search-and-retrieval/filtering), e.g. per-user or per-document. |
+
+You can expose more than one tool—for example, one that fetches a full document by ID—and let the model choose between them.
+
+## Next steps
+
+- [Search](/search-and-retrieval/search) — Configure search parameters and reranking
+- [Citations](/search-and-retrieval/citations) — Add source attribution to responses
+- [Filtering](/search-and-retrieval/filtering) — Scope searches with metadata filters
+- [Observability](/production/observability) — Trace each search and generation step

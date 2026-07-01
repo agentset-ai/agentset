@@ -1,0 +1,25 @@
+---
+title: 'Step 4: Partitioner API'
+'og:title': 'Set up the Partitioner API for Agentset'
+description: 'Configure the document partitioning service'
+---
+
+Next, you'll need to set up the partitioner API. This will be used to partition documents into chunks for vectorization. More information can be found [here](https://github.com/agentset-ai/partition-api).
+
+<Note>
+  Make sure `REDIS_HOST`, `REDIS_PORT`, and `REDIS_PASSWORD` match the values in your
+  Upstash Redis database created in [Step 2](/open-source/step-2-upstash).
+</Note>
+
+## Set up environment variables
+
+Once you have the partitioner API running, set these environment variables in your `.env` file:
+
+```TypeScript .env
+PARTITION_API_URL= // the URL of the partitioner API (e.g. https://example.modal.run/ingest)
+PARTITION_API_KEY= // the API key for the partitioner API
+```
+
+## Next Steps
+
+Once you've completed the Partitioner API setup, proceed to [Step 5: Supabase](/open-source/step-5-supabase) to set up your PostgreSQL database.

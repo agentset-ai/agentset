@@ -1,0 +1,227 @@
+---
+title: "Filtering"
+description: "Filter search results by document metadata"
+---
+
+Use metadata filters to narrow search results to chunks matching specific criteria. Reducing the search space improves relevance and performance. For multi-tenant applications, see [Data Segregation](/production/data-segregation).
+
+## Filter operators
+
+| Operator | Description | Supported types |
+| :--- | :--- | :--- |
+| `$eq` | Equal to a specified value | String, number, boolean |
+| `$ne` | Not equal to a specified value | String, number, boolean |
+| `$gt` | Greater than a specified value | Number |
+| `$gte` | Greater than or equal to a specified value | Number |
+| `$lt` | Less than a specified value | Number |
+| `$lte` | Less than or equal to a specified value | Number |
+| `$in` | Matches any value in an array | String, number |
+| `$nin` | Matches none of the values in an array | String, number |
+| `$all` | Matches arrays containing all specified elements | Array |
+| `$elemMatch` | Matches if any array element meets the criteria | Array |
+| `$exists` | Matches documents where the field exists | Boolean |
+| `$and` | Joins clauses with logical AND | - |
+| `$or` | Joins clauses with logical OR | - |
+| `$not` | Negates a filter expression | - |
+| `$nor` | Matches documents that fail all specified conditions | - |
+
+## Basic filtering
+
+Pass a `filter` object to return only documents with matching metadata values.
+
+<CodeGroup>
+```typescript TypeScript
+const results = await ns.search("disease prevention", {
+  filter: {
+    category: "digestive system",
+  },
+});
+```
+
+```python Python
+results = client.search.execute(
+    query="disease prevention",
+    filter={
+        "category": "digestive system",
+    },
+)
+```
+</CodeGroup>
+
+## Using comparison operators
+
+<CodeGroup>
+```typescript TypeScript
+const results = await ns.search("premium products", {
+  filter: {
+    price: { $gte: 100 },
+  },
+});
+```
+
+```python Python
+results = client.search.execute(
+    query="premium products",
+    filter={
+        "price": {"$gte": 100},
+    },
+)
+```
+</CodeGroup>
+
+### Range queries
+
+Combine operators to filter within a range.
+
+<CodeGroup>
+```typescript TypeScript
+const results = await ns.search("mid-range items", {
+  filter: {
+    price: { $gte: 50, $lte: 200 },
+  },
+});
+```
+
+```python Python
+results = client.search.execute(
+    query="mid-range items",
+    filter={
+        "price": {"$gte": 50, "$lte": 200},
+    },
+)
+```
+</CodeGroup>
+
+## Using array operators
+
+Match documents where a field equals any value in an array.
+
+<CodeGroup>
+```typescript TypeScript
+const results = await ns.search("documentation", {
+  filter: {
+    category: { $in: ["guides", "tutorials"] },
+  },
+});
+```
+
+```python Python
+results = client.search.execute(
+    query="documentation",
+    filter={
+        "category": {"$in": ["guides", "tutorials"]},
+    },
+)
+```
+</CodeGroup>
+
+Exclude documents matching any value in an array.
+
+<CodeGroup>
+```typescript TypeScript
+const results = await ns.search("active projects", {
+  filter: {
+    status: { $nin: ["archived", "deleted"] },
+  },
+});
+```
+
+```python Python
+results = client.search.execute(
+    query="active projects",
+    filter={
+        "status": {"$nin": ["archived", "deleted"]},
+    },
+)
+```
+</CodeGroup>
+
+## Combining filters
+
+Use `$and` and `$or` to combine multiple conditions.
+
+<CodeGroup>
+```typescript TypeScript
+// OR: match either condition
+const results = await ns.search("tasks", {
+  filter: {
+    $or: [
+      { priority: "high" },
+      { status: "overdue" },
+    ],
+  },
+});
+```
+
+```python Python
+# OR: match either condition
+results = client.search.execute(
+    query="tasks",
+    filter={
+        "$or": [
+            {"priority": "high"},
+            {"status": "overdue"},
+        ],
+    },
+)
+```
+</CodeGroup>
+
+<br />
+
+<CodeGroup>
+```typescript TypeScript
+// AND: match all conditions
+const results = await ns.search("reports", {
+  filter: {
+    $and: [
+      { year: { $gte: 2023 } },
+      { department: "engineering" },
+    ],
+  },
+});
+```
+
+```python Python
+# AND: match all conditions
+results = client.search.execute(
+    query="reports",
+    filter={
+        "$and": [
+            {"year": {"$gte": 2023}},
+            {"department": "engineering"},
+        ],
+    },
+)
+```
+</CodeGroup>
+
+## Checking field existence
+
+Filter documents based on whether a metadata field exists.
+
+<CodeGroup>
+```typescript TypeScript
+const results = await ns.search("reviewed content", {
+  filter: {
+    reviewedBy: { $exists: true },
+  },
+});
+```
+
+```python Python
+results = client.search.execute(
+    query="reviewed content",
+    filter={
+        "reviewedBy": {"$exists": True},
+    },
+)
+```
+</CodeGroup>
+
+## Next steps
+
+- [API Reference](/api-reference/endpoint/search) — Filter parameters and options
+- [Document Metadata](/data-ingestion/document-metadata) — Add metadata during ingestion
+- [Ranking](/search-and-retrieval/ranking) — Control how results are scored and ordered
+- [Data Segregation](/production/data-segregation) — Strategies for multi-tenant applications

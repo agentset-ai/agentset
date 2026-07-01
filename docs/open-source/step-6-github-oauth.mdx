@@ -1,0 +1,32 @@
+---
+title: 'Step 6: GitHub OAuth'
+'og:title': 'Set up GitHub OAuth for Agentset'
+description: 'Configure GitHub authentication for user sign-in'
+---
+
+Next, [create a new GitHub App](https://github.com/settings/applications/new). This will allow you to sign in to Agentset with your GitHub account.
+
+## Set up callback URLs
+
+Don't forget to set the following Callback URLs:
+
+- `https://app.acme.com/api/auth/callback/github`
+- `http://localhost:3000/api/auth/callback/github` for local development.
+
+<Info>
+  Optional: Set the "Email addresses" account permission to **read-only** in order to
+  access private email addresses on GitHub.
+</Info>
+
+## Set up environment variables
+
+Once your GitHub App is created, copy the `Client ID` and `Client Secret` into your `.env` file as the `GITHUB_CLIENT_ID` and `GITHUB_CLIENT_SECRET` environment variables.
+
+```TypeScript .env
+GITHUB_CLIENT_ID=your_github_client_id
+GITHUB_CLIENT_SECRET=your_github_client_secret
+```
+
+## Next Steps
+
+Once you've completed the GitHub OAuth setup, proceed to [Step 7: Google OAuth](/open-source/step-7-google-oauth) to enable Google authentication.

@@ -1,0 +1,44 @@
+---
+title: 'Prerequisites'
+'og:title': 'Prerequisites for self-hosting Agentset'
+description: 'Required accounts and setup before self-hosting Agentset'
+---
+
+Before you begin self-hosting Agentset, make sure you have the following accounts set up:
+
+- A [GitHub](https://github.com/) account
+- An [Upstash](https://upstash.com/) account
+- A [Trigger.dev](https://trigger.dev/) account
+- A [Supabase](https://supabase.com/) account
+- A [Vercel](https://vercel.com/) account
+- Either a [Cloudflare](https://www.cloudflare.com/) or [AWS](https://aws.com) account
+
+These services are required to run Agentset on your own infrastructure. Each service plays a specific role in the Agentset architecture:
+
+- **GitHub**: For source code management and OAuth authentication
+- **Upstash**: For Redis database and queue management (QStash)
+- **Trigger.dev**: For workflow orchestration and background job processing
+- **Supabase**: For PostgreSQL database to store application data
+- **Vercel**: For hosting the web application
+- **Cloudflare/AWS**: For object storage (file uploads)
+
+## Why External Dependencies?
+
+Our goal with Agentset is to provide the highest accuracy for document processing and search, which often requires us to use third-party providers for specialized capabilities.
+
+These dependencies allow us to leverage battle-tested infrastructure and focus on building the core functionality that makes Agentset powerful.
+
+### Future Plans
+
+It's on our roadmap to have a fully offline version without external dependencies. We're working on:
+
+- Docker images for simplified deployment
+- Support for self-hosted alternatives to current dependencies
+- Reduced reliance on third-party AI providers
+- A CLI for easier setup and management
+
+If you have specific requirements for offline deployment or want to contribute to this effort, please reach out to us at [contact@agentset.ai](mailto:contact@agentset.ai) or join our [Discord community](https://discord.gg/AqMkKAYZCu).
+
+## Next Steps
+
+Once you have these accounts ready, you can proceed with the setup steps starting with [Step 1: Local Setup](/open-source/step-1-local-setup).

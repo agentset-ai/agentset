@@ -1,0 +1,55 @@
+---
+title: 'Step 5: Supabase'
+'og:title': 'Set up Supabase for Agentset'
+description: 'Configure PostgreSQL database for application data'
+---
+
+Next, you'll need to set up any PostgreSQL database (e.g. [Supabase](https://supabase.com/)). This will be used to store application data (e.g. user sessions, user data, etc.).
+
+<Steps>
+
+  <Step title="Create Supabase database">
+
+    In your [Supabase account](https://supabase.com/), create a new database.
+
+    Make sure to copy the password you write to use for the next step.
+
+    <Frame>
+      ![Supabase create database](/images/self-hosting/supabase-create-db.png)
+    </Frame>
+
+  </Step>
+
+  <Step title="Set up Supabase environment variables">
+
+    Then, click on the **Connect** button on the top left, navigate to the **ORMs** tab, and select **Prisma**.
+
+    After that, copy the `DATABASE_URL` and `DIRECT_URL` into your `.env` file. And make sure to replace `[YOUR-PASSWORD]` with the password you wrote down in the previous step.
+
+    <Frame>
+    ![Supabase connection](/images/self-hosting/supabase-connection.png)
+    </Frame>
+
+  </Step>
+
+  <Step title="Apply migrations">
+
+    In the terminal, run the following command to generate the Prisma client:
+
+    ```bash Terminal
+    pnpm run db:generate
+    ```
+
+    Then, run the following command to apply the database migrations:
+
+    ```bash Terminal
+    pnpm run db:deploy
+    ```
+
+  </Step>
+
+</Steps>
+
+## Next Steps
+
+Once you've completed the Supabase setup, proceed to [Step 6: GitHub OAuth](/open-source/step-6-github-oauth) to enable authentication.

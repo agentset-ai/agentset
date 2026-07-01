@@ -1,0 +1,40 @@
+---
+title: 'API Keys'
+description: 'Learn how API keys work on Agentset.'
+---
+
+API keys allow you to access Agentset programmatically. Use them to integrate Agentset into your application via the SDK or REST API.
+
+Each API key is scoped to a specific organization, so you can safely use it without exposing access to other organizations.
+
+API keys follow this format:
+
+```bash .env
+AGENTSET_API_KEY=agentset_xxxxxxxx
+```
+
+Store your API key securely in your app's server-side code (such as in an environment variable). Don't expose it on a website or client-side code.
+
+## Create an API key
+
+<Steps>
+  <Step title="Create an account">
+    [Sign up](https://app.agentset.ai) and create an organization.
+  </Step>
+  <Step title="Create an API key">
+    Navigate to **Settings → API Keys → New API Key**.
+
+    <Frame>
+      <img src="/images/get-started/api-key.png" alt="Creating an API key in the Agentset dashboard" />
+    </Frame>
+
+    Copy your API key and store it in a safe place—you won't be able to see it again.
+  </Step>
+  <Step title="Use your API key">
+    Use your API key with the [SDK](/get-started/sdks) or include it as a bearer token in API requests:
+
+    ```
+    Authorization: Bearer agentset_xxxx
+    ```
+  </Step>
+</Steps>

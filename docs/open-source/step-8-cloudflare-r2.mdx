@@ -1,0 +1,64 @@
+---
+title: 'Step 8: Cloudflare R2'
+'og:title': 'Set up Cloudflare R2 for Agentset'
+description: 'Configure object storage for file uploads'
+---
+
+Agentset stores file uploads in either S3 or S3-compatible services like [Cloudflare R2](https://cloudflare.com/r2).
+
+We recommend using [Cloudflare R2](https://cloudflare.com/r2) for self-hosting Agentset, as it's a more cost-effective solution compared to AWS S3. Here's how you can set it up:
+
+<Steps>
+
+  <Step title="Create R2 bucket">
+
+<Note>You'll need to subscribe to the R2 service if you haven't already.</Note>
+
+In your [Cloudflare account](https://dash.cloudflare.com/), create a new R2 bucket. We recommend giving your bucket a descriptive name (e.g. `agentset`) and leaving the remaining settings as is.
+
+<Frame>![Cloudflare R2 bucket](/images/self-hosting/cloudflare-r2-create-bucket.png)</Frame>
+
+In your bucket settings, copy the **S3 API** value – you'll need it in Step 3.
+
+  </Step>
+
+  <Step title="Set up access to R2">
+
+From the R2 main page, click **Manage R2 API Tokens** on the right-hand column.
+
+<Frame>
+  ![Cloudflare manage API tokens](/images/self-hosting/cloudflare-r2-manage-api-tokens.png)
+</Frame>
+
+Then, click **Create API Token**.
+
+<Frame>![Cloudflare R2 API token](/images/self-hosting/cloudflare-r2-create-api-token.png)</Frame>
+
+Make sure to name your API token something relevant to the service that will be using the token.
+
+Give it "Object Read & Write" permissions, and we recommend only applying ito to a single bucket.
+
+You can leave the remaining settings (TTL, Client IP Address Filtering) as is, and click **Create API Token**.
+
+After you create you token, copy the `Access Key ID` and `Secret Access Key` values – you'll need them in the next step.
+
+  </Step>
+
+<Step title="Set up R2 environment variables">
+
+Once you have your credentials, set them in your `.env` file:
+
+```TypeScript .env
+S3_ACCESS_KEY= // this is the Access Key ID value from Step 2
+S3_SECRET_KEY= // this is the Secret Access Key value from Step 2
+S3_ENDPOINT= // this is the S3 API value from Step 1
+S3_BUCKET= // this is the name of the bucket you created in Step 1
+```
+
+</Step>
+
+</Steps>
+
+## Next Steps
+
+Once you've completed the Cloudflare R2 setup, proceed to [Step 9: Resend](/open-source/step-9-resend) to set up email functionality (optional).

@@ -1,0 +1,24 @@
+---
+title: 'Step 9: Resend (Optional)'
+'og:title': 'Set up Resend for Agentset'
+description: 'Configure email service for magic link authentication'
+---
+
+<Note>Note that if you want to use magic link sign-in, this is a required step.</Note>
+
+Next, you'll need to set up Resend for transactional emails (e.g. magic link emails):
+
+## Setup Instructions
+
+1. Sign up for Resend and [create your API key here](https://resend.com/api-keys).
+2. Copy the API key into your `.env` file as the `RESEND_API_KEY` environment variable.
+
+```TypeScript .env
+RESEND_API_KEY=your_resend_api_key
+```
+
+3. You'll then need to set up and verify your domain by [following this guide here](https://resend.com/docs/dashboard/domains/introduction).
+
+## Next Steps
+
+Once you've completed the Resend setup (or skipped it if not using magic links), proceed to [Step 10: Deploy to Vercel](/open-source/step-10-deploy-vercel) to deploy your application.

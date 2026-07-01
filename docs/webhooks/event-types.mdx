@@ -1,0 +1,431 @@
+---
+title: Event Types
+description: 'List of available webhook events you can listen to along with their payload examples'
+---
+
+Webhooks allow you to receive real-time notifications for events in your Agentset organization. All webhook payloads follow this format:
+
+```json webhook-payload.json
+{
+  "id": "evt_abc123def456", // Unique event ID
+  "event": "document.ready", // Event type
+  "createdAt": "2024-08-26T16:41:52.346Z", // When the event was created (UTC)
+  "data": {
+    // Event-specific payload
+  }
+}
+```
+
+There are two categories of webhook events:
+
+- [**Document events**](#document-events) - Triggered by document lifecycle changes
+- [**Ingest job events**](#ingest-job-events) - Triggered by ingest job lifecycle changes
+
+## Document events
+
+These events are triggered when documents change state during processing:
+
+- [`document.queued`](#document-queued)
+- [`document.queued_for_resync`](#document-queued_for_resync)
+- [`document.queued_for_deletion`](#document-queued_for_deletion)
+- [`document.processing`](#document-processing)
+- [`document.error`](#document-error)
+- [`document.ready`](#document-ready)
+- [`document.deleted`](#document-deleted)
+
+### `document.queued`
+
+Triggered when a new document is queued for processing.
+
+<Accordion title="Sample payload">
+```json document.queued
+{
+  "id": "evt_abc123def456",
+  "event": "document.queued",
+  "createdAt": "2024-08-26T16:41:52.346Z",
+  "data": {
+    "id": "doc_k8f2m9x3n4p1",
+    "name": "product-guide.pdf",
+    "namespaceId": "ns_j7h3k9m2n5p8",
+    "organizationId": "org_x9y8z7w6v5u4",
+    "status": "QUEUED",
+    "source": {
+      "type": "FILE",
+      "fileUrl": "https://example.com/sample.pdf"
+    },
+    "totalCharacters": null,
+    "totalChunks": null,
+    "totalPages": null,
+    "error": null,
+    "createdAt": "2024-08-26T16:41:52.084Z",
+    "updatedAt": "2024-08-26T16:41:52.084Z"
+  }
+}
+```
+</Accordion>
+
+### `document.queued_for_resync`
+
+Triggered when an existing document is queued for reprocessing.
+
+<Accordion title="Sample payload">
+```json document.queued_for_resync
+{
+  "id": "evt_def456ghi789",
+  "event": "document.queued_for_resync",
+  "createdAt": "2024-08-26T17:30:00.000Z",
+  "data": {
+    "id": "doc_k8f2m9x3n4p1",
+    "name": "product-guide.pdf",
+    "namespaceId": "ns_j7h3k9m2n5p8",
+    "organizationId": "org_x9y8z7w6v5u4",
+    "status": "QUEUED_FOR_RESYNC",
+    "source": {
+      "type": "FILE",
+      "fileUrl": "https://example.com/sample.pdf"
+    },
+    "totalCharacters": 45230,
+    "totalChunks": 32,
+    "totalPages": 15,
+    "error": null,
+    "createdAt": "2024-08-26T16:41:52.084Z",
+    "updatedAt": "2024-08-26T17:30:00.000Z"
+  }
+}
+```
+</Accordion>
+
+### `document.queued_for_deletion`
+
+Triggered when a document is queued for deletion.
+
+<Accordion title="Sample payload">
+```json document.queued_for_deletion
+{
+  "id": "evt_ghi789jkl012",
+  "event": "document.queued_for_deletion",
+  "createdAt": "2024-08-26T18:00:00.000Z",
+  "data": {
+    "id": "doc_k8f2m9x3n4p1",
+    "name": "product-guide.pdf",
+    "namespaceId": "ns_j7h3k9m2n5p8",
+    "organizationId": "org_x9y8z7w6v5u4",
+    "status": "QUEUED_FOR_DELETION",
+    "source": {
+      "type": "FILE",
+      "fileUrl": "https://example.com/sample.pdf"
+    },
+    "totalCharacters": 45230,
+    "totalChunks": 32,
+    "totalPages": 15,
+    "error": null,
+    "createdAt": "2024-08-26T16:41:52.084Z",
+    "updatedAt": "2024-08-26T18:00:00.000Z"
+  }
+}
+```
+</Accordion>
+
+### `document.processing`
+
+Triggered when a document starts processing (parsing, chunking, embedding).
+
+<Accordion title="Sample payload">
+```json document.processing
+{
+  "id": "evt_jkl012mno345",
+  "event": "document.processing",
+  "createdAt": "2024-08-26T16:42:00.000Z",
+  "data": {
+    "id": "doc_k8f2m9x3n4p1",
+    "name": "product-guide.pdf",
+    "namespaceId": "ns_j7h3k9m2n5p8",
+    "organizationId": "org_x9y8z7w6v5u4",
+    "status": "PROCESSING",
+    "source": {
+      "type": "FILE",
+      "fileUrl": "https://example.com/sample.pdf"
+    },
+    "totalCharacters": null,
+    "totalChunks": null,
+    "totalPages": null,
+    "error": null,
+    "createdAt": "2024-08-26T16:41:52.084Z",
+    "updatedAt": "2024-08-26T16:42:00.000Z"
+  }
+}
+```
+</Accordion>
+
+### `document.error`
+
+Triggered when document processing fails. The `error` field contains the error message.
+
+<Accordion title="Sample payload">
+```json document.error
+{
+  "id": "evt_mno345pqr678",
+  "event": "document.error",
+  "createdAt": "2024-08-26T16:45:00.000Z",
+  "data": {
+    "id": "doc_r5t6u7v8w9x0",
+    "name": "corrupted-file.pdf",
+    "namespaceId": "ns_j7h3k9m2n5p8",
+    "organizationId": "org_x9y8z7w6v5u4",
+    "status": "FAILED",
+    "source": {
+      "type": "FILE",
+      "fileUrl": "https://example.com/sample.pdf"
+    },
+    "totalCharacters": null,
+    "totalChunks": null,
+    "totalPages": null,
+    "error": "Failed to parse PDF: file appears to be corrupted",
+    "createdAt": "2024-08-26T16:44:00.000Z",
+    "updatedAt": "2024-08-26T16:45:00.000Z"
+  }
+}
+```
+</Accordion>
+
+### `document.ready`
+
+Triggered when a document has been successfully processed and is ready for search.
+
+<Accordion title="Sample payload">
+```json document.ready
+{
+  "id": "evt_pqr678stu901",
+  "event": "document.ready",
+  "createdAt": "2024-08-26T16:50:00.000Z",
+  "data": {
+    "id": "doc_k8f2m9x3n4p1",
+    "name": "product-guide.pdf",
+    "namespaceId": "ns_j7h3k9m2n5p8",
+    "organizationId": "org_x9y8z7w6v5u4",
+    "status": "READY",
+    "source": {
+      "type": "FILE",
+      "fileUrl": "https://example.com/sample.pdf"
+    },
+    "totalCharacters": 45230,
+    "totalChunks": 32,
+    "totalPages": 15,
+    "error": null,
+    "createdAt": "2024-08-26T16:41:52.084Z",
+    "updatedAt": "2024-08-26T16:50:00.000Z"
+  }
+}
+```
+</Accordion>
+
+### `document.deleted`
+
+Triggered when a document has been deleted from the namespace.
+
+<Accordion title="Sample payload">
+```json document.deleted
+{
+  "id": "evt_stu901vwx234",
+  "event": "document.deleted",
+  "createdAt": "2024-08-26T18:05:00.000Z",
+  "data": {
+    "id": "doc_k8f2m9x3n4p1",
+    "name": "product-guide.pdf",
+    "namespaceId": "ns_j7h3k9m2n5p8",
+    "organizationId": "org_x9y8z7w6v5u4",
+    "status": "QUEUED_FOR_DELETION",
+    "source": {
+      "type": "FILE",
+      "fileUrl": "https://example.com/sample.pdf"
+    },
+    "totalCharacters": 45230,
+    "totalChunks": 32,
+    "totalPages": 15,
+    "error": null,
+    "createdAt": "2024-08-26T16:41:52.084Z",
+    "updatedAt": "2024-08-26T18:05:00.000Z"
+  }
+}
+```
+</Accordion>
+
+## Ingest job events
+
+These events are triggered when ingest jobs change state. Ingest jobs are used for batch document ingestion (e.g., crawling a website or processing multiple files).
+
+- [`ingest_job.queued`](#ingest_job-queued)
+- [`ingest_job.queued_for_resync`](#ingest_job-queued_for_resync)
+- [`ingest_job.queued_for_deletion`](#ingest_job-queued_for_deletion)
+- [`ingest_job.processing`](#ingest_job-processing)
+- [`ingest_job.error`](#ingest_job-error)
+- [`ingest_job.ready`](#ingest_job-ready)
+- [`ingest_job.deleted`](#ingest_job-deleted)
+
+### `ingest_job.queued`
+
+Triggered when a new ingest job is queued.
+
+<Accordion title="Sample payload">
+```json ingest_job.queued
+{
+  "id": "evt_aaa111bbb222",
+  "event": "ingest_job.queued",
+  "createdAt": "2024-08-26T20:00:00.000Z",
+  "data": {
+    "id": "job_q1w2e3r4t5y6",
+    "name": "Website crawl - docs.example.com",
+    "namespaceId": "ns_j7h3k9m2n5p8",
+    "organizationId": "org_x9y8z7w6v5u4",
+    "status": "QUEUED",
+    "error": null,
+    "createdAt": "2024-08-26T20:00:00.000Z",
+    "updatedAt": "2024-08-26T20:00:00.000Z"
+  }
+}
+```
+</Accordion>
+
+### `ingest_job.queued_for_resync`
+
+Triggered when an existing ingest job is queued for reprocessing.
+
+<Accordion title="Sample payload">
+```json ingest_job.queued_for_resync
+{
+  "id": "evt_bbb222ccc333",
+  "event": "ingest_job.queued_for_resync",
+  "createdAt": "2024-08-27T10:00:00.000Z",
+  "data": {
+    "id": "job_q1w2e3r4t5y6",
+    "name": "Website crawl - docs.example.com",
+    "namespaceId": "ns_j7h3k9m2n5p8",
+    "organizationId": "org_x9y8z7w6v5u4",
+    "status": "QUEUED_FOR_RESYNC",
+    "error": null,
+    "createdAt": "2024-08-26T20:00:00.000Z",
+    "updatedAt": "2024-08-27T10:00:00.000Z"
+  }
+}
+```
+</Accordion>
+
+### `ingest_job.queued_for_deletion`
+
+Triggered when an ingest job is queued for deletion.
+
+<Accordion title="Sample payload">
+```json ingest_job.queued_for_deletion
+{
+  "id": "evt_ccc333ddd444",
+  "event": "ingest_job.queued_for_deletion",
+  "createdAt": "2024-08-27T12:00:00.000Z",
+  "data": {
+    "id": "job_q1w2e3r4t5y6",
+    "name": "Website crawl - docs.example.com",
+    "namespaceId": "ns_j7h3k9m2n5p8",
+    "organizationId": "org_x9y8z7w6v5u4",
+    "status": "QUEUED_FOR_DELETION",
+    "error": null,
+    "createdAt": "2024-08-26T20:00:00.000Z",
+    "updatedAt": "2024-08-27T12:00:00.000Z"
+  }
+}
+```
+</Accordion>
+
+### `ingest_job.processing`
+
+Triggered when an ingest job starts processing.
+
+<Accordion title="Sample payload">
+```json ingest_job.processing
+{
+  "id": "evt_ddd444eee555",
+  "event": "ingest_job.processing",
+  "createdAt": "2024-08-26T20:01:00.000Z",
+  "data": {
+    "id": "job_q1w2e3r4t5y6",
+    "name": "Website crawl - docs.example.com",
+    "namespaceId": "ns_j7h3k9m2n5p8",
+    "organizationId": "org_x9y8z7w6v5u4",
+    "status": "PROCESSING",
+    "error": null,
+    "createdAt": "2024-08-26T20:00:00.000Z",
+    "updatedAt": "2024-08-26T20:01:00.000Z"
+  }
+}
+```
+</Accordion>
+
+### `ingest_job.error`
+
+Triggered when an ingest job fails. The `error` field contains the error message.
+
+<Accordion title="Sample payload">
+```json ingest_job.error
+{
+  "id": "evt_eee555fff666",
+  "event": "ingest_job.error",
+  "createdAt": "2024-08-26T20:15:00.000Z",
+  "data": {
+    "id": "job_u7i8o9p0a1s2",
+    "name": "Website crawl - broken-site.example.com",
+    "namespaceId": "ns_j7h3k9m2n5p8",
+    "organizationId": "org_x9y8z7w6v5u4",
+    "status": "FAILED",
+    "error": "Failed to crawl website: connection timeout after 30s",
+    "createdAt": "2024-08-26T20:10:00.000Z",
+    "updatedAt": "2024-08-26T20:15:00.000Z"
+  }
+}
+```
+</Accordion>
+
+### `ingest_job.ready`
+
+Triggered when an ingest job completes successfully.
+
+<Accordion title="Sample payload">
+```json ingest_job.ready
+{
+  "id": "evt_fff666ggg777",
+  "event": "ingest_job.ready",
+  "createdAt": "2024-08-26T20:30:00.000Z",
+  "data": {
+    "id": "job_q1w2e3r4t5y6",
+    "name": "Website crawl - docs.example.com",
+    "namespaceId": "ns_j7h3k9m2n5p8",
+    "organizationId": "org_x9y8z7w6v5u4",
+    "status": "READY",
+    "error": null,
+    "createdAt": "2024-08-26T20:00:00.000Z",
+    "updatedAt": "2024-08-26T20:30:00.000Z"
+  }
+}
+```
+</Accordion>
+
+### `ingest_job.deleted`
+
+Triggered when an ingest job has been deleted.
+
+<Accordion title="Sample payload">
+```json ingest_job.deleted
+{
+  "id": "evt_ggg777hhh888",
+  "event": "ingest_job.deleted",
+  "createdAt": "2024-08-27T12:05:00.000Z",
+  "data": {
+    "id": "job_q1w2e3r4t5y6",
+    "name": "Website crawl - docs.example.com",
+    "namespaceId": "ns_j7h3k9m2n5p8",
+    "organizationId": "org_x9y8z7w6v5u4",
+    "status": "QUEUED_FOR_DELETION",
+    "error": null,
+    "createdAt": "2024-08-26T20:00:00.000Z",
+    "updatedAt": "2024-08-27T12:05:00.000Z"
+  }
+}
+```
+</Accordion>

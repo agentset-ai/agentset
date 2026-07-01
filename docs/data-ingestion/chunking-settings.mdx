@@ -1,0 +1,288 @@
+---
+title: 'Chunking Settings'
+description: 'Configure how your documents are split into searchable chunks'
+---
+
+Control how Agentset splits your documents into chunks. Chunks split intelligently to preserve sentences and paragraphs. Agentset detects images, tables, and code blocks in the content and processes them using standalone chunkers.
+
+## Chunk size
+
+Set `chunkSize` to control the target number of characters each chunk contains. Smaller chunks are more precise, while larger chunks preserve more context. The default is 2048 characters.
+
+<CodeGroup>
+```typescript TypeScript
+const job = await ns.ingestion.create({
+  payload: {
+    type: "FILE",
+    fileUrl: "https://example.com/document.pdf",
+  },
+  config: {
+    chunkSize: 2048,
+  },
+});
+```
+
+```python Python
+job = client.ingest_jobs.create(
+    payload={
+        "type": "FILE",
+        "fileUrl": "https://example.com/document.pdf",
+    },
+    config={
+        "chunkSize": 2048,
+    },
+)
+```
+
+</CodeGroup>
+
+<Info>
+  Chunk boundaries are adjusted to preserve semantic coherence. Chunk sizes are designed
+  to be close to the target value, but vary to achieve optimal splits.
+</Info>
+
+## Processing mode
+
+Set `mode` to control the tradeoff between speed and accuracy when processing documents.
+
+<CodeGroup>
+```typescript TypeScript
+const job = await ns.ingestion.create({
+  payload: {
+    type: "FILE",
+    fileUrl: "https://example.com/document.pdf",
+  },
+  config: {
+    mode: "accurate",
+  },
+});
+```
+
+```python Python
+job = client.ingest_jobs.create(
+    payload={
+        "type": "FILE",
+        "fileUrl": "https://example.com/document.pdf",
+    },
+    config={
+        "mode": "accurate",
+    },
+)
+```
+
+</CodeGroup>
+
+| Mode       | Description                                                               |
+| :--------- | :------------------------------------------------------------------------ |
+| `fast`     | Fastest processing, suitable for simple documents                         |
+| `balanced` | Default. Good balance of speed and quality                                |
+| `accurate` | Best layout detection, ideal for complex documents with tables or figures |
+
+## Image extraction
+
+Control image extraction from documents with `disableImageExtraction`. When disabled, images are not extracted from the document.
+
+<CodeGroup>
+```typescript TypeScript
+const job = await ns.ingestion.create({
+  payload: {
+    type: "FILE",
+    fileUrl: "https://example.com/document.pdf",
+  },
+  config: {
+    disableImageExtraction: true,
+  },
+});
+```
+
+```python Python
+job = client.ingest_jobs.create(
+    payload={
+        "type": "FILE",
+        "fileUrl": "https://example.com/document.pdf",
+    },
+    config={
+        "disableImageExtraction": True,
+    },
+)
+```
+
+</CodeGroup>
+
+## Image captions
+
+Disable synthetic image captions with `disableImageCaptions`. When enabled, images are rendered as plain img tags without alt text descriptions.
+
+<CodeGroup>
+```typescript TypeScript
+const job = await ns.ingestion.create({
+  payload: {
+    type: "FILE",
+    fileUrl: "https://example.com/document.pdf",
+  },
+  config: {
+    disableImageCaptions: true,
+  },
+});
+```
+
+```python Python
+job = client.ingest_jobs.create(
+    payload={
+        "type": "FILE",
+        "fileUrl": "https://example.com/document.pdf",
+    },
+    config={
+        "disableImageCaptions": True,
+    },
+)
+```
+
+</CodeGroup>
+
+## Chart understanding
+
+Enable `chartUnderstanding` to extract data from charts in documents. This feature analyzes chart content and converts it to structured data.
+
+<CodeGroup>
+```typescript TypeScript
+const job = await ns.ingestion.create({
+  payload: {
+    type: "FILE",
+    fileUrl: "https://example.com/report.pdf",
+  },
+  config: {
+    chartUnderstanding: true,
+  },
+});
+```
+
+```python Python
+job = client.ingest_jobs.create(
+    payload={
+        "type": "FILE",
+        "fileUrl": "https://example.com/report.pdf",
+    },
+    config={
+        "chartUnderstanding": True,
+    },
+)
+```
+
+</CodeGroup>
+
+## Page headers and footers
+
+Control whether page headers and footers are included in the output using `keepPageheaderInOutput` and `keepPagefooterInOutput`.
+
+<CodeGroup>
+```typescript TypeScript
+const job = await ns.ingestion.create({
+  payload: {
+    type: "FILE",
+    fileUrl: "https://example.com/document.pdf",
+  },
+  config: {
+    keepPageheaderInOutput: true,
+    keepPagefooterInOutput: true,
+  },
+});
+```
+
+```python Python
+job = client.ingest_jobs.create(
+    payload={
+        "type": "FILE",
+        "fileUrl": "https://example.com/document.pdf",
+    },
+    config={
+        "keepPageheaderInOutput": True,
+        "keepPagefooterInOutput": True,
+    },
+)
+```
+
+</CodeGroup>
+
+## Language
+
+Specify `languageCode` to optimize text processing for a specific language. If omitted, the language is detected automatically.
+
+<CodeGroup>
+```typescript TypeScript
+const job = await ns.ingestion.create({
+  payload: {
+    type: "FILE",
+    fileUrl: "https://example.com/document.pdf",
+  },
+  config: {
+    languageCode: "fr",
+  },
+});
+```
+
+```python Python
+job = client.ingest_jobs.create(
+    payload={
+        "type": "FILE",
+        "fileUrl": "https://example.com/document.pdf",
+    },
+    config={
+        "languageCode": "fr",
+    },
+)
+```
+
+</CodeGroup>
+
+## Combining options
+
+Pass multiple config options together to customize processing.
+
+<CodeGroup>
+```typescript TypeScript
+const job = await ns.ingestion.create({
+  payload: {
+    type: "FILE",
+    fileUrl: "https://example.com/report.pdf",
+  },
+  config: {
+    chunkSize: 512,
+    mode: "accurate",
+    chartUnderstanding: true,
+    disableImageCaptions: false,
+    languageCode: "en",
+    metadata: {
+      category: "reports",
+    },
+  },
+});
+```
+
+```python Python
+job = client.ingest_jobs.create(
+    payload={
+        "type": "FILE",
+        "fileUrl": "https://example.com/report.pdf",
+    },
+    config={
+        "chunkSize": 512,
+        "mode": "accurate",
+        "chartUnderstanding": True,
+        "disableImageCaptions": False,
+        "languageCode": "en",
+        "metadata": {
+            "category": "reports",
+        },
+    },
+)
+```
+
+</CodeGroup>
+
+## Next steps
+
+- [API Reference](/api-reference/endpoint/ingest-jobs/create) — Chunking parameters and options
+- [Document Metadata](/data-ingestion/document-metadata) — Attach metadata for filtering and citations
+- [Search](/search-and-retrieval/search) — Query your uploaded content
+- [Ranking](/search-and-retrieval/ranking) — Configure result ranking

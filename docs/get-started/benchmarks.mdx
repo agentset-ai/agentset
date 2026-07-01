@@ -1,0 +1,142 @@
+---
+title: "Benchmarks"
+description: "Retrieval accuracy across evaluation datasets"
+---
+
+export const BenchmarkChart = () => {
+  const data = [
+    { benchmark: "HotpotQA", agentset: 97.9, reranker: 91.3, standard: 88.8 },
+    { benchmark: "FinanceBench", agentset: 70.2, reranker: 40.4, standard: 38.6 },
+  ];
+
+  const maxValue = 100;
+  const barHeight = 160;
+  const labelHeight = 24;
+  const yAxisTicks = [0, 25, 50, 75, 100];
+
+  return (
+    <div className="not-prose p-6 border dark:border-white/10 rounded-2xl">
+      <h3 className="text-lg font-semibold text-zinc-900 dark:text-white mb-6">Retrieval Accuracy</h3>
+      <div className="flex">
+        {/* Y-axis */}
+        <div className="shrink-0 w-8 flex flex-col" style={{ paddingTop: labelHeight }}>
+          <div className="flex flex-col justify-between text-right pr-2 text-xs text-zinc-500 dark:text-zinc-400" style={{ height: barHeight }}>
+            {yAxisTicks.slice().reverse().map((tick) => (
+              <span key={tick} className="leading-none -translate-y-[3px]">{tick}</span>
+            ))}
+          </div>
+        </div>
+        {/* Chart area */}
+        <div className="flex-1 flex flex-col">
+          {/* Labels + bars area */}
+          <div className="relative border-l border-b border-zinc-300 dark:border-zinc-700" style={{ height: barHeight + labelHeight }}>
+            {/* Grid lines */}
+            <div className="absolute left-0 right-0 flex flex-col justify-between pointer-events-none" style={{ top: labelHeight, height: barHeight }}>
+              {yAxisTicks.slice().reverse().map((tick) => (
+                <div key={tick} className="border-t border-zinc-200 dark:border-zinc-800 w-full" />
+              ))}
+            </div>
+            {/* Bars */}
+            <div className="absolute bottom-0 left-0 right-0 flex items-end justify-center gap-16 px-8" style={{ height: barHeight }}>
+              {data.map((item) => (
+                <div key={item.benchmark} className="flex items-end gap-1">
+                  {/* Agentset bar */}
+                  <div className="relative w-12">
+                    <span className="absolute -top-5 left-1/2 -translate-x-1/2 text-xs font-semibold text-zinc-700 dark:text-zinc-300 whitespace-nowrap">{item.agentset}%</span>
+                    <div
+                      className="w-full rounded-t-md transition-all duration-500"
+                      style={{
+                        height: `${(item.agentset / maxValue) * barHeight}px`,
+                        backgroundColor: "#101828",
+                      }}
+                    />
+                  </div>
+                  {/* RAG + Reranker bar */}
+                  <div className="relative w-12">
+                    <span className="absolute -top-5 left-1/2 -translate-x-1/2 text-xs font-medium text-zinc-500 dark:text-zinc-400 whitespace-nowrap">{item.reranker}%</span>
+                    <div
+                      className="w-full rounded-t-md bg-zinc-400 dark:bg-zinc-600 transition-all duration-500"
+                      style={{
+                        height: `${(item.reranker / maxValue) * barHeight}px`,
+                      }}
+                    />
+                  </div>
+                  {/* Standard RAG bar */}
+                  <div className="relative w-12">
+                    <span className="absolute -top-5 left-1/2 -translate-x-1/2 text-xs font-medium text-zinc-500 dark:text-zinc-400 whitespace-nowrap">{item.standard}%</span>
+                    <div
+                      className="w-full rounded-t-md bg-zinc-300 dark:bg-zinc-700 transition-all duration-500"
+                      style={{
+                        height: `${(item.standard / maxValue) * barHeight}px`,
+                      }}
+                    />
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+          {/* X-axis labels */}
+          <div className="flex justify-center gap-16 px-8 mt-3">
+            {data.map((item) => (
+              <div key={item.benchmark} className="text-sm font-medium text-zinc-700 dark:text-zinc-300 text-center" style={{ width: `${3 * 48 + 2 * 4}px` }}>
+                {item.benchmark}
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+      {/* Legend below */}
+      <div className="flex items-center justify-center gap-6 mt-3 pt-4 border-t border-zinc-200 dark:border-zinc-800 text-xs">
+        <div className="flex items-center gap-1.5">
+          <div className="w-3 h-3 rounded-sm" style={{ backgroundColor: "#101828" }} />
+          <span className="text-zinc-600 dark:text-zinc-400">Agentset</span>
+        </div>
+        <div className="flex items-center gap-1.5">
+          <div className="w-3 h-3 rounded-sm bg-zinc-400 dark:bg-zinc-600" />
+          <span className="text-zinc-600 dark:text-zinc-400">RAG + Reranker</span>
+        </div>
+        <div className="flex items-center gap-1.5">
+          <div className="w-3 h-3 rounded-sm bg-zinc-300 dark:bg-zinc-700" />
+          <span className="text-zinc-600 dark:text-zinc-400">Standard RAG</span>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+<BenchmarkChart />
+
+Configurations: 
+- **Agentset** — Our hosted retrieval pipeline including query expansion, hybrid search, and multi-step reasoning.
+- **RAG + Reranker** — Same as standard RAG, plus a reranking model that reorders retrieved chunks by relevance.
+- **Standard RAG** — Embeds documents, retrieves top-k chunks via vector similarity, passes them to the LLM.
+
+All configurations use matching set-ups: 2048 character recursive chunking with Chonkie, Turbopuffer vector database with top-k set to 20, and text-embedding-3-large for embeddings. RAG + Reranker and Agentset use Zerank-2 for reranking.
+
+## HotpotQA
+
+[HotpotQA](https://hotpotqa.github.io/) is the leading multi-hop reasoning benchmark for RAG systems. It's a challenging dataset containing 113k question-answer pairs, each answer requires information from 2 or more documents.
+
+For example: *"What government position was held by the woman who portrayed Roxie Hart in the film Chicago?"* To answer this, a system must first find the actress, then find her government role.
+
+| Configuration | Correct Answers | Average Score |
+|---------------|-----------------|---------------|
+| **Agentset** | **979 / 1000** | **9.84** |
+| RAG + Reranker | 913 / 1000 | 9.2 |
+| Standard RAG | 888 / 1000 | 9.0 |
+
+View the HotpotQA results and JSON outputs on [GitHub](https://github.com/agentset-ai/benchmarks).
+
+## FinanceBench
+
+[FinanceBench](https://huggingface.co/datasets/PatronusAI/financebench) is a benchmark for evaluating financial question-answering over real public company filings. It contains 150 question-answer pairs requiring extraction and reasoning over 10-K and 10-Q documents from companies across multiple sectors.
+
+For example: *"What is the FY2018 capital expenditure amount for 3M?"* To answer this, a system must locate and extract the correct value from the company's cash flow statement.
+
+| Configuration | Correct Answers | Average Score |
+|---------------|-----------------|---------------|
+| **Agentset** | **80 / 114** | **7.75** |
+| RAG + Reranker | 46 / 114 | 5.1 |
+| Standard RAG | 44 / 114 | 5.0 |
+
+View the FinanceBench results and JSON outputs on [GitHub](https://github.com/agentset-ai/financebench).

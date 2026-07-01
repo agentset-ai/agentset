@@ -1,0 +1,18 @@
+---
+title: 'Rate limits'
+'og:title': "What are Agentset's API rate limits?"
+description: "Learn about Agentset's API rate limits."
+---
+
+Agentset's API rate limiting is in conformance with the [IETF standard](https://datatracker.ietf.org/doc/html/draft-ietf-httpapi-ratelimit-headers):
+
+| Header Name             | Description                                                                     |
+| ----------------------- | ------------------------------------------------------------------------------- |
+| `X-RateLimit-Limit`     | The maximum number of requests that the consumer is permitted to make per hour. |
+| `X-RateLimit-Remaining` | The number of requests remaining in the current rate limit window.              |
+| `X-RateLimit-Reset`     | The time at which the current rate limit window resets in UTC epoch seconds.    |
+| `Retry-After`           | The number of seconds to wait before retrying the request again.                |
+
+Agentset's API is rate limited to **60 requests per minute** on the Free plan and **600 requests per minute** on the Pro plan. Rate limits are applied per namespace. Please [contact us](mailto:contact@agentset.ai) if you need a higher limit.
+
+You'll receive a `429 Too Many Requests` response code if the rate limit is exceeded.

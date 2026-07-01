@@ -1,0 +1,219 @@
+{
+  "$schema": "https://mintlify.com/docs.json",
+  "name": "Agentset",
+  "colors": {
+    "primary": "#101828",
+    "light": "#fff",
+    "dark": "#060B14"
+  },
+  "theme": "maple",
+  "favicon": "/images/logo/favicon.png",
+  "api": {
+    "openapi": "https://spec.speakeasy.com/agentset-ktc/api/agentset-api-with-code-samples"
+  },
+  "contextual": {
+    "options": ["copy", "chatgpt", "claude", "cursor", "vscode"]
+  },
+  "integrations": {
+    "ga4": {
+      "measurementId": "G-QZ84QPSV3W"
+    }
+  },
+  "navigation": {
+    "tabs": [
+      {
+        "tab": "Documentation",
+        "groups": [
+          {
+            "group": "Get Started",
+            "pages": [
+              "get-started/introduction",
+              "get-started/why-rag-as-a-service",
+              "get-started/benchmarks",
+              "get-started/architecture",
+              "get-started/quickstart",
+              "get-started/sdks"
+            ]
+          },
+          {
+            "group": "Data Ingestion",
+            "pages": [
+              "data-ingestion/text-uploads",
+              "data-ingestion/file-uploads",
+              "data-ingestion/urls-and-crawling",
+              "data-ingestion/upload-status",
+              "data-ingestion/connectors",
+              "data-ingestion/document-metadata",
+              "data-ingestion/chunking-settings",
+              "data-ingestion/multimodal-input",
+              "data-ingestion/tabular-data"
+            ]
+          },
+          {
+            "group": "Search and Retrieval",
+            "pages": [
+              "search-and-retrieval/search",
+              "search-and-retrieval/filtering",
+              "search-and-retrieval/simple-rag",
+              "search-and-retrieval/agentic-search",
+              "search-and-retrieval/citations",
+              "search-and-retrieval/ranking"
+            ]
+          },
+          {
+            "group": "Production",
+            "pages": [
+              "production/deployment-options",
+              "production/hosting-ui",
+              "production/data-segregation",
+              "production/observability",
+              "production/mcp-server"
+            ]
+          },
+          {
+            "group": "Webhooks",
+            "pages": [
+              "webhooks/introduction",
+              "webhooks/event-types",
+              "webhooks/verify-webhook-requests"
+            ]
+          },
+          {
+            "group": "Cookbooks",
+            "pages": [
+              "cookbooks/product-support-assistant",
+              "cookbooks/youtube-knowledge-base"
+            ]
+          }
+        ]
+      },
+      {
+        "tab": "Self-hosting",
+        "groups": [
+          {
+            "group": "Overview",
+            "pages": ["open-source/prerequisites", "open-source/license"]
+          },
+          {
+            "group": "Steps",
+            "pages": [
+              "open-source/step-1-local-setup",
+              "open-source/step-2-upstash",
+              "open-source/step-3-trigger",
+              "open-source/step-4-partitioner-api",
+              "open-source/step-5-supabase",
+              "open-source/step-6-github-oauth",
+              "open-source/step-7-google-oauth",
+              "open-source/step-8-cloudflare-r2",
+              "open-source/step-9-resend",
+              "open-source/step-10-deploy-vercel"
+            ]
+          }
+        ]
+      },
+      {
+        "tab": "API Reference",
+        "groups": [
+          {
+            "group": "Overview",
+            "pages": [
+              "api-reference/introduction",
+              "api-reference/tokens",
+              "api-reference/rate-limits",
+              "api-reference/pagination",
+              "api-reference/errors"
+            ]
+          },
+          {
+            "group": "Namespaces",
+            "pages": [
+              "api-reference/endpoint/namespaces/list",
+              "api-reference/endpoint/namespaces/get",
+              "api-reference/endpoint/namespaces/create",
+              "api-reference/endpoint/namespaces/update",
+              "api-reference/endpoint/namespaces/delete"
+            ]
+          },
+          {
+            "group": "Ingest Jobs",
+            "pages": [
+              "api-reference/endpoint/ingest-jobs/list",
+              "api-reference/endpoint/ingest-jobs/get",
+              "api-reference/endpoint/ingest-jobs/create",
+              "api-reference/endpoint/ingest-jobs/re-ingest",
+              "api-reference/endpoint/ingest-jobs/delete"
+            ]
+          },
+          {
+            "group": "Documents",
+            "pages": [
+              "api-reference/endpoint/documents/list",
+              "api-reference/endpoint/documents/get",
+              "api-reference/endpoint/documents/chunks-download-url",
+              "api-reference/endpoint/documents/file-download-url",
+              "api-reference/endpoint/documents/delete"
+            ]
+          },
+          {
+            "group": "Hosting",
+            "pages": [
+              "api-reference/endpoint/hosting/enable",
+              "api-reference/endpoint/hosting/get",
+              "api-reference/endpoint/hosting/update",
+              "api-reference/endpoint/hosting/delete"
+            ]
+          },
+          {
+            "group": "Search",
+            "pages": ["api-reference/endpoint/search"]
+          },
+          {
+            "group": "Uploads",
+            "pages": [
+              "api-reference/endpoint/uploads/single",
+              "api-reference/endpoint/uploads/batch"
+            ]
+          }
+        ]
+      },
+      {
+        "tab": "Changelog",
+        "groups": [
+          {
+            "group": "Updates",
+            "pages": ["changelog"]
+          }
+        ]
+      }
+    ],
+    "global": {
+      "anchors": []
+    }
+  },
+  "logo": {
+    "light": "/images/logo/light.svg",
+    "dark": "/images/logo/dark.svg"
+  },
+  "navbar": {
+    "links": [
+      {
+        "label": "LLMs.txt",
+        "href": "https://docs.agentset.ai/llms.txt"
+      },
+      {
+        "label": "Contact Us",
+        "href": "mailto:contact@agentset.ai"
+      },
+      {
+        "label": "Login",
+        "href": "https://app.agentset.ai"
+      }
+    ]
+  },
+  "footer": {
+    "socials": {
+      "github": "https://github.com/agentset-ai",
+      "discord": "https://discord.gg/AqMkKAYZCu"
+    }
+  }
+}

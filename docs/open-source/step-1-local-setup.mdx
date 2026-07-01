@@ -1,0 +1,65 @@
+---
+title: 'Step 1: Local Setup'
+'og:title': 'Local setup for self-hosting Agentset'
+description: 'Clone the repository and configure your local development environment'
+---
+
+First, you'll need to clone the Agentset repo and install the dependencies.
+
+<Steps>
+
+  <Step title="Clone the repo">
+
+First, clone the [Agentset repo](https://github.com/agentset-ai/agentset).
+
+    ```bash Terminal
+    git clone https://github.com/agentset-ai/agentset.git
+    ```
+
+  </Step>
+
+  <Step title="Install dependencies">
+
+    Run the following command to install the dependencies:
+
+    ```bash Terminal
+    pnpm i
+    ```
+
+  </Step>
+
+  <Step title="Set up environment variables">
+
+    Convert the `.env.example` file to `.env`. You can start filling in the first few environment variables:
+
+    ```bash Terminal
+    # Default vector database (used when users select the Agentset managed option)
+    DEFAULT_PINECONE_API_KEY=pcsk_xxx
+    DEFAULT_PINECONE_HOST="https://xxx.svc.xxx-xxx-xxx.pinecone.io"
+
+    # Cohere API key (used for re-ranking)
+    DEFAULT_COHERE_API_KEY=xxx
+
+    # Default models (used when users select the Agentset managed option)
+    DEFAULT_AZURE_RESOURCE_NAME=xxx
+    DEFAULT_AZURE_API_KEY=xxx
+    DEFAULT_AZURE_EMBEDDING_DEPLOYMENT=text-embedding-3-large
+    DEFAULT_AZURE_LLM_DEPLOYMENT=gpt-4.1
+
+    # Trigger.dev secret key (for workflow orchestration)
+    TRIGGER_SECRET_KEY=tr_dev_xxx
+    ```
+
+    <Note>
+    We currently use azure openai models as the default (when users pick the Agentset managed option). If you'd like to change that, update `apps/web/src/lib/embeddings.ts` and `apps/web/src/lib/llm.ts` to use a different provider.
+    </Note>
+
+    You will fill in the remaining environment variables in the following steps.
+
+  </Step>
+
+</Steps>
+
+## Next Steps
+
+Once you've completed the local setup, proceed to [Step 2: Upstash](/open-source/step-2-upstash) to set up your Redis database and queue management.

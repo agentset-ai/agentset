@@ -1,0 +1,36 @@
+---
+title: 'Step 2: Upstash'
+'og:title': 'Set up Upstash for Agentset'
+description: 'Configure Upstash Redis and QStash for queue management'
+---
+
+Next, you'll need to set up [Upstash](https://upstash.com) Redis for caching and queue management.
+
+<Steps>
+
+  <Step title="Create Upstash Redis database">
+
+In your [Upstash account](https://console.upstash.com/), create a new Redis database.
+
+<Frame>![Upstash Redis database](/images/self-hosting/upstash-create-redis.png)</Frame>
+
+  </Step>
+
+  <Step title="Set up Upstash environment variables">
+
+Once your database is created, copy the `UPSTASH_REDIS_REST_URL` and `UPSTASH_REDIS_REST_TOKEN` from the **REST API** section into your `.env` file as `REDIS_URL` and `REDIS_TOKEN` respectively.
+
+<Frame>![Upstash Redis tokens](/images/self-hosting/upstash-redis-tokens.png)</Frame>
+
+Navigate to the [QStash tab](https://console.upstash.com/qstash) and copy the `QSTASH_TOKEN`, `QSTASH_CURRENT_SIGNING_KEY`, and `QSTASH_NEXT_SIGNING_KEY` from the **Request Builder** section into your `.env` file.
+
+<Frame>
+![Upstash QStash tokens](/images/self-hosting/upstash-qstash-tokens.png)
+</Frame>
+  </Step>
+
+</Steps>
+
+## Next Steps
+
+Once you've completed the Upstash setup, proceed to [Step 3: Trigger.dev](/open-source/step-3-trigger) to set up workflow orchestration.

@@ -1,0 +1,162 @@
+---
+title: Verify Requests
+description: "Learn how to verify webhook requests to ensure they're coming from Agentset."
+---
+
+With signature verification, you can determine if the webhook came from Agentset and has not been tampered with in transit.
+
+All webhooks are delivered with an `Agentset-Signature` header. Agentset generates this header using a secret key that only you and Agentset know.
+
+An example header looks like this:
+
+```
+Agentset-Signature: c9ed6a2abf93f59d761eea69908d8de00f4437b5b6d7cd8b9bf5719cbe61bf46
+```
+
+## Finding your webhook's signing secret
+
+You can find your webhook's signing secret in the **Update Details** tab:
+
+<Frame>
+  <img src='/images/webhooks/signing-secret.png' alt='Webhook signing secret' />
+</Frame>
+
+Make sure to keep this secret safe by only storing it in a secure environment variable (e.g. `AGENTSET_WEBHOOK_SECRET`). Do not commit it to git or add it in any client-side code.
+
+## Verifying a webhook request
+
+To verify, use the secret key to generate your own signature for each webhook. If both signatures match, you can be sure that the received event came from Agentset.
+
+The steps required are:
+
+1. Get the raw body of the request.
+2. Extract the signature from the `Agentset-Signature` header.
+3. Calculate the HMAC of the raw body using the `SHA-256` hash function and the secret.
+4. Compare the calculated `HMAC` with the one sent in the `Agentset-Signature` header. If they match, the webhook is verified.
+
+Here's an example of how you can verify a webhook request in different languages:
+
+<CodeGroup>
+
+```javascript Next.js
+export const POST = async (req: Request) => {
+  const webhookSignature = req.headers.get('Agentset-Signature');
+  if (!webhookSignature) {
+    return new Response('No signature provided.', { status: 401 });
+  }
+
+  // Copy this from the webhook details page
+  const secret = process.env.AGENTSET_WEBHOOK_SECRET;
+  if (!secret) {
+    return new Response('No secret provided.', { status: 401 });
+  }
+
+  // Make sure to get the raw body from the request
+  const rawBody = await req.text();
+
+  const computedSignature = crypto
+    .createHmac('sha256', secret)
+    .update(rawBody)
+    .digest('hex');
+
+  if (webhookSignature !== computedSignature) {
+    return new Response('Invalid signature', { status: 400 });
+  }
+
+  // Handle the webhook event
+  // ...
+};
+```
+
+```python Python
+import hmac
+import hashlib
+
+def webhook():
+    # Get the signature from the header
+    webhook_signature = request.headers.get('Agentset-Signature')
+    if not webhook_signature:
+        abort(401, 'No signature provided.')
+
+    # Copy this from the webhook details page
+    secret = os.environ.get('AGENTSET_WEBHOOK_SECRET')
+    if not secret:
+        abort(401, 'No secret provided.')
+
+    # Get the raw body of the request
+    raw_body = request.data
+
+    # Calculate the HMAC
+    computed_signature = hmac.new(
+        secret.encode('utf-8'),
+        raw_body,
+        hashlib.sha256
+    ).hexdigest()
+
+    if webhook_signature != computed_signature:
+        abort(400, 'Invalid signature')
+
+    # Handle the webhook event
+    # ...
+
+    return 'OK', 200
+```
+
+```go Go
+
+import (
+	"crypto/hmac"
+	"crypto/sha256"
+	"encoding/hex"
+	"io/ioutil"
+	"net/http"
+	"os"
+)
+
+func webhookHandler(w http.ResponseWriter, r *http.Request) {
+	// Get the signature from the header
+	webhookSignature := r.Header.Get("Agentset-Signature")
+	if webhookSignature == "" {
+		http.Error(w, "No signature provided.", http.StatusUnauthorized)
+		return
+	}
+
+	// Copy this from the webhook details page
+	secret := os.Getenv("AGENTSET_WEBHOOK_SECRET")
+	if secret == "" {
+		http.Error(w, "No secret provided.", http.StatusUnauthorized)
+		return
+	}
+
+	// Read the raw body
+	body, err := ioutil.ReadAll(r.Body)
+	if err != nil {
+		http.Error(w, "Error reading request body", http.StatusInternalServerError)
+		return
+	}
+
+	// Calculate the HMAC
+	h := hmac.New(sha256.New, []byte(secret))
+	h.Write(body)
+	computedSignature := hex.EncodeToString(h.Sum(nil))
+
+	if webhookSignature != computedSignature {
+		http.Error(w, "Invalid signature", http.StatusBadRequest)
+		return
+	}
+
+	// Handle the webhook event
+	// ...
+
+	w.WriteHeader(http.StatusOK)
+	w.Write([]byte("OK"))
+}
+```
+
+</CodeGroup>
+
+## Why is signature verification important?
+
+Signature verification is a crucial security measure that protects against request forgery and data tampering. Without verification, malicious actors could send fake webhook events to your endpoint, potentially triggering unauthorized actions.
+
+The HMAC-SHA256 signature verification process ensures that only Agentset can generate valid webhook requests and that payloads haven't been modified in transit. This provides both authentication (confirming the sender is Agentset) and integrity (ensuring the message hasn't been tampered with).

@@ -1,0 +1,190 @@
+---
+title: "Search"
+description: "Search your documents with Agentset"
+---
+
+Search your namespace to retrieve relevant chunks from your documents. Agentset uses semantic and keyword search to return the most relevant results.
+
+## Basic search
+
+Pass a query string to search your namespace and retrieve chunks.
+
+<CodeGroup>
+```typescript TypeScript
+import { Agentset } from "agentset";
+
+const agentset = new Agentset({
+  apiKey: process.env.AGENTSET_API_KEY,
+});
+
+const ns = agentset.namespace("YOUR_NAMESPACE_ID");
+
+const results = await ns.search("What is machine learning?");
+
+for (const result of results) {
+  console.log(result.text);
+}
+```
+
+```python Python
+import os
+from agentset import Agentset
+
+client = Agentset(
+    namespace_id="YOUR_NAMESPACE_ID",
+    token=os.environ["AGENTSET_API_KEY"],
+)
+
+results = client.search.execute(query="What is machine learning?")
+
+for result in results.data:
+    print(result.text)
+```
+</CodeGroup>
+
+## Limiting results
+
+Control the number of results returned with `topK`. The default is 10, with a maximum of 100.
+
+<CodeGroup>
+```typescript TypeScript
+const results = await ns.search("quarterly revenue", {
+  topK: 20,
+});
+```
+
+```python Python
+results = client.search.execute(
+    query="quarterly revenue",
+    top_k=20,
+)
+```
+</CodeGroup>
+
+## Reranking
+
+Agentset reranks results by default using a cross-encoder model to improve relevance. You can adjust reranking behavior or disable it.
+
+<CodeGroup>
+```typescript TypeScript
+const results = await ns.search("product roadmap", {
+  topK: 50,
+  rerank: true,
+  rerankLimit: 10,
+});
+```
+
+```python Python
+results = client.search.execute(
+    query="product roadmap",
+    top_k=50,
+    rerank=True,
+    rerank_limit=10,
+)
+```
+</CodeGroup>
+
+| Parameter | Default | Description |
+| :--- | :--- | :--- |
+| `rerank` | `true` | Enable or disable reranking |
+| `rerankLimit` | Same as `topK` | Number of results to return after reranking |
+| `rerankModel` | `cohere:rerank-v3.5` | Model used for reranking |
+
+### Available rerank models
+
+| Model | Description |
+| :--- | :--- |
+| `cohere:rerank-v3.5` | Latest Cohere reranker (default) |
+| `cohere:rerank-english-v3.0` | English-optimized Cohere reranker |
+| `cohere:rerank-multilingual-v3.0` | Multilingual Cohere reranker |
+| `zeroentropy:zerank-1` | ZeroEntropy reranker |
+| `zeroentropy:zerank-1-small` | Smaller, faster ZeroEntropy reranker |
+
+## Minimum score threshold
+
+Filter out low-relevance results by setting a minimum score.
+
+<CodeGroup>
+```typescript TypeScript
+const results = await ns.search("API documentation", {
+  minScore: 0.7,
+});
+```
+
+```python Python
+results = client.search.execute(
+    query="API documentation",
+    min_score=0.7,
+)
+```
+</CodeGroup>
+
+## Search modes
+
+Agentset supports two search modes.
+
+<CodeGroup>
+```typescript TypeScript
+const results = await ns.search("error code 500", {
+  mode: "keyword",
+});
+```
+
+```python Python
+results = client.search.execute(
+    query="error code 500",
+    mode="keyword",
+)
+```
+</CodeGroup>
+
+| Mode | Description |
+| :--- | :--- |
+| `semantic` | Uses embeddings to find semantically similar content (default) |
+| `keyword` | Traditional keyword-based search |
+
+## Response structure
+
+Each result includes an ID, relevance score, and text content. Metadata is included by default.
+
+```json
+{
+  "success": true,
+  "data": [
+    {
+      "id": "chunk_abc123",
+      "score": 0.92,
+      "text": "Machine learning is a subset of artificial intelligence...",
+      "metadata": {
+        "filename": "ml-guide.pdf",
+        "filetype": "application/pdf",
+        "file_directory": "/documents"
+      }
+    }
+  ]
+}
+```
+
+### Excluding metadata
+
+<CodeGroup>
+```typescript TypeScript
+const results = await ns.search("user authentication", {
+  includeMetadata: false,
+});
+```
+
+```python Python
+results = client.search.execute(
+    query="user authentication",
+    include_metadata=False,
+)
+```
+</CodeGroup>
+
+## Next steps
+
+- [Simple RAG](/search-and-retrieval/simple-rag) — Generate answers grounded in search results
+- [Agentic Search](/search-and-retrieval/agentic-search) — Let the model search on its own for complex questions
+- [Filtering](/search-and-retrieval/filtering) — Narrow results by document metadata
+- [Ranking](/search-and-retrieval/ranking) — Configure how results are scored

@@ -1,0 +1,37 @@
+---
+title: "Connectors"
+description: "Integrate with third-party services to sync documents"
+---
+
+Connectors integrate with third-party services to automatically sync documents into your namespace. Once configured, Agentset handles syncing, updates, and deletions automatically.
+
+## Services
+
+| Connector | Description |
+| :--- | :--- |
+| Amazon S3 | Sync files from S3 buckets |
+| Box | Sync files and folders from Box |
+| Cloudflare R2 | Sync files from R2 buckets |
+| Confluence | Sync pages and spaces from Atlassian Confluence |
+| Dropbox | Sync files and folders from Dropbox |
+| Google Drive | Sync files and folders from Google Drive |
+| Intercom | Sync articles and conversations from Intercom |
+| Notion | Sync pages and databases from Notion workspaces |
+| OneDrive | Sync files and folders from Microsoft OneDrive |
+| SharePoint | Sync files and pages from Microsoft SharePoint |
+| Zendesk | Sync articles and tickets from Zendesk |
+
+## How connectors work
+
+When you connect a third-party service:
+
+1. **Authorization** — You grant Agentset read access to your data
+2. **Initial sync** — Agentset imports your selected documents
+3. **Automatic updates** — Changes are synced automatically on a regular schedule
+4. **Deletions** — Documents removed from the source are removed from your namespace
+
+## Next steps
+
+- [Document Metadata](/data-ingestion/document-metadata) — Filter documents by source
+- [Upload Status](/data-ingestion/upload-status) — Monitor sync progress
+- [Search](/search-and-retrieval/search) — Query your synced content

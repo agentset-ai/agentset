@@ -1,0 +1,59 @@
+---
+title: "Deployment Options"
+description: "Choose between hosted, bring your own cloud, or on-premise deployment for your Agentset infrastructure"
+---
+
+Agentset offers three deployment options to match your security and compliance requirements.
+
+| Option | Data Storage | Processing | Best For |
+| :--- | :--- | :--- | :--- |
+| **Hosted** | Agentset cloud | Agentset cloud | Teams that want to get started quickly |
+| **Bring Your Own Cloud** | Your infrastructure | Agentset cloud | Organizations that need data residency control |
+| **On-Premise** | Your infrastructure | Your infrastructure | Enterprises with strict compliance requirements |
+
+## Hosted
+
+The fastest way to get started. Your data is stored and processed on Agentset's infrastructure.
+
+- No infrastructure to manage
+- Scales to millions of documents
+- GDPR and HIPAA compliant
+- SOC 2 certification in progress
+
+View our compliance documentation at [trust.agentset.ai](https://trust.agentset.ai).
+
+## Bring Your Own Cloud
+
+Connect your own infrastructure. Agentset processes your data but never stores it.
+
+You can bring any combination of:
+- Object storage (S3, R2, GCS)
+- Vector database (Pinecone, Qdrant, Weaviate)
+- LLM providers (OpenAI, Anthropic, Azure)
+- Reranking models (Cohere, Zerank)
+
+This gives you full control over where your data lives while Agentset handles the processing pipeline.
+
+Select your storage providers when [creating a new namespace](https://app.agentset.ai).
+
+<Frame>
+  <img src="/images/production/byoc-namespace-setup.png" alt="Selecting storage providers when creating a namespace" />
+</Frame>
+
+## On-Premise
+
+Run Agentset entirely within your infrastructure. All data storage and processing happens on your servers.
+
+This option is ideal for organizations that:
+- Cannot send data to external services
+- Have air-gapped environments
+- Need complete infrastructure control
+
+<Info>
+  [Schedule a demo](https://agentset.ai/schedule-demo) to get started with an on-premise deployment.
+</Info>
+
+## Next steps
+
+- [Observability](/production/observability) — Monitor your Agentset deployment
+- [Data Segregation](/production/data-segregation) — Isolate data between tenants
