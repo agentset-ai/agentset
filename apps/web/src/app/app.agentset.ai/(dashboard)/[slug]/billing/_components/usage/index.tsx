@@ -2,6 +2,11 @@
 
 import { useMemo } from "react";
 import Link from "next/link";
+import {
+  formatResetDate,
+  PagesUsageTooltipContent,
+  useNextCycleResetDate,
+} from "@/components/pages-usage-tooltip";
 import { useOrganization } from "@/hooks/use-organization";
 import { formatNumber } from "@/lib/utils";
 import { useTRPC } from "@/trpc/react";
@@ -16,6 +21,7 @@ import { cn } from "@agentset/ui/cn";
 import { Progress } from "@agentset/ui/progress";
 import { Separator } from "@agentset/ui/separator";
 import { Skeleton } from "@agentset/ui/skeleton";
+import { Tooltip, TooltipTrigger } from "@agentset/ui/tooltip";
 import {
   capitalize,
   getFirstAndLastDay,
@@ -129,8 +135,24 @@ function PagesCard() {
   );
 
   const currentPages = organization.totalPages;
+  const deletedPages = Math.min(organization.deletedPages, currentPages);
+  const activePages = currentPages - deletedPages;
   const limit = organization.pagesLimit;
   const remaining = Math.max(0, limit - currentPages);
+
+  const nextResetDate = useNextCycleResetDate({
+    billingCycleStart: organization.billingCycleStart,
+    createdAt: organization.createdAt,
+    enabled: !organization.isLoading,
+  });
+
+  // scale against usage when it exceeds the limit, and show at least 1%
+  // for non-zero values
+  const denominator = Math.max(1, currentPages, limit);
+  const toPercent = (value: number) =>
+    Math.max(Math.floor((value / denominator) * 100), value === 0 ? 0 : 1);
+  const deletedPercent = toPercent(deletedPages);
+  const activePercent = Math.min(toPercent(activePages), 100 - deletedPercent);
 
   return (
     <Card className="gap-0 px-4 py-3 lg:px-5 lg:py-5">
@@ -145,24 +167,42 @@ function PagesCard() {
         />
       </div>
 
-      <div className="mt-3">
-        <div className="bg-primary/10 h-1 w-full overflow-hidden rounded-full">
-          <Progress
-            value={Math.max(
-              Math.floor(
-                (currentPages / Math.max(0, currentPages, limit)) * 100,
-              ),
-              currentPages === 0 ? 0 : 1,
-            )}
-          />
-        </div>
-      </div>
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <div tabIndex={0} className="mt-3">
+            <div className="bg-primary/10 h-1 w-full overflow-hidden rounded-full">
+              <Progress
+                segments={[
+                  { value: activePercent },
+                  { value: deletedPercent, className: "bg-red-400" },
+                ]}
+              />
+            </div>
+          </div>
+        </TooltipTrigger>
+
+        <PagesUsageTooltipContent
+          activePages={activePages}
+          deletedPages={deletedPages}
+          nextResetDate={nextResetDate}
+        />
+      </Tooltip>
 
       <div className="mt-2 leading-none">
         <span className="text-muted-foreground text-xs">
           {`${formatNumber(remaining, "decimal")} remaining of ${formatNumber(limit, "decimal")}`}
         </span>
       </div>
+
+      {deletedPages > 0 && (
+        <div className="text-muted-foreground mt-2 flex items-center gap-1.5 text-xs leading-none">
+          <span className="size-1.5 shrink-0 rounded-full bg-red-400" />
+          <span>
+            {formatNumber(deletedPages, "decimal")} deleted · frees up{" "}
+            {formatResetDate(nextResetDate)}
+          </span>
+        </div>
+      )}
 
       {isEnabled && (
         <div className="mt-2 leading-none">
