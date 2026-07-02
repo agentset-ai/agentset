@@ -13,7 +13,11 @@ export const uploadSizeLimitMessage = (plan: string, fileNames: string[]) => {
     fileNames.length === 1
       ? `"${fileNames[0]}" exceeds`
       : `${fileNames.length} files exceed`;
-  const message = `${subject} the ${formatBytes(getMaxUploadSize(plan))} file size limit on the ${capitalize(plan)} plan.`;
+  return `${subject} the ${formatBytes(getMaxUploadSize(plan))} file size limit on the ${capitalize(plan)} plan.`;
+};
+
+export const uploadSizeLimitError = (plan: string, fileNames: string[]) => {
+  const message = uploadSizeLimitMessage(plan, fileNames);
 
   if (!isFreePlan(plan)) return message;
   return `${message} Upgrade to Pro to upload files up to ${formatBytes(MAX_UPLOAD_SIZE)}.`;

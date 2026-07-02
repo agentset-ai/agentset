@@ -4,7 +4,7 @@ import {
   SUPPORTED_MIME_TYPES,
   SUPPORTED_MIME_TYPES_PREFIXES,
 } from "@/lib/file-types";
-import { getMaxUploadSize, uploadSizeLimitMessage } from "@/lib/upload-limits";
+import { getMaxUploadSize, uploadSizeLimitError } from "@/lib/upload-limits";
 import { batchUploadSchema, uploadFileSchema } from "@/schemas/api/upload";
 import { z } from "zod/v4";
 
@@ -50,7 +50,7 @@ export const createUpload = async ({
     return {
       success: false as const,
       code: "file_too_large" as const,
-      error: uploadSizeLimitMessage(plan, [file.fileName]),
+      error: uploadSizeLimitError(plan, [file.fileName]),
     };
   }
 
@@ -94,7 +94,7 @@ export const createBatchUpload = async ({
     return {
       success: false as const,
       code: "file_too_large" as const,
-      error: uploadSizeLimitMessage(
+      error: uploadSizeLimitError(
         plan,
         oversizedFiles.map((file) => file.fileName),
       ),

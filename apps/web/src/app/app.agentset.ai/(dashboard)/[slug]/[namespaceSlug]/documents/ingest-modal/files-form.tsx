@@ -1,7 +1,6 @@
 import type { UseFormReturn } from "react-hook-form";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 import { useOrganization } from "@/hooks/use-organization";
 import { useUploadFiles } from "@/hooks/use-upload";
 import { useZodForm } from "@/hooks/use-zod-form";
@@ -27,7 +26,6 @@ import { FileUploader } from "@agentset/ui/file-uploader";
 import {
   Form,
   FormControl,
-  FormDescription,
   FormField,
   FormItem,
   FormLabel,
@@ -163,10 +161,10 @@ const ModeField = ({ form }: { form: UseFormReturn<any> }) => {
 };
 
 export default function FilesForm({ onSuccess }: BaseIngestFormProps) {
-  const router = useRouter();
   const { plan, slug } = useOrganization();
   const isFree = isFreePlan(plan);
   const maxUploadSize = getMaxUploadSize(plan);
+  const [sizeError, setSizeError] = useState<string | null>(null);
 
   const form = useZodForm(filesSchema, {
     defaultValues: {
@@ -304,7 +302,10 @@ export default function FilesForm({ onSuccess }: BaseIngestFormProps) {
                   <FormControl>
                     <FileUploader
                       value={field.value}
-                      onValueChange={field.onChange}
+                      onValueChange={(files) => {
+                        setSizeError(null);
+                        field.onChange(files);
+                      }}
                       maxFileCount={100}
                       multiple
                       maxSize={maxUploadSize}
@@ -319,24 +320,11 @@ export default function FilesForm({ onSuccess }: BaseIngestFormProps) {
                         );
 
                         if (tooLarge.length > 0) {
-                          toast.error(
+                          setSizeError(
                             uploadSizeLimitMessage(
                               plan,
                               tooLarge.map((rejection) => rejection.file.name),
                             ),
-                            {
-                              id: "upload-size-limit",
-                              // keep the toast clickable while the ingest
-                              // dialog sets pointer-events: none on <body>
-                              style: { pointerEvents: "auto" },
-                              action: isFree
-                                ? {
-                                    label: "Upgrade",
-                                    onClick: () =>
-                                      router.push(`/${slug}/billing/upgrade`),
-                                  }
-                                : undefined,
-                            },
                           );
                         }
 
@@ -350,20 +338,25 @@ export default function FilesForm({ onSuccess }: BaseIngestFormProps) {
                       }}
                     />
                   </FormControl>
-                  {isFree && (
-                    <FormDescription>
-                      The Free plan supports files up to{" "}
-                      {formatBytes(maxUploadSize)} each.{" "}
-                      <Link
-                        href={`/${slug}/billing/upgrade`}
-                        className="text-primary underline"
-                      >
-                        Upgrade to Pro
-                      </Link>{" "}
-                      to upload files up to {formatBytes(MAX_UPLOAD_SIZE)}.
-                    </FormDescription>
-                  )}
-                  <FormMessage />
+                  <FormMessage>
+                    {sizeError && (
+                      <>
+                        {sizeError}{" "}
+                        {isFree && (
+                          <>
+                            <Link
+                              href={`/${slug}/billing/upgrade`}
+                              className="font-medium underline underline-offset-4"
+                            >
+                              Upgrade to Pro
+                            </Link>{" "}
+                            to upload files up to {formatBytes(MAX_UPLOAD_SIZE)}
+                            .
+                          </>
+                        )}
+                      </>
+                    )}
+                  </FormMessage>
                 </FormItem>
               )}
             />
