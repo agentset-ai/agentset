@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useIsHosting } from "@/contexts/hosting-context";
 import { sanitizeText } from "@/lib/string-utils";
 import { MyUIMessage } from "@/types/ai";
 import { PencilIcon } from "lucide-react";
@@ -23,6 +24,8 @@ export const PreviewMessage = ({
   isLoading: boolean;
 }) => {
   const [mode, setMode] = useState<"view" | "edit">("view");
+  // hosted deployments are white-labeled: no Agentset logo next to messages
+  const isHosting = useIsHosting();
 
   return (
     <AnimatePresence>
@@ -40,11 +43,13 @@ export const PreviewMessage = ({
         >
           {message.role === "assistant" && (
             <div className="mb-2 flex flex-col">
-              <div className="ring-border bg-background flex size-8 shrink-0 items-center justify-center rounded-full ring-1">
-                <div className="translate-y-px">
-                  <Logo className="size-3.5" />
+              {!isHosting && (
+                <div className="ring-border bg-background flex size-8 shrink-0 items-center justify-center rounded-full ring-1">
+                  <div className="translate-y-px">
+                    <Logo className="size-3.5" />
+                  </div>
                 </div>
-              </div>
+              )}
 
               <MessageStatus message={message} isLoading={isLoading} />
             </div>
