@@ -4,7 +4,11 @@ import {
 } from "@/services/uploads";
 import { z } from "zod/v4";
 
-import { MAX_UPLOAD_SIZE } from "@agentset/storage/constants";
+import {
+  FREE_PLAN_MAX_UPLOAD_SIZE,
+  MAX_UPLOAD_SIZE,
+} from "@agentset/storage/constants";
+import { formatBytes } from "@agentset/utils";
 
 export const uploadFileSchema = z
   .object({
@@ -32,7 +36,7 @@ export const uploadFileSchema = z
     fileSize: z
       .number()
       .meta({
-        description: "File size in bytes",
+        description: `File size in bytes. The maximum is ${formatBytes(MAX_UPLOAD_SIZE)} (${formatBytes(FREE_PLAN_MAX_UPLOAD_SIZE)} on the Free plan).`,
         examples: [1024],
       })
       .min(1)

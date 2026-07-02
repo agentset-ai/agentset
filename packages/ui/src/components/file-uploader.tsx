@@ -90,6 +90,14 @@ interface FileUploaderProps extends React.HTMLAttributes<HTMLDivElement> {
    * @example disabled
    */
   disabled?: boolean;
+
+  /**
+   * Function to be called with the rejected files of a drop, replacing the default toasts.
+   * @type (rejections: FileRejection[]) => void
+   * @default undefined
+   * @example onFilesReject={(rejections) => toast.error(`${rejections.length} files are too large`)}
+   */
+  onFilesReject?: (rejections: FileRejection[]) => void;
 }
 
 export function FileUploader(props: FileUploaderProps) {
@@ -105,6 +113,7 @@ export function FileUploader(props: FileUploaderProps) {
     maxFileCount = 1,
     multiple = false,
     disabled = false,
+    onFilesReject,
     className,
     ...dropzoneProps
   } = props;
@@ -137,9 +146,13 @@ export function FileUploader(props: FileUploaderProps) {
       setFiles(updatedFiles);
 
       if (rejectedFiles.length > 0) {
-        rejectedFiles.forEach(({ file }) => {
-          toast.error(`File ${file.name} was rejected`);
-        });
+        if (onFilesReject) {
+          onFilesReject(rejectedFiles);
+        } else {
+          rejectedFiles.forEach(({ file }) => {
+            toast.error(`File ${file.name} was rejected`);
+          });
+        }
       }
 
       if (
@@ -161,7 +174,7 @@ export function FileUploader(props: FileUploaderProps) {
       }
     },
 
-    [files, maxFileCount, multiple, onUpload, setFiles],
+    [files, maxFileCount, multiple, onUpload, onFilesReject, setFiles],
   );
 
   function onRemove(index: number) {

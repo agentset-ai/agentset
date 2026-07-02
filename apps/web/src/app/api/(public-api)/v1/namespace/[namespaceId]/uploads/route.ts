@@ -6,18 +6,22 @@ import { uploadFileSchema, UploadResultSchema } from "@/schemas/api/upload";
 import { createUpload } from "@/services/uploads";
 
 export const POST = withNamespaceApiHandler(
-  async ({ namespace, headers, req }) => {
+  async ({ namespace, organization, headers, req }) => {
     const { fileName, contentType, fileSize } =
       await uploadFileSchema.parseAsync(await parseRequestBody(req));
 
     const result = await createUpload({
       namespaceId: namespace.id,
+      plan: organization.plan,
       file: { fileName, contentType, fileSize },
     });
 
     if (!result.success) {
       throw new AgentsetApiError({
-        code: "internal_server_error",
+        code:
+          result.code === "file_too_large"
+            ? "rate_limit_exceeded"
+            : "internal_server_error",
         message: result.error,
       });
     }

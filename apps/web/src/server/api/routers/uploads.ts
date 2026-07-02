@@ -23,8 +23,21 @@ export const uploadsRouter = createTRPCRouter({
         });
       }
 
+      const organization = await ctx.db.organization.findUnique({
+        where: { id: ns.organizationId },
+        select: { plan: true },
+      });
+
+      if (!organization) {
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: "Organization not found",
+        });
+      }
+
       const result = await createUpload({
         namespaceId: ns.id,
+        plan: organization.plan,
         file: {
           fileName: input.fileName,
           contentType: input.contentType,
@@ -34,7 +47,10 @@ export const uploadsRouter = createTRPCRouter({
 
       if (!result.success) {
         throw new TRPCError({
-          code: "INTERNAL_SERVER_ERROR",
+          code:
+            result.code === "file_too_large"
+              ? "FORBIDDEN"
+              : "INTERNAL_SERVER_ERROR",
           message: result.error,
         });
       }
@@ -57,14 +73,30 @@ export const uploadsRouter = createTRPCRouter({
         });
       }
 
+      const organization = await ctx.db.organization.findUnique({
+        where: { id: ns.organizationId },
+        select: { plan: true },
+      });
+
+      if (!organization) {
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: "Organization not found",
+        });
+      }
+
       const result = await createBatchUpload({
         namespaceId: ns.id,
+        plan: organization.plan,
         files: input.files,
       });
 
       if (!result.success) {
         throw new TRPCError({
-          code: "INTERNAL_SERVER_ERROR",
+          code:
+            result.code === "file_too_large"
+              ? "FORBIDDEN"
+              : "INTERNAL_SERVER_ERROR",
           message: result.error,
         });
       }

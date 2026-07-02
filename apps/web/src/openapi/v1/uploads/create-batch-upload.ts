@@ -11,7 +11,7 @@ export const createBatchUpload: ZodOpenApiOperationObject = {
   "x-speakeasy-name-override": "createBatch",
   summary: "Create presigned URLs for batch file upload",
   description:
-    "Generate presigned URLs for uploading multiple files to the specified namespace.",
+    "Generate presigned URLs for uploading multiple files to the specified namespace. Files are limited to 5 MB on the Free plan and 200 MB on paid plans.",
   parameters: [namespaceIdPathSchema],
   requestBody: {
     required: true,

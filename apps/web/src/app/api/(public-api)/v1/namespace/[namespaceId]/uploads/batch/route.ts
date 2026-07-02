@@ -7,19 +7,23 @@ import { createBatchUpload } from "@/services/uploads";
 import { z } from "zod/v4";
 
 export const POST = withNamespaceApiHandler(
-  async ({ namespace, headers, req }) => {
+  async ({ namespace, organization, headers, req }) => {
     const { files } = await batchUploadSchema.parseAsync(
       await parseRequestBody(req),
     );
 
     const result = await createBatchUpload({
       namespaceId: namespace.id,
+      plan: organization.plan,
       files,
     });
 
     if (!result.success) {
       throw new AgentsetApiError({
-        code: "internal_server_error",
+        code:
+          result.code === "file_too_large"
+            ? "rate_limit_exceeded"
+            : "internal_server_error",
         message: result.error,
       });
     }

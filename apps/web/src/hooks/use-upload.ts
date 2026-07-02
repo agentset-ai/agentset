@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useTRPC } from "@/trpc/react";
 import { useMutation } from "@tanstack/react-query";
+import { TRPCClientError } from "@trpc/client";
 import { toast } from "sonner";
 
 const uploadWithProgress = (
@@ -83,8 +84,12 @@ export function useUploadFiles({ namespaceId }: { namespaceId: string }) {
           setUploadedFiles((prev) => [...prev, newEntry]);
         }),
       );
-    } catch {
-      toast.error("Failed to upload file!");
+    } catch (error) {
+      toast.error(
+        error instanceof TRPCClientError
+          ? error.message
+          : "Failed to upload file!",
+      );
     } finally {
       setProgresses({});
       setIsUploading(false);
