@@ -1,32 +1,10 @@
-import type { ModelMessage } from "ai";
-import agenticPipeline from "@/lib/agentic";
-import { AgentsetApiError } from "@/lib/api/errors";
 import { withAuthApiHandler } from "@/lib/api/handler";
 import { parseRequestBody } from "@/lib/api/utils";
-import { DeepResearchPipeline } from "@/lib/deep-research";
-import {
-  CONDENSE_SYSTEM_PROMPT,
-  CONDENSE_USER_PROMPT,
-  NEW_MESSAGE_PROMPT,
-} from "@/lib/prompts";
-import { extractTextFromParts } from "@/lib/string-utils";
-import { MyUIMessage } from "@/types/ai";
+import { streamChat } from "@/lib/chat";
 import { waitUntil } from "@vercel/functions";
-import {
-  convertToModelMessages,
-  createUIMessageStream,
-  createUIMessageStreamResponse,
-  generateText,
-  streamText,
-} from "ai";
+import { convertToModelMessages } from "ai";
 
 import { db } from "@agentset/db/client";
-import {
-  getNamespaceEmbeddingModel,
-  getNamespaceLanguageModel,
-  getNamespaceVectorStore,
-  queryVectorStore,
-} from "@agentset/engine";
 
 import { chatSchema } from "./schema";
 
@@ -58,180 +36,15 @@ export const POST = withAuthApiHandler(
   async ({ req, namespace, tenantId, headers }) => {
     const body = await chatSchema.parseAsync(await parseRequestBody(req));
 
-    const messages = convertToModelMessages(body.messages);
-    const messagesWithoutQuery = messages.slice(0, -1);
-    const lastMessage =
-      messages.length > 0
-        ? extractTextFromParts(messages[messages.length - 1]!.content)
-        : null;
-
-    if (!lastMessage) {
-      throw new AgentsetApiError({
-        code: "bad_request",
-        message: "Messages must contain at least one message",
-      });
-    }
-
-    // TODO: pass namespace config
-    const [languageModel, vectorStore, embeddingModel] = await Promise.all([
-      getNamespaceLanguageModel(body.llmModel),
-      getNamespaceVectorStore(namespace, tenantId),
-      getNamespaceEmbeddingModel(namespace, "query"),
-    ]);
-
-    let query: string;
-    if (messagesWithoutQuery.length === 0 || body.mode === "agentic") {
-      query = lastMessage;
-    } else {
-      // limit messagesWithoutQuery to the last 10 messages
-      const messagesToCondense = messagesWithoutQuery.slice(-10);
-
-      // we need to condense the messages + last message into a single query
-      query = (
-        await generateText({
-          model: languageModel,
-          prompt: CONDENSE_SYSTEM_PROMPT.compile({
-            question: lastMessage,
-            chatHistory: CONDENSE_USER_PROMPT.compile({
-              query: lastMessage,
-              chatHistory: messagesToCondense
-                .map(
-                  (m) =>
-                    `- ${m.role === "user" ? "Human" : "Assistant"}: ${m.content as string}`,
-                )
-                .join("\n\n"),
-            }),
-          }),
-        })
-      ).text;
-    }
-
-    if (body.mode === "deepResearch") {
-      const pipeline = new DeepResearchPipeline({
-        modelConfig: {
-          json: languageModel,
-          planning: languageModel,
-          summary: languageModel,
-          answer: languageModel,
-        },
-        queryOptions: {
-          embeddingModel,
-          vectorStore,
-          topK: body.topK,
-          minScore: body.minScore,
-          filter: body.filter,
-          includeMetadata: body.includeMetadata,
-          includeRelationships: body.includeRelationships,
-          rerank: body.rerank
-            ? {
-                model: body.rerankModel,
-                limit: body.rerankLimit,
-              }
-            : false,
-          consistency: "strong",
-        },
-        // maxQueries
-      });
-
-      const answer = await pipeline.runResearch(query);
-      incrementUsage(namespace.id, 1);
-
-      return answer.toUIMessageStreamResponse({ headers });
-    }
-
-    if (body.mode === "agentic") {
-      const result = agenticPipeline({
-        model: languageModel,
-        queryOptions: {
-          embeddingModel,
-          vectorStore,
-          topK: body.topK,
-          minScore: body.minScore,
-          filter: body.filter,
-          includeMetadata: body.includeMetadata,
-          includeRelationships: body.includeRelationships,
-          rerank: body.rerank
-            ? {
-                model: body.rerankModel,
-                limit: body.rerankLimit,
-              }
-            : false,
-          consistency: "strong",
-        },
-        systemPrompt: body.systemPrompt,
-        temperature: body.temperature,
-        messagesWithoutQuery,
-        lastMessage,
-        afterQueries: (totalQueries) => {
-          incrementUsage(namespace.id, totalQueries);
-        },
-      });
-
-      return result;
-    }
-
-    // TODO: track the usage
-    const data = await queryVectorStore({
-      embeddingModel,
-      vectorStore,
-      query,
-      topK: body.topK,
-      minScore: body.minScore,
-      filter: body.filter,
-      includeMetadata: body.includeMetadata,
-      includeRelationships: body.includeRelationships,
-      rerank: body.rerank
-        ? {
-            model: body.rerankModel,
-            limit: body.rerankLimit,
-          }
-        : false,
-      consistency: "strong",
-    });
-
-    if (!data) {
-      throw new AgentsetApiError({
-        code: "internal_server_error",
-        message: "Failed to parse chunks",
-      });
-    }
-
-    const newMessages: ModelMessage[] = [
-      ...messagesWithoutQuery,
-      {
-        role: "user",
-        content: NEW_MESSAGE_PROMPT.compile({
-          chunks: data.results
-            .map((chunk, idx) => `[${idx + 1}]: ${chunk.text}`)
-            .join("\n\n"),
-          query: lastMessage, // put the original query in the message to help with context
-        }),
-      },
-    ];
-
-    incrementUsage(namespace.id, 1);
-
-    // add the sources to the stream
-    const stream = createUIMessageStream<MyUIMessage>({
-      execute: ({ writer }) => {
-        const messageStream = streamText({
-          model: languageModel,
-          system: body.systemPrompt,
-          messages: newMessages,
-          temperature: body.temperature,
-          onError: (error) => {
-            console.error(error);
-          },
-        });
-
-        writer.write({
-          type: "data-agentset-sources",
-          data,
-        });
-        writer.merge(messageStream.toUIMessageStream());
+    return streamChat({
+      namespace,
+      tenantId,
+      messages: convertToModelMessages(body.messages),
+      options: body,
+      headers,
+      onUsageIncrement: (queries) => {
+        incrementUsage(namespace.id, queries);
       },
     });
-
-    return createUIMessageStreamResponse({ stream, headers });
   },
 );

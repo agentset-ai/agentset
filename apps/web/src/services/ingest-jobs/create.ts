@@ -1,29 +1,49 @@
 import type { createIngestJobSchema } from "@/schemas/api/ingest-job";
 import type { z } from "zod/v4";
+import { AgentsetApiError, exceededLimitError } from "@/lib/api/errors";
 import { emitIngestJobWebhook } from "@/lib/webhook/emit";
 import { waitUntil } from "@vercel/functions";
 
+import type { IngestJob, Organization } from "@agentset/db";
 import type { IngestJobBatchItem } from "@agentset/validation";
-import { IngestJobStatus } from "@agentset/db";
+import { IngestJobStatus, Prisma } from "@agentset/db";
 import { db } from "@agentset/db/client";
 import { triggerIngestionJob } from "@agentset/jobs";
 import { checkFileExists } from "@agentset/storage";
+import { isFreePlan } from "@agentset/stripe/plans";
 
 import { validateNamespaceFileKey } from "../uploads";
 
 export const createIngestJob = async ({
-  plan,
-  organizationId,
+  organization,
   namespaceId,
   tenantId,
   data,
 }: {
-  plan: string;
-  organizationId: string;
+  organization: Pick<
+    Organization,
+    "id" | "plan" | "totalPages" | "pagesLimit"
+  >;
   namespaceId: string;
   tenantId?: string;
   data: z.infer<typeof createIngestJobSchema>;
 }) => {
+  // if it's not a pro plan, check if the user has exceeded the limit
+  // pro plan is unlimited with usage based billing
+  if (
+    isFreePlan(organization.plan) &&
+    organization.totalPages >= organization.pagesLimit
+  ) {
+    throw new AgentsetApiError({
+      code: "rate_limit_exceeded",
+      message: exceededLimitError({
+        plan: organization.plan,
+        limit: organization.pagesLimit,
+        type: "pages",
+      }),
+    });
+  }
+
   let finalPayload: PrismaJson.IngestJobPayload | null = null;
 
   if (data.payload.type === "BATCH") {
@@ -58,7 +78,10 @@ export const createIngestJob = async ({
 
       const invalidKey = results.some((result) => !result);
       if (invalidKey) {
-        throw new Error("FILE_NOT_FOUND");
+        throw new AgentsetApiError({
+          code: "bad_request",
+          message: "File not found",
+        });
       }
     }
 
@@ -88,10 +111,13 @@ export const createIngestJob = async ({
         fileUrl: data.payload.fileUrl,
         ...commonPayload,
       };
-    } else if (data.payload.type === "MANAGED_FILE") {
+    } else {
       const exists = await checkFileExists(data.payload.key);
       if (!exists) {
-        throw new Error("FILE_NOT_FOUND");
+        throw new AgentsetApiError({
+          code: "bad_request",
+          message: "File not found",
+        });
       }
 
       finalPayload = {
@@ -102,11 +128,7 @@ export const createIngestJob = async ({
     }
   }
 
-  if (!finalPayload) {
-    throw new Error("INVALID_PAYLOAD");
-  }
-
-  let config = structuredClone(data.config);
+  const config = structuredClone(data.config);
   if (
     config &&
     (finalPayload.type === "TEXT" ||
@@ -137,38 +159,53 @@ export const createIngestJob = async ({
   if (config?.forceOcr !== undefined) delete config.forceOcr;
   if (config?.useLlm !== undefined) delete config.useLlm;
 
-  const [job] = await db.$transaction([
-    db.ingestJob.create({
-      data: {
-        namespace: { connect: { id: namespaceId } },
-        tenantId,
-        status: IngestJobStatus.QUEUED,
-        name: data.name,
-        config: config,
-        externalId: data.externalId,
-        payload: finalPayload,
-      },
-    }),
-    db.namespace.update({
-      where: { id: namespaceId },
-      data: {
-        totalIngestJobs: { increment: 1 },
-        organization: {
-          update: {
-            totalIngestJobs: { increment: 1 },
+  let job: IngestJob;
+  try {
+    [job] = await db.$transaction([
+      db.ingestJob.create({
+        data: {
+          namespace: { connect: { id: namespaceId } },
+          tenantId,
+          status: IngestJobStatus.QUEUED,
+          name: data.name,
+          config: config,
+          externalId: data.externalId,
+          payload: finalPayload,
+        },
+      }),
+      db.namespace.update({
+        where: { id: namespaceId },
+        data: {
+          totalIngestJobs: { increment: 1 },
+          organization: {
+            update: {
+              totalIngestJobs: { increment: 1 },
+            },
           },
         },
-      },
-      select: { id: true },
-    }),
-  ]);
+        select: { id: true },
+      }),
+    ]);
+  } catch (error) {
+    if (
+      error instanceof Prisma.PrismaClientKnownRequestError &&
+      error.code === "P2002"
+    ) {
+      throw new AgentsetApiError({
+        code: "conflict",
+        message: `The external ID "${data.externalId}" is already in use.`,
+      });
+    }
+
+    throw error;
+  }
 
   const handle = await triggerIngestionJob(
     {
       jobId: job.id,
-      organizationId,
+      organizationId: organization.id,
     },
-    plan,
+    organization.plan,
   );
 
   await db.ingestJob.update({
@@ -183,7 +220,7 @@ export const createIngestJob = async ({
       trigger: "ingest_job.queued",
       ingestJob: {
         ...job,
-        organizationId,
+        organizationId: organization.id,
       },
     }),
   );

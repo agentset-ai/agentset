@@ -1,49 +1,17 @@
-import { AgentsetApiError } from "@/lib/api/errors";
 import { withNamespaceApiHandler } from "@/lib/api/handler";
 import { makeApiSuccessResponse } from "@/lib/api/response";
-
-import { db } from "@agentset/db/client";
-import { presignGetUrl } from "@agentset/storage";
-import { normalizeId } from "@agentset/utils";
+import { getDocumentFileDownloadUrl } from "@/services/documents/download";
 
 export const POST = withNamespaceApiHandler(
-  async ({ params, namespace, headers }) => {
-    const documentId = normalizeId(params.documentId ?? "", "doc_");
-    if (!documentId) {
-      throw new AgentsetApiError({
-        code: "bad_request",
-        message: "Invalid document ID",
-      });
-    }
-
-    const document = await db.document.findUnique({
-      where: {
-        id: documentId,
-        namespaceId: namespace.id,
-      },
-      select: { id: true, name: true, source: true },
-    });
-
-    if (!document) {
-      throw new AgentsetApiError({
-        code: "not_found",
-        message: "Document not found",
-      });
-    }
-
-    if (document.source.type !== "MANAGED_FILE") {
-      throw new AgentsetApiError({
-        code: "bad_request",
-        message: "File download is only available for managed files",
-      });
-    }
-
-    const { url } = await presignGetUrl(document.source.key, {
-      fileName: document.name ?? undefined,
+  async ({ params, namespace, tenantId, headers }) => {
+    const data = await getDocumentFileDownloadUrl({
+      namespaceId: namespace.id,
+      documentId: params.documentId ?? "",
+      tenantId,
     });
 
     return makeApiSuccessResponse({
-      data: { url },
+      data,
       headers,
     });
   },

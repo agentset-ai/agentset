@@ -22,7 +22,7 @@ interface NamespaceHandler {
   ): Promise<Response>;
 }
 
-const getNamespace = async ({
+export const getNamespace = async ({
   namespaceId,
   organizationId,
 }: {

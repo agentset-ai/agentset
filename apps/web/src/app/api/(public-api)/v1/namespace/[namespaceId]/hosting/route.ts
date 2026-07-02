@@ -74,25 +74,9 @@ export const PUT = PATCH;
 
 export const DELETE = withNamespaceApiHandler(
   async ({ namespace, headers }) => {
-    const hosting = await getHosting({ namespaceId: namespace.id });
-
-    if (!hosting) {
-      throw new AgentsetApiError({
-        code: "not_found",
-        message: "Hosting not found for this namespace.",
-      });
-    }
-
     await deleteHosting({ namespaceId: namespace.id });
 
-    return makeApiSuccessResponse({
-      data: HostingSchema.parse({
-        ...hosting,
-        namespaceId: prefixId(hosting.namespaceId, "ns_"),
-      }),
-      headers,
-      status: 204,
-    });
+    return new Response(null, { status: 204, headers });
   },
   { logging: { routeName: "DELETE /v1/namespace/[namespaceId]/hosting" } },
 );

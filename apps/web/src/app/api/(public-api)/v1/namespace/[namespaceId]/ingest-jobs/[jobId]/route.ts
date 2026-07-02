@@ -5,7 +5,6 @@ import { makeApiSuccessResponse } from "@/lib/api/response";
 import { IngestJobSchema } from "@/schemas/api/ingest-job";
 import { deleteIngestJob } from "@/services/ingest-jobs/delete";
 
-import { IngestJobStatus } from "@agentset/db";
 import { db } from "@agentset/db/client";
 
 export const GET = withNamespaceApiHandler(
@@ -58,36 +57,9 @@ export const DELETE = withNamespaceApiHandler(
       });
     }
 
-    const ingestJob = await db.ingestJob.findUnique({
-      where: {
-        id: jobId,
-        namespaceId: namespace.id,
-      },
-      select: {
-        id: true,
-        status: true,
-      },
-    });
-
-    if (!ingestJob) {
-      throw new AgentsetApiError({
-        code: "not_found",
-        message: "Ingest job not found",
-      });
-    }
-
-    if (
-      ingestJob.status === IngestJobStatus.QUEUED_FOR_DELETE ||
-      ingestJob.status === IngestJobStatus.DELETING
-    ) {
-      throw new AgentsetApiError({
-        code: "bad_request",
-        message: "Ingest job is already being deleted",
-      });
-    }
-
     const data = await deleteIngestJob({
       jobId,
+      namespaceId: namespace.id,
       organizationId: namespace.organizationId,
     });
 

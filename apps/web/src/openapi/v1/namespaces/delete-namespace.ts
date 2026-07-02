@@ -1,6 +1,5 @@
 import type { ZodOpenApiOperationObject } from "zod-openapi";
-import { openApiErrorResponses, successSchema } from "@/openapi/responses";
-import { NamespaceSchema } from "@/schemas/api/namespace";
+import { openApiErrorResponses } from "@/openapi/responses";
 
 import { makeCodeSamples, ts } from "../code-samples";
 import { namespaceIdPathSchema } from "../utils";
@@ -15,12 +14,7 @@ export const deleteNamespace: ZodOpenApiOperationObject = {
   parameters: [namespaceIdPathSchema],
   responses: {
     "204": {
-      description: "The deleted namespace",
-      content: {
-        "application/json": {
-          schema: successSchema(NamespaceSchema),
-        },
-      },
+      description: "The namespace was queued for deletion.",
     },
     ...openApiErrorResponses,
   },

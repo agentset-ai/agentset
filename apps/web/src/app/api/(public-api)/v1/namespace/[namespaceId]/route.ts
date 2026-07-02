@@ -1,4 +1,3 @@
-import { AgentsetApiError } from "@/lib/api/errors";
 import { withNamespaceApiHandler } from "@/lib/api/handler";
 import { prefixId } from "@agentset/utils";
 import { makeApiSuccessResponse } from "@/lib/api/response";
@@ -8,9 +7,7 @@ import {
   updateNamespaceSchema,
 } from "@/schemas/api/namespace";
 import { deleteNamespace } from "@/services/namespaces/delete";
-
-import { Prisma } from "@agentset/db";
-import { db } from "@agentset/db/client";
+import { updateNamespace } from "@/services/namespaces/update";
 
 export const GET = withNamespaceApiHandler(
   async ({ namespace, headers }) => {
@@ -28,43 +25,24 @@ export const GET = withNamespaceApiHandler(
 
 export const PATCH = withNamespaceApiHandler(
   async ({ namespace, headers, req }) => {
-    const { name, slug } = await updateNamespaceSchema.parseAsync(
+    const data = await updateNamespaceSchema.parseAsync(
       await parseRequestBody(req),
     );
 
-    try {
-      const updatedNamespace = await db.namespace.update({
-        where: {
-          id: namespace.id,
-        },
-        data: {
-          ...(name && { name }),
-          ...(slug && { slug }),
-        },
-      });
+    const updatedNamespace = await updateNamespace({
+      namespaceId: namespace.id,
+      organizationId: namespace.organizationId,
+      data,
+    });
 
-      return makeApiSuccessResponse({
-        data: NamespaceSchema.parse({
-          ...updatedNamespace,
-          id: prefixId(updatedNamespace.id, "ns_"),
-          organizationId: prefixId(namespace.organizationId, "org_"),
-        }),
-        headers,
-      });
-    } catch (error) {
-      if (
-        error instanceof Prisma.PrismaClientKnownRequestError &&
-        error.code === "P2002"
-      ) {
-        throw new AgentsetApiError({
-          code: "conflict",
-          message: `The slug "${slug}" is already in use.`,
-        });
-      }
-
-      // let the default error handler handle the error
-      throw error;
-    }
+    return makeApiSuccessResponse({
+      data: NamespaceSchema.parse({
+        ...updatedNamespace,
+        id: prefixId(updatedNamespace.id, "ns_"),
+        organizationId: prefixId(namespace.organizationId, "org_"),
+      }),
+      headers,
+    });
   },
   { logging: { routeName: "PATCH /v1/namespace/[namespaceId]" } },
 );
@@ -76,15 +54,7 @@ export const DELETE = withNamespaceApiHandler(
     // TODO: check apiScope
     await deleteNamespace({ namespaceId: namespace.id });
 
-    return makeApiSuccessResponse({
-      data: NamespaceSchema.parse({
-        ...namespace,
-        id: prefixId(namespace.id, "ns_"),
-        organizationId: prefixId(namespace.organizationId, "org_"),
-      }),
-      headers,
-      status: 204,
-    });
+    return new Response(null, { status: 204, headers });
   },
   { logging: { routeName: "DELETE /v1/namespace/[namespaceId]" } },
 );

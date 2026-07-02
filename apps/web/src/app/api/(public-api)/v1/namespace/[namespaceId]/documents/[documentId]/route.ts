@@ -1,36 +1,18 @@
-import { AgentsetApiError } from "@/lib/api/errors";
 import { withNamespaceApiHandler } from "@/lib/api/handler";
 import { makeApiSuccessResponse } from "@/lib/api/response";
 import { DocumentSchema } from "@/schemas/api/document";
-import { deleteDocument } from "@/services/documents/delete";
+import { queueDocumentDeletion } from "@/services/documents/delete";
+import { getDocumentOrThrow } from "@/services/documents/get";
 
-import { DocumentStatus } from "@agentset/db";
-import { db } from "@agentset/db/client";
-import { normalizeId, prefixId } from "@agentset/utils";
+import { prefixId } from "@agentset/utils";
 
 export const GET = withNamespaceApiHandler(
-  async ({ params, namespace, headers }) => {
-    const documentId = normalizeId(params.documentId ?? "", "doc_");
-    if (!documentId) {
-      throw new AgentsetApiError({
-        code: "bad_request",
-        message: "Invalid document ID",
-      });
-    }
-
-    const doc = await db.document.findUnique({
-      where: {
-        id: documentId,
-        namespaceId: namespace.id,
-      },
+  async ({ params, namespace, tenantId, headers }) => {
+    const doc = await getDocumentOrThrow({
+      namespaceId: namespace.id,
+      documentId: params.documentId ?? "",
+      tenantId,
     });
-
-    if (!doc) {
-      throw new AgentsetApiError({
-        code: "not_found",
-        message: "Document not found",
-      });
-    }
 
     return makeApiSuccessResponse({
       data: DocumentSchema.parse({
@@ -49,47 +31,13 @@ export const GET = withNamespaceApiHandler(
 );
 
 export const DELETE = withNamespaceApiHandler(
-  async ({ params, namespace, headers }) => {
-    const documentId = normalizeId(params.documentId ?? "", "doc_");
-    if (!documentId) {
-      throw new AgentsetApiError({
-        code: "bad_request",
-        message: "Invalid document ID",
-      });
-    }
-
+  async ({ params, namespace, tenantId, headers }) => {
     // TODO: check apiScope
-    const document = await db.document.findUnique({
-      where: {
-        id: documentId,
-        namespaceId: namespace.id,
-      },
-      select: {
-        id: true,
-        status: true,
-      },
-    });
-
-    if (!document) {
-      throw new AgentsetApiError({
-        code: "not_found",
-        message: "Document not found",
-      });
-    }
-
-    if (
-      document.status === DocumentStatus.QUEUED_FOR_DELETE ||
-      document.status === DocumentStatus.DELETING
-    ) {
-      throw new AgentsetApiError({
-        code: "bad_request",
-        message: "Document is already being deleted",
-      });
-    }
-
-    const data = await deleteDocument({
-      documentId: document.id,
+    const data = await queueDocumentDeletion({
+      namespaceId: namespace.id,
       organizationId: namespace.organizationId,
+      documentId: params.documentId ?? "",
+      tenantId,
     });
 
     return makeApiSuccessResponse({

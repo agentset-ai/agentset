@@ -65,6 +65,9 @@ export const updateHosting = async ({
       where: {
         id: hosting.id,
       },
+      include: {
+        domain: true,
+      },
       data: {
         title: input.title,
         ...(input.slug && { slug: input.slug }),

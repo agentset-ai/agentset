@@ -1,4 +1,5 @@
 import { deleteOrganization } from "@/services/organizations/delete";
+import { getOrganizationMembers } from "@/services/organizations/members";
 import { TRPCError } from "@trpc/server";
 import { z } from "zod/v4";
 
@@ -86,36 +87,9 @@ export const organizationsRouter = createTRPCRouter({
       }),
     )
     .query(async ({ ctx, input }) => {
-      const members = await ctx.db.organization.findUnique({
-        where: {
-          id: input.organizationId,
-          members: {
-            some: {
-              userId: ctx.session.user.id,
-            },
-          },
-        },
-        select: {
-          members: {
-            include: {
-              user: {
-                select: {
-                  name: true,
-                  email: true,
-                  image: true,
-                },
-              },
-            },
-            orderBy: {
-              createdAt: "asc",
-            },
-          },
-          invitations: {
-            where: {
-              status: "pending",
-            },
-          },
-        },
+      const members = await getOrganizationMembers({
+        organizationId: input.organizationId,
+        userId: ctx.session.user.id,
       });
 
       return members;

@@ -1,11 +1,8 @@
 import type { ProtectedProcedureContext } from "@/server/api/trpc";
 import { createNamespaceSchema } from "@/schemas/api/namespace";
 import { createTRPCRouter, protectedProcedure } from "@/server/api/trpc";
+import { createNamespace } from "@/services/namespaces/create";
 import { deleteNamespace } from "@/services/namespaces/delete";
-import {
-  validateEmbeddingModel,
-  validateVectorStoreConfig,
-} from "@/services/namespaces/validate";
 import { TRPCError } from "@trpc/server";
 import { z } from "zod/v4";
 
@@ -150,47 +147,13 @@ export const namespaceRouter = createTRPCRouter({
         }).shape,
       ),
     )
-    .mutation(async ({ ctx, input }) => {
-      await validateIsMember(ctx, input.orgId, ["admin", "owner"]);
+    .mutation(async ({ ctx, input: { orgId, ...data } }) => {
+      await validateIsMember(ctx, orgId, ["admin", "owner"]);
 
-      const { success: isValidEmbedding, error: embeddingError } =
-        await validateEmbeddingModel(input.embeddingConfig);
-      if (!isValidEmbedding) {
-        throw new TRPCError({
-          code: "BAD_REQUEST",
-          message: embeddingError,
-        });
-      }
-
-      const { success: isValidVectorStore, error: vectorStoreError } =
-        await validateVectorStoreConfig(
-          input.vectorStoreConfig,
-          input.embeddingConfig,
-        );
-      if (!isValidVectorStore) {
-        throw new TRPCError({
-          code: "BAD_REQUEST",
-          message: vectorStoreError,
-        });
-      }
-
-      const [namespace] = await ctx.db.$transaction([
-        ctx.db.namespace.create({
-          data: {
-            name: input.name,
-            slug: input.slug,
-            organizationId: input.orgId,
-            embeddingConfig: input.embeddingConfig,
-            vectorStoreConfig: input.vectorStoreConfig,
-          },
-        }),
-        ctx.db.organization.update({
-          where: { id: input.orgId },
-          data: { totalNamespaces: { increment: 1 } },
-        }),
-      ]);
-
-      return namespace;
+      return await createNamespace({
+        organizationId: orgId,
+        data,
+      });
     }),
   createDemoNamespace: protectedProcedure
     .input(

@@ -1,18 +1,18 @@
-import { createWebhook } from "@/lib/webhook/create-webhook";
-import { getWebhooks } from "@/lib/webhook/get-webhooks";
 import { samplePayload } from "@/lib/webhook/sample-events/payload";
-import { createWebhookSecret } from "@/lib/webhook/secret";
-import { transformWebhook } from "@/lib/webhook/transform";
-import { toggleWebhooksForOrganization } from "@/lib/webhook/update-webhook";
-import { validateWebhook } from "@/lib/webhook/validate-webhook";
 import { createTRPCRouter, protectedProcedure } from "@/server/api/trpc";
+import { createWebhook } from "@/services/webhooks/create";
+import { deleteWebhook } from "@/services/webhooks/delete";
+import { getWebhook } from "@/services/webhooks/get";
+import { listWebhooks } from "@/services/webhooks/list";
+import { requireWebhooksPlan } from "@/services/webhooks/plan";
+import { regenerateWebhookSecret } from "@/services/webhooks/regenerate-secret";
+import { toggleWebhook } from "@/services/webhooks/toggle";
+import { updateWebhook } from "@/services/webhooks/update";
 import { TRPCError } from "@trpc/server";
 import { nanoid } from "nanoid";
 import { z } from "zod/v4";
 
-import type { WebhookTrigger } from "@agentset/webhooks";
 import { triggerSendWebhook } from "@agentset/jobs";
-import { isFreePlan } from "@agentset/stripe/plans";
 import { getWebhookEvents } from "@agentset/tinybird";
 import {
   createWebhookSchema,
@@ -21,18 +21,6 @@ import {
   WEBHOOK_TRIGGERS,
   webhookPayloadSchema,
 } from "@agentset/webhooks";
-import { webhookCache } from "@agentset/webhooks/server";
-
-// Helper to check if organization has webhooks access (pro plan required)
-const requireProPlan = (plan: string) => {
-  if (isFreePlan(plan)) {
-    throw new TRPCError({
-      code: "FORBIDDEN",
-      message:
-        "Webhooks are only available on the Pro plan and above. Please upgrade to use this feature.",
-    });
-  }
-};
 
 export const webhooksRouter = createTRPCRouter({
   // List all webhooks for an organization
@@ -51,11 +39,7 @@ export const webhooksRouter = createTRPCRouter({
         throw new TRPCError({ code: "UNAUTHORIZED" });
       }
 
-      const webhooks = await getWebhooks({
-        organizationId: input.organizationId,
-      });
-
-      return webhooks.map(transformWebhook);
+      return listWebhooks({ organizationId: input.organizationId });
     }),
 
   // Get a single webhook by ID
@@ -73,39 +57,16 @@ export const webhooksRouter = createTRPCRouter({
         throw new TRPCError({ code: "UNAUTHORIZED" });
       }
 
-      const webhook = await ctx.db.webhook.findUnique({
-        where: {
-          id: input.webhookId,
-          organizationId: input.organizationId,
-        },
-        select: {
-          id: true,
-          name: true,
-          url: true,
-          secret: true,
-          triggers: true,
-          disabledAt: true,
-          consecutiveFailures: true,
-          lastFailedAt: true,
-          createdAt: true,
-          namespaces: {
-            select: {
-              namespaceId: true,
-            },
-          },
-        },
+      const webhook = await getWebhook({
+        organizationId: input.organizationId,
+        webhookId: input.webhookId,
       });
 
       if (!webhook) {
         throw new TRPCError({ code: "NOT_FOUND" });
       }
 
-      return {
-        ...transformWebhook(webhook),
-        consecutiveFailures: webhook.consecutiveFailures,
-        lastFailedAt: webhook.lastFailedAt,
-        createdAt: webhook.createdAt,
-      };
+      return webhook;
     }),
 
   // Get webhook events from Tinybird
@@ -161,14 +122,9 @@ export const webhooksRouter = createTRPCRouter({
       }
 
       // Check pro plan requirement
-      requireProPlan(member.organization.plan);
+      requireWebhooksPlan(member.organization.plan);
 
-      await validateWebhook({
-        input,
-        organizationId: input.organizationId,
-      });
-
-      const webhook = await createWebhook({
+      return createWebhook({
         name: input.name,
         url: input.url,
         secret: input.secret,
@@ -176,8 +132,6 @@ export const webhooksRouter = createTRPCRouter({
         namespaceIds: input.namespaceIds,
         organizationId: input.organizationId,
       });
-
-      return transformWebhook(webhook);
     }),
 
   // Update a webhook
@@ -205,66 +159,23 @@ export const webhooksRouter = createTRPCRouter({
         throw new TRPCError({ code: "UNAUTHORIZED" });
       }
 
-      requireProPlan(member.organization.plan);
+      requireWebhooksPlan(member.organization.plan);
 
-      const existingWebhook = await ctx.db.webhook.findUnique({
-        where: {
-          id: input.webhookId,
-          organizationId: input.organizationId,
-        },
+      const webhook = await updateWebhook({
+        organizationId: input.organizationId,
+        webhookId: input.webhookId,
+        name: input.name,
+        url: input.url,
+        secret: input.secret,
+        triggers: input.triggers,
+        namespaceIds: input.namespaceIds,
       });
 
-      if (!existingWebhook) {
+      if (!webhook) {
         throw new TRPCError({ code: "NOT_FOUND" });
       }
 
-      await validateWebhook({
-        input,
-        organizationId: input.organizationId,
-        webhook: existingWebhook,
-      });
-
-      const { name, url, triggers, namespaceIds } = input;
-
-      const webhook = await ctx.db.webhook.update({
-        where: {
-          id: input.webhookId,
-          organizationId: input.organizationId,
-        },
-        data: {
-          ...(name && { name }),
-          ...(url && { url }),
-          ...(triggers && { triggers }),
-          ...(namespaceIds !== undefined && {
-            namespaces: {
-              deleteMany: {},
-              ...(namespaceIds.length > 0 && {
-                create: namespaceIds.map((namespaceId) => ({
-                  namespaceId,
-                })),
-              }),
-            },
-          }),
-        },
-        select: {
-          id: true,
-          name: true,
-          url: true,
-          secret: true,
-          triggers: true,
-          disabledAt: true,
-          namespaces: {
-            select: {
-              namespaceId: true,
-            },
-          },
-        },
-      });
-
-      // Invalidate webhook cache
-      await webhookCache.invalidateOrg(input.organizationId);
-
-      return transformWebhook(webhook);
+      return webhook;
     }),
 
   // Delete a webhook
@@ -282,24 +193,14 @@ export const webhooksRouter = createTRPCRouter({
         throw new TRPCError({ code: "UNAUTHORIZED" });
       }
 
-      const webhook = await ctx.db.webhook.findUnique({
-        where: {
-          id: input.webhookId,
-          organizationId: input.organizationId,
-        },
+      const webhook = await deleteWebhook({
+        organizationId: input.organizationId,
+        webhookId: input.webhookId,
       });
 
       if (!webhook) {
         throw new TRPCError({ code: "NOT_FOUND" });
       }
-
-      await ctx.db.webhook.delete({
-        where: { id: input.webhookId },
-      });
-
-      await toggleWebhooksForOrganization({
-        organizationId: input.organizationId,
-      });
 
       return { success: true };
     }),
@@ -319,35 +220,14 @@ export const webhooksRouter = createTRPCRouter({
         throw new TRPCError({ code: "UNAUTHORIZED" });
       }
 
-      const webhook = await ctx.db.webhook.findUnique({
-        where: {
-          id: input.webhookId,
-          organizationId: input.organizationId,
-        },
-        select: { disabledAt: true },
+      const updatedWebhook = await toggleWebhook({
+        organizationId: input.organizationId,
+        webhookId: input.webhookId,
       });
 
-      if (!webhook) {
+      if (!updatedWebhook) {
         throw new TRPCError({ code: "NOT_FOUND" });
       }
-
-      const disabledAt = webhook.disabledAt ? null : new Date();
-
-      const updatedWebhook = await ctx.db.webhook.update({
-        where: { id: input.webhookId },
-        data: {
-          disabledAt,
-          // Reset failure count when re-enabling
-          ...(webhook.disabledAt && {
-            consecutiveFailures: 0,
-            lastFailedAt: null,
-          }),
-        },
-      });
-
-      await toggleWebhooksForOrganization({
-        organizationId: input.organizationId,
-      });
 
       return { disabledAt: updatedWebhook.disabledAt };
     }),
@@ -393,7 +273,7 @@ export const webhooksRouter = createTRPCRouter({
         id: `${WEBHOOK_EVENT_ID_PREFIX}${nanoid(25)}`,
         event: input.trigger,
         createdAt: new Date().toISOString(),
-        data: samplePayload[input.trigger as WebhookTrigger],
+        data: samplePayload[input.trigger],
       });
 
       await triggerSendWebhook({
@@ -423,28 +303,16 @@ export const webhooksRouter = createTRPCRouter({
         throw new TRPCError({ code: "UNAUTHORIZED" });
       }
 
-      const webhook = await ctx.db.webhook.findUnique({
-        where: {
-          id: input.webhookId,
-          organizationId: input.organizationId,
-        },
+      const updatedWebhook = await regenerateWebhookSecret({
+        organizationId: input.organizationId,
+        webhookId: input.webhookId,
       });
 
-      if (!webhook) {
+      if (!updatedWebhook) {
         throw new TRPCError({ code: "NOT_FOUND" });
       }
 
-      const newSecret = createWebhookSecret();
-
-      await ctx.db.webhook.update({
-        where: { id: input.webhookId },
-        data: { secret: newSecret },
-      });
-
-      // Invalidate webhook cache
-      await webhookCache.invalidateOrg(input.organizationId);
-
-      return { secret: newSecret };
+      return { secret: updatedWebhook.secret };
     }),
 
   // Get namespaces for webhook namespace selector

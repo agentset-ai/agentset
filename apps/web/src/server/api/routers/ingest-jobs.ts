@@ -1,4 +1,3 @@
-import { emitIngestJobWebhook } from "@/lib/webhook/emit";
 import {
   createIngestJobSchema,
   getIngestionJobsSchema,
@@ -6,14 +5,10 @@ import {
 import { createTRPCRouter, protectedProcedure } from "@/server/api/trpc";
 import { createIngestJob } from "@/services/ingest-jobs/create";
 import { deleteIngestJob } from "@/services/ingest-jobs/delete";
+import { reIngestJob } from "@/services/ingest-jobs/re-ingest";
 import { getPaginationArgs, paginateResults } from "@/services/pagination";
 import { TRPCError } from "@trpc/server";
-import { waitUntil } from "@vercel/functions";
 import { z } from "zod/v4";
-
-import { IngestJobStatus } from "@agentset/db";
-import { triggerReIngestJob } from "@agentset/jobs";
-import { isFreePlan } from "@agentset/stripe/plans";
 
 import { getNamespaceByUser } from "../auth";
 
@@ -113,23 +108,10 @@ export const ingestJobRouter = createTRPCRouter({
         throw new TRPCError({ code: "NOT_FOUND" });
       }
 
-      // if it's not a pro plan, check if the user has exceeded the limit
-      // pro plan is unlimited with usage based billing
-      if (
-        isFreePlan(organization.plan) &&
-        organization.totalPages >= organization.pagesLimit
-      ) {
-        throw new TRPCError({
-          code: "BAD_REQUEST",
-          message: "You've reached the maximum number of pages.",
-        });
-      }
-
       return await createIngestJob({
         data: input,
-        organizationId: namespace.organizationId,
+        organization,
         namespaceId: namespace.id,
-        plan: organization.plan,
       });
     }),
   delete: protectedProcedure
@@ -143,31 +125,11 @@ export const ingestJobRouter = createTRPCRouter({
         throw new TRPCError({ code: "NOT_FOUND" });
       }
 
-      const ingestJob = await ctx.db.ingestJob.findUnique({
-        where: {
-          id: input.jobId,
-          namespaceId: namespace.id,
-        },
-        select: { id: true, status: true },
-      });
-
-      if (!ingestJob) {
-        throw new TRPCError({ code: "NOT_FOUND" });
-      }
-
-      if (
-        ingestJob.status === IngestJobStatus.QUEUED_FOR_DELETE ||
-        ingestJob.status === IngestJobStatus.DELETING
-      ) {
-        throw new TRPCError({ code: "BAD_REQUEST" });
-      }
-
-      const updatedIngestJob = await deleteIngestJob({
-        jobId: ingestJob.id,
+      return await deleteIngestJob({
+        jobId: input.jobId,
+        namespaceId: namespace.id,
         organizationId: namespace.organizationId,
       });
-
-      return updatedIngestJob;
     }),
   reIngest: protectedProcedure
     .input(z.object({ jobId: z.string(), namespaceId: z.string() }))
@@ -180,70 +142,11 @@ export const ingestJobRouter = createTRPCRouter({
         throw new TRPCError({ code: "NOT_FOUND" });
       }
 
-      const [ingestJob, organization] = await Promise.all([
-        ctx.db.ingestJob.findUnique({
-          where: {
-            id: input.jobId,
-            namespaceId: namespace.id,
-          },
-          select: { id: true, status: true },
-        }),
-        ctx.db.organization.findUnique({
-          where: { id: namespace.organizationId },
-          select: { plan: true },
-        }),
-      ]);
-
-      if (!ingestJob || !organization) {
-        throw new TRPCError({ code: "NOT_FOUND" });
-      }
-
-      if (
-        ingestJob.status === IngestJobStatus.PRE_PROCESSING ||
-        ingestJob.status === IngestJobStatus.PROCESSING
-      ) {
-        throw new TRPCError({
-          code: "BAD_REQUEST",
-          message: "Job is already being processed",
-        });
-      }
-
-      const handle = await triggerReIngestJob(
-        {
-          jobId: ingestJob.id,
-        },
-        organization.plan,
-      );
-
-      const updatedJob = await ctx.db.ingestJob.update({
-        where: { id: ingestJob.id },
-        data: {
-          status: IngestJobStatus.QUEUED_FOR_RESYNC,
-          queuedAt: new Date(),
-          workflowRunsIds: { push: handle.id },
-        },
-        select: {
-          id: true,
-          name: true,
-          namespaceId: true,
-          status: true,
-          error: true,
-          createdAt: true,
-          updatedAt: true,
-        },
+      // the service fetches the org plan in parallel with the job lookup
+      return await reIngestJob({
+        jobId: input.jobId,
+        namespaceId: namespace.id,
+        organizationId: namespace.organizationId,
       });
-
-      // Emit ingest_job.queued_for_resync webhook
-      waitUntil(
-        emitIngestJobWebhook({
-          trigger: "ingest_job.queued_for_resync",
-          ingestJob: {
-            ...updatedJob,
-            organizationId: namespace.organizationId,
-          },
-        }),
-      );
-
-      return ingestJob;
     }),
 });

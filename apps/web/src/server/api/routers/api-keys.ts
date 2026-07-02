@@ -1,8 +1,11 @@
-import { revalidateTag } from "next/cache";
 import { createTRPCRouter, protectedProcedure } from "@/server/api/trpc";
 import { createApiKey, createApiKeySchema } from "@/services/api-key/create";
+import { deleteApiKey } from "@/services/api-key/delete";
+import { listApiKeys } from "@/services/api-key/list";
 import { TRPCError } from "@trpc/server";
 import { z } from "zod/v4";
+
+import { Prisma } from "@agentset/db";
 
 export const apiKeysRouter = createTRPCRouter({
   getApiKeys: protectedProcedure
@@ -28,14 +31,7 @@ export const apiKeysRouter = createTRPCRouter({
         throw new TRPCError({ code: "UNAUTHORIZED" });
       }
 
-      const apiKeys = await ctx.db.organizationApiKey.findMany({
-        where: {
-          organizationId: input.orgId,
-        },
-        omit: {
-          key: true,
-        },
-      });
+      const apiKeys = await listApiKeys({ organizationId: input.orgId });
 
       return apiKeys;
     }),
@@ -96,13 +92,19 @@ export const apiKeysRouter = createTRPCRouter({
         throw new TRPCError({ code: "UNAUTHORIZED" });
       }
 
-      const apiKey = await ctx.db.organizationApiKey.delete({
-        where: {
-          id: input.id,
-        },
-      });
+      try {
+        // scoped to the org so a member of one org can't delete another org's key
+        await deleteApiKey({ id: input.id, organizationId: input.orgId });
+      } catch (error) {
+        if (
+          error instanceof Prisma.PrismaClientKnownRequestError &&
+          error.code === "P2025"
+        ) {
+          throw new TRPCError({ code: "NOT_FOUND" });
+        }
 
-      revalidateTag(`apiKey:${apiKey.key}`, "max");
+        throw error;
+      }
 
       return { success: true };
     }),
