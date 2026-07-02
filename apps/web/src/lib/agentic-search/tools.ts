@@ -41,7 +41,7 @@ const searchInputSchema = z.object({
   mode: z
     .enum(["semantic", "keyword"])
     .describe(
-      "semantic: embedding similarity search, best for concepts and paraphrases. keyword: full-text search, best for exact terms, names, and identifiers.",
+      "semantic: embedding similarity search, best for concepts and paraphrases. keyword: full-text search, best for exact terms, names, and identifiers. Keyword search is not available on every knowledge base; when unavailable, the search runs in semantic mode instead.",
     ),
   label: z
     .string()

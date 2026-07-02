@@ -173,13 +173,16 @@ const AgenticMessageStatus = ({
       </ChainOfThoughtHeader>
       <ChainOfThoughtContent>
         {steps.map((step, index) => {
+          const isLastStep = index === steps.length - 1;
+
           if (step.kind === "planning") {
+            // a plan is only in progress while it's the newest step
             return (
               <ChainOfThoughtStep
                 key={step.part.id ?? `planning-${index}`}
                 label="Planning..."
                 description={step.part.data}
-                status={isLoading ? "pending" : "complete"}
+                status={isLoading && isLastStep ? "active" : "complete"}
               />
             );
           }
