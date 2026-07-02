@@ -26,6 +26,7 @@
   "dependencies": {
     "@prisma/adapter-pg": "^7.4.1",
     "@prisma/client": "^7.4.1",
+    "pg": "^8.16.3",
     "zod": "catalog:"
   },
   "prisma": {
@@ -36,6 +37,7 @@
     "@agentset/prettier-config": "workspace:*",
     "@agentset/tsconfig": "workspace:*",
     "@agentset/validation": "workspace:*",
+    "@types/pg": "^8.20.0",
     "eslint": "catalog:",
     "prettier": "catalog:",
     "prisma": "^7.4.1",
