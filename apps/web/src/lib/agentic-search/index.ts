@@ -11,7 +11,6 @@ import {
 import type { AgenticLanguageModel } from "@agentset/engine";
 
 import type { AgenticToolContext } from "./tools";
-import { extractPlanningStreamTransform } from "./extract-planning";
 import { agenticTools } from "./tools";
 
 export type { AgenticToolContext, SearchToolConfig } from "./tools";
@@ -35,8 +34,7 @@ type AgenticSearchPipelineOptions = {
 
 /**
  * Agentic search chat: the model drives retrieval through the `search` and
- * `expand` tools until it can answer, then streams a grounded response with
- * a `<planning>` block extracted into `data-planning` UI parts.
+ * `expand` tools until it can answer, then streams a grounded response.
  */
 export const agenticSearchPipeline = ({
   languageModel,
@@ -107,8 +105,5 @@ export const agenticSearchPipeline = ({
     },
   });
 
-  return createUIMessageStreamResponse({
-    stream: stream.pipeThrough(extractPlanningStreamTransform()),
-    headers,
-  });
+  return createUIMessageStreamResponse({ stream, headers });
 };

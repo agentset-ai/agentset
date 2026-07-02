@@ -1,5 +1,5 @@
-import { agenticSearchPipeline } from "@/lib/agentic-search";
 import type { SearchToolConfig } from "@/lib/agentic-search/tools";
+import { agenticSearchPipeline } from "@/lib/agentic-search";
 import { agenticTools } from "@/lib/agentic-search/tools";
 import { AgentsetApiError } from "@/lib/api/errors";
 import { withAuthApiHandler } from "@/lib/api/handler";
@@ -54,12 +54,6 @@ export const POST = withAuthApiHandler(
     const messages = convertToModelMessages(body.messages, {
       tools: agenticTools,
       ignoreIncompleteToolCalls: true,
-      // re-inline the model's plan on follow-up turns; other data parts
-      // (sources, status) are dropped from the model-visible history
-      convertDataPart: (part) =>
-        part.type === "data-planning" && typeof part.data === "string"
-          ? { type: "text", text: `<planning>${part.data}</planning>` }
-          : undefined,
     });
 
     const languageModel = getAgenticLanguageModel(body.llmModel);

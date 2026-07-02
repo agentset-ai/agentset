@@ -14,7 +14,6 @@ import { Shimmer } from "@agentset/ui/ai/shimmer";
 
 type MessagePart = MyUIMessage["parts"][number];
 type ToolPart = Extract<MessagePart, { type: "tool-search" | "tool-expand" }>;
-type PlanningPart = Extract<MessagePart, { type: "data-planning" }>;
 
 const extractToolParts = (message: MyUIMessage) =>
   message.parts.filter(
@@ -47,39 +46,15 @@ const buildDocumentNameMap = (toolParts: ToolPart[]) => {
 };
 
 // ===============================================
-// Playground: expandable chain-of-thought with per-tool steps and the
-// streamed plan — the debugging-friendly view.
+// Playground: expandable chain-of-thought with per-tool steps — the
+// debugging-friendly view.
 // ===============================================
-
-type AgenticStep =
-  | { kind: "tool"; part: ToolPart }
-  | { kind: "planning"; part: PlanningPart };
-
-const extractAgenticSteps = (message: MyUIMessage) => {
-  const steps: AgenticStep[] = [];
-  const toolParts: ToolPart[] = [];
-  const planningParts: PlanningPart[] = [];
-
-  for (const part of message.parts) {
-    if (part.type === "tool-search" || part.type === "tool-expand") {
-      steps.push({ kind: "tool", part });
-      toolParts.push(part);
-    } else if (part.type === "data-planning") {
-      steps.push({ kind: "planning", part });
-      planningParts.push(part);
-    }
-  }
-
-  return { steps, toolParts, planningParts };
-};
 
 const getHeaderLabel = ({
   toolParts,
-  planningParts,
   isLoading,
 }: {
   toolParts: ToolPart[];
-  planningParts: PlanningPart[];
   isLoading: boolean;
 }) => {
   if (!isLoading) {
@@ -90,7 +65,6 @@ const getHeaderLabel = ({
 
   const lastPart = toolParts.at(-1);
   if (!lastPart) {
-    if (planningParts.length > 0) return "Planning...";
     return "Thinking...";
   }
 
@@ -152,9 +126,9 @@ const AgenticMessageStatus = ({
   const [userOpen, setUserOpen] = useState<boolean | null>(null);
   const open = userOpen ?? isLoading;
 
-  const { steps, toolParts, planningParts } = extractAgenticSteps(message);
+  const toolParts = extractToolParts(message);
 
-  if (steps.length === 0) {
+  if (toolParts.length === 0) {
     if (!isLoading) return null;
     return (
       <Shimmer animate className="mt-4 text-sm">
@@ -163,7 +137,7 @@ const AgenticMessageStatus = ({
     );
   }
 
-  const headerLabel = getHeaderLabel({ toolParts, planningParts, isLoading });
+  const headerLabel = getHeaderLabel({ toolParts, isLoading });
   const lastToolPart = toolParts.at(-1);
 
   return (
@@ -172,31 +146,13 @@ const AgenticMessageStatus = ({
         {headerLabel}
       </ChainOfThoughtHeader>
       <ChainOfThoughtContent>
-        {steps.map((step, index) => {
-          const isLastStep = index === steps.length - 1;
-
-          if (step.kind === "planning") {
-            // a plan is only in progress while it's the newest step
-            return (
-              <ChainOfThoughtStep
-                key={step.part.id ?? `planning-${index}`}
-                label="Planning..."
-                description={step.part.data}
-                status={isLoading && isLastStep ? "active" : "complete"}
-              />
-            );
-          }
-
-          const status =
-            isLoading && step.part === lastToolPart ? "active" : "complete";
-          return (
-            <AgenticToolStep
-              key={step.part.toolCallId}
-              part={step.part}
-              status={status}
-            />
-          );
-        })}
+        {toolParts.map((part) => (
+          <AgenticToolStep
+            key={part.toolCallId}
+            part={part}
+            status={isLoading && part === lastToolPart ? "active" : "complete"}
+          />
+        ))}
       </ChainOfThoughtContent>
     </ChainOfThought>
   );

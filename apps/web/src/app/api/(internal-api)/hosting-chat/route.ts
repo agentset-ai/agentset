@@ -102,11 +102,6 @@ export const POST = withPublicApiHandler(
     const messages = convertToModelMessages(body.messages, {
       tools: agenticTools,
       ignoreIncompleteToolCalls: true,
-      // re-inline the model's plan on follow-up turns
-      convertDataPart: (part) =>
-        part.type === "data-planning" && typeof part.data === "string"
-          ? { type: "text", text: `<planning>${part.data}</planning>` }
-          : undefined,
     });
 
     const namespaceId = searchParams.namespaceId;

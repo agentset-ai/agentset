@@ -30,7 +30,6 @@ export const AGENTIC_SYSTEM_PROMPT = `You are an AI research assistant powered b
 </grounding_and_citations>
 
 <output_contract>
-- Start with a closed <planning>...</planning> block that briefly states the coverage plan for this turn.
 - Do not provide a summary or separate sources/references at the end.
 </output_contract>
 

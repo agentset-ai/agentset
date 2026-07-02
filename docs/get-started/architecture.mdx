@@ -50,7 +50,7 @@ This set-up gives flexibility to do both semantic and lexical search, reprocess 
 
 Standard RAG pipelines embed the query, find the nearest vectors, and return results once. This approach covers only a limited portion of the search space, can't handle multi-hop questions, and is bound by chunk boundaries (i.e. if information is split across 2 or more chunks).
 
-For question answering, Agentset runs agentic retrieval instead of single-shot search. A retrieval agent—heavily inspired by agentic coding tools such as Claude Code and Cursor—plans its approach, then searches the namespace in a tool-calling loop until it can answer:
+For question answering, Agentset runs agentic retrieval instead of single-shot search. A retrieval agent—heavily inspired by agentic coding tools such as Claude Code and Cursor—searches the namespace in a tool-calling loop until it can answer:
 
 - **Search** — Run a semantic search (vector database + reranker) or a keyword search (lexical matching for exact terms) with a query the agent writes.
 - **Expand** — Fetch the chunks before and after a result to read past chunk boundaries.
