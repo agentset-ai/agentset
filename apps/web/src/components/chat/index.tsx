@@ -1,5 +1,6 @@
 "use client";
 
+import { useCallback, useRef, useState } from "react";
 import { useHosting } from "@/contexts/hosting-context";
 import { useNamespace } from "@/hooks/use-namespace";
 import { useChatProperty } from "ai-sdk-zustand";
@@ -12,6 +13,7 @@ import { Messages } from "./messages";
 import { Overview } from "./overview";
 import { SuggestedActions } from "./suggested-actions";
 import { useNamespaceChat } from "./use-chat";
+import { ChatScrollProvider } from "./use-chat-scroll";
 import { useHostingChat } from "./use-hosting-chat";
 
 export default function Chat({
@@ -19,7 +21,53 @@ export default function Chat({
 }: {
   type?: "playground" | "hosted";
 }) {
-  return type === "playground" ? <PlaygroundChat /> : <HostingChat />;
+  return (
+    <ChatScrollProvider>
+      {type === "playground" ? <PlaygroundChat /> : <HostingChat />}
+    </ChatScrollProvider>
+  );
+}
+
+// Owns the composer state so typing re-renders only this subtree, not the
+// chat root. Suggestions fill the input (leaving the user in control of
+// sending) and fade out once it has content.
+function ChatComposer({
+  type,
+  exampleMessages,
+  suggestionsPlacement = "above",
+}: {
+  type: "playground" | "hosted";
+  exampleMessages?: readonly string[];
+  suggestionsPlacement?: "above" | "below";
+}) {
+  const [input, setInput] = useState("");
+  const textareaRef = useRef<HTMLTextAreaElement | null>(null);
+
+  const fillComposer = useCallback((text: string) => {
+    setInput(text);
+    textareaRef.current?.focus();
+  }, []);
+
+  const suggestions = exampleMessages ? (
+    <SuggestedActions
+      exampleMessages={exampleMessages}
+      onSelect={fillComposer}
+      hidden={input.length > 0}
+    />
+  ) : null;
+
+  return (
+    <>
+      {suggestionsPlacement === "above" && suggestions}
+      <MultimodalInput
+        type={type}
+        input={input}
+        setInput={setInput}
+        textareaRef={textareaRef}
+      />
+      {suggestionsPlacement === "below" && suggestions}
+    </>
+  );
 }
 
 const PlaygroundChat = () => {
@@ -42,10 +90,10 @@ const PlaygroundChat = () => {
       )}
 
       <div className="mx-auto flex w-full flex-col gap-4 px-4 pb-4 md:max-w-3xl md:pb-6">
-        {template ? (
-          <SuggestedActions exampleMessages={template.exampleMessages} />
-        ) : null}
-        <MultimodalInput type="playground" />
+        <ChatComposer
+          type="playground"
+          exampleMessages={template?.exampleMessages}
+        />
       </div>
     </div>
   );
@@ -66,8 +114,11 @@ const HostingChat = () => {
       {isEmpty ? <Overview title={welcomeMessage} logo={logo} /> : <Messages />}
 
       <div className="mx-auto flex w-full flex-col gap-4 px-4 pb-4 md:max-w-3xl md:pb-6">
-        <MultimodalInput type="hosted" />
-        <SuggestedActions exampleMessages={exampleQuestions} />
+        <ChatComposer
+          type="hosted"
+          exampleMessages={exampleQuestions}
+          suggestionsPlacement="below"
+        />
       </div>
     </div>
   );

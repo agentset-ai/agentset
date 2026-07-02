@@ -7,6 +7,8 @@ import { useChatProperty } from "ai-sdk-zustand";
 import { Button } from "@agentset/ui/button";
 import { Textarea } from "@agentset/ui/textarea";
 
+import { useChatScroll } from "./use-chat-scroll";
+
 export type MessageEditorProps = {
   message: MyUIMessage;
   setMode: Dispatch<SetStateAction<"view" | "edit">>;
@@ -16,6 +18,7 @@ export function MessageEditor({ message, setMode }: MessageEditorProps) {
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
   const setMessages = useChatProperty((s) => s.setMessages);
   const regenerate = useChatProperty((s) => s.regenerate);
+  const { requestAnchor } = useChatScroll();
 
   const [draftContent, setDraftContent] = useState<string>(
     extractTextFromParts(message.parts),
@@ -84,6 +87,7 @@ export function MessageEditor({ message, setMode }: MessageEditorProps) {
             });
 
             setMode("view");
+            requestAnchor();
             void regenerate();
           }}
         >

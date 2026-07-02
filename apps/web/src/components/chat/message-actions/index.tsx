@@ -12,6 +12,7 @@ import {
   MessageActions as MessageActionsComponent,
 } from "@agentset/ui/ai/message";
 
+import { useChatScroll } from "../use-chat-scroll";
 import { ExportAction } from "./export";
 import MessageLogs from "./logs";
 
@@ -25,6 +26,7 @@ function PureMessageActions({
   const [_, copyToClipboard] = useCopyToClipboard();
   const isHosting = useIsHosting();
   const regenerate = useChatProperty((a) => a.regenerate);
+  const { requestAnchor } = useChatScroll();
 
   // hide actions until the answer is complete
   if (message.role === "user" || isLoading) return null;
@@ -42,6 +44,7 @@ function PureMessageActions({
   };
 
   const handleRegenerate = async () => {
+    requestAnchor();
     await regenerate();
   };
 
