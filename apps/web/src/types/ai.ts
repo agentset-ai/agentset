@@ -1,25 +1,11 @@
 import type { AgenticTools } from "@/lib/agentic-search/tools";
-import { UseChatHelpers } from "@ai-sdk/react";
-import { InferUITools, UIMessage } from "ai";
+import type { UseChatHelpers } from "@ai-sdk/react";
+import type { InferUITools, UIMessage } from "ai";
 
-import { QueryVectorStoreResult } from "@agentset/engine";
-
-type MyMetadata = {};
+type MyMetadata = unknown;
 
 type MyUIMessageParts = {
-  "agentset-sources":
-    | QueryVectorStoreResult
-    | (Pick<QueryVectorStoreResult, "results"> & {
-        logs?: QueryVectorStoreResult[];
-      });
-  status:
-    | {
-        value: "generating-queries" | "generating-answer";
-      }
-    | {
-        value: "searching";
-        queries: string[];
-      };
+  // the model's <planning> block, extracted into a first-class part
   planning: string;
 };
 

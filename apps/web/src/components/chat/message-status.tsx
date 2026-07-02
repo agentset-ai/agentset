@@ -1,19 +1,13 @@
 import type { MyUIMessage } from "@/types/ai";
-import type { LucideIcon } from "lucide-react";
-import { useState } from "react";
-import {
-  ExpandIcon,
-  MessageSquareIcon,
-  PencilIcon,
-  SearchIcon,
-} from "lucide-react";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { useIsHosting } from "@/contexts/hosting-context";
+import { ExpandIcon, SearchIcon } from "lucide-react";
+import { AnimatePresence, motion } from "motion/react";
 
 import {
   ChainOfThought,
   ChainOfThoughtContent,
   ChainOfThoughtHeader,
-  ChainOfThoughtSearchResult,
-  ChainOfThoughtSearchResults,
   ChainOfThoughtStep,
 } from "@agentset/ui/ai/chain-of-thought";
 import { Shimmer } from "@agentset/ui/ai/shimmer";
@@ -21,6 +15,41 @@ import { Shimmer } from "@agentset/ui/ai/shimmer";
 type MessagePart = MyUIMessage["parts"][number];
 type ToolPart = Extract<MessagePart, { type: "tool-search" | "tool-expand" }>;
 type PlanningPart = Extract<MessagePart, { type: "data-planning" }>;
+
+const extractToolParts = (message: MyUIMessage) =>
+  message.parts.filter(
+    (p): p is ToolPart => p.type === "tool-search" || p.type === "tool-expand",
+  );
+
+const countSources = (toolParts: ToolPart[]) => {
+  const documentIds = new Set<string>();
+  for (const part of toolParts) {
+    if (part.state !== "output-available") continue;
+    for (const chunk of part.output) {
+      documentIds.add(chunk.documentId);
+    }
+  }
+  return documentIds.size;
+};
+
+// documentId -> filename, so an expand step can name the document it's reading
+const buildDocumentNameMap = (toolParts: ToolPart[]) => {
+  const map = new Map<string, string>();
+  for (const part of toolParts) {
+    if (part.state !== "output-available") continue;
+    for (const chunk of part.output) {
+      if (chunk.filename && !map.has(chunk.documentId)) {
+        map.set(chunk.documentId, chunk.filename);
+      }
+    }
+  }
+  return map;
+};
+
+// ===============================================
+// Playground: expandable chain-of-thought with per-tool steps and the
+// streamed plan — the debugging-friendly view.
+// ===============================================
 
 type AgenticStep =
   | { kind: "tool"; part: ToolPart }
@@ -42,17 +71,6 @@ const extractAgenticSteps = (message: MyUIMessage) => {
   }
 
   return { steps, toolParts, planningParts };
-};
-
-const countSources = (toolParts: ToolPart[]) => {
-  const documentIds = new Set<string>();
-  for (const part of toolParts) {
-    if (part.state !== "output-available") continue;
-    for (const chunk of part.output) {
-      documentIds.add(chunk.documentId);
-    }
-  }
-  return documentIds.size;
 };
 
 const getHeaderLabel = ({
@@ -181,58 +199,165 @@ const AgenticMessageStatus = ({
   );
 };
 
-// legacy pipeline progress (hosted chat): data-status parts
-const STATUS_LABELS: Record<
-  Extract<MessagePart, { type: "data-status" }>["data"]["value"],
-  { label: string; icon: LucideIcon }
-> = {
-  "generating-queries": { label: "Generating queries...", icon: PencilIcon },
-  searching: { label: "Searching...", icon: SearchIcon },
-  "generating-answer": {
-    label: "Generating answer...",
-    icon: MessageSquareIcon,
-  },
+// ===============================================
+// Hosted: a single rotating shimmer line with no expandable steps or plan —
+// the end-user view, mirroring qaf's consumer web app.
+// ===============================================
+
+type TimelineEntry =
+  | { kind: "thinking" }
+  | { kind: "searching"; query?: string }
+  | { kind: "reading"; document?: string };
+
+// Minimum time (ms) a single entry stays visible before the rotating header
+// advances to the next one.
+const SEARCH_PACING_MS = 3000;
+
+/**
+ * Walks through `entries` one at a time, keeping each visible for at least
+ * `minMs`. Tool calls often arrive in parallel (e.g. several searches in a
+ * single render); without this the header would jump straight to the last one
+ * and the intermediate states would never be shown.
+ */
+function useHeaderQueue<T>(entries: T[], minMs: number): T | undefined {
+  const [index, setIndex] = useState(0);
+  const shownAtRef = useRef<number>(0);
+
+  useEffect(() => {
+    // initialized here (not in the render path) to keep the render pure
+    if (shownAtRef.current === 0) shownAtRef.current = Date.now();
+
+    // an out-of-range index (entries shrank) is clamped at render time
+    const last = entries.length - 1;
+    if (index >= last) return;
+
+    const remaining = Math.max(0, minMs - (Date.now() - shownAtRef.current));
+    const id = setTimeout(() => {
+      shownAtRef.current = Date.now();
+      setIndex((i) => i + 1);
+    }, remaining);
+    return () => clearTimeout(id);
+  }, [entries.length, index, minMs]);
+
+  if (entries.length === 0) {
+    return undefined;
+  }
+  return entries[Math.min(index, entries.length - 1)];
+}
+
+const labelForEntry = (entry: TimelineEntry): string => {
+  switch (entry.kind) {
+    case "thinking":
+      return "Researching...";
+    case "searching":
+      return entry.query ? entry.query : "Searching...";
+    case "reading":
+      return entry.document ? `Reading ${entry.document}...` : "Reading...";
+  }
 };
 
-const LegacyMessageStatus = ({
-  statusParts,
+const HostedMessageStatus = ({
+  message,
   isLoading,
 }: {
-  statusParts: Extract<MessagePart, { type: "data-status" }>[];
+  message: MyUIMessage;
   isLoading: boolean;
 }) => {
-  // open while streaming, collapsed when done — unless the user toggles it
-  const [userOpen, setUserOpen] = useState<boolean | null>(null);
-  const open = userOpen ?? isLoading;
+  const toolParts = useMemo(() => extractToolParts(message), [message]);
+
+  // switch the header to "Answering..." once the answer starts streaming
+  const answerStarted = useMemo(
+    () => message.parts.some((p) => p.type === "text" && p.text.length > 0),
+    [message],
+  );
+
+  const uniqueSourceCount = useMemo(() => countSources(toolParts), [toolParts]);
+
+  // Ordered timeline of header states. Cumulative (only grows) so the queue
+  // index stays stable as new tool calls stream in.
+  const timeline = useMemo<TimelineEntry[]>(() => {
+    if (!isLoading) {
+      return [];
+    }
+
+    const entries: TimelineEntry[] = [{ kind: "thinking" }];
+    const documentNames = buildDocumentNameMap(toolParts);
+    for (const part of toolParts) {
+      // don't show input-streaming parts
+      if (part.state === "input-streaming") continue;
+
+      if (part.type === "tool-expand") {
+        const documentId =
+          part.input?.documentId ??
+          (part.state === "output-available"
+            ? part.output[0]?.documentId
+            : undefined);
+        entries.push({
+          kind: "reading",
+          document: documentId ? documentNames.get(documentId) : undefined,
+        });
+      } else {
+        entries.push({
+          kind: "searching",
+          query: part.input?.label ?? part.input?.query,
+        });
+      }
+    }
+    return entries;
+  }, [isLoading, toolParts]);
+
+  const queuedEntry = useHeaderQueue(timeline, SEARCH_PACING_MS);
+
+  if (!isLoading && toolParts.length === 0) return null;
+
+  const finalLabel =
+    uniqueSourceCount === 0
+      ? "Done!"
+      : `Searched ${uniqueSourceCount} ${uniqueSourceCount === 1 ? "source" : "sources"}`;
+
+  let label = finalLabel;
+  if (isLoading) {
+    if (answerStarted) {
+      label = "Answering...";
+    } else {
+      label = queuedEntry ? labelForEntry(queuedEntry) : "Researching...";
+    }
+  }
+
+  const showSearchIcon =
+    isLoading && !answerStarted && queuedEntry?.kind === "searching";
 
   return (
-    <ChainOfThought open={open} onOpenChange={setUserOpen} className="mt-4">
-      <ChainOfThoughtHeader isLoading={isLoading} />
-      <ChainOfThoughtContent>
-        {statusParts.map(({ data, id }, index) => {
-          const { label, icon: Icon } = STATUS_LABELS[data.value];
-          const isLast = index === statusParts.length - 1;
-          return (
-            <ChainOfThoughtStep
-              key={`${id}-${index}`}
-              icon={Icon}
-              label={label}
-              status={isLoading && isLast ? "active" : "complete"}
+    <div className="mt-4">
+      <div className="text-muted-foreground flex w-full items-center gap-0.5 text-sm">
+        <div className="relative overflow-hidden text-start">
+          <AnimatePresence initial={false} mode="popLayout">
+            <motion.div
+              animate={{ y: "0%", opacity: 1 }}
+              className="inline-flex items-center gap-2 whitespace-nowrap"
+              exit={{ y: "-100%", opacity: 0 }}
+              initial={{ y: "100%", opacity: 0 }}
+              key={label}
+              transition={{ duration: 0.22, ease: "easeOut" }}
             >
-              {data.value === "searching" ? (
-                <ChainOfThoughtSearchResults className="flex-wrap">
-                  {data.queries.map((query) => (
-                    <ChainOfThoughtSearchResult key={query}>
-                      {query}
-                    </ChainOfThoughtSearchResult>
-                  ))}
-                </ChainOfThoughtSearchResults>
-              ) : null}
-            </ChainOfThoughtStep>
-          );
-        })}
-      </ChainOfThoughtContent>
-    </ChainOfThought>
+              {showSearchIcon && (
+                <SearchIcon
+                  aria-hidden="true"
+                  className="fill-muted-foreground/15 text-muted-foreground/60 size-4 shrink-0"
+                />
+              )}
+              <Shimmer
+                animate={isLoading}
+                className={isLoading ? undefined : "text-inherit"}
+                duration={0.85}
+              >
+                {label}
+              </Shimmer>
+            </motion.div>
+          </AnimatePresence>
+        </div>
+      </div>
+    </div>
   );
 };
 
@@ -243,13 +368,10 @@ export const MessageStatus = ({
   message: MyUIMessage;
   isLoading: boolean;
 }) => {
-  const statusParts = message.parts.filter((p) => p.type === "data-status");
+  const isHosting = useIsHosting();
 
-  // legacy pipeline messages (hosted chat) only carry data-status parts
-  if (statusParts.length > 0) {
-    return (
-      <LegacyMessageStatus statusParts={statusParts} isLoading={isLoading} />
-    );
+  if (isHosting) {
+    return <HostedMessageStatus message={message} isLoading={isLoading} />;
   }
 
   return <AgenticMessageStatus message={message} isLoading={isLoading} />;

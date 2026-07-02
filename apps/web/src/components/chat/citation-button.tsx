@@ -3,15 +3,19 @@ import type { MyUIMessage } from "@/types/ai";
 import { useMemo } from "react";
 import { useChatMessages } from "ai-sdk-zustand";
 
-import { ChunksCitationModal, CitationModal } from "./citation-modal";
+import { ChunksCitationModal } from "./citation-modal";
 
-// agentic citations: <citation ids="chunk-id1,chunk-id2" /> emitted by the
-// model. Ids are resolved against the search/expand tool outputs of the whole
-// conversation, since follow-up turns may cite chunks retrieved earlier.
-const IdsCitationButton = ({ ids }: { ids: string }) => {
+/**
+ * Renders the model-emitted <citation ids="chunk-id1,chunk-id2" /> tags. Ids
+ * are resolved against the search/expand tool outputs of the whole
+ * conversation, since follow-up turns may cite chunks retrieved earlier.
+ */
+export const CitationButton = ({ ids }: { ids?: string }) => {
   const messages = useChatMessages<MyUIMessage>();
 
   const chunks = useMemo(() => {
+    if (!ids) return [];
+
     const chunkMap = new Map<string, FormattedChunk>();
     for (const message of messages) {
       for (const part of message.parts) {
@@ -45,38 +49,4 @@ const IdsCitationButton = ({ ids }: { ids: string }) => {
     );
 
   return <ChunksCitationModal chunks={chunks} />;
-};
-
-export const CitationButton = ({
-  message,
-  citationNumber,
-  ids,
-  ...props
-}: {
-  children?: React.ReactNode;
-  message?: MyUIMessage;
-  citationNumber?: number;
-  ids?: string;
-  className?: string;
-}) => {
-  if (ids) return <IdsCitationButton ids={ids} />;
-
-  if (!props.children) return null;
-
-  // legacy numeric citations: [n] resolved against the data-agentset-sources part
-  const idx = citationNumber ? citationNumber - 1 : undefined;
-
-  const sources = message?.parts.find((a) => a.type === "data-agentset-sources")
-    ?.data.results;
-
-  if (idx === undefined || !sources || !sources[idx])
-    return <span {...props}>{props.children}</span>;
-
-  return (
-    <CitationModal
-      source={sources[idx]}
-      sourceIndex={idx + 1}
-      triggerProps={props}
-    />
-  );
 };

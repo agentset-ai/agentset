@@ -1,7 +1,7 @@
+import type { MyUIMessage } from "@/types/ai";
 import { memo } from "react";
 import { useIsHosting } from "@/contexts/hosting-context";
 import { extractTextFromParts } from "@/lib/string-utils";
-import { MyUIMessage } from "@/types/ai";
 import { useChatProperty } from "ai-sdk-zustand";
 import { CopyIcon, LogsIcon, RefreshCcwIcon } from "lucide-react";
 import { toast } from "sonner";
@@ -26,7 +26,8 @@ function PureMessageActions({
   const isHosting = useIsHosting();
   const regenerate = useChatProperty((a) => a.regenerate);
 
-  if (message.role === "user") return null;
+  // hide actions until the answer is complete
+  if (message.role === "user" || isLoading) return null;
 
   const handleCopy = async () => {
     const textFromParts = extractTextFromParts(message.parts);
@@ -46,25 +47,21 @@ function PureMessageActions({
 
   return (
     <MessageActionsComponent className="mt-2">
-      <MessageAction disabled={isLoading} onClick={handleCopy} tooltip="Copy">
+      <MessageAction onClick={handleCopy} tooltip="Copy">
         <CopyIcon className="size-4" />
       </MessageAction>
 
-      <MessageAction
-        disabled={isLoading}
-        onClick={handleRegenerate}
-        tooltip="Regenerate"
-      >
+      <MessageAction onClick={handleRegenerate} tooltip="Regenerate">
         <RefreshCcwIcon className="size-4" />
       </MessageAction>
 
-      <ExportAction currentId={message.id} disabled={isLoading} />
+      <ExportAction currentId={message.id} />
 
       {!isHosting && (
         <MessageLogs
           message={message}
           trigger={
-            <MessageAction disabled={isLoading} tooltip="Logs">
+            <MessageAction tooltip="Logs">
               <LogsIcon className="size-4" />
             </MessageAction>
           }

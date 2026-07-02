@@ -17,7 +17,6 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@agentset/ui/dialog";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@agentset/ui/tabs";
 
 export default function MessageLogs({
   message,
@@ -26,12 +25,8 @@ export default function MessageLogs({
   message: MyUIMessage;
   trigger: React.ReactNode;
 }) {
-  const annotation = message.parts.find(
-    (a) => a.type === "data-agentset-sources",
-  );
-
-  // agentic messages carry their retrieval logs on the tool parts
-  const toolLogs = message.parts
+  // the retrieval logs live on the message's search/expand tool parts
+  const sources = message.parts
     .filter(
       (p) =>
         (p.type === "tool-search" || p.type === "tool-expand") &&
@@ -43,17 +38,7 @@ export default function MessageLogs({
           ? `[${part.input.mode}] ${part.input.query}`
           : `expand: ${part.input.documentId} @ ${part.input.sequence_number}`,
       results: part.output as unknown as QueryVectorStoreResult["results"],
-      unorderedIds: null,
     }));
-
-  const sources = annotation
-    ? "query" in annotation.data
-      ? annotation.data
-      : annotation.data.logs
-    : toolLogs.length > 0
-      ? toolLogs
-      : null;
-  const hasMultipleQueries = Array.isArray(sources);
 
   return (
     <Dialog>
@@ -64,126 +49,26 @@ export default function MessageLogs({
           <DialogTitle>Logs</DialogTitle>
           <DialogDescription>View the logs for this message.</DialogDescription>
 
-          {sources ? (
-            hasMultipleQueries ? (
-              <Accordion type="multiple" className="flex flex-col gap-10">
-                {sources.map((source, queryIdx) => (
-                  <div key={queryIdx}>
-                    <CodeBlock code={source.query} language="txt">
-                      <CodeBlockCopyButton />
-                    </CodeBlock>
-
-                    <AccordionItem value={`query-${queryIdx}`}>
-                      <AccordionTrigger>View Chunks</AccordionTrigger>
-
-                      <AccordionContent>
-                        <Tabs defaultValue="chunks">
-                          <TabsList className="my-3 w-full">
-                            <TabsTrigger value="chunks">Chunks</TabsTrigger>
-                            {/* tool-based logs carry no pre-rerank order to diff against */}
-                            {source.unorderedIds && (
-                              <TabsTrigger value="re-ranked">
-                                Re-ranked
-                              </TabsTrigger>
-                            )}
-                          </TabsList>
-
-                          <TabsContent value="query">
-                            <CodeBlock code={source.query} language="txt">
-                              <CodeBlockCopyButton />
-                            </CodeBlock>
-                          </TabsContent>
-
-                          <TabsContent
-                            value="chunks"
-                            className="flex flex-col gap-6"
-                          >
-                            {(source.unorderedIds
-                              ? source.unorderedIds.map(
-                                  (id) =>
-                                    source.results.find(
-                                      (result) => result.id === id,
-                                    )!,
-                                )
-                              : source.results
-                            )
-                              .filter(Boolean)
-                              .map((chunk) => (
-                                <SearchChunk key={chunk.id} chunk={chunk} />
-                              ))}
-                          </TabsContent>
-
-                          <TabsContent
-                            value="re-ranked"
-                            className="flex flex-col gap-6"
-                          >
-                            {source.unorderedIds ? (
-                              source.results.map((chunk, idx) => (
-                                <SearchChunk
-                                  key={chunk.id}
-                                  chunk={chunk}
-                                  index={idx}
-                                  originalIndex={source.unorderedIds!.findIndex(
-                                    (id) => id === chunk.id,
-                                  )}
-                                />
-                              ))
-                            ) : (
-                              <p>Re-ranking is disabled.</p>
-                            )}
-                          </TabsContent>
-                        </Tabs>
-                      </AccordionContent>
-                    </AccordionItem>
-                  </div>
-                ))}
-              </Accordion>
-            ) : (
-              <Tabs defaultValue="query">
-                <TabsList className="my-3 w-full">
-                  <TabsTrigger value="query">Query</TabsTrigger>
-                  <TabsTrigger value="chunks">Chunks</TabsTrigger>
-                  <TabsTrigger value="re-ranked">Re-ranked</TabsTrigger>
-                </TabsList>
-
-                <TabsContent value="query">
-                  <CodeBlock code={sources.query} language="txt">
+          {sources.length > 0 ? (
+            <Accordion type="multiple" className="flex flex-col gap-10">
+              {sources.map((source, queryIdx) => (
+                <div key={queryIdx}>
+                  <CodeBlock code={source.query} language="txt">
                     <CodeBlockCopyButton />
                   </CodeBlock>
-                </TabsContent>
 
-                <TabsContent value="chunks" className="flex flex-col gap-6">
-                  {(sources.unorderedIds
-                    ? sources.unorderedIds.map(
-                        (id) =>
-                          sources.results.find((result) => result.id === id)!,
-                      )
-                    : sources.results
-                  )
-                    .filter(Boolean)
-                    .map((chunk) => (
-                      <SearchChunk key={chunk.id} chunk={chunk} />
-                    ))}
-                </TabsContent>
+                  <AccordionItem value={`query-${queryIdx}`}>
+                    <AccordionTrigger>View Chunks</AccordionTrigger>
 
-                <TabsContent value="re-ranked" className="flex flex-col gap-6">
-                  {sources.unorderedIds ? (
-                    sources.results.map((chunk, idx) => (
-                      <SearchChunk
-                        key={chunk.id}
-                        chunk={chunk}
-                        index={idx}
-                        originalIndex={sources.unorderedIds!.findIndex(
-                          (id) => id === chunk.id,
-                        )}
-                      />
-                    ))
-                  ) : (
-                    <p>Re-ranking is disabled.</p>
-                  )}
-                </TabsContent>
-              </Tabs>
-            )
+                    <AccordionContent className="flex flex-col gap-6">
+                      {source.results.map((chunk) => (
+                        <SearchChunk key={chunk.id} chunk={chunk} />
+                      ))}
+                    </AccordionContent>
+                  </AccordionItem>
+                </div>
+              ))}
+            </Accordion>
           ) : (
             <p>No logs available</p>
           )}

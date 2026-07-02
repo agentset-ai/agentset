@@ -14,11 +14,3 @@ Follow these STRICT guidelines:
 
 If the search results are completely irrelevant or insufficient to address any part of the query, respond: "I cannot answer this question as the search results do not contain relevant information about [specific topic]."
 `;
-
-export const NEW_MESSAGE_PROMPT = prmpt`
-Most relevant search results:
-${"chunks"}
-
-User's query:
-${"query"}
-`;
