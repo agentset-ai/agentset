@@ -1,0 +1,29 @@
+---
+title: 'Agent-First Platform'
+description: 'Everything in the Agentset dashboard is available through the REST API and MCP server, so agents can build and operate RAG stacks autonomously.'
+---
+
+Everything you can do in the Agentset dashboard is also available programmatically—organizations, members, API keys, namespaces, uploads, ingest jobs, documents, search, chat, hosting, custom domains, and webhooks. That means an agent (or your backend) can operate Agentset end-to-end without a human clicking through the UI.
+
+There are two surfaces, both authenticated with the same [API keys](/api-reference/tokens):
+
+- **[REST API](/api-reference/introduction)** — for application code and SDKs.
+- **[MCP server](/production/mcp-server)** — for AI agents like Claude and Cursor, with tools that mirror the REST API.
+
+## Bootstrap a RAG stack autonomously
+
+A typical end-to-end flow an agent can run on its own:
+
+1. **Create a namespace** to hold the knowledge base.
+2. **Request upload URLs** and upload files, or pass text and URLs directly.
+3. **Create an ingest job** and monitor it until documents are ready—or register a [webhook](/webhooks/introduction) to get notified.
+4. **Search and chat** over the ingested documents.
+5. Optionally **enable hosting** and attach a custom domain to share a chat UI.
+
+Each step is a single API call or MCP tool invocation, so the whole flow runs without manual setup.
+
+## Next steps
+
+- [API reference](/api-reference/introduction) — Base URL, authentication, and every endpoint
+- [API keys](/api-reference/tokens) — Create and manage keys for programmatic access
+- [MCP server](/production/mcp-server) — Connect agents to the hosted or local server
