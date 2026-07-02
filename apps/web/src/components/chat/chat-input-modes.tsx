@@ -1,38 +1,32 @@
 import { memo } from "react";
 import { useNamespace } from "@/hooks/use-namespace";
-import { TargetIcon, ZapIcon } from "lucide-react";
 import { useIsClient } from "usehooks-ts";
 
-import { PromptInputButton } from "@agentset/ui/ai/prompt-input";
+import { Tabs, TabsList, TabsTrigger } from "@agentset/ui/tabs";
 
+import type { ChatMode } from "./chat-settings.store";
 import { useNamespaceChatSettings } from "./chat-settings.store";
 
 const PureChatInputModes = () => {
   const namespace = useNamespace();
   const [settings, setSettings] = useNamespaceChatSettings(namespace.id);
-  const mode = settings.mode === "fast" ? "fast" : "accurate";
+  const mode: ChatMode = settings.mode === "fast" ? "fast" : "accurate";
   const isClient = useIsClient();
 
   return (
-    <>
-      <PromptInputButton
-        variant={mode === "accurate" ? "default" : "ghost"}
-        onClick={() => setSettings({ mode: "accurate" })}
-        disabled={!isClient}
-      >
-        <TargetIcon className="size-4" />
-        Accurate
-      </PromptInputButton>
-
-      <PromptInputButton
-        variant={mode === "fast" ? "default" : "ghost"}
-        onClick={() => setSettings({ mode: "fast" })}
-        disabled={!isClient}
-      >
-        <ZapIcon className="size-4" />
-        Fast
-      </PromptInputButton>
-    </>
+    <Tabs
+      value={mode}
+      onValueChange={(value) => setSettings({ mode: value as ChatMode })}
+    >
+      <TabsList>
+        <TabsTrigger value="accurate" className="px-2.5" disabled={!isClient}>
+          Accurate
+        </TabsTrigger>
+        <TabsTrigger value="fast" className="px-2.5" disabled={!isClient}>
+          Fast
+        </TabsTrigger>
+      </TabsList>
+    </Tabs>
   );
 };
 

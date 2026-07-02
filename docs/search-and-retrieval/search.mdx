@@ -88,15 +88,18 @@ results = client.search.execute(
 | :--- | :--- | :--- |
 | `rerank` | `true` | Enable or disable reranking |
 | `rerankLimit` | Same as `topK` | Number of results to return after reranking |
-| `rerankModel` | `cohere:rerank-v3.5` | Model used for reranking |
+| `rerankModel` | `cohere:rerank-v4.0-pro` | Model used for reranking |
 
 ### Available rerank models
 
 | Model | Description |
 | :--- | :--- |
-| `cohere:rerank-v3.5` | Latest Cohere reranker (default) |
+| `cohere:rerank-v4.0-pro` | Most capable Cohere reranker (default) |
+| `cohere:rerank-v4.0-fast` | Faster Cohere v4.0 reranker |
+| `cohere:rerank-v3.5` | Cohere v3.5 reranker |
 | `cohere:rerank-english-v3.0` | English-optimized Cohere reranker |
 | `cohere:rerank-multilingual-v3.0` | Multilingual Cohere reranker |
+| `zeroentropy:zerank-2` | Latest ZeroEntropy reranker |
 | `zeroentropy:zerank-1` | ZeroEntropy reranker |
 | `zeroentropy:zerank-1-small` | Smaller, faster ZeroEntropy reranker |
 

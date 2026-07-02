@@ -149,6 +149,12 @@ export const useChatSettings = create<ChatSettings>()(
                       namespace.llmModel === DEFAULT_LLM
                         ? DEFAULT_AGENTIC_LLM
                         : namespace.llmModel,
+                    // remap the old default reranker to the new default
+                    rerankModel:
+                      (namespace.rerankModel as string) ===
+                      "zeroentropy:zerank-2"
+                        ? DEFAULT_RERANKER
+                        : namespace.rerankModel,
                     topK,
                     // the topK remap can undercut a custom rerankLimit
                     rerankLimit: Math.min(rerankLimit, topK),

@@ -22,4 +22,4 @@ type _RerankerMap = {
 
 export type RerankingModel = _RerankerMap[keyof _RerankerMap];
 
-export const DEFAULT_RERANKER: RerankingModel = "zeroentropy:zerank-2";
+export const DEFAULT_RERANKER: RerankingModel = "cohere:rerank-v4.0-pro";
