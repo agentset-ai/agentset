@@ -17,8 +17,14 @@ import { truncate } from "@agentset/utils";
 // resolves the hosting-configured citation label (a dot-path into the chunk's
 // metadata, e.g. "title" or "foo.bar")
 const resolveMetadataPath = (chunk: FormattedChunk, path: string) => {
-  // hoisted fields (e.g. filename) stay addressable
-  let value: unknown = { filename: chunk.filename, ...chunk.metadata };
+  // fields hoisted out of metadata by formatChunk stay addressable
+  let value: unknown = {
+    filename: chunk.filename,
+    page_number: chunk.page_number,
+    sequence_number: chunk.sequence_number,
+    documentId: chunk.documentId,
+    ...chunk.metadata,
+  };
 
   for (const key of path.split(".")) {
     if (value === null || typeof value !== "object") return null;

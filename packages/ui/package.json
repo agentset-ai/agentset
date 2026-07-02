@@ -72,8 +72,8 @@
   "dependencies": {
     "@agentset/utils": "workspace:*",
     "@origin-space/image-cropper": "^0.1.9",
-    "@streamdown/code": "^1.1.1",
-    "@streamdown/math": "^1.1.1",
+    "@streamdown/code": "^1.0.2",
+    "@streamdown/math": "^1.0.2",
     "@tanstack/react-table": "^8.21.2",
     "browser-image-compression": "^2.0.2",
     "class-variance-authority": "^0.7.1",

@@ -2,9 +2,10 @@ import type { SearchToolConfig } from "@/lib/agentic-search/tools";
 import { agenticSearchPipeline } from "@/lib/agentic-search";
 import { AGENTIC_SYSTEM_PROMPT } from "@/lib/agentic-search/prompts";
 import { agenticTools } from "@/lib/agentic-search/tools";
-import { AgentsetApiError } from "@/lib/api/errors";
+import { AgentsetApiError, exceededLimitError } from "@/lib/api/errors";
 import { withPublicApiHandler } from "@/lib/api/handler/public";
 import { hostingAuth } from "@/lib/api/hosting-auth";
+import { ratelimit } from "@/lib/api/rate-limit";
 import { parseRequestBody } from "@/lib/api/utils";
 import { DEFAULT_SYSTEM_PROMPT } from "@/lib/prompts";
 import { waitUntil } from "@vercel/functions";
@@ -16,6 +17,7 @@ import {
   getNamespaceEmbeddingModel,
   getNamespaceVectorStore,
 } from "@agentset/engine";
+import { INFINITY_NUMBER } from "@agentset/utils";
 
 import { hostingChatSchema } from "./schema";
 
@@ -58,6 +60,13 @@ const getHosting = async (namespaceId: string) => {
           id: true,
           vectorStoreConfig: true,
           embeddingConfig: true,
+          organization: {
+            select: {
+              plan: true,
+              searchUsage: true,
+              searchLimit: true,
+            },
+          },
         },
       },
     },
@@ -83,10 +92,10 @@ export const POST = withPublicApiHandler(
       await parseRequestBody(req),
     );
 
-    if (body.messages.length === 0) {
+    if (body.messages.length === 0 || body.messages.length > 50) {
       throw new AgentsetApiError({
         code: "bad_request",
-        message: "Messages must contain at least one message",
+        message: "Messages must contain between 1 and 50 messages",
       });
     }
 
@@ -117,6 +126,35 @@ export const POST = withPublicApiHandler(
     }
 
     await hostingAuth(req, hosting);
+
+    // this is an anonymous surface: rate limit per visitor IP
+    const ip =
+      req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ?? "unknown";
+    const { success } = await ratelimit(30, "1 m").limit(
+      `hosting-chat:${hosting.id}:${ip}`,
+    );
+    if (!success) {
+      throw new AgentsetApiError({
+        code: "rate_limit_exceeded",
+        message: "Too many requests.",
+      });
+    }
+
+    // block orgs that already exceeded their retrieval quota
+    const organization = hosting.namespace.organization;
+    if (
+      INFINITY_NUMBER !== organization.searchLimit &&
+      organization.searchUsage >= organization.searchLimit
+    ) {
+      throw new AgentsetApiError({
+        code: "rate_limit_exceeded",
+        message: exceededLimitError({
+          plan: organization.plan,
+          limit: organization.searchLimit,
+          type: "retrievals",
+        }),
+      });
+    }
 
     const languageModel = getAgenticLanguageModel(hosting.llmConfig?.model);
     const [vectorStore, embeddingModel] = await Promise.all([
