@@ -336,27 +336,28 @@ export default function FilesForm({ onSuccess }: BaseIngestFormProps) {
                             );
                           });
                       }}
+                      message={
+                        sizeError && (
+                          <p className="text-destructive-foreground text-sm">
+                            {sizeError}{" "}
+                            {isFree && (
+                              <>
+                                <Link
+                                  href={`/${slug}/billing/upgrade`}
+                                  className="font-medium underline underline-offset-4"
+                                >
+                                  Upgrade to Pro
+                                </Link>{" "}
+                                to upload files up to{" "}
+                                {formatBytes(MAX_UPLOAD_SIZE)}.
+                              </>
+                            )}
+                          </p>
+                        )
+                      }
                     />
                   </FormControl>
-                  <FormMessage>
-                    {sizeError && (
-                      <>
-                        {sizeError}{" "}
-                        {isFree && (
-                          <>
-                            <Link
-                              href={`/${slug}/billing/upgrade`}
-                              className="font-medium underline underline-offset-4"
-                            >
-                              Upgrade to Pro
-                            </Link>{" "}
-                            to upload files up to {formatBytes(MAX_UPLOAD_SIZE)}
-                            .
-                          </>
-                        )}
-                      </>
-                    )}
-                  </FormMessage>
+                  <FormMessage />
                 </FormItem>
               )}
             />
