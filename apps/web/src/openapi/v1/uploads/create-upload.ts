@@ -10,7 +10,7 @@ export const createUpload: ZodOpenApiOperationObject = {
   "x-speakeasy-name-override": "create",
   summary: "Create presigned URL for file upload",
   description:
-    "Generate a presigned URL for uploading a single file to the specified namespace.",
+    "Generate a presigned URL for uploading a single file to the specified namespace. Files are limited to 5 MB on the Free plan and 200 MB on paid plans.",
   parameters: [namespaceIdPathSchema],
   requestBody: {
     required: true,

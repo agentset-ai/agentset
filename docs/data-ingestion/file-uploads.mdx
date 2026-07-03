@@ -9,21 +9,21 @@ Upload documents to Agentset for processing. You can either provide a URL to a p
 
 Agentset supports the following file formats for ingestion.
 
-| Type | Extensions |
-| :--- | :--- |
-| PDF | `.pdf` |
-| Spreadsheet | `.csv`, `.xls`, `.xlsx`, `.ods` |
-| Word | `.doc`, `.docx`, `.odt` |
-| Presentation | `.ppt`, `.pptx`, `.odp` |
-| HTML | `.html`, `.htm` |
-| EPUB | `.epub` |
-| Image | `.png`, `.jpg`, `.jpeg`, `.webp`, `.gif`, `.tiff` |
-| Outlook | `.msg` |
-| Plain text | `.txt` |
-| Markdown | `.md` |
-| JSON | `.json`, `.jsonl` |
-| XML | `.xml` |
-| RSS | `.rss`, `.atom` |
+| Type         | Extensions                                        |
+| :----------- | :------------------------------------------------ |
+| PDF          | `.pdf`                                            |
+| Spreadsheet  | `.csv`, `.xls`, `.xlsx`, `.ods`                   |
+| Word         | `.doc`, `.docx`, `.odt`                           |
+| Presentation | `.ppt`, `.pptx`, `.odp`                           |
+| HTML         | `.html`, `.htm`                                   |
+| EPUB         | `.epub`                                           |
+| Image        | `.png`, `.jpg`, `.jpeg`, `.webp`, `.gif`, `.tiff` |
+| Outlook      | `.msg`                                            |
+| Plain text   | `.txt`                                            |
+| Markdown     | `.md`                                             |
+| JSON         | `.json`, `.jsonl`                                 |
+| XML          | `.xml`                                            |
+| RSS          | `.rss`, `.atom`                                   |
 
 ## Upload from URL
 
@@ -34,20 +34,21 @@ Provide a URL to a file and Agentset will fetch and process it.
 import { Agentset } from "agentset";
 
 const agentset = new Agentset({
-  apiKey: process.env.AGENTSET_API_KEY,
+apiKey: process.env.AGENTSET_API_KEY,
 });
 
 const ns = agentset.namespace("YOUR_NAMESPACE_ID");
 
 const job = await ns.ingestion.create({
-  payload: {
-    type: "FILE",
-    fileUrl: "https://example.com/document.pdf",
-  },
+payload: {
+type: "FILE",
+fileUrl: "https://example.com/document.pdf",
+},
 });
 
 console.log(`Upload started: ${job.id}`);
-```
+
+````
 
 ```python Python
 import os
@@ -66,7 +67,8 @@ job = client.ingest_jobs.create(
 )
 
 print(f"Upload started: {job.data.id}")
-```
+````
+
 </CodeGroup>
 
 ## Direct upload
@@ -78,21 +80,22 @@ Upload files directly from your application using presigned URLs. This is useful
 import fs from "fs";
 
 const upload = await ns.uploads.upload({
-  file: fs.createReadStream("./document.pdf"),
-  contentType: "application/pdf",
+file: fs.createReadStream("./document.pdf"),
+contentType: "application/pdf",
 });
 
 // Create an ingest job for the uploaded file
 const job = await ns.ingestion.create({
-  payload: {
-    type: "MANAGED_FILE",
-    key: upload.key,
-    fileName: "document.pdf",
-  },
+payload: {
+type: "MANAGED_FILE",
+key: upload.key,
+fileName: "document.pdf",
+},
 });
 
 console.log(`Upload started: ${job.id}`);
-```
+
+````
 
 ```python Python
 import os
@@ -125,7 +128,8 @@ job = client.ingest_jobs.create(
 )
 
 print(f"Upload started: {job.data.id}")
-```
+````
+
 </CodeGroup>
 
 ## With metadata
@@ -166,14 +170,16 @@ job = client.ingest_jobs.create(
     },
 )
 ```
+
 </CodeGroup>
 
 ## File size limit
 
-The maximum file size is 200 MB.
+The maximum file size is 5 MB on the Free plan and 200 MB on paid plans.
 
 <Info>
-  File uploads are processed asynchronously. Learn how to [check upload status](/data-ingestion/upload-status).
+  File uploads are processed asynchronously. Learn how to [check upload
+  status](/data-ingestion/upload-status).
 </Info>
 
 ## Next steps

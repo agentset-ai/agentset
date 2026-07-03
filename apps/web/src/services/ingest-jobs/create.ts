@@ -89,7 +89,9 @@ export const createIngestJob = async ({
         ...commonPayload,
       };
     } else if (data.payload.type === "MANAGED_FILE") {
-      const exists = await checkFileExists(data.payload.key);
+      const exists =
+        validateNamespaceFileKey(namespaceId, data.payload.key) &&
+        (await checkFileExists(data.payload.key));
       if (!exists) {
         throw new Error("FILE_NOT_FOUND");
       }

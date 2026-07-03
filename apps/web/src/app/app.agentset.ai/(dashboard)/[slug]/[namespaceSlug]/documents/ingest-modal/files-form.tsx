@@ -1,9 +1,12 @@
 import type { UseFormReturn } from "react-hook-form";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
+import Link from "next/link";
 import { useOrganization } from "@/hooks/use-organization";
 import { useUploadFiles } from "@/hooks/use-upload";
 import { useZodForm } from "@/hooks/use-zod-form";
 import { SUPPORTED_TYPES } from "@/lib/file-types";
+import { getMaxUploadSize, uploadSizeLimitMessage } from "@/lib/upload-limits";
+import { toast } from "sonner";
 import { z } from "zod/v4";
 
 import { MAX_UPLOAD_SIZE } from "@agentset/storage/constants";
@@ -31,6 +34,7 @@ import {
 import { Input } from "@agentset/ui/input";
 import { Label } from "@agentset/ui/label";
 import { RadioGroup, RadioGroupItem } from "@agentset/ui/radio-group";
+import { formatBytes } from "@agentset/utils";
 import { configSchema } from "@agentset/validation";
 
 import type { BaseIngestFormProps } from "./shared";
@@ -157,6 +161,11 @@ const ModeField = ({ form }: { form: UseFormReturn<any> }) => {
 };
 
 export default function FilesForm({ onSuccess }: BaseIngestFormProps) {
+  const { plan, slug } = useOrganization();
+  const isFree = isFreePlan(plan);
+  const maxUploadSize = getMaxUploadSize(plan);
+  const [sizeError, setSizeError] = useState<string | null>(null);
+
   const form = useZodForm(filesSchema, {
     defaultValues: {
       name: "",
@@ -293,13 +302,59 @@ export default function FilesForm({ onSuccess }: BaseIngestFormProps) {
                   <FormControl>
                     <FileUploader
                       value={field.value}
-                      onValueChange={field.onChange}
+                      onValueChange={(files) => {
+                        setSizeError(null);
+                        field.onChange(files);
+                      }}
                       maxFileCount={100}
                       multiple
-                      maxSize={MAX_UPLOAD_SIZE}
+                      maxSize={maxUploadSize}
                       progresses={progresses}
                       accept={ACCEPT}
                       disabled={isPending}
+                      onFilesReject={(rejections) => {
+                        const tooLarge = rejections.filter((rejection) =>
+                          rejection.errors.some(
+                            (error) => error.code === "file-too-large",
+                          ),
+                        );
+
+                        if (tooLarge.length > 0) {
+                          setSizeError(
+                            uploadSizeLimitMessage(
+                              plan,
+                              tooLarge.map((rejection) => rejection.file.name),
+                            ),
+                          );
+                        }
+
+                        rejections
+                          .filter((rejection) => !tooLarge.includes(rejection))
+                          .forEach((rejection) => {
+                            toast.error(
+                              `File ${rejection.file.name} was rejected`,
+                            );
+                          });
+                      }}
+                      message={
+                        sizeError && (
+                          <p className="text-destructive-foreground text-sm">
+                            {sizeError}{" "}
+                            {isFree && (
+                              <>
+                                <Link
+                                  href={`/${slug}/billing/upgrade`}
+                                  className="font-medium underline underline-offset-4"
+                                >
+                                  Upgrade to Pro
+                                </Link>{" "}
+                                to upload files up to{" "}
+                                {formatBytes(MAX_UPLOAD_SIZE)}.
+                              </>
+                            )}
+                          </p>
+                        )
+                      }
                     />
                   </FormControl>
                   <FormMessage />
