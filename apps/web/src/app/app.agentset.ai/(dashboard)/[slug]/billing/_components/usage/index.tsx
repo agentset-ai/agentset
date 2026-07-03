@@ -9,12 +9,9 @@ import {
 } from "@/components/pages-usage-tooltip";
 import { useOrganization } from "@/hooks/use-organization";
 import { formatNumber } from "@/lib/utils";
-import { useTRPC } from "@/trpc/react";
 import NumberFlow from "@number-flow/react";
-import { useQuery } from "@tanstack/react-query";
 import { BookIcon, PlugIcon, SearchIcon } from "lucide-react";
 
-import { isFreePlan } from "@agentset/stripe/plans";
 import { Button } from "@agentset/ui/button";
 import { Card, CardDescription } from "@agentset/ui/card";
 import { cn } from "@agentset/ui/cn";
@@ -125,14 +122,6 @@ export default function PlanUsage() {
 
 function PagesCard() {
   const organization = useOrganization();
-  const trpc = useTRPC();
-  const isEnabled = !isFreePlan(organization.plan) && !!organization.stripeId;
-  const { data: tracked, isLoading: isLoadingTracked } = useQuery(
-    trpc.billing.getTrackedPages.queryOptions(
-      { orgId: organization.id },
-      { enabled: isEnabled },
-    ),
-  );
 
   const currentPages = organization.totalPages;
   const deletedPages = Math.min(organization.deletedPages, currentPages);
@@ -204,17 +193,6 @@ function PagesCard() {
         </div>
       )}
 
-      {isEnabled && (
-        <div className="mt-2 leading-none">
-          {isLoadingTracked ? (
-            <Skeleton className="h-3.5 w-24" />
-          ) : tracked ? (
-            <span className="text-muted-foreground text-xs">
-              {formatNumber(tracked.trackedPages, "decimal")} billed this cycle
-            </span>
-          ) : null}
-        </div>
-      )}
     </Card>
   );
 }
