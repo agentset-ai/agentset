@@ -14,38 +14,3 @@ Follow these STRICT guidelines:
 
 If the search results are completely irrelevant or insufficient to address any part of the query, respond: "I cannot answer this question as the search results do not contain relevant information about [specific topic]."
 `;
-
-export const NEW_MESSAGE_PROMPT = prmpt`
-Most relevant search results:
-${"chunks"}
-
-User's query:
-${"query"}
-`;
-
-export const CONDENSE_SYSTEM_PROMPT = prmpt`
-Given a conversation history between Human and Assistant and a follow-up question from Human, rewrite the question into a standalone query that:
-
-1. Incorporates all relevant context from the prior conversation
-2. Preserves specific details, names, and technical terms mentioned earlier
-3. Maintains the original language and tone of the user's question
-4. Focuses on searchable keywords and concepts to optimize vector database retrieval
-5. Removes conversational elements like "as mentioned before" or "following up on"
-6. Expands pronouns and references to their full form (e.g. "it" → "the database schema")
-
-Your task is to create a clear, context-rich query that will yield the most relevant search results from the vector database.
-
-
-Question: ${"question"}
-
-History:
-${"chatHistory"}
-`;
-
-export const CONDENSE_USER_PROMPT = prmpt`
-Chat History:
-${"chatHistory"}
-
-Follow Up Message:
-${"query"}
-`;

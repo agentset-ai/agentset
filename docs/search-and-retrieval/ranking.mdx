@@ -15,7 +15,7 @@ const results = await ns.search("product features", {
   topK: 50,
   rerank: true,
   rerankLimit: 10,
-  rerankModel: "cohere:rerank-v3.5",
+  rerankModel: "cohere:rerank-v4.0-pro",
 });
 ```
 
@@ -25,7 +25,7 @@ results = client.search.execute(
     top_k=50,
     rerank=True,
     rerank_limit=10,
-    rerank_model="cohere:rerank-v3.5",
+    rerank_model="cohere:rerank-v4.0-pro",
 )
 ```
 </CodeGroup>

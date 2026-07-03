@@ -14,8 +14,8 @@ Agentset combines best-in-class open source tools with a serverless, modular arc
 | Chunking | [Chonkie](https://github.com/chonkie-inc/chonkie) | Splits documents into semantically coherent chunks |
 | Embeddings | [Text-embedding-3-large](https://platform.openai.com/docs/models/text-embedding-3-large) | Generates vector embeddings for search |
 | Vector database | [Turbopuffer](https://turbopuffer.com) | Indexes and queries embeddings at scale |
-| Reranking | [Zerank-2](https://www.zeroentropy.dev/articles/zerank-2-advanced-instruction-following-multilingual-reranker) | Improves the relevance of retrieved chunks |
-| Generation | [GPT-5.1](https://platform.openai.com/docs/models/gpt-5.1) | Powers the retrieval agent and LLM parsing |
+| Reranking | [Cohere Rerank v4.0 Pro](https://docs.cohere.com/docs/rerank) | Improves the relevance of retrieved chunks |
+| Generation | [GPT-5.5](https://platform.openai.com/docs/models/gpt-5.5) | Powers the retrieval agent and LLM parsing |
 | Object storage | [Cloudflare R2](https://www.cloudflare.com/developer-platform/products/r2/) | Stores original files and processed artifacts |
 | Job queue | [Trigger.dev](https://trigger.dev) | Orchestrates async document processing |
 | Caching | [Upstash](https://upstash.com) | Redis caching and queue management |
@@ -48,22 +48,14 @@ This set-up gives flexibility to do both semantic and lexical search, reprocess 
 
 ### Retrieval
 
-When querying a namespace, Agentset runs agentic retrieval instead of single-shot search.
+Standard RAG pipelines embed the query, find the nearest vectors, and return results once. This approach covers only a limited portion of the search space, can't handle multi-hop questions, and is bound by chunk boundaries (i.e. if information is split across 2 or more chunks).
 
-Standard RAG pipelines embed the query, find the nearest vectors, and return results. This approach covers only a limited portion of the search space, can't handle multi-hop questions, and is bound by chunk boundaries (i.e. if information is split across 2 or more chunks).
+For question answering, Agentset runs agentic retrieval instead of single-shot search. A retrieval agent—heavily inspired by agentic coding tools such as Claude Code and Cursor—searches the namespace in a tool-calling loop until it can answer:
 
-Agentset has a retrieval agent with access to tools. This is heavily inspired by Agentic coding tools such as Claude Code and Cursor.
+- **Search** — Run a semantic search (vector database + reranker) or a keyword search (lexical matching for exact terms) with a query the agent writes.
+- **Expand** — Fetch the chunks before and after a result to read past chunk boundaries.
 
-The agent first generates a set of queries to answer the user's question, then uses retrieval tools:
-
-- **Semantic search** — Query the vector database + reranker to find semantically similar chunks.
-- **Keyword search** — Use lexical search to find chunks that contain exact or partial keyword matches.
-- **Go to page** — Navigate to a specific page (or group of pages) to read the entire content.
-- **Metadata traversal** — Traverse chunk metadata to filter relevant chunks.
-
-Tools run in parallel unless a follow-up query is needed. The system is optimized to return results in one round-trip when possible.
-
-This approach results in higher recall and accuracy. See [benchmarks](/get-started/benchmarks) for accuracy comparisons against standard RAG.
+This approach results in higher recall and accuracy. See [benchmarks](/get-started/benchmarks) for accuracy comparisons against standard RAG. The [playground](/search-and-retrieval/playground) chat runs this loop out of the box, and [Agentic Search](/search-and-retrieval/agentic-search) shows how to build the same pattern on top of the search API.
 
 ## Next steps
 

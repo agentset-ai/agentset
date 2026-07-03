@@ -71,8 +71,8 @@ export const POST = withPublicApiHandler(
       });
     }
 
-    const [languageModel, vectorStore, embeddingModel] = await Promise.all([
-      getNamespaceLanguageModel(hosting.llmConfig?.model),
+    const languageModel = getNamespaceLanguageModel(hosting.llmConfig?.model);
+    const [vectorStore, embeddingModel] = await Promise.all([
       getNamespaceVectorStore(hosting.namespace),
       getNamespaceEmbeddingModel(hosting.namespace, "query"),
     ]);

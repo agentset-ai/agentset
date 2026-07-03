@@ -1,5 +1,5 @@
+import { AGENTIC_SYSTEM_PROMPT } from "@/lib/agentic-search/prompts";
 import { AgentsetApiError } from "@/lib/api/errors";
-import { DEFAULT_SYSTEM_PROMPT } from "@/lib/prompts";
 import { nanoid } from "nanoid";
 
 import { db } from "@agentset/db/client";
@@ -45,7 +45,7 @@ export const enableHosting = async ({
       namespaceId: namespace.id,
       title: namespace.name,
       slug,
-      systemPrompt: DEFAULT_SYSTEM_PROMPT.compile(),
+      systemPrompt: AGENTIC_SYSTEM_PROMPT,
     },
   });
 };

@@ -1,46 +1,32 @@
 import { memo } from "react";
 import { useNamespace } from "@/hooks/use-namespace";
-import { useSession } from "@/hooks/use-session";
-import { BoxIcon, TelescopeIcon } from "lucide-react";
 import { useIsClient } from "usehooks-ts";
 
-import { PromptInputButton } from "@agentset/ui/ai/prompt-input";
+import { Tabs, TabsList, TabsTrigger } from "@agentset/ui/tabs";
 
+import type { ChatMode } from "./chat-settings.store";
 import { useNamespaceChatSettings } from "./chat-settings.store";
 
 const PureChatInputModes = () => {
-  const { isAdmin } = useSession();
   const namespace = useNamespace();
   const [settings, setSettings] = useNamespaceChatSettings(namespace.id);
-  const mode = settings.mode ?? "normal";
+  const mode: ChatMode = settings.mode === "fast" ? "fast" : "accurate";
   const isClient = useIsClient();
 
-  const toggleMode = (newMode: typeof mode) => {
-    setSettings({ mode: newMode === mode ? "normal" : newMode });
-  };
-
   return (
-    <>
-      <PromptInputButton
-        variant={mode === "agentic" ? "default" : "ghost"}
-        onClick={() => toggleMode("agentic")}
-        disabled={!isClient}
-      >
-        <BoxIcon className="size-4" />
-        Agentic
-      </PromptInputButton>
-
-      {isAdmin && (
-        <PromptInputButton
-          variant={mode === "deepResearch" ? "default" : "ghost"}
-          onClick={() => toggleMode("deepResearch")}
-          disabled={!isClient}
-        >
-          <TelescopeIcon className="size-4" />
-          Deep Research
-        </PromptInputButton>
-      )}
-    </>
+    <Tabs
+      value={mode}
+      onValueChange={(value) => setSettings({ mode: value as ChatMode })}
+    >
+      <TabsList>
+        <TabsTrigger value="accurate" className="px-2.5" disabled={!isClient}>
+          Accurate
+        </TabsTrigger>
+        <TabsTrigger value="fast" className="px-2.5" disabled={!isClient}>
+          Fast
+        </TabsTrigger>
+      </TabsList>
+    </Tabs>
   );
 };
 

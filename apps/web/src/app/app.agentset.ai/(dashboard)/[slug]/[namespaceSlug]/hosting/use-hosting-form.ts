@@ -1,7 +1,8 @@
 import { useNamespace } from "@/hooks/use-namespace";
 import { logEvent } from "@/lib/analytics";
-import { DEFAULT_SYSTEM_PROMPT } from "@/lib/prompts";
-import { RouterOutputs, useTRPC } from "@/trpc/react";
+import { AGENTIC_SYSTEM_PROMPT } from "@/lib/agentic-search/prompts";
+import type { RouterOutputs} from "@/trpc/react";
+import { useTRPC } from "@/trpc/react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useForm } from "react-hook-form";
@@ -97,7 +98,7 @@ export function useHostingForm(data: HostingData) {
       protected: data.protected,
       allowedEmails: data.allowedEmails,
       allowedEmailDomains: data.allowedEmailDomains,
-      systemPrompt: data.systemPrompt || DEFAULT_SYSTEM_PROMPT.compile(),
+      systemPrompt: data.systemPrompt || AGENTIC_SYSTEM_PROMPT,
       exampleQuestions:
         data.exampleQuestions.length === 0 ? [""] : data.exampleQuestions,
       exampleSearchQueries:
