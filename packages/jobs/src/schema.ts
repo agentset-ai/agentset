@@ -75,6 +75,9 @@ export const DELETE_DOCUMENT_JOB_ID = "delete-document-job";
 export const deleteDocumentBodySchema = z.object({
   documentId: z.string(),
   skipWebhooks: z.boolean().optional(),
+  // set for standalone deletes; when deleting a whole ingest job / namespace,
+  // the parent task aggregates and updates the counters itself
+  updateCounters: z.boolean().optional(),
 });
 export const triggerDeleteDocument = (
   body: z.infer<typeof deleteDocumentBodySchema>,

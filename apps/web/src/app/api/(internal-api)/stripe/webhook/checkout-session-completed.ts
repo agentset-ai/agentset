@@ -91,6 +91,7 @@ export async function checkoutSessionCompleted(event: Stripe.Event) {
     },
     select: {
       slug: true,
+      deletedPages: true,
       members: {
         select: {
           user: {
@@ -106,6 +107,21 @@ export async function checkoutSessionCompleted(event: Stripe.Event) {
       },
     },
   });
+
+  // subscribing starts a new billing cycle (billingCycleStart above), so
+  // pages deleted during the previous cycle stop counting towards the quota
+  if (organization.deletedPages > 0) {
+    await db.organization.updateMany({
+      where: {
+        id: organizationId,
+        deletedPages: { gte: organization.deletedPages },
+      },
+      data: {
+        totalPages: { decrement: organization.deletedPages },
+        deletedPages: { decrement: organization.deletedPages },
+      },
+    });
+  }
 
   revalidateOrganizationCache(organizationId);
 
