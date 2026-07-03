@@ -13,7 +13,6 @@ import { Messages } from "./messages";
 import { Overview } from "./overview";
 import { SuggestedActions } from "./suggested-actions";
 import { useNamespaceChat } from "./use-chat";
-import { ChatScrollProvider } from "./use-chat-scroll";
 import { useHostingChat } from "./use-hosting-chat";
 
 export default function Chat({
@@ -21,11 +20,7 @@ export default function Chat({
 }: {
   type?: "playground" | "hosted";
 }) {
-  return (
-    <ChatScrollProvider>
-      {type === "playground" ? <PlaygroundChat /> : <HostingChat />}
-    </ChatScrollProvider>
-  );
+  return type === "playground" ? <PlaygroundChat /> : <HostingChat />;
 }
 
 // Owns the composer state so typing re-renders only this subtree, not the

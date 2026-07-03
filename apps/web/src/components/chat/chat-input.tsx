@@ -20,7 +20,6 @@ import {
 
 import ChatInputModes from "./chat-input-modes";
 import ChatModel from "./chat-model";
-import { useChatScroll } from "./use-chat-scroll";
 
 function PureMultimodalInput({
   type,
@@ -38,7 +37,6 @@ function PureMultimodalInput({
   const status = useChatStatus();
   const stop = useChatProperty((s) => s.stop);
   const setMessages = useChatProperty((s) => s.setMessages);
-  const { requestAnchor } = useChatScroll();
 
   const handleSubmit = (message: PromptInputMessage) => {
     // If currently streaming or submitted, stop instead of submitting
@@ -67,8 +65,6 @@ function PureMultimodalInput({
       ],
     });
 
-    // Anchor the just-sent message near the top of the conversation.
-    requestAnchor();
     setInput("");
   };
 

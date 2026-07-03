@@ -1,45 +1,31 @@
 "use client";
 
-import { createContext, use, useCallback, useMemo, useState } from "react";
+import { useCallback } from "react";
 
-interface ChatScrollContextValue {
-  /**
-   * Bumped whenever a new exchange should be anchored near the top of the
-   * viewport (send / edit / regenerate). The message list reacts with a
-   * one-shot scroll; nothing scrolls on stream chunks.
-   */
-  anchorVersion: number;
-  requestAnchor: () => void;
-}
+import { useMessageScroller } from "@agentset/ui/ai/message-scroller";
 
-const ChatScrollContext = createContext<ChatScrollContextValue>({
-  anchorVersion: 0,
-  requestAnchor: () => undefined,
-});
+// Anchored messages pin directly against the list's top padding, with none of
+// the previous exchange peeking above them.
+export const SCROLL_PREVIOUS_ITEM_PEEK = 0;
 
-export function ChatScrollProvider({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
-  const [anchorVersion, setAnchorVersion] = useState(0);
-  const requestAnchor = useCallback(
-    () => setAnchorVersion((version) => version + 1),
-    [],
+/**
+ * Anchor an already-mounted message near the top of the viewport, the same way
+ * the scroller anchors a newly sent message automatically. Edit and regenerate
+ * need this because they rewrite the exchange in place instead of appending a
+ * new anchor item; the two-frame delay lets that rewrite commit and lay out
+ * before the scroll target is measured.
+ */
+export function useAnchorMessage() {
+  const { scrollToMessage } = useMessageScroller();
+
+  return useCallback(
+    (messageId: string) => {
+      requestAnimationFrame(() => {
+        requestAnimationFrame(() => {
+          scrollToMessage(messageId, { align: "start" });
+        });
+      });
+    },
+    [scrollToMessage],
   );
-
-  const value = useMemo(
-    () => ({ anchorVersion, requestAnchor }),
-    [anchorVersion, requestAnchor],
-  );
-
-  return (
-    <ChatScrollContext.Provider value={value}>
-      {children}
-    </ChatScrollContext.Provider>
-  );
-}
-
-export function useChatScroll() {
-  return use(ChatScrollContext);
 }
