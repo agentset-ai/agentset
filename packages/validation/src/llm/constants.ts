@@ -32,7 +32,4 @@ type _LLMMap = {
 
 export type LLM = _LLMMap[keyof _LLMMap];
 
-export const DEFAULT_LLM: LLM = "openai:gpt-4.1";
-
-// default model for the agentic search chat (playground)
-export const DEFAULT_AGENTIC_LLM: LLM = "openai:gpt-5.5";
+export const DEFAULT_LLM: LLM = "openai:gpt-5.5";

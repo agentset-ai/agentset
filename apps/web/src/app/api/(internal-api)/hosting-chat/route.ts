@@ -9,12 +9,12 @@ import { ratelimit } from "@/lib/api/rate-limit";
 import { parseRequestBody } from "@/lib/api/utils";
 import { DEFAULT_SYSTEM_PROMPT } from "@/lib/prompts";
 import { waitUntil } from "@vercel/functions";
-import { convertToModelMessages } from "ai";
+import { convertToModelMessages, pruneMessages } from "ai";
 
 import { db } from "@agentset/db/client";
 import {
-  getAgenticLanguageModel,
   getNamespaceEmbeddingModel,
+  getNamespaceLanguageModel,
   getNamespaceVectorStore,
 } from "@agentset/engine";
 import { INFINITY_NUMBER } from "@agentset/utils";
@@ -99,10 +99,23 @@ export const POST = withPublicApiHandler(
       });
     }
 
-    const messages = convertToModelMessages(body.messages, {
+    const converted = convertToModelMessages(body.messages, {
       tools: agenticTools,
       ignoreIncompleteToolCalls: true,
     });
+    // tool results and reasoning from previous turns don't inform future
+    // answers (the model re-searches); prune them to keep the context small.
+    // Continuation payloads (trailing assistant/tool messages) are left
+    // untouched: their kept tool calls need the paired reasoning items for
+    // the Responses API replay.
+    const messages =
+      converted.at(-1)?.role === "user"
+        ? pruneMessages({
+            messages: converted,
+            reasoning: "before-last-message",
+            toolCalls: "before-last-message",
+          })
+        : converted;
 
     const namespaceId = searchParams.namespaceId;
     if (!namespaceId) {
@@ -151,7 +164,7 @@ export const POST = withPublicApiHandler(
       });
     }
 
-    const languageModel = getAgenticLanguageModel(hosting.llmConfig?.model);
+    const languageModel = getNamespaceLanguageModel(hosting.llmConfig?.model);
     const [vectorStore, embeddingModel] = await Promise.all([
       getNamespaceVectorStore(hosting.namespace),
       getNamespaceEmbeddingModel(hosting.namespace, "query"),

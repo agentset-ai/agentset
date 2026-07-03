@@ -4,11 +4,7 @@ import { persist } from "zustand/middleware";
 import { useShallow } from "zustand/react/shallow";
 
 import type { LLM, RerankingModel } from "@agentset/validation";
-import {
-  DEFAULT_AGENTIC_LLM,
-  DEFAULT_LLM,
-  DEFAULT_RERANKER,
-} from "@agentset/validation";
+import { DEFAULT_LLM, DEFAULT_RERANKER } from "@agentset/validation";
 
 export type ChatMode = "accurate" | "fast";
 
@@ -40,7 +36,7 @@ export const DEFAULT_CHAT_SETTINGS: NamespaceState = {
   temperature: 0,
   mode: "accurate",
   rerankModel: DEFAULT_RERANKER,
-  llmModel: DEFAULT_AGENTIC_LLM,
+  llmModel: DEFAULT_LLM,
 };
 
 const updateNamespace = (
@@ -87,7 +83,8 @@ export const useChatSettings = create<ChatSettings>()(
                 {
                   ...namespace,
                   rerankModel: DEFAULT_RERANKER,
-                  llmModel: DEFAULT_LLM,
+                  // the default model at the time of this migration
+                  llmModel: "openai:gpt-4.1",
                 },
               ]),
             ),
@@ -145,9 +142,10 @@ export const useChatSettings = create<ChatSettings>()(
                     systemPrompt: isLegacyDefaultPrompt
                       ? null
                       : namespace.systemPrompt,
+                    // the old default model moves to the new default
                     llmModel:
-                      namespace.llmModel === DEFAULT_LLM
-                        ? DEFAULT_AGENTIC_LLM
+                      namespace.llmModel === "openai:gpt-4.1"
+                        ? DEFAULT_LLM
                         : namespace.llmModel,
                     // remap the old default reranker to the new default
                     rerankModel:

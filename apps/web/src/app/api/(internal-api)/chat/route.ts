@@ -5,12 +5,12 @@ import { AgentsetApiError } from "@/lib/api/errors";
 import { withAuthApiHandler } from "@/lib/api/handler";
 import { parseRequestBody } from "@/lib/api/utils";
 import { waitUntil } from "@vercel/functions";
-import { convertToModelMessages } from "ai";
+import { convertToModelMessages, pruneMessages } from "ai";
 
 import { db } from "@agentset/db/client";
 import {
-  getAgenticLanguageModel,
   getNamespaceEmbeddingModel,
+  getNamespaceLanguageModel,
   getNamespaceVectorStore,
 } from "@agentset/engine";
 
@@ -51,12 +51,25 @@ export const POST = withAuthApiHandler(
       });
     }
 
-    const messages = convertToModelMessages(body.messages, {
+    const converted = convertToModelMessages(body.messages, {
       tools: agenticTools,
       ignoreIncompleteToolCalls: true,
     });
+    // tool results and reasoning from previous turns don't inform future
+    // answers (the model re-searches); prune them to keep the context small.
+    // Continuation payloads (trailing assistant/tool messages) are left
+    // untouched: their kept tool calls need the paired reasoning items for
+    // the Responses API replay.
+    const messages =
+      converted.at(-1)?.role === "user"
+        ? pruneMessages({
+            messages: converted,
+            reasoning: "before-last-message",
+            toolCalls: "before-last-message",
+          })
+        : converted;
 
-    const languageModel = getAgenticLanguageModel(body.llmModel);
+    const languageModel = getNamespaceLanguageModel(body.llmModel);
     const [vectorStore, embeddingModel] = await Promise.all([
       getNamespaceVectorStore(namespace, tenantId),
       getNamespaceEmbeddingModel(namespace, "query"),

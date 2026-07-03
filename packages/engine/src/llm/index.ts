@@ -2,7 +2,7 @@ import { createAzure } from "@ai-sdk/azure";
 import { OpenAIResponsesProviderOptions } from "@ai-sdk/openai";
 import { LanguageModel } from "ai";
 
-import { DEFAULT_AGENTIC_LLM, DEFAULT_LLM, LLM } from "@agentset/validation";
+import { DEFAULT_LLM, LLM } from "@agentset/validation";
 
 import { env } from "../env";
 
@@ -26,28 +26,21 @@ const modelToId: Record<LLM, string> = {
 // round-trip encrypted reasoning between the steps of an agentic loop.
 const REASONING_MODELS = new Set<LLM>(["openai:gpt-5.5"]);
 
-export const getNamespaceLanguageModel = (
-  model: LLM = DEFAULT_LLM,
-): LanguageModel => {
-  const modelId = modelToId[model];
-  return openaiAzure.languageModel(modelId);
-};
-
-export type AgenticLanguageModel = {
+export type NamespaceLanguageModel = {
   model: LanguageModel;
   providerOptions?: { openai: OpenAIResponsesProviderOptions };
 };
 
 /**
- * Language model for the agentic (tool-calling) chat. All models go through
- * the Azure Responses API — the chat-completions path breaks on some chat
- * deployments (e.g. `gpt-5-chat` rejects `max_tokens`). For reasoning models
- * we additionally request encrypted reasoning with `store: false`, so the
- * reasoning content can be replayed on follow-up steps.
+ * All models go through the Azure Responses API — the chat-completions path
+ * breaks on some chat deployments (e.g. `gpt-5-chat` rejects `max_tokens`).
+ * For reasoning models we additionally request encrypted reasoning with
+ * `store: false`, so the reasoning content can be replayed on follow-up steps
+ * of an agentic loop.
  */
-export const getAgenticLanguageModel = (
-  model: LLM = DEFAULT_AGENTIC_LLM,
-): AgenticLanguageModel => {
+export const getNamespaceLanguageModel = (
+  model: LLM = DEFAULT_LLM,
+): NamespaceLanguageModel => {
   const modelId = modelToId[model];
 
   return {

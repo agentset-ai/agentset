@@ -4,8 +4,7 @@ import { messagesSchema } from "@/schemas/chat";
 import { z } from "zod/v4";
 
 import {
-  DEFAULT_AGENTIC_LLM,
-  llmSchema,
+  llmSchemaWithDefault,
   rerankerSchemaWithDefault,
 } from "@agentset/validation";
 
@@ -51,7 +50,7 @@ export const chatSchema = baseQueryVectorStoreSchema
         "accurate: reranked agentic search (default). fast: agentic search without reranking.",
       ),
     rerankModel: rerankerSchemaWithDefault,
-    llmModel: llmSchema.optional().default(DEFAULT_AGENTIC_LLM),
+    llmModel: llmSchemaWithDefault,
   });
 // note: rerankLimit > topK is clamped in the route instead of rejected, since
 // both fields have defaults and legacy clients may send mismatched pairs

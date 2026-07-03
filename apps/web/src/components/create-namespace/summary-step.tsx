@@ -36,7 +36,7 @@ const MUTABLE_SETTINGS: Setting[] = [
   },
   {
     title: "Generation",
-    subtitle: "gpt-4.1",
+    subtitle: "gpt-5.5",
     icon: OpenAIIcon,
   },
 ];

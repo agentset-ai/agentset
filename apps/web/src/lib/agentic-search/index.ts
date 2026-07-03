@@ -8,7 +8,7 @@ import {
   streamText,
 } from "ai";
 
-import type { AgenticLanguageModel } from "@agentset/engine";
+import type { NamespaceLanguageModel } from "@agentset/engine";
 
 import type { AgenticToolContext } from "./tools";
 import { agenticTools } from "./tools";
@@ -20,7 +20,7 @@ export { AGENTIC_SYSTEM_PROMPT } from "./prompts";
 const MAX_STEPS = 20;
 
 type AgenticSearchPipelineOptions = {
-  languageModel: AgenticLanguageModel;
+  languageModel: NamespaceLanguageModel;
   systemPrompt: string;
   messages: ModelMessage[];
   context: AgenticToolContext;
