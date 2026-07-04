@@ -25,7 +25,7 @@ console.log(results);
 
 export const aiSdkExample = (apiKey?: string) => /* typescript */ `
 import { Agentset } from "agentset";
-import { DEFAULT_PROMPT, makeAgentsetTool } from "@agentset/ai-sdk";
+import { DEFAULT_SYSTEM_PROMPT, makeAgentsetTool } from "@agentset/ai-sdk";
 import { generateText } from "ai";
 
 const agentset = new Agentset({

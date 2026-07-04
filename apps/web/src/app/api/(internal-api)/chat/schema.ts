@@ -1,4 +1,3 @@
-import { AGENTIC_SYSTEM_PROMPT } from "@/lib/agentic-search/prompts";
 import { baseQueryVectorStoreSchema } from "@/schemas/api/query";
 import { messagesSchema } from "@/schemas/chat";
 import { z } from "zod/v4";
@@ -32,9 +31,8 @@ export const chatSchema = baseQueryVectorStoreSchema
     systemPrompt: z
       .string()
       .optional()
-      .default(AGENTIC_SYSTEM_PROMPT)
       .describe(
-        "The system prompt to use for the chat. Defaults to the agentic search system prompt.",
+        "Custom instructions for the chat. Defaults to the agentic search system prompt; custom prompts are augmented with the platform tool and citation contract.",
       ),
     messages: messagesSchema,
     temperature: z.number().optional(),

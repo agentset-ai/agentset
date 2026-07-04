@@ -1,13 +1,11 @@
 import type { SearchToolConfig } from "@/lib/agentic-search/tools";
 import { agenticSearchPipeline } from "@/lib/agentic-search";
-import { AGENTIC_SYSTEM_PROMPT } from "@/lib/agentic-search/prompts";
 import { agenticTools } from "@/lib/agentic-search/tools";
 import { AgentsetApiError, exceededLimitError } from "@/lib/api/errors";
 import { withPublicApiHandler } from "@/lib/api/handler/public";
 import { hostingAuth } from "@/lib/api/hosting-auth";
 import { ratelimit } from "@/lib/api/rate-limit";
 import { parseRequestBody } from "@/lib/api/utils";
-import { DEFAULT_SYSTEM_PROMPT } from "@/lib/prompts";
 import { waitUntil } from "@vercel/functions";
 import { convertToModelMessages, pruneMessages } from "ai";
 
@@ -71,16 +69,6 @@ const getHosting = async (namespaceId: string) => {
       },
     },
   });
-};
-
-// hosting rows created before the agentic migration store the old single-shot
-// RAG prompt verbatim; those should pick up the new agentic default
-const LEGACY_DEFAULT_PROMPT = DEFAULT_SYSTEM_PROMPT.compile().trim();
-const getSystemPrompt = (storedPrompt: string | null) => {
-  if (!storedPrompt || storedPrompt.trim() === LEGACY_DEFAULT_PROMPT) {
-    return AGENTIC_SYSTEM_PROMPT;
-  }
-  return storedPrompt;
 };
 
 export const preferredRegion = "iad1"; // make this closer to the DB
@@ -182,7 +170,9 @@ export const POST = withPublicApiHandler(
 
     return agenticSearchPipeline({
       languageModel,
-      systemPrompt: getSystemPrompt(hosting.systemPrompt),
+      // stored default/null resolves to the agentic prompt; custom prompts
+      // get the platform citation contract appended inside the pipeline
+      systemPrompt: hosting.systemPrompt,
       messages,
       context: {
         vectorStore,

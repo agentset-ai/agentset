@@ -1,5 +1,8 @@
 import { prmpt } from "@/lib/prompt";
 
+// FROZEN legacy text — used only to detect pre-agentic stored prompts
+// (hosting rows + the playground localStorage migration). Never edit: the
+// detection is an exact-match against what was historically persisted.
 export const DEFAULT_SYSTEM_PROMPT = prmpt`
 You are an AI assistant powered by Agentset. Your primary task is to provide accurate, factual responses based STRICTLY on the provided search results. You must ONLY answer questions using information explicitly found in the search results - do not make assumptions or add information from outside knowledge.
 

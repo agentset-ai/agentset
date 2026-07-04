@@ -14,6 +14,8 @@
     "lint:fix": "bun run lint --fix",
     "preview": "next build && next start",
     "start": "bun --env-file=../../.env run next start",
+    "test": "vitest run",
+    "test:watch": "vitest",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
@@ -84,7 +86,8 @@
     "postcss": "^8.4.39",
     "prettier": "catalog:",
     "tailwindcss": "catalog:",
-    "typescript": "catalog:"
+    "typescript": "catalog:",
+    "vitest": "catalog:"
   },
   "prettier": "@agentset/prettier-config"
 }

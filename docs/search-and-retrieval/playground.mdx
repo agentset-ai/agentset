@@ -37,7 +37,7 @@ Open the parameters dialog to tune retrieval and generation:
 | :--- | :--- |
 | **Top K** | Number of chunks fetched per semantic search, before reranking (default 30) |
 | **Rerank Limit** | Number of chunks the model sees per search (default 10) |
-| **System Prompt** | Instructions for the assistant. Defaults to a prompt tuned for agentic search |
+| **System Prompt** | Persona and behavior instructions. Defaults to a prompt tuned for agentic search; Agentset always appends its retrieval and citation rules, so citations keep working with a custom prompt |
 | **Re-ranker** | Model used to rerank results in Accurate mode |
 | **Temperature** | Sampling temperature. Has no effect on reasoning models like GPT-5.5 |
 

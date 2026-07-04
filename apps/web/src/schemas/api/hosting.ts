@@ -65,7 +65,9 @@ export const HostingSchema = z
       .string()
       .nullable()
       .default(null)
-      .describe("The system prompt used for the chat interface."),
+      .describe(
+        "Custom instructions layered on top of Agentset's retrieval and citation rules. `null` means the chat uses Agentset's default prompt.",
+      ),
     exampleQuestions: z
       .array(z.string())
       .default([])
@@ -226,7 +228,13 @@ export const updateHostingSchema = z.object({
   protected: z.boolean().optional(),
   allowedEmails: z.array(z.email().trim().toLowerCase()).optional(),
   allowedEmailDomains: z.array(z.string().trim().toLowerCase()).optional(),
-  systemPrompt: z.string().optional(),
+  systemPrompt: z
+    .string()
+    .nullable()
+    .optional()
+    .describe(
+      "Custom instructions for the chat. Agentset always appends its retrieval and citation rules, so inline citations keep working. Send null or an empty string to reset to Agentset's default prompt.",
+    ),
   exampleQuestions: z.array(z.string()).max(4).optional(),
   exampleSearchQueries: z.array(z.string()).max(4).optional(),
   welcomeMessage: z.string().optional(),

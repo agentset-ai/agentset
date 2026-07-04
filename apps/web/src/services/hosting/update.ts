@@ -1,4 +1,5 @@
 import { env } from "@/env";
+import { isKnownDefaultPrompt } from "@/lib/agentic-search/prompts";
 import { AgentsetApiError } from "@/lib/api/errors";
 import { updateHostingSchema } from "@/schemas/api/hosting";
 import { getCache, waitUntil } from "@vercel/functions";
@@ -82,7 +83,14 @@ export const updateHosting = async ({
         protected: input.protected,
         allowedEmails: input.allowedEmails ?? undefined,
         allowedEmailDomains: input.allowedEmailDomains ?? undefined,
-        systemPrompt: input.systemPrompt,
+        // default-shaped prompts (incl. re-saves of the prefilled default and
+        // "" via the public API) store null = track Agentset's default
+        systemPrompt:
+          input.systemPrompt === undefined
+            ? undefined
+            : isKnownDefaultPrompt(input.systemPrompt)
+              ? null
+              : input.systemPrompt,
         exampleQuestions: input.exampleQuestions,
         exampleSearchQueries: input.exampleSearchQueries,
         welcomeMessage: input.welcomeMessage,
