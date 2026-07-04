@@ -99,7 +99,12 @@ export function ChunksCitationModal({ chunks }: { chunks: FormattedChunk[] }) {
           return (
             <div
               key={chunk.id}
-              className={cn(index > 0 && "border-border mt-6 border-t pt-6")}
+              className={cn(
+                // DialogContent is a grid; without min-w-0 a wide chunk
+                // (e.g. a long formula) stretches past the dialog width
+                "min-w-0",
+                index > 0 && "border-border mt-6 border-t pt-6",
+              )}
             >
               {chunks.length > 1 && chunk.filename && (
                 <h3 className="mb-2 text-xs font-medium">{chunk.filename}</h3>
