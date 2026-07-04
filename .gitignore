@@ -58,6 +58,10 @@ dist/
 .turbo
 
 *.local.*
+*.local
+
 # local-only internal material — never commit
+# (keep such files in *.local paths so the patterns above catch them)
 internal-docs/
+internal-docs.local/
 .opencode/
