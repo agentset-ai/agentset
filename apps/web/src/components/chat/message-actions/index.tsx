@@ -12,6 +12,7 @@ import {
   MessageActions as MessageActionsComponent,
 } from "@agentset/ui/ai/message";
 
+import { useAnchorMessage } from "../use-chat-scroll";
 import { ExportAction } from "./export";
 import MessageLogs from "./logs";
 
@@ -25,6 +26,10 @@ function PureMessageActions({
   const [_, copyToClipboard] = useCopyToClipboard();
   const isHosting = useIsHosting();
   const regenerate = useChatProperty((a) => a.regenerate);
+  const lastUserMessageId = useChatProperty(
+    (a) => a.messages.filter((m) => m.role === "user").at(-1)?.id,
+  );
+  const anchorMessage = useAnchorMessage();
 
   // hide actions until the answer is complete
   if (message.role === "user" || isLoading) return null;
@@ -42,6 +47,9 @@ function PureMessageActions({
   };
 
   const handleRegenerate = async () => {
+    // regenerate() re-answers the last user message; anchor that exchange the
+    // same way a fresh send is anchored.
+    if (lastUserMessageId) anchorMessage(lastUserMessageId);
     await regenerate();
   };
 
