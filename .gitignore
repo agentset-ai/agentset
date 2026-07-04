@@ -58,3 +58,6 @@ dist/
 .turbo
 
 *.local.*
+# local-only internal material — never commit
+internal-docs/
+.opencode/
