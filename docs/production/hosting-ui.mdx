@@ -58,10 +58,16 @@ Configure the appearance and behavior of your hosted chat interface from the das
 | **Reranker Model** | Model used to rerank retrieved documents |
 | **Top K** | Number of documents to retrieve from the vector store (1-100) |
 | **Rerank Limit** | Number of documents to keep after reranking (1-100) |
-| **System Prompt** | Instructions that define how the assistant behaves |
+| **System Prompt** | Instructions that define the assistant's persona and behavior |
 | **Welcome Message** | Initial message shown to users when they open the chat |
 | **Citation Metadata Path** | Metadata field to display as the citation label instead of chunk IDs (e.g., `title` or `source.filename` for nested fields) |
 | **Example Questions** | Starter questions shown to users to help them begin a conversation |
+
+<Note>
+  A custom system prompt controls persona and behavior. Agentset always
+  appends its retrieval and citation rules, so inline citation pills keep
+  working — don't add citation-format instructions to a custom prompt.
+</Note>
 
 ### Search settings
 

@@ -1,7 +1,10 @@
+import type { RouterOutputs } from "@/trpc/react";
 import { useNamespace } from "@/hooks/use-namespace";
+import {
+  AGENTIC_SYSTEM_PROMPT,
+  isKnownDefaultPrompt,
+} from "@/lib/agentic-search/prompts";
 import { logEvent } from "@/lib/analytics";
-import { AGENTIC_SYSTEM_PROMPT } from "@/lib/agentic-search/prompts";
-import type { RouterOutputs} from "@/trpc/react";
 import { useTRPC } from "@/trpc/react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
@@ -98,7 +101,11 @@ export function useHostingForm(data: HostingData) {
       protected: data.protected,
       allowedEmails: data.allowedEmails,
       allowedEmailDomains: data.allowedEmailDomains,
-      systemPrompt: data.systemPrompt || AGENTIC_SYSTEM_PROMPT,
+      // default-shaped stored prompts (null, or a pinned copy of an old
+      // default) display the prompt that actually runs, not the stale snapshot
+      systemPrompt: isKnownDefaultPrompt(data.systemPrompt)
+        ? AGENTIC_SYSTEM_PROMPT
+        : data.systemPrompt!,
       exampleQuestions:
         data.exampleQuestions.length === 0 ? [""] : data.exampleQuestions,
       exampleSearchQueries:

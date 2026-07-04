@@ -1,4 +1,4 @@
-import { DEFAULT_SYSTEM_PROMPT } from "@/lib/prompts";
+import { isKnownDefaultPrompt } from "@/lib/agentic-search/prompts";
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
 import { useShallow } from "zustand/react/shallow";
@@ -119,11 +119,11 @@ export const useChatSettings = create<ChatSettings>()(
                   mode?: string;
                 };
 
-                // users who saved the old single-shot RAG prompt verbatim
-                // should pick up the new agentic default
-                const isLegacyDefaultPrompt =
-                  namespace.systemPrompt?.trim() ===
-                  DEFAULT_SYSTEM_PROMPT.compile().trim();
+                // users who saved an old default prompt verbatim should pick
+                // up the new agentic default
+                const isLegacyDefaultPrompt = isKnownDefaultPrompt(
+                  namespace.systemPrompt,
+                );
 
                 const topK =
                   namespace.topK === 50

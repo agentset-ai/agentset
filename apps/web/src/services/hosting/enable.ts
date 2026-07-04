@@ -1,4 +1,3 @@
-import { AGENTIC_SYSTEM_PROMPT } from "@/lib/agentic-search/prompts";
 import { AgentsetApiError } from "@/lib/api/errors";
 import { nanoid } from "nanoid";
 
@@ -45,7 +44,9 @@ export const enableHosting = async ({
       namespaceId: namespace.id,
       title: namespace.name,
       slug,
-      systemPrompt: AGENTIC_SYSTEM_PROMPT,
+      // null = track Agentset's default prompt; pinning the default text
+      // verbatim would freeze a snapshot that misses future prompt updates
+      systemPrompt: null,
     },
   });
 };

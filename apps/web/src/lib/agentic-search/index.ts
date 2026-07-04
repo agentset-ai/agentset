@@ -11,17 +11,28 @@ import {
 import type { NamespaceLanguageModel } from "@agentset/engine";
 
 import type { AgenticToolContext } from "./tools";
+import { resolveSystemPrompt } from "./prompts";
 import { agenticTools } from "./tools";
 
 export type { AgenticToolContext, SearchToolConfig } from "./tools";
-export { AGENTIC_SYSTEM_PROMPT } from "./prompts";
+export {
+  AGENTIC_SYSTEM_PROMPT,
+  isKnownDefaultPrompt,
+  resolveSystemPrompt,
+} from "./prompts";
 
 // stop after 20 steps
 const MAX_STEPS = 20;
 
 type AgenticSearchPipelineOptions = {
   languageModel: NamespaceLanguageModel;
-  systemPrompt: string;
+  /**
+   * Raw stored/user-supplied prompt; resolved via resolveSystemPrompt (pass
+   * the stored value as-is, don't pre-default it). Default-shaped prompts run
+   * the tuned agentic prompt; custom prompts get the platform tool and
+   * citation contract appended.
+   */
+  systemPrompt?: string | null;
   messages: ModelMessage[];
   context: AgenticToolContext;
   temperature?: number;
@@ -66,7 +77,7 @@ export const agenticSearchPipeline = ({
     execute: ({ writer }) => {
       const result = streamText({
         model: languageModel.model,
-        system: systemPrompt,
+        system: resolveSystemPrompt(systemPrompt),
         messages,
         tools: agenticTools,
         // expand needs an ordered range fetch, which not all stores support
