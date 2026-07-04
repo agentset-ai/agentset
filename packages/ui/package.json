@@ -72,6 +72,7 @@
   "dependencies": {
     "@agentset/utils": "workspace:*",
     "@origin-space/image-cropper": "^0.1.9",
+    "@shadcn/react": "^0.2.0",
     "@streamdown/code": "^1.0.2",
     "@streamdown/math": "^1.0.2",
     "@tanstack/react-table": "^8.21.2",
@@ -82,6 +83,7 @@
     "date-fns": "^4.1.0",
     "input-otp": "^1.4.2",
     "lucide-react": "^0.562.0",
+    "motion": "^12.26.2",
     "nanoid": "^5.1.5",
     "next-themes": "^0.4.4",
     "radix-ui": "^1.4.3",
@@ -90,8 +92,7 @@
     "sonner": "^2.0.7",
     "streamdown": "^2.5.0",
     "tailwind-merge": "^3.4.0",
-    "tokenlens": "^1.3.1",
-    "use-stick-to-bottom": "^1.1.1"
+    "tokenlens": "^1.3.1"
   },
   "peerDependencies": {
     "ai": "catalog:",
