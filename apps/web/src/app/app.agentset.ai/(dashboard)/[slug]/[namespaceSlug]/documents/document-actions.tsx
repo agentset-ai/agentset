@@ -3,7 +3,7 @@ import { useState } from "react";
 import { DeleteConfirmationDialog } from "@/components/delete-confirmation";
 import { useNamespace } from "@/hooks/use-namespace";
 import { logEvent } from "@/lib/analytics";
-import { useTRPC } from "@/trpc/react";
+import { orpc } from "@/lib/orpc";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import {
   CopyIcon,
@@ -28,12 +28,11 @@ import type { DocumentCol } from "./documents-columns";
 
 export default function DocumentActions({ row }: { row: Row<DocumentCol> }) {
   const namespace = useNamespace();
-  const trpc = useTRPC();
   const queryClient = useQueryClient();
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
 
   const { isPending, mutate: deleteDocument } = useMutation(
-    trpc.document.delete.mutationOptions({
+    orpc.document.delete.mutationOptions({
       onSuccess: () => {
         logEvent("document_deleted", {
           documentId: row.original.id,
@@ -42,11 +41,12 @@ export default function DocumentActions({ row }: { row: Row<DocumentCol> }) {
         });
         toast.success("Document queued for deletion");
         setDeleteDialogOpen(false);
-        void queryClient.invalidateQueries(
-          trpc.document.all.queryFilter({
-            namespaceId: namespace.id,
+        void queryClient.invalidateQueries({
+          queryKey: orpc.document.all.key({
+            input: { namespaceId: namespace.id },
+            type: "query",
           }),
-        );
+        });
       },
       onError: (error) => {
         toast.error(error.message);
@@ -55,7 +55,7 @@ export default function DocumentActions({ row }: { row: Row<DocumentCol> }) {
   );
 
   const { isPending: isDownloading, mutate: getDownloadUrl } = useMutation(
-    trpc.document.getFileDownloadUrl.mutationOptions({
+    orpc.document.getFileDownloadUrl.mutationOptions({
       onSuccess: ({ url }) => {
         window.open(url, "_blank");
       },

@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { logEvent } from "@/lib/analytics";
-import { useTRPC } from "@/trpc/react";
+import { orpc } from "@/lib/orpc";
 import { useRouter } from "@bprogress/next/app";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
@@ -68,7 +68,6 @@ export default function CreateNamespaceDialog({
   setOpen: (open: boolean) => void;
 }) {
   const router = useRouter();
-  const trpc = useTRPC();
   const queryClient = useQueryClient();
 
   const [step, setStep] = useState<Step>("details");
@@ -88,7 +87,7 @@ export default function CreateNamespaceDialog({
   const [slug, setSlug] = useState(defaultSlug);
 
   const { isPending, mutateAsync: createNamespace } = useMutation(
-    trpc.namespace.createNamespace.mutationOptions({
+    orpc.namespace.createNamespace.mutationOptions({
       onSuccess: (data) => {
         logEvent("namespace_created", {
           name: data.name,
@@ -115,8 +114,8 @@ export default function CreateNamespaceDialog({
         setStep("details");
 
         if (organization) {
-          const queryKey = trpc.namespace.getOrgNamespaces.queryKey({
-            slug: organization.slug,
+          const queryKey = orpc.namespace.getOrgNamespaces.queryKey({
+            input: { slug: organization.slug },
           });
           queryClient.setQueryData(queryKey, (old) => [data, ...(old ?? [])]);
           void queryClient.invalidateQueries({ queryKey });

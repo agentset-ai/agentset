@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { logEvent } from "@/lib/analytics";
-import { useTRPC } from "@/trpc/react";
+import { orpc } from "@/lib/orpc";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { PlusIcon } from "lucide-react";
 import { toast } from "sonner";
@@ -30,26 +30,29 @@ export default function CreateApiKey({ orgId }: { orgId: string }) {
   const [isOpen, setIsOpen] = useState(false);
   const [label, setLabel] = useState("");
   const [scope, setScope] = useState<"all">("all");
-  const trpc = useTRPC();
   const queryClient = useQueryClient();
 
   const { isPending, mutateAsync, data, reset } = useMutation(
-    trpc.apiKey.createApiKey.mutationOptions({
+    orpc.apiKey.createApiKey.mutationOptions({
       onSuccess: (newKey) => {
         logEvent("api_key_created", {
           orgId,
           scope: newKey.scope,
         });
 
-        const queryFilter = trpc.apiKey.getApiKeys.queryFilter({ orgId });
+        const queryKey = orpc.apiKey.getApiKeys.queryKey({
+          input: { orgId },
+        });
 
-        queryClient.setQueryData(queryFilter.queryKey, (old) => {
+        queryClient.setQueryData(queryKey, (old) => {
           if (!old) return [];
           return [...old, newKey];
         });
 
         toast.success("API key created");
-        void queryClient.invalidateQueries(queryFilter);
+        void queryClient.invalidateQueries({
+          queryKey: orpc.apiKey.getApiKeys.key({ input: { orgId } }),
+        });
       },
       onError: (error) => {
         toast.error(error.message);

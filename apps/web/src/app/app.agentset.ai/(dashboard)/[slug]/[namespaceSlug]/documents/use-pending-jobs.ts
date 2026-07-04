@@ -1,5 +1,5 @@
 import { useNamespace } from "@/hooks/use-namespace";
-import { useTRPC } from "@/trpc/react";
+import { orpc } from "@/lib/orpc";
 import { keepPreviousData, useQuery } from "@tanstack/react-query";
 
 import { IngestJobStatus } from "@agentset/db/browser";
@@ -17,20 +17,17 @@ const PENDING_STATUSES: IngestJobStatus[] = [
 
 export function useHasPendingJobs(enabled: boolean) {
   const namespace = useNamespace();
-  const trpc = useTRPC();
   const { data } = useQuery(
-    trpc.ingestJob.all.queryOptions(
-      {
+    orpc.ingestJob.all.queryOptions({
+      input: {
         namespaceId: namespace.id,
         statuses: PENDING_STATUSES.join(","),
         perPage: 1,
       },
-      {
-        enabled,
-        refetchInterval: 15_000, // Refetch every 15 seconds
-        placeholderData: keepPreviousData,
-      },
-    ),
+      enabled,
+      refetchInterval: 15_000, // Refetch every 15 seconds
+      placeholderData: keepPreviousData,
+    }),
   );
 
   return data ? data.records.length > 0 : false;

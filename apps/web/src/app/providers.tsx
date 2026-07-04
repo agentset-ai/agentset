@@ -1,7 +1,8 @@
 "use client";
 
-import { TRPCReactProvider } from "@/trpc/react";
+import { getQueryClient } from "@/lib/query-client";
 import { ProgressProvider } from "@bprogress/next/app";
+import { QueryClientProvider } from "@tanstack/react-query";
 
 import { Toaster } from "@agentset/ui/sonner";
 import { ThemeProvider } from "@agentset/ui/theme-provider";
@@ -21,9 +22,9 @@ export default function Providers({ children }: { children: React.ReactNode }) {
         options={{ showSpinner: false }}
         shallowRouting
       >
-        <TRPCReactProvider>
+        <QueryClientProvider client={getQueryClient()}>
           <TooltipProvider>{children}</TooltipProvider>
-        </TRPCReactProvider>
+        </QueryClientProvider>
       </ProgressProvider>
 
       <Toaster />

@@ -1,7 +1,7 @@
 "use client";
 
 import { useNamespace } from "@/hooks/use-namespace";
-import { useTRPC } from "@/trpc/react";
+import { orpc } from "@/lib/orpc";
 import { useQuery } from "@tanstack/react-query";
 
 import { Skeleton } from "@agentset/ui/skeleton";
@@ -11,10 +11,9 @@ import { EmptyState } from "./empty-state";
 
 export default function HostingPageClient() {
   const namespace = useNamespace();
-  const trpc = useTRPC();
   const { data, isLoading } = useQuery(
-    trpc.hosting.get.queryOptions({
-      namespaceId: namespace.id,
+    orpc.hosting.get.queryOptions({
+      input: { namespaceId: namespace.id },
     }),
   );
 

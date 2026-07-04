@@ -4,8 +4,8 @@ import { useState } from "react";
 import Link from "next/link";
 import CreateNamespaceDialog from "@/components/create-namespace";
 import { useOrganization } from "@/hooks/use-organization";
+import { orpc } from "@/lib/orpc";
 import { formatNumber } from "@/lib/utils";
-import { useTRPC } from "@/trpc/react";
 import { useQuery } from "@tanstack/react-query";
 import { PlusIcon } from "lucide-react";
 
@@ -20,14 +20,13 @@ export default function DashboardPage() {
   const organization = useOrganization();
   const [open, setOpen] = useState(false);
 
-  const trpc = useTRPC();
   const {
     data: namespaces,
     isLoading,
     error,
   } = useQuery(
-    trpc.namespace.getOrgNamespaces.queryOptions({
-      slug: organization.slug,
+    orpc.namespace.getOrgNamespaces.queryOptions({
+      input: { slug: organization.slug },
     }),
   );
 

@@ -11,8 +11,8 @@ import {
   successSchema,
 } from "@/server/orpc/base";
 import { toModelMessages } from "@/services/chat";
-import { type } from "@orpc/server";
 import { ZodToJsonSchemaConverter } from "@orpc/zod/zod4";
+import { z } from "zod/v4";
 
 import type { QueryVectorStoreResult } from "@agentset/engine";
 
@@ -72,22 +72,23 @@ console.log(result.message.content);
   .input(chatSchema.extend({ namespaceId: namespaceIdPathSchema }))
   .use(requireNamespace, (input) => input.namespaceId)
   .output(
-    type<
-      | {
-          status?: number;
-          headers?: Record<string, string>;
-          body: ReadableStream;
-        }
-      | {
-          body: {
+    // shaped for the OpenAPI generator's detailed-output check; `body` is an
+    // always-pass custom schema so both the SSE ReadableStream and the JSON
+    // envelope flow through untouched (real docs live in the spec override)
+    z.object({
+      status: z.literal(200).optional(),
+      headers: z.record(z.string(), z.string()).optional(),
+      body: z.custom<
+        | ReadableStream
+        | {
             success: true;
             data: {
               message: { role: "assistant"; content: string };
               sources?: QueryVectorStoreResult["results"];
             };
-          };
-        }
-    >(),
+          }
+      >(() => true),
+    }),
   )
   .handler(async ({ context, input }) => {
     // TODO: set hard limits to prevent abuse

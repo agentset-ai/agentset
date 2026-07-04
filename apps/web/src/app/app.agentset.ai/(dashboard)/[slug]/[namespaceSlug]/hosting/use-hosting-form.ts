@@ -1,7 +1,7 @@
 import { useNamespace } from "@/hooks/use-namespace";
 import { logEvent } from "@/lib/analytics";
+import { orpc, type RouterOutputs } from "@/lib/orpc";
 import { DEFAULT_SYSTEM_PROMPT } from "@/lib/prompts";
-import { RouterOutputs, useTRPC } from "@/trpc/react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useForm } from "react-hook-form";
@@ -43,11 +43,10 @@ export type HostingData = NonNullable<RouterOutputs["hosting"]["get"]>;
 
 export function useHostingForm(data: HostingData) {
   const namespace = useNamespace();
-  const trpc = useTRPC();
   const queryClient = useQueryClient();
 
   const { mutateAsync: updateHosting, isPending: isUpdating } = useMutation(
-    trpc.hosting.update.mutationOptions({
+    orpc.hosting.update.mutationOptions({
       onSuccess: (result) => {
         logEvent("hosting_updated", {
           namespaceId: namespace.id,
@@ -61,8 +60,8 @@ export function useHostingForm(data: HostingData) {
         });
         toast.success("Hosting settings saved");
         queryClient.setQueryData(
-          trpc.hosting.get.queryKey({
-            namespaceId: namespace.id,
+          orpc.hosting.get.queryKey({
+            input: { namespaceId: namespace.id },
           }),
           (old) => {
             return {
@@ -73,11 +72,11 @@ export function useHostingForm(data: HostingData) {
           },
         );
 
-        queryClient.invalidateQueries(
-          trpc.hosting.get.queryOptions({
-            namespaceId: namespace.id,
+        queryClient.invalidateQueries({
+          queryKey: orpc.hosting.get.key({
+            input: { namespaceId: namespace.id },
           }),
-        );
+        });
       },
       onError: (error) => {
         toast.error(error.message);

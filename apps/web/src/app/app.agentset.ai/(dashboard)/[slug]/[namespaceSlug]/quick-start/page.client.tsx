@@ -2,7 +2,7 @@
 
 import { useMemo } from "react";
 import { useNamespace } from "@/hooks/use-namespace";
-import { useTRPC } from "@/trpc/react";
+import { orpc } from "@/lib/orpc";
 import { useQuery } from "@tanstack/react-query";
 
 import type { OnboardingStatus } from "./onboarding-progress";
@@ -10,19 +10,16 @@ import NamespaceOnboardingProgress from "./onboarding-progress";
 
 export default function GetStartedClientPage() {
   const { baseUrl, organization, ...activeNamespace } = useNamespace();
-  const trpc = useTRPC();
 
   const { data: onboardingStatus } = useQuery(
-    trpc.namespace.getOnboardingStatus.queryOptions(
-      {
+    orpc.namespace.getOnboardingStatus.queryOptions({
+      input: {
         orgSlug: organization.slug,
         slug: activeNamespace.slug,
       },
-      {
-        refetchOnMount: true,
-        refetchOnWindowFocus: true,
-      },
-    ),
+      refetchOnMount: true,
+      refetchOnWindowFocus: true,
+    }),
   );
 
   const steps = useMemo(() => {

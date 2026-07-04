@@ -1,7 +1,7 @@
 import { useEffect, useMemo } from "react";
 import { useOrganization } from "@/hooks/use-organization";
 import { useZodForm } from "@/hooks/use-zod-form";
-import { trpcClient } from "@/trpc/react";
+import { client } from "@/lib/orpc";
 import { z } from "zod/v4";
 
 import { Button } from "@agentset/ui/button";
@@ -28,7 +28,7 @@ const createFormSchema = (orgId: string) =>
       .refine(
         async (value) => {
           if (value === "") return false;
-          const result = await trpcClient.namespace.checkSlug.query({
+          const result = await client.namespace.checkSlug({
             slug: value,
             orgId,
           });

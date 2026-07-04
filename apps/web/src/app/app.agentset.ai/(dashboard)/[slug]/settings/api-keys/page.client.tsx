@@ -1,7 +1,7 @@
 "use client";
 
 import { useOrganization } from "@/hooks/use-organization";
-import { useTRPC } from "@/trpc/react";
+import { orpc } from "@/lib/orpc";
 import { useQuery } from "@tanstack/react-query";
 
 import { DataTable } from "@agentset/ui/data-table";
@@ -28,10 +28,9 @@ export default function ApiKeysPage() {
 }
 
 function ApiKeysList({ orgId }: { orgId: string }) {
-  const trpc = useTRPC();
   const { data, isLoading } = useQuery(
-    trpc.apiKey.getApiKeys.queryOptions({
-      orgId,
+    orpc.apiKey.getApiKeys.queryOptions({
+      input: { orgId },
     }),
   );
 

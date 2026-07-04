@@ -4,7 +4,7 @@ import { DeleteConfirmation } from "@/components/delete-confirmation";
 import { useNamespace } from "@/hooks/use-namespace";
 import { useOrganization } from "@/hooks/use-organization";
 import { logEvent } from "@/lib/analytics";
-import { useTRPC } from "@/trpc/react";
+import { orpc } from "@/lib/orpc";
 import { useRouter } from "@bprogress/next/app";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
@@ -15,11 +15,10 @@ export function DeleteNamespaceButton() {
   const namespace = useNamespace();
   const organization = useOrganization();
   const router = useRouter();
-  const trpc = useTRPC();
   const queryClient = useQueryClient();
 
   const { mutate: deleteNamespace, isPending } = useMutation(
-    trpc.namespace.deleteNamespace.mutationOptions({
+    orpc.namespace.deleteNamespace.mutationOptions({
       onSuccess: () => {
         logEvent("namespace_deleted", {
           id: namespace.id,
@@ -27,8 +26,8 @@ export function DeleteNamespaceButton() {
           organizationId: organization.id,
         });
         toast.success("Namespace deleted");
-        const queryKey = trpc.namespace.getOrgNamespaces.queryKey({
-          slug: organization.slug,
+        const queryKey = orpc.namespace.getOrgNamespaces.queryKey({
+          input: { slug: organization.slug },
         });
         queryClient.setQueryData(queryKey, (old) => {
           if (!old) return old;

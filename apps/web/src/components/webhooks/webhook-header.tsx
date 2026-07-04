@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useRouter, useSelectedLayoutSegment } from "next/navigation";
 import { DeleteConfirmationDialog } from "@/components/delete-confirmation";
 import { useOrganization } from "@/hooks/use-organization";
-import { useTRPC } from "@/trpc/react";
+import { orpc } from "@/lib/orpc";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   ArrowLeftIcon,
@@ -41,16 +41,17 @@ export default function WebhookHeader({ webhookId }: WebhookHeaderProps) {
   const router = useRouter();
   const organization = useOrganization();
   const queryClient = useQueryClient();
-  const trpc = useTRPC();
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
 
   const selectedLayoutSegment = useSelectedLayoutSegment();
   const page = selectedLayoutSegment === null ? "" : selectedLayoutSegment;
 
   const { data: webhook, isLoading } = useQuery(
-    trpc.webhook.get.queryOptions({
-      organizationId: organization.id,
-      webhookId,
+    orpc.webhook.get.queryOptions({
+      input: {
+        organizationId: organization.id,
+        webhookId,
+      },
     }),
   );
 
@@ -58,12 +59,12 @@ export default function WebhookHeader({ webhookId }: WebhookHeaderProps) {
     useSendTestWebhookModal({ webhook });
 
   const deleteMutation = useMutation(
-    trpc.webhook.delete.mutationOptions({
+    orpc.webhook.delete.mutationOptions({
       onSuccess: () => {
         toast.success("Webhook deleted");
         queryClient.invalidateQueries({
-          queryKey: trpc.webhook.list.queryKey({
-            organizationId: organization.id,
+          queryKey: orpc.webhook.list.queryKey({
+            input: { organizationId: organization.id },
           }),
         });
         router.push(`/${organization.slug}/webhooks`);
@@ -75,20 +76,22 @@ export default function WebhookHeader({ webhookId }: WebhookHeaderProps) {
   );
 
   const toggleMutation = useMutation(
-    trpc.webhook.toggle.mutationOptions({
+    orpc.webhook.toggle.mutationOptions({
       onSuccess: () => {
         toast.success(
           webhook?.disabledAt ? "Webhook enabled" : "Webhook disabled",
         );
         queryClient.invalidateQueries({
-          queryKey: trpc.webhook.get.queryKey({
-            organizationId: organization.id,
-            webhookId,
+          queryKey: orpc.webhook.get.queryKey({
+            input: {
+              organizationId: organization.id,
+              webhookId,
+            },
           }),
         });
         queryClient.invalidateQueries({
-          queryKey: trpc.webhook.list.queryKey({
-            organizationId: organization.id,
+          queryKey: orpc.webhook.list.queryKey({
+            input: { organizationId: organization.id },
           }),
         });
       },

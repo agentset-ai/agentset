@@ -1,7 +1,7 @@
 import { useOrganization } from "@/hooks/use-organization";
 import { logEvent } from "@/lib/analytics";
 import { authClient } from "@/lib/auth-client";
-import { useTRPC } from "@/trpc/react";
+import { orpc } from "@/lib/orpc";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 
@@ -13,7 +13,6 @@ export const RevokeInvitationButton = ({
   invitationId: string;
 }) => {
   const { id } = useOrganization();
-  const trpc = useTRPC();
   const queryClient = useQueryClient();
 
   const { mutateAsync: revokeInvitation, isPending: isRevoking } = useMutation({
@@ -24,11 +23,11 @@ export const RevokeInvitationButton = ({
       });
     },
     onSuccess: (data) => {
-      const queryFilter = trpc.organization.members.queryFilter({
-        organizationId: id,
+      const queryKey = orpc.organization.members.queryKey({
+        input: { organizationId: id },
       });
 
-      queryClient.setQueryData(queryFilter.queryKey, (old) => {
+      queryClient.setQueryData(queryKey, (old) => {
         if (!old) return old;
 
         return {
@@ -37,7 +36,12 @@ export const RevokeInvitationButton = ({
         };
       });
 
-      void queryClient.invalidateQueries(queryFilter);
+      void queryClient.invalidateQueries({
+        queryKey: orpc.organization.members.key({
+          input: { organizationId: id },
+          type: "query",
+        }),
+      });
       toast.success("Invitation revoked successfully");
     },
   });

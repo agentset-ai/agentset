@@ -1,6 +1,6 @@
 import { useNamespace } from "@/hooks/use-namespace";
 import { useOrganization } from "@/hooks/use-organization";
-import { useTRPC } from "@/trpc/react";
+import { orpc } from "@/lib/orpc";
 import { useQuery } from "@tanstack/react-query";
 import { ArrowUpRightIcon } from "lucide-react";
 
@@ -33,13 +33,12 @@ export default function ApiDialog({
 }) {
   const namespace = useNamespace();
   const organization = useOrganization();
-  const trpc = useTRPC();
 
   const { data: defaultApiKey } = useQuery(
-    trpc.apiKey.getDefaultApiKey.queryOptions(
-      { orgId: organization.id },
-      { enabled: !organization.isLoading },
-    ),
+    orpc.apiKey.getDefaultApiKey.queryOptions({
+      input: { orgId: organization.id },
+      enabled: !organization.isLoading,
+    }),
   );
 
   const prepareExample = (example: (apiKey?: string) => string) => {

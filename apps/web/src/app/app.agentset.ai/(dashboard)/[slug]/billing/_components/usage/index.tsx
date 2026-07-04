@@ -3,8 +3,8 @@
 import { useMemo } from "react";
 import Link from "next/link";
 import { useOrganization } from "@/hooks/use-organization";
+import { orpc } from "@/lib/orpc";
 import { formatNumber } from "@/lib/utils";
-import { useTRPC } from "@/trpc/react";
 import NumberFlow from "@number-flow/react";
 import { useQuery } from "@tanstack/react-query";
 import { BookIcon, PlugIcon, SearchIcon } from "lucide-react";
@@ -119,13 +119,12 @@ export default function PlanUsage() {
 
 function PagesCard() {
   const organization = useOrganization();
-  const trpc = useTRPC();
   const isEnabled = !isFreePlan(organization.plan) && !!organization.stripeId;
   const { data: tracked, isLoading: isLoadingTracked } = useQuery(
-    trpc.billing.getTrackedPages.queryOptions(
-      { orgId: organization.id },
-      { enabled: isEnabled },
-    ),
+    orpc.billing.getTrackedPages.queryOptions({
+      input: { orgId: organization.id },
+      enabled: isEnabled,
+    }),
   );
 
   const currentPages = organization.totalPages;
