@@ -3,13 +3,9 @@ import {
   incrementOrganizationSearchUsage,
 } from "@/lib/api/usage";
 import { generateChat, streamChat } from "@/lib/chat";
-import { namespaceIdPathSchema } from "@/openapi/v1/utils";
 import { chatResponseSchema, chatSchema } from "@/schemas/api/chat";
-import {
-  publicApi,
-  requireNamespace,
-  successSchema,
-} from "@/server/orpc/base";
+import { namespaceIdPathSchema } from "@/schemas/api/params";
+import { publicApi, requireNamespace, successSchema } from "@/server/orpc/base";
 import { toModelMessages } from "@/services/chat";
 import { ZodToJsonSchemaConverter } from "@orpc/zod/zod4";
 import { z } from "zod/v4";

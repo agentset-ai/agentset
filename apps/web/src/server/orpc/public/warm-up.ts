@@ -1,5 +1,5 @@
 import { AgentsetApiError } from "@/lib/api/errors";
-import { namespaceIdPathSchema } from "@/openapi/v1/utils";
+import { namespaceIdPathSchema } from "@/schemas/api/params";
 import { publicApi, requireNamespace } from "@/server/orpc/base";
 import { type } from "@orpc/server";
 import { z } from "zod/v4";

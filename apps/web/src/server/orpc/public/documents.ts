@@ -1,7 +1,7 @@
 import {
   documentIdPathSchema,
   namespaceIdPathSchema,
-} from "@/openapi/v1/utils";
+} from "@/schemas/api/params";
 import { DocumentSchema, getDocumentsSchema } from "@/schemas/api/document";
 import { publicApi, requireNamespace, successSchema } from "@/server/orpc/base";
 import { queueDocumentDeletion } from "@/services/documents/delete";

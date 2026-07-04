@@ -8,11 +8,11 @@ import {
 } from "@/lib/api/errors";
 import { getNamespace } from "@/lib/api/handler/namespace";
 import { ratelimit } from "@/lib/api/rate-limit";
-import { tenantHeaderSchema } from "@/openapi/v1/utils";
+import { tenantHeaderSchema } from "@/schemas/api/params";
 import { ORPCError, os, ValidationError } from "@orpc/server";
 import { z, ZodError } from "zod/v4";
 
-import type { Namespace, Organization } from "@agentset/db";
+import type { Organization } from "@agentset/db";
 import { normalizeId, tryCatch } from "@agentset/utils";
 
 /**
@@ -146,7 +146,7 @@ export const publicApi = publicBase.use(apiKeyAuthMiddleware);
 export const requireNamespace = os
   .$context<PublicApiContext & { organization: PublicOrganization }>()
   .middleware(async ({ context, next }, namespaceIdInput: string) => {
-    const namespaceId = normalizeId(namespaceIdInput ?? "", "ns_");
+    const namespaceId = normalizeId(namespaceIdInput, "ns_");
     if (!namespaceId) {
       throw new AgentsetApiError({
         code: "bad_request",
@@ -168,7 +168,7 @@ export const requireNamespace = os
 
     context.analytics.namespaceId = namespace.id;
 
-    return next({ context: { namespace: namespace as Namespace } });
+    return next({ context: { namespace } });
   });
 
 /** Success envelope — the response schema of every enveloped v1 endpoint. */

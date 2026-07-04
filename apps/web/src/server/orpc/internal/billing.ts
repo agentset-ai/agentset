@@ -280,8 +280,10 @@ export const billingRouter = {
           return_url: `${getBaseUrl()}/${context.organization.slug}/billing`,
         });
         return url;
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
       } catch (error: any) {
         throw new ORPCError("BAD_REQUEST", {
+          // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
           message: error?.raw?.message,
         });
       }
@@ -385,8 +387,10 @@ export const billingRouter = {
           },
         });
         return url;
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
       } catch (error: any) {
         throw new ORPCError("BAD_REQUEST", {
+          // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
           message: error.raw.message,
         });
       }

@@ -2,14 +2,10 @@ import {
   checkSearchLimit,
   incrementOrganizationSearchUsage,
 } from "@/lib/api/usage";
-import { namespaceIdPathSchema } from "@/openapi/v1/utils";
 import { NodeSchema } from "@/schemas/api/node";
+import { namespaceIdPathSchema } from "@/schemas/api/params";
 import { queryVectorStoreSchema } from "@/schemas/api/query";
-import {
-  publicApi,
-  requireNamespace,
-  successSchema,
-} from "@/server/orpc/base";
+import { publicApi, requireNamespace, successSchema } from "@/server/orpc/base";
 import { searchNamespace } from "@/services/search";
 import { toOpenAPISchema } from "@orpc/openapi";
 import { type } from "@orpc/server";

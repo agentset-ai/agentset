@@ -1,4 +1,4 @@
-import { namespaceIdPathSchema } from "@/openapi/v1/utils";
+import { namespaceIdPathSchema } from "@/schemas/api/params";
 import {
   createNamespaceSchema,
   NamespaceSchema,
@@ -131,7 +131,7 @@ console.log(namespace);
   .input(z.object({ namespaceId: namespaceIdPathSchema }))
   .use(requireNamespace, (input) => input.namespaceId)
   .output(successSchema(NamespaceSchema))
-  .handler(async ({ context }) => {
+  .handler(({ context }) => {
     return {
       success: true as const,
       data: {

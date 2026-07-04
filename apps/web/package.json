@@ -70,7 +70,6 @@
     "virtua": "^0.48.3",
     "zod": "catalog:",
     "zod-error": "catalog:",
-    "zod-openapi": "catalog:",
     "zustand": "^5.0.10"
   },
   "devDependencies": {

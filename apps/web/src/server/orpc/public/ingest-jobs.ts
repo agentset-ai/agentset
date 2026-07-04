@@ -1,10 +1,10 @@
 import { AgentsetApiError } from "@/lib/api/errors";
-import { jobIdPathSchema, namespaceIdPathSchema } from "@/openapi/v1/utils";
 import {
   createIngestJobSchema,
   getIngestionJobsSchema,
   IngestJobSchema,
 } from "@/schemas/api/ingest-job";
+import { jobIdPathSchema, namespaceIdPathSchema } from "@/schemas/api/params";
 import { publicApi, requireNamespace, successSchema } from "@/server/orpc/base";
 import { createIngestJob } from "@/services/ingest-jobs/create";
 import { deleteIngestJob } from "@/services/ingest-jobs/delete";
@@ -227,30 +227,20 @@ const del = publicApi
     summary: "Delete an ingest job",
     description: "Delete an ingest job for the authenticated organization.",
     tags: ["Ingest Jobs"],
-    spec: (current) => {
-      // The legacy spec documented this soft delete under "204" even though
-      // the route responds 200 with the queued-for-delete record. Keep the
-      // published document byte-compatible without changing wire behavior.
-      const { "200": okResponse, ...restResponses } = current.responses ?? {};
-
-      return {
-        ...current,
-        ...(okResponse && {
-          responses: {
-            "204": okResponse,
-            ...restResponses,
-          },
-        }),
-        "x-speakeasy-name-override": "delete",
-        "x-speakeasy-group": "ingestJobs",
-        "x-speakeasy-max-method-params": 1,
-        security: [{ token: [] }],
-        ...makeCodeSamples(ts`
+    // The legacy spec documents this soft delete under "204" even though the
+    // route responds 200 with the queued-for-delete record; the central spec
+    // post-processing renames the response key (see `@/server/orpc/spec`).
+    spec: (current) => ({
+      ...current,
+      "x-speakeasy-name-override": "delete",
+      "x-speakeasy-group": "ingestJobs",
+      "x-speakeasy-max-method-params": 1,
+      security: [{ token: [] }],
+      ...makeCodeSamples(ts`
 await ns.ingestion.delete("job_123");
 console.log("Ingest job queued for deletion");
 `),
-      };
-    },
+    }),
   })
   .input(
     z.object({
