@@ -21,7 +21,7 @@ export const ErrorCode = z.enum([
 
 const docsBase = "https://docs.agentset.ai";
 
-const errorCodeToHttpStatus: Record<z.infer<typeof ErrorCode>, number> = {
+export const errorCodeToHttpStatus: Record<z.infer<typeof ErrorCode>, number> = {
   bad_request: 400,
   unauthorized: 401,
   forbidden: 403,
