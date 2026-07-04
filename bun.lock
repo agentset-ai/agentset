@@ -80,6 +80,7 @@
         "prettier": "catalog:",
         "tailwindcss": "catalog:",
         "typescript": "catalog:",
+        "vitest": "catalog:",
       },
     },
     "packages/db": {

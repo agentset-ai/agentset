@@ -5,9 +5,17 @@ description: "Include source citations in your RAG responses"
 
 Add source citations to your RAG responses so users can verify information and explore the original documents. Citations link each statement in the generated response back to the specific chunk it came from.
 
-## Number your context chunks
+<Note>
+  In the [hosted chat](/production/hosting-ui) and the
+  [playground](/search-and-retrieval/playground), citations are automatic.
+  Agentset always applies its citation rules on top of your system prompt, so
+  customize the prompt freely — don't add citation-format instructions to it.
+  This page is for building citations into your own app with the search API.
+</Note>
 
-Include a number with each chunk in your context so the model can reference them.
+## Return chunk IDs with your context
+
+Include each chunk's `id` in the context you pass to the model. IDs stay stable no matter how many searches produced the context, which makes them more reliable than position-based numbering.
 
 <CodeGroup>
 ```typescript TypeScript
@@ -21,13 +29,14 @@ const ns = agentset.namespace("YOUR_NAMESPACE_ID");
 
 const results = await ns.search("What is multi-head attention?");
 
-// Format chunks with numbers for citation
+// Keep the id with each chunk so the model can cite it
 const context = results
-  .map((r, i) => `[${i + 1}] ${r.text}`)
+  .map((r) => JSON.stringify({ id: r.id, text: r.text }))
   .join("\n\n");
 ```
 
 ```python Python
+import json
 import os
 from agentset import Agentset
 
@@ -38,22 +47,16 @@ client = Agentset(
 
 results = client.search.execute(query="What is multi-head attention?")
 
-# Format chunks with numbers for citation
-context = "\n\n".join([f"[{i + 1}] {r.text}" for i, r in enumerate(results.data)])
+# Keep the id with each chunk so the model can cite it
+context = "\n\n".join(
+    [json.dumps({"id": r.id, "text": r.text}) for r in results.data]
+)
 ```
 </CodeGroup>
 
-This produces context like:
-
-```
-[1] Multi-head attention allows the model to jointly attend to information...
-
-[2] The Transformer uses multi-head attention in three different ways...
-```
-
 ## Instruct the model to cite sources
 
-Use a system prompt that tells the model to include citation numbers in its response.
+Use a system prompt that tells the model to cite by chunk ID.
 
 ```typescript
 import { generateText } from "ai";
@@ -64,9 +67,8 @@ const systemPrompt = `You are an AI assistant. Answer questions based ONLY on th
 Guidelines:
 1. If the context does not contain information to answer the query, state clearly: "I cannot answer this question based on the available information."
 2. Only use information directly stated in the context—do not infer or add external knowledge.
-3. Citations are mandatory for every factual statement. Place the chunk number in brackets immediately after the statement with no space, like this: "The temperature is 20 degrees[3]"
-4. When helpful, include relevant quotes from the context with citations.
-5. Do not preface responses with "based on the context"—simply provide the cited answer.
+3. Citations are mandatory for every factual statement. Place the chunk id in brackets immediately after the statement, like this: "The temperature is 20 degrees[doc_123#4]"
+4. Only cite ids that appear in the context.
 
 Context:
 ${context}`;
@@ -82,40 +84,43 @@ console.log(text);
 
 The model will respond with inline citations:
 
-```
+```text
 Multi-head attention allows the model to jointly attend to information
-from different representation subspaces[1]. The Transformer uses this
-mechanism in three ways: encoder-decoder attention, encoder self-attention,
-and decoder self-attention[2].
+from different representation subspaces[doc_042#1]. The Transformer uses
+this mechanism in three ways: encoder-decoder attention, encoder
+self-attention, and decoder self-attention[doc_042#7].
 ```
 
 ## Render citations in your UI
 
-Parse the bracket notation and render citations as clickable elements. Use a regex to find citation patterns and replace them with interactive components.
+Parse the bracket notation, look each ID up in your search results, and render citations as clickable elements. Leave unknown IDs as plain text.
 
 ```tsx
-const CITATION_REGEX = /\[(\d+)\]/g;
+const CITATION_REGEX = /\[([^\[\]\s]+)\]/g;
 
 function renderWithCitations(text: string, sources: SearchResult[]) {
+  const sourcesById = new Map(sources.map((s) => [s.id, s]));
   const parts = [];
   let lastIndex = 0;
   let match;
 
   while ((match = CITATION_REGEX.exec(text)) !== null) {
+    const source = sourcesById.get(match[1]);
+    if (!source) continue; // not a citation, leave it as text
+
     // Add text before the citation
     if (match.index > lastIndex) {
       parts.push(text.slice(lastIndex, match.index));
     }
 
     // Add clickable citation
-    const num = parseInt(match[1], 10);
     parts.push(
       <button
         key={match.index}
-        onClick={() => scrollToSource(sources[num - 1])}
+        onClick={() => scrollToSource(source)}
         className="text-blue-500 hover:underline"
       >
-        [{num}]
+        [{source.id}]
       </button>
     );
 
@@ -130,6 +135,13 @@ function renderWithCitations(text: string, sources: SearchResult[]) {
   return parts;
 }
 ```
+
+<Tip>
+  If you prefer numbered pills like `[1]` in your UI, keep IDs in the model
+  contract and map each cited ID to a display number at render time. Asking the
+  model to cite by list position instead breaks down once context comes from
+  multiple searches or gets deduplicated.
+</Tip>
 
 ## Next steps
 
