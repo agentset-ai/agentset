@@ -1,4 +1,5 @@
-import { memo, useRef, useState } from "react";
+import type { Dispatch, RefObject, SetStateAction } from "react";
+import { memo } from "react";
 import { logEvent } from "@/lib/analytics";
 import {
   useChatMessageCount,
@@ -20,10 +21,17 @@ import {
 import ChatInputModes from "./chat-input-modes";
 import ChatModel from "./chat-model";
 
-function PureMultimodalInput({ type }: { type: "playground" | "hosted" }) {
-  const textareaRef = useRef<HTMLTextAreaElement>(null);
-  const [input, setInput] = useState("");
-
+function PureMultimodalInput({
+  type,
+  input,
+  setInput,
+  textareaRef,
+}: {
+  type: "playground" | "hosted";
+  input: string;
+  setInput: Dispatch<SetStateAction<string>>;
+  textareaRef: RefObject<HTMLTextAreaElement | null>;
+}) {
   const totalMessages = useChatMessageCount();
   const sendMessage = useChatSendMessage();
   const status = useChatStatus();

@@ -1,4 +1,4 @@
-import type { LanguageModel, ModelMessage } from "ai";
+import type { ModelMessage } from "ai";
 import { MyUIMessage } from "@/types/ai";
 import {
   createUIMessageStream,
@@ -8,14 +8,17 @@ import {
   streamText,
 } from "ai";
 
-import type { QueryVectorStoreOptions } from "@agentset/engine";
+import type {
+  NamespaceLanguageModel,
+  QueryVectorStoreOptions,
+} from "@agentset/engine";
 
 import { NEW_MESSAGE_PROMPT } from "../prompts";
 import { agenticSearch } from "./search";
 import { formatSources } from "./utils";
 
 type AgenticPipelineOptions = {
-  model: LanguageModel;
+  model: NamespaceLanguageModel;
   queryOptions: Omit<QueryVectorStoreOptions, "query">;
   systemPrompt?: string;
   temperature?: number;
@@ -114,7 +117,8 @@ const agenticPipeline = ({
       ];
 
       const messageStream = streamText({
-        model,
+        model: model.model,
+        providerOptions: model.providerOptions,
         system: systemPrompt,
         messages: newMessages,
         temperature,
@@ -177,7 +181,8 @@ export const generateAgenticResponse = async ({
   ];
 
   const answer = await generateText({
-    model: model,
+    model: model.model,
+    providerOptions: model.providerOptions,
     system: systemPrompt,
     messages: newMessages,
     temperature: temperature,

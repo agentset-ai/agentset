@@ -4,6 +4,8 @@ import { createBatchUpload, createUpload } from "@/services/uploads";
 import { ORPCError } from "@orpc/server";
 import { z } from "zod/v4";
 
+import { db } from "@agentset/db/client";
+
 import { getNamespaceByUser } from "./helpers";
 
 export const uploadsRouter = {
@@ -22,8 +24,20 @@ export const uploadsRouter = {
         });
       }
 
+      const organization = await db.organization.findUnique({
+        where: { id: ns.organizationId },
+        select: { plan: true },
+      });
+
+      if (!organization) {
+        throw new ORPCError("NOT_FOUND", {
+          message: "Organization not found",
+        });
+      }
+
       const result = await createUpload({
         namespaceId: ns.id,
+        plan: organization.plan,
         file: {
           fileName: input.fileName,
           contentType: input.contentType,
@@ -32,9 +46,14 @@ export const uploadsRouter = {
       });
 
       if (!result.success) {
-        throw new ORPCError("INTERNAL_SERVER_ERROR", {
-          message: result.error,
-        });
+        throw new ORPCError(
+          result.code === "file_too_large"
+            ? "FORBIDDEN"
+            : "INTERNAL_SERVER_ERROR",
+          {
+            message: result.error,
+          },
+        );
       }
 
       return result.data;
@@ -54,15 +73,32 @@ export const uploadsRouter = {
         });
       }
 
+      const organization = await db.organization.findUnique({
+        where: { id: ns.organizationId },
+        select: { plan: true },
+      });
+
+      if (!organization) {
+        throw new ORPCError("NOT_FOUND", {
+          message: "Organization not found",
+        });
+      }
+
       const result = await createBatchUpload({
         namespaceId: ns.id,
+        plan: organization.plan,
         files: input.files,
       });
 
       if (!result.success) {
-        throw new ORPCError("INTERNAL_SERVER_ERROR", {
-          message: result.error,
-        });
+        throw new ORPCError(
+          result.code === "file_too_large"
+            ? "FORBIDDEN"
+            : "INTERNAL_SERVER_ERROR",
+          {
+            message: result.error,
+          },
+        );
       }
 
       return result.data;

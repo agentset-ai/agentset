@@ -19,7 +19,7 @@ const create = publicApi
     operationId: "createUpload",
     summary: "Create presigned URL for file upload",
     description:
-      "Generate a presigned URL for uploading a single file to the specified namespace.",
+      "Generate a presigned URL for uploading a single file to the specified namespace. Files are limited to 5 MB on the Free plan and 200 MB on paid plans.",
     tags: ["Uploads"],
     spec: (current) => ({
       ...current,
@@ -57,6 +57,7 @@ console.log("Uploaded successfully: ", result.key);
   .handler(async ({ context, input }) => {
     const result = await createUpload({
       namespaceId: context.namespace.id,
+      plan: context.organization.plan,
       file: {
         fileName: input.fileName,
         contentType: input.contentType,
@@ -66,7 +67,10 @@ console.log("Uploaded successfully: ", result.key);
 
     if (!result.success) {
       throw new AgentsetApiError({
-        code: "internal_server_error",
+        code:
+          result.code === "file_too_large"
+            ? "rate_limit_exceeded"
+            : "internal_server_error",
         message: result.error,
       });
     }
@@ -82,7 +86,7 @@ const createBatch = publicApi
     operationId: "createBatchUpload",
     summary: "Create presigned URLs for batch file upload",
     description:
-      "Generate presigned URLs for uploading multiple files to the specified namespace.",
+      "Generate presigned URLs for uploading multiple files to the specified namespace. Files are limited to 5 MB on the Free plan and 200 MB on paid plans.",
     tags: ["Uploads"],
     spec: (current) => ({
       ...current,
@@ -140,12 +144,16 @@ console.log("Upload URLs:", results.map((result) => result.key));
   .handler(async ({ context, input }) => {
     const result = await createBatchUpload({
       namespaceId: context.namespace.id,
+      plan: context.organization.plan,
       files: input.files,
     });
 
     if (!result.success) {
       throw new AgentsetApiError({
-        code: "internal_server_error",
+        code:
+          result.code === "file_too_large"
+            ? "rate_limit_exceeded"
+            : "internal_server_error",
         message: result.error,
       });
     }

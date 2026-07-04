@@ -2,20 +2,23 @@
 
 import { useMemo } from "react";
 import Link from "next/link";
+import {
+  formatResetDate,
+  PagesUsageTooltipContent,
+  useNextCycleResetDate,
+} from "@/components/pages-usage-tooltip";
 import { useOrganization } from "@/hooks/use-organization";
-import { orpc } from "@/lib/orpc";
 import { formatNumber } from "@/lib/utils";
 import NumberFlow from "@number-flow/react";
-import { useQuery } from "@tanstack/react-query";
 import { BookIcon, PlugIcon, SearchIcon } from "lucide-react";
 
-import { isFreePlan } from "@agentset/stripe/plans";
 import { Button } from "@agentset/ui/button";
 import { Card, CardDescription } from "@agentset/ui/card";
 import { cn } from "@agentset/ui/cn";
 import { Progress } from "@agentset/ui/progress";
 import { Separator } from "@agentset/ui/separator";
 import { Skeleton } from "@agentset/ui/skeleton";
+import { Tooltip, TooltipTrigger } from "@agentset/ui/tooltip";
 import {
   capitalize,
   getFirstAndLastDay,
@@ -119,17 +122,26 @@ export default function PlanUsage() {
 
 function PagesCard() {
   const organization = useOrganization();
-  const isEnabled = !isFreePlan(organization.plan) && !!organization.stripeId;
-  const { data: tracked, isLoading: isLoadingTracked } = useQuery(
-    orpc.billing.getTrackedPages.queryOptions({
-      input: { orgId: organization.id },
-      enabled: isEnabled,
-    }),
-  );
 
   const currentPages = organization.totalPages;
+  const deletedPages = Math.min(organization.deletedPages, currentPages);
+  const activePages = currentPages - deletedPages;
   const limit = organization.pagesLimit;
   const remaining = Math.max(0, limit - currentPages);
+
+  const nextResetDate = useNextCycleResetDate({
+    billingCycleStart: organization.billingCycleStart,
+    createdAt: organization.createdAt,
+    enabled: !organization.isLoading,
+  });
+
+  // scale against usage when it exceeds the limit, and show at least 1%
+  // for non-zero values
+  const denominator = Math.max(1, currentPages, limit);
+  const toPercent = (value: number) =>
+    Math.max(Math.floor((value / denominator) * 100), value === 0 ? 0 : 1);
+  const deletedPercent = toPercent(deletedPages);
+  const activePercent = Math.min(toPercent(activePages), 100 - deletedPercent);
 
   return (
     <Card className="gap-0 px-4 py-3 lg:px-5 lg:py-5">
@@ -144,18 +156,26 @@ function PagesCard() {
         />
       </div>
 
-      <div className="mt-3">
-        <div className="bg-primary/10 h-1 w-full overflow-hidden rounded-full">
-          <Progress
-            value={Math.max(
-              Math.floor(
-                (currentPages / Math.max(0, currentPages, limit)) * 100,
-              ),
-              currentPages === 0 ? 0 : 1,
-            )}
-          />
-        </div>
-      </div>
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <div tabIndex={0} className="mt-3">
+            <div className="bg-primary/10 h-1 w-full overflow-hidden rounded-full">
+              <Progress
+                segments={[
+                  { value: activePercent },
+                  { value: deletedPercent, className: "bg-red-400" },
+                ]}
+              />
+            </div>
+          </div>
+        </TooltipTrigger>
+
+        <PagesUsageTooltipContent
+          activePages={activePages}
+          deletedPages={deletedPages}
+          nextResetDate={nextResetDate}
+        />
+      </Tooltip>
 
       <div className="mt-2 leading-none">
         <span className="text-muted-foreground text-xs">
@@ -163,17 +183,16 @@ function PagesCard() {
         </span>
       </div>
 
-      {isEnabled && (
-        <div className="mt-2 leading-none">
-          {isLoadingTracked ? (
-            <Skeleton className="h-3.5 w-24" />
-          ) : tracked ? (
-            <span className="text-muted-foreground text-xs">
-              {formatNumber(tracked.trackedPages, "decimal")} billed this cycle
-            </span>
-          ) : null}
+      {deletedPages > 0 && (
+        <div className="text-muted-foreground mt-2 flex items-center gap-1.5 text-xs leading-none">
+          <span className="size-1.5 shrink-0 rounded-full bg-red-400" />
+          <span>
+            {formatNumber(deletedPages, "decimal")} deleted · frees up{" "}
+            {formatResetDate(nextResetDate)}
+          </span>
         </div>
       )}
+
     </Card>
   );
 }

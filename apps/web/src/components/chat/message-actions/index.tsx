@@ -1,7 +1,7 @@
+import type { MyUIMessage } from "@/types/ai";
 import { memo } from "react";
 import { useIsHosting } from "@/contexts/hosting-context";
 import { extractTextFromParts } from "@/lib/string-utils";
-import { MyUIMessage } from "@/types/ai";
 import { useChatProperty } from "ai-sdk-zustand";
 import { CopyIcon, LogsIcon, RefreshCcwIcon } from "lucide-react";
 import { toast } from "sonner";
@@ -12,6 +12,7 @@ import {
   MessageActions as MessageActionsComponent,
 } from "@agentset/ui/ai/message";
 
+import { useAnchorMessage } from "../use-chat-scroll";
 import { ExportAction } from "./export";
 import MessageLogs from "./logs";
 
@@ -25,8 +26,13 @@ function PureMessageActions({
   const [_, copyToClipboard] = useCopyToClipboard();
   const isHosting = useIsHosting();
   const regenerate = useChatProperty((a) => a.regenerate);
+  const lastUserMessageId = useChatProperty(
+    (a) => a.messages.filter((m) => m.role === "user").at(-1)?.id,
+  );
+  const anchorMessage = useAnchorMessage();
 
-  if (message.role === "user") return null;
+  // hide actions until the answer is complete
+  if (message.role === "user" || isLoading) return null;
 
   const handleCopy = async () => {
     const textFromParts = extractTextFromParts(message.parts);
@@ -41,30 +47,29 @@ function PureMessageActions({
   };
 
   const handleRegenerate = async () => {
+    // regenerate() re-answers the last user message; anchor that exchange the
+    // same way a fresh send is anchored.
+    if (lastUserMessageId) anchorMessage(lastUserMessageId);
     await regenerate();
   };
 
   return (
     <MessageActionsComponent className="mt-2">
-      <MessageAction disabled={isLoading} onClick={handleCopy} tooltip="Copy">
+      <MessageAction onClick={handleCopy} tooltip="Copy">
         <CopyIcon className="size-4" />
       </MessageAction>
 
-      <MessageAction
-        disabled={isLoading}
-        onClick={handleRegenerate}
-        tooltip="Regenerate"
-      >
+      <MessageAction onClick={handleRegenerate} tooltip="Regenerate">
         <RefreshCcwIcon className="size-4" />
       </MessageAction>
 
-      <ExportAction currentId={message.id} disabled={isLoading} />
+      <ExportAction currentId={message.id} />
 
       {!isHosting && (
         <MessageLogs
           message={message}
           trigger={
-            <MessageAction disabled={isLoading} tooltip="Logs">
+            <MessageAction tooltip="Logs">
               <LogsIcon className="size-4" />
             </MessageAction>
           }

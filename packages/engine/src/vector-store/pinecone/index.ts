@@ -10,6 +10,7 @@ import { filterFalsy } from "@agentset/utils";
 import { makeChunk, metadataToChunk } from "../../chunk";
 import {
   VectorStore,
+  VectorStoreOrderedQueryOptions,
   VectorStoreQueryOptions,
   VectorStoreQueryResponse,
   VectorStoreUpsertOptions,
@@ -87,6 +88,13 @@ export class Pinecone implements VectorStore<PineconeVectorFilter> {
     );
   }
 
+  async queryOrdered(
+    _params: VectorStoreOrderedQueryOptions<PineconeVectorFilter>,
+  ): Promise<VectorStoreQueryResponse> {
+    // TODO: implement via listPaginated (id prefix) + fetch for serverless indexes
+    throw new Error("Pinecone does not support ordered queries");
+  }
+
   async upsert({ chunks }: VectorStoreUpsertOptions) {
     const nodes = chunks.map((chunk) => makeChunk(chunk));
 
@@ -151,6 +159,10 @@ export class Pinecone implements VectorStore<PineconeVectorFilter> {
   }
 
   supportsKeyword() {
+    return false;
+  }
+
+  supportsOrderedQuery() {
     return false;
   }
 }

@@ -1,10 +1,8 @@
-import { MyUIMessage } from "@/types/ai";
-import { defaultRemarkPlugins } from "streamdown";
+import type { MyUIMessage } from "@/types/ai";
 
 import { MessageResponse } from "@agentset/ui/ai/message";
 
 import { CitationButton } from "./citation-button";
-import remarkCitations from "./remark-citations";
 
 interface MarkdownProps {
   children: string;
@@ -12,23 +10,19 @@ interface MarkdownProps {
   isLoading?: boolean;
 }
 
-const remarkPlugins = [remarkCitations, ...Object.values(defaultRemarkPlugins)];
-
 export const Markdown = ({ children, isLoading, message }: MarkdownProps) => {
   return (
     <MessageResponse
       allowedTags={{
-        citation: ["citationNumber"],
+        // <citation ids="..." /> tags emitted by the model
+        citation: ["ids"],
       }}
-      animated={{ animation: "fadeIn" }}
+      // both surfaces stream word-by-word (smoothStream) like qaf, so no
+      // client-side token animation is needed
+      animated={false}
       isAnimating={isLoading && message?.role === "assistant"}
-      caret="block"
-      remarkPlugins={remarkPlugins}
       components={{
-        // @ts-ignore
-        citation: ({ node: _, ...props }) => (
-          <CitationButton {...props} message={message} />
-        ),
+        citation: ({ node: _, ...props }) => <CitationButton {...props} />,
       }}
     >
       {children}

@@ -5,7 +5,7 @@ import {
 } from "@/components/chat/chat-settings.store";
 import { RerankerSelector } from "@/components/reranker-selector";
 import { useNamespace } from "@/hooks/use-namespace";
-import { DEFAULT_SYSTEM_PROMPT } from "@/lib/prompts";
+import { AGENTIC_SYSTEM_PROMPT } from "@/lib/agentic-search/prompts";
 import { toast } from "sonner";
 
 import { Button } from "@agentset/ui/button";
@@ -22,7 +22,7 @@ import { Input } from "@agentset/ui/input";
 import { Label } from "@agentset/ui/label";
 import { Textarea } from "@agentset/ui/textarea";
 
-const defaultPrompt = DEFAULT_SYSTEM_PROMPT.compile().trim();
+const defaultPrompt = AGENTIC_SYSTEM_PROMPT.trim();
 
 export default function ChatSettings({
   trigger,

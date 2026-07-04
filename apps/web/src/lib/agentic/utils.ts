@@ -1,8 +1,11 @@
-import type { LanguageModel, ModelMessage } from "ai";
+import type { ModelMessage } from "ai";
 import { generateText } from "ai";
 import { z } from "zod/v4";
 
-import type { QueryVectorStoreResult } from "@agentset/engine";
+import type {
+  NamespaceLanguageModel,
+  QueryVectorStoreResult,
+} from "@agentset/engine";
 
 import { EVALUATE_QUERIES_PROMPT, GENERATE_QUERIES_PROMPT } from "./prompts";
 
@@ -28,12 +31,13 @@ const schema = z.object({
 export type Queries = z.infer<typeof schema>["queries"];
 
 export const generateQueries = async (
-  model: LanguageModel,
+  model: NamespaceLanguageModel,
   messages: ModelMessage[],
   oldQueries: Queries,
 ) => {
   const queriesResult = await generateText({
-    model,
+    model: model.model,
+    providerOptions: model.providerOptions,
     temperature: 0,
     system: GENERATE_QUERIES_PROMPT,
     prompt: `
@@ -60,12 +64,13 @@ const evalSchema = z.object({
 });
 
 export const evaluateQueries = async (
-  model: LanguageModel,
+  model: NamespaceLanguageModel,
   messages: ModelMessage[],
   sources: QueryVectorStoreResult["results"],
 ) => {
   const evaluateQueriesResult = await generateText({
-    model,
+    model: model.model,
+    providerOptions: model.providerOptions,
     temperature: 0,
     system: EVALUATE_QUERIES_PROMPT,
     prompt: `

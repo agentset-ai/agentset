@@ -90,6 +90,22 @@ interface FileUploaderProps extends React.HTMLAttributes<HTMLDivElement> {
    * @example disabled
    */
   disabled?: boolean;
+
+  /**
+   * Function to be called with the rejected files of a drop, replacing the default toasts.
+   * @type (rejections: FileRejection[]) => void
+   * @default undefined
+   * @example onFilesReject={(rejections) => toast.error(`${rejections.length} files are too large`)}
+   */
+  onFilesReject?: (rejections: FileRejection[]) => void;
+
+  /**
+   * Content rendered between the dropzone and the file list (e.g. validation errors).
+   * @type React.ReactNode
+   * @default undefined
+   * @example message={<p>File is too large</p>}
+   */
+  message?: React.ReactNode;
 }
 
 export function FileUploader(props: FileUploaderProps) {
@@ -105,6 +121,8 @@ export function FileUploader(props: FileUploaderProps) {
     maxFileCount = 1,
     multiple = false,
     disabled = false,
+    onFilesReject,
+    message,
     className,
     ...dropzoneProps
   } = props;
@@ -137,9 +155,13 @@ export function FileUploader(props: FileUploaderProps) {
       setFiles(updatedFiles);
 
       if (rejectedFiles.length > 0) {
-        rejectedFiles.forEach(({ file }) => {
-          toast.error(`File ${file.name} was rejected`);
-        });
+        if (onFilesReject) {
+          onFilesReject(rejectedFiles);
+        } else {
+          rejectedFiles.forEach(({ file }) => {
+            toast.error(`File ${file.name} was rejected`);
+          });
+        }
       }
 
       if (
@@ -161,7 +183,7 @@ export function FileUploader(props: FileUploaderProps) {
       }
     },
 
-    [files, maxFileCount, multiple, onUpload, setFiles],
+    [files, maxFileCount, multiple, onUpload, onFilesReject, setFiles],
   );
 
   function onRemove(index: number) {
@@ -246,6 +268,7 @@ export function FileUploader(props: FileUploaderProps) {
           </div>
         )}
       </Dropzone>
+      {message}
       {files?.length ? (
         <ScrollArea className="h-fit w-full px-3">
           <div className="flex max-h-48 flex-col gap-4">

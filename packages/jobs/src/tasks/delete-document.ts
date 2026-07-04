@@ -21,7 +21,7 @@ export const deleteDocument = schemaTask({
     concurrencyLimit: 90,
   },
   schema: deleteDocumentBodySchema,
-  run: async ({ documentId, skipWebhooks }) => {
+  run: async ({ documentId, skipWebhooks, updateCounters }) => {
     const db = getDb();
 
     // Get document data
@@ -36,6 +36,7 @@ export const deleteDocument = schemaTask({
         totalCharacters: true,
         totalChunks: true,
         status: true,
+        completedAt: true,
         error: true,
         createdAt: true,
         updatedAt: true,
@@ -122,10 +123,56 @@ export const deleteDocument = schemaTask({
     }
 
     // Delete document and update counters
-    await db.document.delete({
-      where: { id: document.id },
-      select: { id: true },
-    });
+    let pagesDeleted = 0;
+    if (updateCounters) {
+      await db.$transaction(async (tx) => {
+        // re-read right before deleting: totalPages may have changed since
+        // the initial read (the vector store cleanup above can take minutes)
+        const freshDocument = await tx.document.findUnique({
+          where: { id: document.id },
+          select: { totalPages: true, completedAt: true },
+        });
+
+        if (!freshDocument) return;
+
+        // a document's pages only count towards namespace/organization totals
+        // once it has been processed successfully (e.g. docs that failed with
+        // "Pages limit exceeded" carry totalPages that was never counted)
+        pagesDeleted = freshDocument.completedAt ? freshDocument.totalPages : 0;
+
+        await tx.document.delete({
+          where: { id: document.id },
+          select: { id: true },
+        });
+
+        await tx.namespace.update({
+          where: { id: namespace.id },
+          data: {
+            totalDocuments: { decrement: 1 },
+            ...(pagesDeleted > 0 && {
+              totalPages: { decrement: pagesDeleted },
+            }),
+            organization: {
+              update: {
+                totalDocuments: { decrement: 1 },
+                // deleted pages keep counting towards the quota until the
+                // next billing cycle, so we don't decrement totalPages here
+                ...(pagesDeleted > 0 && {
+                  deletedPages: { increment: pagesDeleted },
+                }),
+              },
+            },
+          },
+          select: { id: true },
+        });
+      });
+    } else {
+      pagesDeleted = document.completedAt ? document.totalPages : 0;
+      await db.document.delete({
+        where: { id: document.id },
+        select: { id: true },
+      });
+    }
 
     // Emit document.deleted webhook (skip if deleting namespace/org)
     if (!skipWebhooks) {
@@ -152,7 +199,7 @@ export const deleteDocument = schemaTask({
       documentId: document.id,
       deleted: true as const,
       vectorChunksDeleted: deletedChunks.deleted,
-      pagesDeleted: document.totalPages,
+      pagesDeleted,
     };
   },
 });

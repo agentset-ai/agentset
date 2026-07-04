@@ -3,9 +3,9 @@ title: "Agentic Search"
 description: "Recommended Search Approach"
 ---
 
-Instead of making making the search yourself, let the model use Agentset as a search tool. The model decides what to search for, and follow-up with additional queries as necessary. 
+Instead of running the search yourself, let the model use Agentset as a search tool. The model decides what to search for, and follows up with additional queries as necessary. 
 
-This handles multi-part questions, follow-ups, and ambiguous queries better than [simple RAG](/search-and-retrieval/simple-rag), which retrieves only once before generating.
+This handles multi-part questions, follow-ups, and ambiguous queries better than [simple RAG](/search-and-retrieval/simple-rag), which retrieves only once before generating. It's also the approach the [playground](/search-and-retrieval/playground) chat uses to answer questions.
 
 This guide uses the [Vercel AI SDK](https://sdk.vercel.dev) to wire an Agentset search tool into a tool-calling loop.
 

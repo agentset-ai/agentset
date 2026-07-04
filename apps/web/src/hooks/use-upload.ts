@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { orpc } from "@/lib/orpc";
+import { ORPCError } from "@orpc/client";
 import { useMutation } from "@tanstack/react-query";
 import { toast } from "sonner";
 
@@ -82,8 +83,10 @@ export function useUploadFiles({ namespaceId }: { namespaceId: string }) {
           setUploadedFiles((prev) => [...prev, newEntry]);
         }),
       );
-    } catch {
-      toast.error("Failed to upload file!");
+    } catch (error) {
+      toast.error(
+        error instanceof ORPCError ? error.message : "Failed to upload file!",
+      );
     } finally {
       setProgresses({});
       setIsUploading(false);

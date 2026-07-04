@@ -2,6 +2,7 @@
 
 import type { UIMessage } from "ai";
 import type { ComponentProps, HTMLAttributes } from "react";
+import type { PluginConfig } from "streamdown";
 import { memo } from "react";
 import { code } from "@streamdown/code";
 import { math } from "@streamdown/math";
@@ -101,7 +102,9 @@ export const MessageAction = ({
 
 export type MessageResponseProps = ComponentProps<typeof Streamdown>;
 
-const streamdownPlugins = { code, math };
+// the @streamdown/* plugin packages still type against streamdown 2.2's
+// narrower ThemeInput; the runtime contract is unchanged
+const streamdownPlugins = { code, math } as PluginConfig;
 
 export const MessageResponse = memo(
   ({ className, ...props }: MessageResponseProps) => (

@@ -1,31 +1,71 @@
-import { MyUIMessage } from "@/types/ai";
+import type { MyUIMessage } from "@/types/ai";
+import { memo } from "react";
 import { useChatMessages, useChatStatus } from "ai-sdk-zustand";
 
 import {
-  Conversation,
-  ConversationContent,
-  ConversationScrollButton,
-} from "@agentset/ui/ai/conversation";
+  MessageScroller,
+  MessageScrollerButton,
+  MessageScrollerContent,
+  MessageScrollerItem,
+  MessageScrollerProvider,
+  MessageScrollerViewport,
+} from "@agentset/ui/ai/message-scroller";
 
+import { ChatLoadingState } from "./chat-loading-state";
 import { PreviewMessage } from "./message";
+import { SCROLL_PREVIOUS_ITEM_PEEK } from "./use-chat-scroll";
 
-export function Messages() {
+function PureMessages() {
   const messages = useChatMessages<MyUIMessage>();
   const status = useChatStatus();
+  const lastMessageId = messages.at(-1)?.id;
 
   return (
-    <Conversation className="relative flex min-w-0 flex-1 pt-4">
-      <ConversationContent className="gap-6 pb-32">
-        {messages.map((message, index) => (
-          <PreviewMessage
-            key={message.id}
-            message={message}
-            isLoading={status === "streaming" && messages.length - 1 === index}
-          />
-        ))}
-      </ConversationContent>
+    // User messages are scroll anchors: sending pins the message near the top
+    // of the viewport and the answer streams into the reserved space below,
+    // without the view ever following the stream (autoScroll stays off).
+    <MessageScrollerProvider
+      defaultScrollPosition="last-anchor"
+      scrollPreviousItemPeek={SCROLL_PREVIOUS_ITEM_PEEK}
+    >
+      <MessageScroller className="min-w-0 flex-1 pt-4">
+        <MessageScrollerViewport>
+          <MessageScrollerContent className="gap-6 p-4 pb-8">
+            {messages.map((message) => (
+              <MessageScrollerItem
+                key={message.id}
+                messageId={message.id}
+                scrollAnchor={message.role === "user"}
+              >
+                <PreviewMessage
+                  message={message}
+                  isLoading={
+                    status === "streaming" && message.id === lastMessageId
+                  }
+                />
 
-      <ConversationScrollButton />
-    </Conversation>
+                {/* Inside the item, not a sibling: the scroller tracks
+                    Content's direct children, and swapping a sibling
+                    placeholder for the first assistant item in one commit
+                    would trip its replaced-anchor fallback. */}
+                {message.id === lastMessageId && status === "submitted" && (
+                  <div className="mt-6">
+                    <ChatLoadingState />
+                  </div>
+                )}
+              </MessageScrollerItem>
+            ))}
+          </MessageScrollerContent>
+        </MessageScrollerViewport>
+
+        <MessageScrollerButton
+          className="dark:bg-background dark:hover:bg-muted rounded-full"
+          variant="outline"
+          size="icon"
+        />
+      </MessageScroller>
+    </MessageScrollerProvider>
   );
 }
+
+export const Messages = memo(PureMessages);

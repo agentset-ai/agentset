@@ -1,5 +1,5 @@
+import type { MyUIMessage } from "@/types/ai";
 import { useNamespace } from "@/hooks/use-namespace";
-import { MyUIMessage } from "@/types/ai";
 import { DefaultChatTransport } from "ai";
 import { useChat } from "ai-sdk-zustand";
 import { toast } from "sonner";
@@ -21,8 +21,6 @@ export function useNamespaceChat() {
           body: {
             messages,
             ...body,
-            rerank: true,
-            includeMetadata: true,
             topK: settings.topK,
             rerankLimit: settings.rerankLimit,
             rerankModel: settings.rerankModel,

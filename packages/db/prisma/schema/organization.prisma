@@ -21,8 +21,11 @@ model Organization {
   totalDocuments  Int @default(0) // Total number of documents in the organization
   totalIngestJobs Int @default(0) // Total number of ingest jobs in the organization
 
-  totalPages Float @default(0.0)
-  pagesLimit Int   @default(1000)
+  totalPages   Float @default(0.0)
+  // pages deleted during the current billing cycle. They still count towards
+  // the quota (part of totalPages) and are released at the next cycle reset.
+  deletedPages Float @default(0.0)
+  pagesLimit   Int   @default(1000)
 
   searchUsage Int @default(0)
   searchLimit Int @default(10000)

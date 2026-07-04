@@ -64,12 +64,16 @@ export const registerIngestionTools = (server: McpServer) => {
 
         const result = await createBatchUpload({
           namespaceId: namespace.id,
+          plan: ctx.organization.plan,
           files: args.files,
         });
 
         if (!result.success) {
           throw new AgentsetApiError({
-            code: "internal_server_error",
+            code:
+              result.code === "file_too_large"
+                ? "rate_limit_exceeded"
+                : "internal_server_error",
             message: result.error,
           });
         }

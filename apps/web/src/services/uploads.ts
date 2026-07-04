@@ -4,6 +4,7 @@ import {
   SUPPORTED_MIME_TYPES,
   SUPPORTED_MIME_TYPES_PREFIXES,
 } from "@/lib/file-types";
+import { getMaxUploadSize, uploadSizeLimitError } from "@/lib/upload-limits";
 import { batchUploadSchema, uploadFileSchema } from "@/schemas/api/upload";
 import { z } from "zod/v4";
 
@@ -39,10 +40,20 @@ export const validateNamespaceFileKey = (namespaceId: string, key: string) => {
 export const createUpload = async ({
   namespaceId,
   file,
+  plan,
 }: {
   file: z.infer<typeof uploadFileSchema>;
   namespaceId: string;
+  plan: string;
 }) => {
+  if (file.fileSize > getMaxUploadSize(plan)) {
+    return {
+      success: false as const,
+      code: "file_too_large" as const,
+      error: uploadSizeLimitError(plan, [file.fileName]),
+    };
+  }
+
   const key = generateStorageKey(namespaceId, file.fileName);
   const urlResult = await tryCatch(
     presignUploadUrl({
@@ -55,6 +66,7 @@ export const createUpload = async ({
   if (urlResult.error) {
     return {
       success: false as const,
+      code: "presign_failed" as const,
       error: "Failed to generate presigned URL",
     };
   }
@@ -71,7 +83,24 @@ export const createUpload = async ({
 export const createBatchUpload = async ({
   namespaceId,
   files,
-}: z.infer<typeof batchUploadSchema> & { namespaceId: string }) => {
+  plan,
+}: z.infer<typeof batchUploadSchema> & {
+  namespaceId: string;
+  plan: string;
+}) => {
+  const maxUploadSize = getMaxUploadSize(plan);
+  const oversizedFiles = files.filter((file) => file.fileSize > maxUploadSize);
+  if (oversizedFiles.length > 0) {
+    return {
+      success: false as const,
+      code: "file_too_large" as const,
+      error: uploadSizeLimitError(
+        plan,
+        oversizedFiles.map((file) => file.fileName),
+      ),
+    };
+  }
+
   const preparedFiles = files.map((file) => ({
     ...file,
     key: generateStorageKey(namespaceId, file.fileName),
@@ -97,6 +126,7 @@ export const createBatchUpload = async ({
   if (failedResults.length > 0) {
     return {
       success: false as const,
+      code: "presign_failed" as const,
       error: "Failed to generate presigned URLs",
     };
   }

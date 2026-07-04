@@ -1,5 +1,5 @@
 import type { chatOptionsSchema } from "@/schemas/api/chat";
-import type { LanguageModel, ModelMessage } from "ai";
+import type { ModelMessage } from "ai";
 import type { z } from "zod/v4";
 import agenticPipeline, { generateAgenticResponse } from "@/lib/agentic";
 import { AgentsetApiError } from "@/lib/api/errors";
@@ -19,7 +19,10 @@ import {
 } from "ai";
 
 import type { Namespace } from "@agentset/db";
-import type { QueryVectorStoreResult } from "@agentset/engine";
+import type {
+  NamespaceLanguageModel,
+  QueryVectorStoreResult,
+} from "@agentset/engine";
 import {
   getNamespaceEmbeddingModel,
   getNamespaceLanguageModel,
@@ -101,7 +104,7 @@ const condenseQuery = async ({
   messagesWithoutQuery,
   lastMessage,
 }: {
-  languageModel: LanguageModel;
+  languageModel: NamespaceLanguageModel;
   messagesWithoutQuery: ModelMessage[];
   lastMessage: string;
 }) => {
@@ -113,7 +116,8 @@ const condenseQuery = async ({
   // we need to condense the messages + last message into a single query
   return (
     await generateText({
-      model: languageModel,
+      model: languageModel.model,
+      providerOptions: languageModel.providerOptions,
       prompt: CONDENSE_SYSTEM_PROMPT.compile({
         question: lastMessage,
         chatHistory: CONDENSE_USER_PROMPT.compile({
@@ -134,15 +138,15 @@ const makeDeepResearchPipeline = ({
   languageModel,
   queryOptions,
 }: {
-  languageModel: LanguageModel;
+  languageModel: NamespaceLanguageModel;
   queryOptions: Awaited<ReturnType<typeof prepareChat>>["queryOptions"];
 }) =>
   new DeepResearchPipeline({
     modelConfig: {
-      json: languageModel,
-      planning: languageModel,
-      summary: languageModel,
-      answer: languageModel,
+      json: languageModel.model,
+      planning: languageModel.model,
+      summary: languageModel.model,
+      answer: languageModel.model,
     },
     queryOptions,
     // maxQueries
@@ -226,7 +230,8 @@ export const streamChat = async ({
   const stream = createUIMessageStream<MyUIMessage>({
     execute: ({ writer }) => {
       const messageStream = streamText({
-        model: languageModel,
+        model: languageModel.model,
+        providerOptions: languageModel.providerOptions,
         system: options.systemPrompt,
         messages: newMessages,
         temperature: options.temperature,
@@ -295,7 +300,8 @@ export const generateChat = async ({
   onUsageIncrement?.(1);
 
   const result = await generateText({
-    model: languageModel,
+    model: languageModel.model,
+    providerOptions: languageModel.providerOptions,
     system: options.systemPrompt,
     messages: makeRagMessages({ messagesWithoutQuery, lastMessage, data }),
     temperature: options.temperature,

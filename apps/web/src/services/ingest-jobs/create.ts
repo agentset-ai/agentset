@@ -112,7 +112,9 @@ export const createIngestJob = async ({
         ...commonPayload,
       };
     } else {
-      const exists = await checkFileExists(data.payload.key);
+      const exists =
+        validateNamespaceFileKey(namespaceId, data.payload.key) &&
+        (await checkFileExists(data.payload.key));
       if (!exists) {
         throw new AgentsetApiError({
           code: "bad_request",
