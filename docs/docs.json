@@ -68,6 +68,7 @@
               "production/hosting-ui",
               "production/data-segregation",
               "production/observability",
+              "production/agent-first",
               "production/mcp-server"
             ]
           },
@@ -132,7 +133,8 @@
               "api-reference/endpoint/namespaces/get",
               "api-reference/endpoint/namespaces/create",
               "api-reference/endpoint/namespaces/update",
-              "api-reference/endpoint/namespaces/delete"
+              "api-reference/endpoint/namespaces/delete",
+              "api-reference/endpoint/namespaces/warm-up"
             ]
           },
           {
@@ -161,7 +163,10 @@
               "api-reference/endpoint/hosting/enable",
               "api-reference/endpoint/hosting/get",
               "api-reference/endpoint/hosting/update",
-              "api-reference/endpoint/hosting/delete"
+              "api-reference/endpoint/hosting/delete",
+              "api-reference/endpoint/hosting/domain-add",
+              "api-reference/endpoint/hosting/domain-status",
+              "api-reference/endpoint/hosting/domain-remove"
             ]
           },
           {
@@ -169,10 +174,41 @@
             "pages": ["api-reference/endpoint/search"]
           },
           {
+            "group": "Chat",
+            "pages": ["api-reference/endpoint/chat"]
+          },
+          {
             "group": "Uploads",
             "pages": [
               "api-reference/endpoint/uploads/single",
               "api-reference/endpoint/uploads/batch"
+            ]
+          },
+          {
+            "group": "Webhooks",
+            "pages": [
+              "api-reference/endpoint/webhooks/list",
+              "api-reference/endpoint/webhooks/get",
+              "api-reference/endpoint/webhooks/create",
+              "api-reference/endpoint/webhooks/update",
+              "api-reference/endpoint/webhooks/delete",
+              "api-reference/endpoint/webhooks/regenerate-secret"
+            ]
+          },
+          {
+            "group": "Organization",
+            "pages": [
+              "api-reference/endpoint/organization/get",
+              "api-reference/endpoint/organization/update",
+              "api-reference/endpoint/organization/members"
+            ]
+          },
+          {
+            "group": "API Keys",
+            "pages": [
+              "api-reference/endpoint/api-keys/list",
+              "api-reference/endpoint/api-keys/create",
+              "api-reference/endpoint/api-keys/delete"
             ]
           }
         ]

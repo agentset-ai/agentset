@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useRouter, useSelectedLayoutSegment } from "next/navigation";
 import { DeleteConfirmationDialog } from "@/components/delete-confirmation";
 import { useOrganization } from "@/hooks/use-organization";
-import { useTRPC } from "@/trpc/react";
+import { orpc } from "@/lib/orpc";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   ArrowLeftIcon,
@@ -41,16 +41,16 @@ export default function WebhookHeader({ webhookId }: WebhookHeaderProps) {
   const router = useRouter();
   const organization = useOrganization();
   const queryClient = useQueryClient();
-  const trpc = useTRPC();
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
 
   const selectedLayoutSegment = useSelectedLayoutSegment();
   const page = selectedLayoutSegment === null ? "" : selectedLayoutSegment;
 
   const { data: webhook, isLoading } = useQuery(
-    trpc.webhook.get.queryOptions({
-      organizationId: organization.id,
-      webhookId,
+    orpc.webhook.get.queryOptions({
+      input: { webhookId },
+      context: { orgId: organization.id },
+      select: (r) => r.data,
     }),
   );
 
@@ -58,12 +58,13 @@ export default function WebhookHeader({ webhookId }: WebhookHeaderProps) {
     useSendTestWebhookModal({ webhook });
 
   const deleteMutation = useMutation(
-    trpc.webhook.delete.mutationOptions({
+    orpc.webhook.delete.mutationOptions({
+      context: { orgId: organization.id },
       onSuccess: () => {
         toast.success("Webhook deleted");
         queryClient.invalidateQueries({
-          queryKey: trpc.webhook.list.queryKey({
-            organizationId: organization.id,
+          queryKey: orpc.webhook.listByOrg.queryKey({
+            input: { organizationId: organization.id },
           }),
         });
         router.push(`/${organization.slug}/webhooks`);
@@ -75,20 +76,20 @@ export default function WebhookHeader({ webhookId }: WebhookHeaderProps) {
   );
 
   const toggleMutation = useMutation(
-    trpc.webhook.toggle.mutationOptions({
+    orpc.webhook.update.mutationOptions({
+      context: { orgId: organization.id },
       onSuccess: () => {
         toast.success(
           webhook?.disabledAt ? "Webhook enabled" : "Webhook disabled",
         );
         queryClient.invalidateQueries({
-          queryKey: trpc.webhook.get.queryKey({
-            organizationId: organization.id,
-            webhookId,
+          queryKey: orpc.webhook.get.queryKey({
+            input: { webhookId },
           }),
         });
         queryClient.invalidateQueries({
-          queryKey: trpc.webhook.list.queryKey({
-            organizationId: organization.id,
+          queryKey: orpc.webhook.listByOrg.queryKey({
+            input: { organizationId: organization.id },
           }),
         });
       },
@@ -125,12 +126,7 @@ export default function WebhookHeader({ webhookId }: WebhookHeaderProps) {
         title="Delete webhook"
         description="This will permanently delete this webhook and stop all event deliveries."
         itemName={webhook?.name ?? ""}
-        onConfirm={() =>
-          deleteMutation.mutate({
-            organizationId: organization.id,
-            webhookId,
-          })
-        }
+        onConfirm={() => deleteMutation.mutate({ webhookId })}
         isLoading={deleteMutation.isPending}
       />
 
@@ -193,13 +189,14 @@ export default function WebhookHeader({ webhookId }: WebhookHeaderProps) {
               </DropdownMenuItem>
               <DropdownMenuSeparator />
               <DropdownMenuItem
-                onClick={() =>
+                onClick={() => {
+                  if (!webhook) return;
                   toggleMutation.mutate({
-                    organizationId: organization.id,
                     webhookId,
-                  })
-                }
-                disabled={toggleMutation.isPending}
+                    enabled: !!webhook.disabledAt,
+                  });
+                }}
+                disabled={toggleMutation.isPending || !webhook}
               >
                 {webhook?.disabledAt ? (
                   <>

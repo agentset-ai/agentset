@@ -2,7 +2,8 @@ import type { Row } from "@tanstack/react-table";
 import { useState } from "react";
 import { DeleteConfirmationDialog } from "@/components/delete-confirmation";
 import { useNamespace } from "@/hooks/use-namespace";
-import { useTRPC } from "@/trpc/react";
+import { useOrganization } from "@/hooks/use-organization";
+import { orpc } from "@/lib/orpc";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import {
   CopyIcon,
@@ -27,19 +28,21 @@ import type { JobCol } from "./columns";
 export function JobActions({ row }: { row: Row<JobCol> }) {
   const queryClient = useQueryClient();
   const namespace = useNamespace();
-  const trpc = useTRPC();
+  const organization = useOrganization();
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
 
   const { mutate: deleteJob, isPending: isDeletePending } = useMutation(
-    trpc.ingestJob.delete.mutationOptions({
+    orpc.ingestJob.delete.mutationOptions({
+      context: { orgId: organization.id },
       onSuccess: () => {
         toast.success("Job queued for deletion");
         setDeleteDialogOpen(false);
-        void queryClient.invalidateQueries(
-          trpc.ingestJob.all.queryFilter({
-            namespaceId: namespace.id,
+        void queryClient.invalidateQueries({
+          queryKey: orpc.ingestJob.all.key({
+            input: { namespaceId: namespace.id },
+            type: "query",
           }),
-        );
+        });
       },
       onError: (error) => {
         toast.error(error.message);
@@ -48,14 +51,16 @@ export function JobActions({ row }: { row: Row<JobCol> }) {
   );
 
   const { mutate: reIngestJob, isPending: isReIngestPending } = useMutation(
-    trpc.ingestJob.reIngest.mutationOptions({
+    orpc.ingestJob.reIngest.mutationOptions({
+      context: { orgId: organization.id },
       onSuccess: () => {
         toast.success("Job re-ingestion started");
-        void queryClient.invalidateQueries(
-          trpc.ingestJob.all.queryFilter({
-            namespaceId: namespace.id,
+        void queryClient.invalidateQueries({
+          queryKey: orpc.ingestJob.all.key({
+            input: { namespaceId: namespace.id },
+            type: "query",
           }),
-        );
+        });
       },
       onError: (error) => {
         toast.error(error.message);

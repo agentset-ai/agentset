@@ -1,4 +1,3 @@
-import type { ZodOpenApiResponseObject } from "zod-openapi";
 import { NextResponse } from "next/server";
 import { generateErrorMessage } from "zod-error";
 import { z, ZodError } from "zod/v4";
@@ -21,7 +20,10 @@ export const ErrorCode = z.enum([
 
 const docsBase = "https://docs.agentset.ai";
 
-const errorCodeToHttpStatus: Record<z.infer<typeof ErrorCode>, number> = {
+export const errorCodeToHttpStatus: Record<
+  z.infer<typeof ErrorCode>,
+  number
+> = {
   bad_request: 400,
   unauthorized: 401,
   forbidden: 403,
@@ -190,10 +192,26 @@ export function handleAndReturnErrorResponse(
   );
 }
 
+/**
+ * Minimal OpenAPI response-object shape produced by `errorSchemaFactory`
+ * (replaces the old zod-openapi `ZodOpenApiResponseObject` type). The `id`
+ * was consumed by zod-openapi to dedupe responses into components; the oRPC
+ * spec builder keys components by status string and drops it.
+ */
+export interface OpenApiErrorResponseObject {
+  id: string;
+  description: string;
+  content: {
+    "application/json": {
+      schema: Record<string, unknown>;
+    };
+  };
+}
+
 export const errorSchemaFactory = (
   code: z.infer<typeof ErrorCode>,
   description: string,
-): ZodOpenApiResponseObject => {
+): OpenApiErrorResponseObject => {
   return {
     id: errorCodeToHttpStatus[code].toString(),
     description,

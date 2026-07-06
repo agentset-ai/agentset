@@ -1,11 +1,11 @@
 "use client";
 
-import type { RouterOutputs } from "@/trpc/react";
+import type { RouterOutputs } from "@/lib/orpc";
 import React, { useState } from "react";
 import Link from "next/link";
 import { useOrganization } from "@/hooks/use-organization";
 import { authClient } from "@/lib/auth-client";
-import { useTRPC } from "@/trpc/react";
+import { orpc } from "@/lib/orpc";
 import { useRouter } from "@bprogress/next/app";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { ChevronsUpDownIcon, PlusIcon, SettingsIcon } from "lucide-react";
@@ -37,9 +37,8 @@ export function OrganizationSwitcher() {
   const router = useRouter();
   const activeOrganization = useOrganization();
 
-  const trpc = useTRPC();
   const { data: organizations } = useQuery(
-    trpc.organization.all.queryOptions(),
+    orpc.organization.all.queryOptions(),
   );
 
   const [createOrgOpen, setCreateOrgOpen] = useState(false);

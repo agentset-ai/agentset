@@ -3,7 +3,7 @@
 import { useParams } from "next/navigation";
 import AddEditWebhookForm from "@/components/webhooks/add-edit-webhook-form";
 import { useOrganization } from "@/hooks/use-organization";
-import { useTRPC } from "@/trpc/react";
+import { orpc } from "@/lib/orpc";
 import { useQuery } from "@tanstack/react-query";
 
 import { Skeleton } from "@agentset/ui/skeleton";
@@ -11,12 +11,12 @@ import { Skeleton } from "@agentset/ui/skeleton";
 export default function EditWebhookPage() {
   const params = useParams<{ webhookId: string }>();
   const organization = useOrganization();
-  const trpc = useTRPC();
 
   const { data: webhook, isLoading } = useQuery(
-    trpc.webhook.get.queryOptions({
-      organizationId: organization.id,
-      webhookId: params.webhookId,
+    orpc.webhook.get.queryOptions({
+      input: { webhookId: params.webhookId },
+      context: { orgId: organization.id },
+      select: (r) => r.data,
     }),
   );
 

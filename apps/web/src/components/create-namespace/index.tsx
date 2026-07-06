@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { logEvent } from "@/lib/analytics";
-import { useTRPC } from "@/trpc/react";
+import { orpc } from "@/lib/orpc";
 import { useRouter } from "@bprogress/next/app";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
@@ -16,7 +16,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@agentset/ui/dialog";
-import { toSlug } from "@agentset/utils";
+import { normalizeId, toSlug } from "@agentset/utils";
 
 import CreateNamespaceDetailsStep from "./details-step";
 import CreateNamespaceEmbeddingStep from "./embedding-step";
@@ -68,7 +68,6 @@ export default function CreateNamespaceDialog({
   setOpen: (open: boolean) => void;
 }) {
   const router = useRouter();
-  const trpc = useTRPC();
   const queryClient = useQueryClient();
 
   const [step, setStep] = useState<Step>("details");
@@ -88,12 +87,14 @@ export default function CreateNamespaceDialog({
   const [slug, setSlug] = useState(defaultSlug);
 
   const { isPending, mutateAsync: createNamespace } = useMutation(
-    trpc.namespace.createNamespace.mutationOptions({
-      onSuccess: (data) => {
+    orpc.namespace.create.mutationOptions({
+      context: { orgId: organization.id },
+      onSuccess: (res) => {
+        const data = res.data;
         logEvent("namespace_created", {
           name: data.name,
           slug: data.slug,
-          organizationId: data.organizationId,
+          organizationId: normalizeId(data.organizationId, "org_"),
           embeddingModel: data.embeddingConfig
             ? {
                 provider: data.embeddingConfig.provider,
@@ -115,10 +116,9 @@ export default function CreateNamespaceDialog({
         setStep("details");
 
         if (organization) {
-          const queryKey = trpc.namespace.getOrgNamespaces.queryKey({
-            slug: organization.slug,
+          const queryKey = orpc.namespace.getOrgNamespaces.queryKey({
+            input: { slug: organization.slug },
           });
-          queryClient.setQueryData(queryKey, (old) => [data, ...(old ?? [])]);
           void queryClient.invalidateQueries({ queryKey });
           router.push(`/${organization.slug}/${data.slug}/quick-start`);
         }
@@ -133,7 +133,6 @@ export default function CreateNamespaceDialog({
     if (!organization) return;
 
     await createNamespace({
-      orgId: organization.id,
       name: name,
       slug: slug,
       embeddingConfig: embeddingModel,

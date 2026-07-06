@@ -2,12 +2,13 @@
 
 import { useRouter } from "next/navigation";
 import { useZodForm } from "@/hooks/use-zod-form";
-import { useTRPC } from "@/trpc/react";
+import { orpc } from "@/lib/orpc";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { InfoIcon, RefreshCwIcon } from "lucide-react";
 import { toast } from "sonner";
 import { z } from "zod/v4";
 
+import { normalizeId } from "@agentset/utils";
 import { Button } from "@agentset/ui/button";
 import { Checkbox } from "@agentset/ui/checkbox";
 import { CopyButton } from "@agentset/ui/copy-button";
@@ -61,7 +62,6 @@ export default function AddEditWebhookForm({
 }: AddEditWebhookFormProps) {
   const router = useRouter();
   const queryClient = useQueryClient();
-  const trpc = useTRPC();
   const isEditing = !!webhook;
 
   const form = useZodForm(webhookFormSchema, {
@@ -69,20 +69,26 @@ export default function AddEditWebhookForm({
       name: webhook?.name || "",
       url: webhook?.url || "",
       triggers: (webhook?.triggers as WebhookFormValues["triggers"]) || [],
-      namespaceIds: webhook?.namespaceIds || [],
+      // shared webhook.get returns ns_-prefixed ids; keep form state raw so it
+      // matches getNamespaces ids (checkbox comparison) and submits raw ids
+      namespaceIds:
+        webhook?.namespaceIds?.map((id) => normalizeId(id, "ns_")) || [],
     },
   });
 
   const { data: namespaces } = useQuery(
-    trpc.webhook.getNamespaces.queryOptions({ organizationId }),
+    orpc.webhook.getNamespaces.queryOptions({ input: { organizationId } }),
   );
 
   const createMutation = useMutation(
-    trpc.webhook.create.mutationOptions({
+    orpc.webhook.create.mutationOptions({
+      context: { orgId: organizationId },
       onSuccess: () => {
         toast.success("Webhook created");
         queryClient.invalidateQueries({
-          queryKey: trpc.webhook.list.queryKey({ organizationId }),
+          queryKey: orpc.webhook.listByOrg.queryKey({
+            input: { organizationId },
+          }),
         });
         router.push(`/${organizationSlug}/webhooks`);
       },
@@ -93,16 +99,18 @@ export default function AddEditWebhookForm({
   );
 
   const updateMutation = useMutation(
-    trpc.webhook.update.mutationOptions({
+    orpc.webhook.update.mutationOptions({
+      context: { orgId: organizationId },
       onSuccess: () => {
         toast.success("Webhook updated");
         queryClient.invalidateQueries({
-          queryKey: trpc.webhook.list.queryKey({ organizationId }),
+          queryKey: orpc.webhook.listByOrg.queryKey({
+            input: { organizationId },
+          }),
         });
         queryClient.invalidateQueries({
-          queryKey: trpc.webhook.get.queryKey({
-            organizationId,
-            webhookId: webhook!.id,
+          queryKey: orpc.webhook.get.queryKey({
+            input: { webhookId: webhook!.id },
           }),
         });
         router.push(`/${organizationSlug}/webhooks/${webhook!.id}`);
@@ -114,13 +122,13 @@ export default function AddEditWebhookForm({
   );
 
   const regenerateSecretMutation = useMutation(
-    trpc.webhook.regenerateSecret.mutationOptions({
+    orpc.webhook.regenerateSecret.mutationOptions({
+      context: { orgId: organizationId },
       onSuccess: () => {
         toast.success("Secret regenerated");
         queryClient.invalidateQueries({
-          queryKey: trpc.webhook.get.queryKey({
-            organizationId,
-            webhookId: webhook!.id,
+          queryKey: orpc.webhook.get.queryKey({
+            input: { webhookId: webhook!.id },
           }),
         });
       },
@@ -139,14 +147,10 @@ export default function AddEditWebhookForm({
     if (isEditing) {
       updateMutation.mutate({
         ...payload,
-        organizationId,
         webhookId: webhook.id,
       });
     } else {
-      createMutation.mutate({
-        ...payload,
-        organizationId,
-      });
+      createMutation.mutate(payload);
     }
   };
 
@@ -239,7 +243,6 @@ export default function AddEditWebhookForm({
                   className="size-8"
                   onClick={() =>
                     regenerateSecretMutation.mutate({
-                      organizationId,
                       webhookId: webhook.id,
                     })
                   }

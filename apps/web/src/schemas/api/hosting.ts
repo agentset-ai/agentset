@@ -8,6 +8,21 @@ import {
   rerankerSchema,
 } from "@agentset/validation";
 
+export const DomainSchema = z
+  .object({
+    slug: z
+      .string()
+      .describe("The custom domain attached to the hosted interface."),
+    verified: z
+      .boolean()
+      .default(false)
+      .describe("Whether the domain ownership has been verified."),
+  })
+  .meta({
+    id: "domain",
+    title: "Domain",
+  });
+
 export const HostingSchema = z
   .object({
     namespaceId: z
@@ -23,6 +38,9 @@ export const HostingSchema = z
       .nullable()
       .default(null)
       .describe("The unique slug for accessing the hosted interface."),
+    domain: DomainSchema.nullable()
+      .default(null)
+      .describe("The custom domain attached to the hosted interface."),
     logo: z
       .string()
       .nullable()
@@ -123,6 +141,82 @@ export const HostingSchema = z
     id: "hosting",
     title: "Hosting",
   });
+
+export const domainVerificationStatusSchema = z.enum([
+  "Valid Configuration",
+  "Invalid Configuration",
+  "Conflicting DNS Records",
+  "Pending Verification",
+  "Domain Not Found",
+  "Unknown Error",
+]);
+
+export type DomainVerificationStatusProps = z.infer<
+  typeof domainVerificationStatusSchema
+>;
+
+export const DomainStatusSchema = z
+  .object({
+    domain: z.string().describe("The custom domain."),
+    status: domainVerificationStatusSchema.describe(
+      "The current verification status of the domain.",
+    ),
+    verified: z
+      .boolean()
+      .describe("Whether the domain is verified and correctly configured."),
+    apexName: z
+      .string()
+      .nullable()
+      .default(null)
+      .describe(
+        "The apex domain (e.g. example.com for docs.example.com). Null when the domain is not found on the project.",
+      ),
+    verification: z
+      .array(
+        z.object({
+          type: z.string().describe("The type of the DNS record (e.g. TXT)."),
+          domain: z.string().describe("The domain to set the record on."),
+          value: z.string().describe("The value of the DNS record."),
+          reason: z.string().describe("The reason the record is required."),
+        }),
+      )
+      .default([])
+      .describe(
+        "DNS records required to verify domain ownership (present when the status is 'Pending Verification').",
+      ),
+    conflicts: z
+      .array(
+        z.object({
+          type: z.string().describe("The type of the conflicting DNS record."),
+          name: z.string().describe("The name of the conflicting DNS record."),
+          value: z
+            .string()
+            .describe("The value of the conflicting DNS record."),
+          reason: z.string().describe("The reason the record conflicts."),
+        }),
+      )
+      .default([])
+      .describe(
+        "Conflicting DNS records that need to be removed (present when the status is 'Conflicting DNS Records').",
+      ),
+    misconfigured: z
+      .boolean()
+      .nullable()
+      .default(null)
+      .describe(
+        "Whether the domain's DNS records are misconfigured. Null when the configuration couldn't be determined.",
+      ),
+  })
+  .meta({
+    id: "domain-status",
+    title: "Domain Status",
+  });
+
+export const addDomainSchema = z.object({
+  domain: z
+    .string()
+    .describe("The custom domain to attach (e.g. docs.example.com)."),
+});
 
 export const updateHostingSchema = z.object({
   title: z.string().min(1).optional(),

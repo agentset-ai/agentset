@@ -1,17 +1,13 @@
-import { useTRPC } from "@/trpc/react";
+import { orpc } from "@/lib/orpc";
 import { useQuery } from "@tanstack/react-query";
 
 export function useWebhooks(organizationId: string) {
-  const trpc = useTRPC();
-
   const { data, isLoading, error } = useQuery(
-    trpc.webhook.list.queryOptions(
-      { organizationId },
-      {
-        enabled: !!organizationId,
-        staleTime: 60000, // 1 minute
-      },
-    ),
+    orpc.webhook.listByOrg.queryOptions({
+      input: { organizationId },
+      enabled: !!organizationId,
+      staleTime: 60000, // 1 minute
+    }),
   );
 
   return {

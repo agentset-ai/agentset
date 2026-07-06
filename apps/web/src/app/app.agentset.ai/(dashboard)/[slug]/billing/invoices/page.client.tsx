@@ -1,10 +1,10 @@
 "use client";
 
-import type { RouterOutputs } from "@/trpc/react";
+import type { RouterOutputs } from "@/lib/orpc";
 import Link from "next/link";
 import { useOrganization } from "@/hooks/use-organization";
+import { orpc } from "@/lib/orpc";
 import { formatNumber } from "@/lib/utils";
-import { useTRPC } from "@/trpc/react";
 import { useQuery } from "@tanstack/react-query";
 import { ChevronLeftIcon, DollarSignIcon, ReceiptTextIcon } from "lucide-react";
 
@@ -17,18 +17,17 @@ import { Tooltip, TooltipContent, TooltipTrigger } from "@agentset/ui/tooltip";
 
 export default function OrganizationInvoicesClient() {
   const organization = useOrganization();
-  const trpc = useTRPC();
   const {
     data: invoices,
     isLoading,
     isEnabled,
   } = useQuery(
-    trpc.billing.invoices.queryOptions(
-      {
+    orpc.billing.invoices.queryOptions({
+      input: {
         orgId: organization.id,
       },
-      { enabled: !!organization.stripeId },
-    ),
+      enabled: !!organization.stripeId,
+    }),
   );
 
   return (

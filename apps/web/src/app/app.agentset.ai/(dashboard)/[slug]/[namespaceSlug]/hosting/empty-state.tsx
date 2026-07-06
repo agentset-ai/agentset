@@ -1,6 +1,7 @@
 import { useNamespace } from "@/hooks/use-namespace";
+import { useOrganization } from "@/hooks/use-organization";
 import { logEvent } from "@/lib/analytics";
-import { useTRPC } from "@/trpc/react";
+import { orpc } from "@/lib/orpc";
 
 import { Button } from "@agentset/ui/button";
 import {
@@ -18,20 +19,24 @@ import { toast } from "sonner";
 
 export function EmptyState() {
   const namespace = useNamespace();
+  const organization = useOrganization();
 
-  const trpc = useTRPC();
   const queryClient = useQueryClient();
   const { mutate: enableHosting, isPending } = useMutation(
-    trpc.hosting.enable.mutationOptions({
-      onSuccess: (hosting) => {
+    orpc.hosting.enable.mutationOptions({
+      context: { orgId: organization.id },
+      onSuccess: (res) => {
         logEvent("hosting_enabled", {
           namespaceId: namespace.id,
         });
         toast.success("Hosting enabled successfully");
         queryClient.setQueryData(
-          trpc.hosting.get.queryKey({ namespaceId: namespace.id }),
+          orpc.hosting.get.queryKey({
+            input: { namespaceId: namespace.id },
+          }),
           () => {
-            return { ...hosting, domain: null };
+            // the hosting.get cache holds the enveloped shape
+            return { success: true as const, data: res.data };
           },
         );
       },

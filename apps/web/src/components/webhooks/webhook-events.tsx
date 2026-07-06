@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { useTRPC } from "@/trpc/react";
+import { orpc } from "@/lib/orpc";
 import { useQuery } from "@tanstack/react-query";
 import { formatDistanceToNow } from "date-fns";
 import {
@@ -211,14 +211,15 @@ export default function WebhookEvents({
   organizationId,
   webhookId,
 }: WebhookEventsProps) {
-  const trpc = useTRPC();
   const [selectedEvent, setSelectedEvent] = useState<WebhookEvent | null>(null);
   const [sheetOpen, setSheetOpen] = useState(false);
 
   const { data: events, isLoading } = useQuery(
-    trpc.webhook.getEvents.queryOptions({
-      organizationId,
-      webhookId,
+    orpc.webhook.getEvents.queryOptions({
+      input: {
+        organizationId,
+        webhookId,
+      },
     }),
   );
 

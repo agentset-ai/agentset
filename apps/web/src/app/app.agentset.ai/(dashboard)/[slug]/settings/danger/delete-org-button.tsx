@@ -2,7 +2,7 @@
 
 import { DeleteConfirmation } from "@/components/delete-confirmation";
 import { useOrganization } from "@/hooks/use-organization";
-import { useTRPC } from "@/trpc/react";
+import { orpc } from "@/lib/orpc";
 import { useRouter } from "@bprogress/next/app";
 import { useMutation } from "@tanstack/react-query";
 import { toast } from "sonner";
@@ -12,9 +12,8 @@ import { Button } from "@agentset/ui/button";
 export function DeleteOrgButton() {
   const organization = useOrganization();
   const router = useRouter();
-  const trpc = useTRPC();
   const { mutate: deleteOrganization, isPending } = useMutation(
-    trpc.organization.delete.mutationOptions({
+    orpc.organization.delete.mutationOptions({
       onSuccess: () => {
         toast.success("Organization deleted");
         router.push("/");

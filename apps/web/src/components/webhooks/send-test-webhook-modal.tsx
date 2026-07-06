@@ -2,7 +2,7 @@
 
 import { useCallback, useMemo, useState } from "react";
 import { useOrganization } from "@/hooks/use-organization";
-import { useTRPC } from "@/trpc/react";
+import { orpc } from "@/lib/orpc";
 import { useMutation } from "@tanstack/react-query";
 import { toast } from "sonner";
 
@@ -40,11 +40,10 @@ function SendTestWebhookModal({
   webhook,
 }: SendTestWebhookModalProps) {
   const organization = useOrganization();
-  const trpc = useTRPC();
   const [selectedTrigger, setSelectedTrigger] = useState<string>("");
 
   const sendTestMutation = useMutation(
-    trpc.webhook.sendTest.mutationOptions({
+    orpc.webhook.sendTest.mutationOptions({
       onSuccess: () => {
         toast.success("Test webhook sent");
         onOpenChange(false);

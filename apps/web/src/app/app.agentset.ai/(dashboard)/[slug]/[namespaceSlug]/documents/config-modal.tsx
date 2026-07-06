@@ -1,6 +1,7 @@
 import { useMemo, useState } from "react";
 import { useNamespace } from "@/hooks/use-namespace";
-import { useTRPC } from "@/trpc/react";
+import { useOrganization } from "@/hooks/use-organization";
+import { orpc } from "@/lib/orpc";
 import { useQuery } from "@tanstack/react-query";
 
 import { SingleLanguageCodeBlock } from "@agentset/ui/ai/code-block";
@@ -16,16 +17,18 @@ import { Skeleton } from "@agentset/ui/skeleton";
 
 export function ConfigModal({ jobId }: { jobId: string }) {
   const [open, setOpen] = useState(false);
-  const trpc = useTRPC();
   const namespace = useNamespace();
+  const organization = useOrganization();
   const { data: config, isLoading } = useQuery({
-    ...trpc.ingestJob.getConfig.queryOptions(
-      {
+    ...orpc.ingestJob.get.queryOptions({
+      input: {
         jobId,
         namespaceId: namespace.id,
       },
-      { enabled: open },
-    ),
+      context: { orgId: organization.id },
+      enabled: open,
+      select: (res) => res.data.config,
+    }),
   });
 
   const configStr = useMemo(() => {

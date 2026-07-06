@@ -1,7 +1,8 @@
 import { useState } from "react";
-import { useTRPC } from "@/trpc/react";
+import { useOrganization } from "@/hooks/use-organization";
+import { orpc } from "@/lib/orpc";
+import { ORPCError } from "@orpc/client";
 import { useMutation } from "@tanstack/react-query";
-import { TRPCClientError } from "@trpc/client";
 import { toast } from "sonner";
 
 const uploadWithProgress = (
@@ -43,9 +44,11 @@ const uploadWithProgress = (
 };
 
 export function useUploadFiles({ namespaceId }: { namespaceId: string }) {
-  const trpc = useTRPC();
+  const organization = useOrganization();
   const { mutateAsync: getPresignedUrls } = useMutation(
-    trpc.upload.getPresignedUrls.mutationOptions(),
+    orpc.upload.createBatch.mutationOptions({
+      context: { orgId: organization.id },
+    }),
   );
 
   const [uploadedFiles, setUploadedFiles] = useState<
@@ -69,8 +72,9 @@ export function useUploadFiles({ namespaceId }: { namespaceId: string }) {
         })),
       });
 
+      // results are returned in the same order as the input files array
       await Promise.all(
-        presignResponses.map(async (presignResponse, i) => {
+        presignResponses.data.map(async (presignResponse, i) => {
           const file = files[i]!;
 
           await uploadWithProgress(presignResponse.url, file, {
@@ -86,9 +90,7 @@ export function useUploadFiles({ namespaceId }: { namespaceId: string }) {
       );
     } catch (error) {
       toast.error(
-        error instanceof TRPCClientError
-          ? error.message
-          : "Failed to upload file!",
+        error instanceof ORPCError ? error.message : "Failed to upload file!",
       );
     } finally {
       setProgresses({});

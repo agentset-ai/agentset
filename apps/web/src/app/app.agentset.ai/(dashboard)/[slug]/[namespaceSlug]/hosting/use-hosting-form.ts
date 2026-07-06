@@ -1,23 +1,19 @@
-import type { RouterOutputs } from "@/trpc/react";
+import type { RouterOutputs } from "@/lib/orpc";
 import { useNamespace } from "@/hooks/use-namespace";
+import { useOrganization } from "@/hooks/use-organization";
 import {
   AGENTIC_SYSTEM_PROMPT,
   isKnownDefaultPrompt,
 } from "@/lib/agentic-search/prompts";
 import { logEvent } from "@/lib/analytics";
-import { useTRPC } from "@/trpc/react";
+import { orpc } from "@/lib/orpc";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { z } from "zod/v4";
 
-import {
-  DEFAULT_LLM,
-  DEFAULT_RERANKER,
-  llmSchema,
-  rerankerSchema,
-} from "@agentset/validation";
+import { llmSchema, rerankerSchema } from "@agentset/validation";
 
 export const hostingFormSchema = z.object({
   title: z.string().min(1, "Title is required"),
@@ -43,45 +39,50 @@ export const hostingFormSchema = z.object({
 
 export type HostingFormValues = z.infer<typeof hostingFormSchema>;
 
-export type HostingData = NonNullable<RouterOutputs["hosting"]["get"]>;
+export type HostingData = RouterOutputs["hosting"]["get"]["data"];
 
 export function useHostingForm(data: HostingData) {
   const namespace = useNamespace();
-  const trpc = useTRPC();
+  const organization = useOrganization();
   const queryClient = useQueryClient();
 
   const { mutateAsync: updateHosting, isPending: isUpdating } = useMutation(
-    trpc.hosting.update.mutationOptions({
+    orpc.hosting.update.mutationOptions({
+      context: { orgId: organization.id },
       onSuccess: (result) => {
         logEvent("hosting_updated", {
           namespaceId: namespace.id,
-          slug: result.slug,
-          protected: result.protected,
-          searchEnabled: result.searchEnabled,
-          hasCustomPrompt: !!result.systemPrompt,
-          hasWelcomeMessage: !!result.welcomeMessage,
-          exampleQuestionsCount: result.exampleQuestions?.length || 0,
-          exampleSearchQueriesCount: result.exampleSearchQueries?.length || 0,
+          slug: result.data.slug,
+          protected: result.data.protected,
+          searchEnabled: result.data.searchEnabled,
+          hasCustomPrompt: !!result.data.systemPrompt,
+          hasWelcomeMessage: !!result.data.welcomeMessage,
+          exampleQuestionsCount: result.data.exampleQuestions.length,
+          exampleSearchQueriesCount: result.data.exampleSearchQueries.length,
         });
         toast.success("Hosting settings saved");
         queryClient.setQueryData(
-          trpc.hosting.get.queryKey({
-            namespaceId: namespace.id,
+          orpc.hosting.get.queryKey({
+            input: { namespaceId: namespace.id },
           }),
           (old) => {
+            // the hosting.get cache holds the enveloped shape
             return {
-              ...(old ?? {}),
-              ...result,
-              domain: old?.domain || null,
+              success: true as const,
+              data: {
+                ...old?.data,
+                ...result.data,
+                domain: old?.data.domain ?? null,
+              },
             };
           },
         );
 
-        queryClient.invalidateQueries(
-          trpc.hosting.get.queryOptions({
-            namespaceId: namespace.id,
+        queryClient.invalidateQueries({
+          queryKey: orpc.hosting.get.key({
+            input: { namespaceId: namespace.id },
           }),
-        );
+        });
       },
       onError: (error) => {
         toast.error(error.message);
@@ -115,9 +116,10 @@ export function useHostingForm(data: HostingData) {
       welcomeMessage: data.welcomeMessage || "",
       citationMetadataPath: data.citationMetadataPath || "",
       searchEnabled: data.searchEnabled,
-      rerankModel: data.rerankConfig?.model ?? DEFAULT_RERANKER,
-      rerankLimit: data.rerankConfig?.limit ?? 15,
-      llmModel: data.llmConfig?.model ?? DEFAULT_LLM,
+      // the shared hosting.get output applies the model defaults server-side
+      rerankModel: data.rerankConfig.model,
+      rerankLimit: data.rerankConfig.limit,
+      llmModel: data.llmConfig.model,
       topK: data.topK,
     },
   });
@@ -127,10 +129,10 @@ export function useHostingForm(data: HostingData) {
       namespaceId: namespace.id,
       title: newData.title,
       slug: newData.slug,
-      logo: data?.logo === newData.logo ? undefined : newData.logo,
+      logo: data.logo === newData.logo ? undefined : newData.logo,
       ogTitle: newData.ogTitle,
       ogDescription: newData.ogDescription,
-      ogImage: data?.ogImage === newData.ogImage ? undefined : newData.ogImage,
+      ogImage: data.ogImage === newData.ogImage ? undefined : newData.ogImage,
       protected: newData.protected,
       allowedEmails: newData.allowedEmails,
       allowedEmailDomains: newData.allowedEmailDomains,

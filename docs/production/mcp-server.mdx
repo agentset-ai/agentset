@@ -1,13 +1,75 @@
 ---
 title: 'MCP Server'
-description: 'Documentation for the MCP Server Protocol'
+description: 'Connect Claude, Cursor, and other AI agents to Agentset with the hosted MCP server, or run the lightweight local server for search-only access.'
 ---
 
-The MCP Server Protocol allows you to run a local server that can be used with Claude and other AI assistants to access your data.
+Agentset provides two MCP servers:
 
-## Installation
+- **Hosted MCP server** — a remote server at `https://api.agentset.ai/mcp` that exposes the full Agentset platform. Agents can create namespaces, ingest data, search, chat, and manage your organization autonomously.
+- **Local MCP server** — the [`@agentset/mcp`](https://www.npmjs.com/package/@agentset/mcp) npm package, a lightweight stdio server that searches a single namespace.
 
-Run the Agentset MCP server with your preferred package manager:
+## Hosted MCP server
+
+The hosted server uses streamable HTTP and authenticates with your [API key](/api-reference/tokens) as a bearer token:
+
+```bash
+https://api.agentset.ai/mcp
+Authorization: Bearer agentset_xxx
+```
+
+To scope requests to a single tenant in multi-tenant setups, add an optional `x-tenant-id` header. See [Data Segregation](/production/data-segregation).
+
+With the full toolset, an agent can bootstrap a RAG stack end-to-end without touching the dashboard: create a namespace, request upload URLs, ingest documents, monitor the ingest job, then search and chat over the results.
+
+### Claude Code
+
+```bash
+claude mcp add --transport http agentset https://api.agentset.ai/mcp --header 'Authorization: Bearer agentset_xxx'
+```
+
+### Claude Desktop and claude.ai
+
+Go to **Settings → Connectors → Add custom connector** and enter `https://api.agentset.ai/mcp` as the server URL. The server authenticates with your API key as a bearer token.
+
+### Cursor
+
+Add the server to `.cursor/mcp.json` in your project (or `~/.cursor/mcp.json` globally):
+
+```json
+{
+  "mcpServers": {
+    "agentset": {
+      "url": "https://api.agentset.ai/mcp",
+      "headers": {
+        "Authorization": "Bearer agentset_xxx"
+      }
+    }
+  }
+}
+```
+
+### Tools
+
+Tool names are snake_case and map one-to-one to the [REST API](/api-reference/introduction) operations. Coverage by area:
+
+| Area          | Tools                                                                                                                                     |
+| ------------- | ----------------------------------------------------------------------------------------------------------------------------------------- |
+| Namespaces    | `list_namespaces`, `get_namespace`, `create_namespace`, `update_namespace`, `delete_namespace`                                             |
+| Uploads       | `create_upload_urls`                                                                                                                       |
+| Ingest jobs   | `list_ingest_jobs`, `get_ingest_job`, `create_ingest_job`, `reingest_job`, `delete_ingest_job`                                             |
+| Documents     | `list_documents`, `get_document`, `delete_document`, `get_document_chunks_download_url`, `get_document_file_download_url`                  |
+| Retrieval     | `search`, `chat`                                                                                                                           |
+| Hosting       | `get_hosting`, `enable_hosting`, `update_hosting`, `disable_hosting`                                                                       |
+| Custom domains | `set_custom_domain`, `get_domain_status`, `remove_custom_domain`                                                                          |
+| Webhooks      | `list_webhooks`, `get_webhook`, `create_webhook`, `update_webhook`, `delete_webhook`, `regenerate_webhook_secret`                          |
+| Organization  | `get_organization`, `update_organization`, `list_members`                                                                                  |
+| API keys      | `list_api_keys`, `create_api_key`, `revoke_api_key`                                                                                        |
+
+## Local MCP server
+
+The `@agentset/mcp` package runs on your machine over stdio and exposes a single search tool scoped to one namespace. Use it when an agent only needs read access to your data.
+
+Run it with your preferred package manager:
 
 <CodeGroup>
 ```bash npm
@@ -28,9 +90,9 @@ AGENTSET_API_KEY=your-api-key bunx @agentset/mcp --ns your-namespace-id
 
 </CodeGroup>
 
-## Adding to Claude
+### Adding to Claude
 
-To add the MCP server to Claude, include the following configuration in your Claude settings:
+To add the local MCP server to Claude, include the following configuration in your Claude settings:
 
 ```json
 {
@@ -47,21 +109,21 @@ To add the MCP server to Claude, include the following configuration in your Cla
 }
 ```
 
-## Tips
+### Tips
 
-### Passing namespace id as an environment variable
+Pass the namespace id as an environment variable:
 
 ```bash
 AGENTSET_API_KEY=your-api-key AGENTSET_NAMESPACE_ID=your-namespace-id npx @agentset/mcp
 ```
 
-### Passing a custom tool description
+Pass a custom tool description:
 
 ```bash
 AGENTSET_API_KEY=your-api-key npx @agentset/mcp --ns your-namespace-id -d "Your custom tool description"
 ```
 
-### Passing a tenant id
+Pass a tenant id:
 
 ```bash
 AGENTSET_API_KEY=your-api-key npx @agentset/mcp --ns your-namespace-id -t your-tenant-id
@@ -69,5 +131,6 @@ AGENTSET_API_KEY=your-api-key npx @agentset/mcp --ns your-namespace-id -t your-t
 
 ## Next steps
 
+- [Agent-First Platform](/production/agent-first) — How the REST API and MCP server cover the entire platform
 - [Search](/search-and-retrieval/search) — Learn about search configuration options
 - [Data Segregation](/production/data-segregation) — Use tenant IDs for multi-tenant applications

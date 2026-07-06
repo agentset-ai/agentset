@@ -1,22 +1,19 @@
 import { useParams } from "next/navigation";
-import { useTRPC } from "@/trpc/react";
+import { orpc } from "@/lib/orpc";
 import { useQuery } from "@tanstack/react-query";
 
 export function useOrganization() {
   const params = useParams();
   const slug = params.slug as string;
 
-  const trpc = useTRPC();
   const { data, isLoading, error } = useQuery(
-    trpc.organization.getBySlug.queryOptions(
-      { slug },
-      {
-        enabled: !!slug,
-        staleTime: Infinity,
-        refetchOnWindowFocus: true,
-        refetchOnMount: false,
-      },
-    ),
+    orpc.organization.getBySlug.queryOptions({
+      input: { slug },
+      enabled: !!slug,
+      staleTime: Infinity,
+      refetchOnWindowFocus: true,
+      refetchOnMount: false,
+    }),
   );
 
   return {

@@ -2,7 +2,8 @@
 
 import { useMemo, useState } from "react";
 import { useNamespace } from "@/hooks/use-namespace";
-import { trpcClient } from "@/trpc/react";
+import { useOrganization } from "@/hooks/use-organization";
+import { client } from "@/lib/orpc";
 import { useQuery } from "@tanstack/react-query";
 import { ChevronDownIcon, CopyIcon, SearchIcon } from "lucide-react";
 import { toast } from "sonner";
@@ -37,25 +38,27 @@ export function ChunksDrawer({
   onOpenChange,
 }: ChunksDrawerProps) {
   const namespace = useNamespace();
+  const organization = useOrganization();
   const [search, setSearch] = useState("");
 
   const { data, isLoading, error, refetch } = useQuery({
     queryKey: ["document-chunks", namespace.id, documentId],
     queryFn: async () => {
       // First fetch the presigned URL
-      const urlResponse = await trpcClient.document.getChunksDownloadUrl.mutate(
+      const urlResponse = await client.document.getChunksDownloadUrl(
         {
           documentId,
           namespaceId: namespace.id,
         },
+        { context: { orgId: organization.id } },
       );
 
-      if (!urlResponse?.url) {
+      if (!urlResponse.data.url) {
         throw new Error("Could not get chunks URL");
       }
 
       // Then fetch the chunks JSON
-      const response = await fetch(urlResponse.url);
+      const response = await fetch(urlResponse.data.url);
       if (!response.ok) {
         throw new Error("Failed to fetch chunks");
       }

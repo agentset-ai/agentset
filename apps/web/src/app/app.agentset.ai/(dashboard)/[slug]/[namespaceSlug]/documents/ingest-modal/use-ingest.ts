@@ -1,6 +1,7 @@
 import { useNamespace } from "@/hooks/use-namespace";
+import { useOrganization } from "@/hooks/use-organization";
 import { logEvent } from "@/lib/analytics";
-import { useTRPC } from "@/trpc/react";
+import { orpc } from "@/lib/orpc";
 import { useMutation } from "@tanstack/react-query";
 
 import { IngestJobConfig, IngestJobPayload } from "@agentset/validation";
@@ -42,18 +43,20 @@ export function useIngest({
   extraAnalytics,
 }: UseIngestOptions) {
   const namespace = useNamespace();
-  const trpc = useTRPC();
+  const organization = useOrganization();
 
   const mutation = useMutation(
-    trpc.ingestJob.ingest.mutationOptions({
-      onSuccess: (doc) => {
+    orpc.ingestJob.create.mutationOptions({
+      context: { orgId: organization.id },
+      onSuccess: (res) => {
+        const job = res.data;
         logEvent(
           "document_ingested",
           buildAnalyticsData(
             type,
             namespace.id,
-            doc.config,
-            extraAnalytics?.(doc),
+            job.config,
+            extraAnalytics?.(job),
           ),
         );
         onSuccess();

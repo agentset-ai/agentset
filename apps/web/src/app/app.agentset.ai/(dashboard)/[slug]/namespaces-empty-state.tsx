@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useOrganization } from "@/hooks/use-organization";
 import { logEvent } from "@/lib/analytics";
-import { useTRPC } from "@/trpc/react";
+import { orpc } from "@/lib/orpc";
 import { useRouter } from "@bprogress/next/app";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import {
@@ -63,7 +63,6 @@ export function NamespacesEmptyState({
   onCreateClick: () => void;
 }) {
   const router = useRouter();
-  const trpc = useTRPC();
   const organization = useOrganization();
   const [creatingTemplateId, setCreatingTemplateId] =
     useState<DemoTemplateId | null>(null);
@@ -71,10 +70,10 @@ export function NamespacesEmptyState({
 
   const { mutate: createDemoNamespace, isPending: isCreatingDemo } =
     useMutation(
-      trpc.namespace.createDemoNamespace.mutationOptions({
+      orpc.namespace.createDemoNamespace.mutationOptions({
         onSuccess: (namespace) => {
-          const queryKey = trpc.namespace.getOrgNamespaces.queryKey({
-            slug: organization.slug,
+          const queryKey = orpc.namespace.getOrgNamespaces.queryKey({
+            input: { slug: organization.slug },
           });
           void queryClient.invalidateQueries({ queryKey });
           router.push(`/${organization.slug}/${namespace.slug}/documents`);

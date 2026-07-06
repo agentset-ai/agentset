@@ -55,6 +55,9 @@ export const makeAuth = (params?: { baseUrl: string; isHosting: boolean }) => {
     plugins: [
       admin(),
       organization({
+        // org deletion must go through services/organizations/delete.ts (tRPC organization.delete)
+        // so subscriptions are canceled and namespaces are cleaned up
+        disableOrganizationDeletion: true,
         organizationHooks: {
           async afterCreateOrganization(data) {
             // create default api key

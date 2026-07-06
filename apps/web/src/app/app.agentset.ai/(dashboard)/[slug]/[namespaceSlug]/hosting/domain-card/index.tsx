@@ -1,8 +1,9 @@
 import { useState } from "react";
 import { useNamespace } from "@/hooks/use-namespace";
+import { useOrganization } from "@/hooks/use-organization";
 import { logEvent } from "@/lib/analytics";
 import { SHORT_DOMAIN } from "@/lib/constants";
-import { useTRPC } from "@/trpc/react";
+import { orpc } from "@/lib/orpc";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   AlertCircleIcon,
@@ -26,15 +27,12 @@ const CNAME_VALUE = `cname.${SHORT_DOMAIN}`;
 const A_VALUE = "76.76.21.21";
 
 export function useDomainStatus() {
-  const trpc = useTRPC();
   const namespace = useNamespace();
   const { data, isFetching, refetch } = useQuery(
-    trpc.domain.checkStatus.queryOptions(
-      { namespaceId: namespace.id },
-      {
-        refetchInterval: 20000,
-      },
-    ),
+    orpc.hosting.domainStatusDetailed.queryOptions({
+      input: { namespaceId: namespace.id },
+      refetchInterval: 20000,
+    }),
   );
 
   return {
@@ -231,21 +229,22 @@ const DomainControls = ({
 }) => {
   const { refetch, loading } = useDomainStatus();
   const namespace = useNamespace();
-  const trpc = useTRPC();
+  const organization = useOrganization();
   const queryClient = useQueryClient();
   const { mutate: removeDomain, isPending: isRemovingDomain } = useMutation(
-    trpc.domain.remove.mutationOptions({
+    orpc.hosting.removeDomain.mutationOptions({
+      context: { orgId: organization.id },
       onSuccess: () => {
         logEvent("domain_removed", {
           domain,
           namespaceId: namespace.id,
         });
         toast.success("Domain removed successfully");
-        void queryClient.invalidateQueries(
-          trpc.hosting.get.queryOptions({
-            namespaceId: namespace.id,
+        void queryClient.invalidateQueries({
+          queryKey: orpc.hosting.get.key({
+            input: { namespaceId: namespace.id },
           }),
-        );
+        });
         onRemove();
       },
     }),
@@ -285,17 +284,18 @@ export function CustomDomainConfigurator(props: { defaultDomain?: string }) {
     props.defaultDomain ?? "",
   );
 
-  const trpc = useTRPC();
   const namespace = useNamespace();
+  const organization = useOrganization();
 
   const { mutate: addDomain, isPending } = useMutation(
-    trpc.domain.add.mutationOptions({
-      onSuccess: (data) => {
+    orpc.hosting.addDomain.mutationOptions({
+      context: { orgId: organization.id },
+      onSuccess: (res) => {
         logEvent("domain_added", {
-          domain: data.slug,
+          domain: res.data.slug,
           namespaceId: namespace.id,
         });
-        setDomain(data.slug);
+        setDomain(res.data.slug);
       },
       onError: (error) => {
         toast.error(error.message || "Failed to add domain");
