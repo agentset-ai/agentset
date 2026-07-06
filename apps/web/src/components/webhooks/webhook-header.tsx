@@ -48,10 +48,9 @@ export default function WebhookHeader({ webhookId }: WebhookHeaderProps) {
 
   const { data: webhook, isLoading } = useQuery(
     orpc.webhook.get.queryOptions({
-      input: {
-        organizationId: organization.id,
-        webhookId,
-      },
+      input: { webhookId },
+      context: { orgId: organization.id },
+      select: (r) => r.data,
     }),
   );
 
@@ -60,10 +59,11 @@ export default function WebhookHeader({ webhookId }: WebhookHeaderProps) {
 
   const deleteMutation = useMutation(
     orpc.webhook.delete.mutationOptions({
+      context: { orgId: organization.id },
       onSuccess: () => {
         toast.success("Webhook deleted");
         queryClient.invalidateQueries({
-          queryKey: orpc.webhook.list.queryKey({
+          queryKey: orpc.webhook.listByOrg.queryKey({
             input: { organizationId: organization.id },
           }),
         });
@@ -76,21 +76,19 @@ export default function WebhookHeader({ webhookId }: WebhookHeaderProps) {
   );
 
   const toggleMutation = useMutation(
-    orpc.webhook.toggle.mutationOptions({
+    orpc.webhook.update.mutationOptions({
+      context: { orgId: organization.id },
       onSuccess: () => {
         toast.success(
           webhook?.disabledAt ? "Webhook enabled" : "Webhook disabled",
         );
         queryClient.invalidateQueries({
           queryKey: orpc.webhook.get.queryKey({
-            input: {
-              organizationId: organization.id,
-              webhookId,
-            },
+            input: { webhookId },
           }),
         });
         queryClient.invalidateQueries({
-          queryKey: orpc.webhook.list.queryKey({
+          queryKey: orpc.webhook.listByOrg.queryKey({
             input: { organizationId: organization.id },
           }),
         });
@@ -128,12 +126,7 @@ export default function WebhookHeader({ webhookId }: WebhookHeaderProps) {
         title="Delete webhook"
         description="This will permanently delete this webhook and stop all event deliveries."
         itemName={webhook?.name ?? ""}
-        onConfirm={() =>
-          deleteMutation.mutate({
-            organizationId: organization.id,
-            webhookId,
-          })
-        }
+        onConfirm={() => deleteMutation.mutate({ webhookId })}
         isLoading={deleteMutation.isPending}
       />
 
@@ -196,13 +189,14 @@ export default function WebhookHeader({ webhookId }: WebhookHeaderProps) {
               </DropdownMenuItem>
               <DropdownMenuSeparator />
               <DropdownMenuItem
-                onClick={() =>
+                onClick={() => {
+                  if (!webhook) return;
                   toggleMutation.mutate({
-                    organizationId: organization.id,
                     webhookId,
-                  })
-                }
-                disabled={toggleMutation.isPending}
+                    enabled: !!webhook.disabledAt,
+                  });
+                }}
+                disabled={toggleMutation.isPending || !webhook}
               >
                 {webhook?.disabledAt ? (
                   <>

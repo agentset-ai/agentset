@@ -33,20 +33,12 @@ export default function CreateApiKey({ orgId }: { orgId: string }) {
   const queryClient = useQueryClient();
 
   const { isPending, mutateAsync, data, reset } = useMutation(
-    orpc.apiKey.createApiKey.mutationOptions({
-      onSuccess: (newKey) => {
+    orpc.apiKey.create.mutationOptions({
+      context: { orgId },
+      onSuccess: (res) => {
         logEvent("api_key_created", {
           orgId,
-          scope: newKey.scope,
-        });
-
-        const queryKey = orpc.apiKey.getApiKeys.queryKey({
-          input: { orgId },
-        });
-
-        queryClient.setQueryData(queryKey, (old) => {
-          if (!old) return [];
-          return [...old, newKey];
+          scope: res.data.scope,
         });
 
         toast.success("API key created");
@@ -63,7 +55,6 @@ export default function CreateApiKey({ orgId }: { orgId: string }) {
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     await mutateAsync({
-      organizationId: orgId,
       label,
       scope,
     });
@@ -99,10 +90,10 @@ export default function CreateApiKey({ orgId }: { orgId: string }) {
             </DialogHeader>
 
             <pre className="bg-muted relative mt-5 flex-1 rounded-md p-4">
-              {data.key}
+              {data.data.key}
               <CopyButton
                 className="absolute top-1 right-1"
-                textToCopy={data.key}
+                textToCopy={data.data.key}
               />
             </pre>
           </div>
@@ -125,6 +116,8 @@ export default function CreateApiKey({ orgId }: { orgId: string }) {
                   className="col-span-3"
                   value={label}
                   onChange={(e) => setLabel(e.target.value)}
+                  // the shared create schema rejects empty labels
+                  required
                 />
               </div>
 

@@ -60,7 +60,7 @@ export function IngestModal() {
 
   const isPending =
     queryClient.isMutating({
-      mutationKey: orpc.ingestJob.ingest.mutationKey(),
+      mutationKey: orpc.ingestJob.create.mutationKey(),
     }) > 0;
 
   const isOverLimit =

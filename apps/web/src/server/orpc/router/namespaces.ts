@@ -4,19 +4,29 @@ import {
   NamespaceSchema,
   updateNamespaceSchema,
 } from "@/schemas/api/namespace";
-import { publicApi, requireNamespace, successSchema } from "@/server/orpc/base";
+import {
+  api,
+  protectedProcedure,
+  requireMember,
+  requireNamespace,
+  requireRoles,
+  successSchema,
+} from "@/server/orpc/base";
 import { createNamespace } from "@/services/namespaces/create";
 import { deleteNamespace } from "@/services/namespaces/delete";
 import { updateNamespace } from "@/services/namespaces/update";
+import { ORPCError } from "@orpc/server";
 import { z } from "zod/v4";
 
 import { NamespaceStatus } from "@agentset/db";
 import { db } from "@agentset/db/client";
+import { getDemoTemplate } from "@agentset/demo";
+import { triggerSeedDemoNamespace } from "@agentset/jobs";
 import { prefixId } from "@agentset/utils";
 
 import { makeCodeSamples, ts } from "./code-samples";
 
-const list = publicApi
+const list = api
   .route({
     method: "GET",
     path: "/namespace",
@@ -60,7 +70,8 @@ console.log(namespaces);
     };
   });
 
-const create = publicApi
+const create = api
+  .use(requireRoles("admin", "owner"))
   .route({
     method: "POST",
     path: "/namespace",
@@ -107,7 +118,7 @@ console.log(namespace);
     };
   });
 
-const get = publicApi
+const get = api
   .route({
     method: "GET",
     path: "/namespace/{namespaceId}",
@@ -142,7 +153,7 @@ console.log(namespace);
     };
   });
 
-const updateHandler = publicApi
+const updateHandler = api
   .input(updateNamespaceSchema.extend({ namespaceId: namespaceIdPathSchema }))
   .use(requireNamespace, (input) => input.namespaceId)
   .output(successSchema(NamespaceSchema))
@@ -195,7 +206,8 @@ const updatePut = updateHandler.route({
   tags: ["internal-alias"],
 });
 
-const del = publicApi
+const del = api
+  .use(requireRoles("admin", "owner"))
   .route({
     method: "DELETE",
     path: "/namespace/{namespaceId}",
@@ -234,4 +246,187 @@ export const namespacesRouter = {
   update,
   updatePut,
   delete: del,
+
+  // ---------------------------------------------------------------------
+  // Dashboard-only procedures — session auth, no REST/OpenAPI/MCP surface.
+  // ---------------------------------------------------------------------
+  getOrgNamespaces: protectedProcedure
+    .input(
+      z.object({
+        slug: z.string(),
+      }),
+    )
+    .handler(async ({ context, input }) => {
+      const member = await requireMember(context.session, {
+        slug: input.slug,
+      });
+
+      const namespaces = await db.namespace.findMany({
+        where: {
+          organizationId: member.organizationId,
+          status: NamespaceStatus.ACTIVE,
+        },
+        orderBy: {
+          createdAt: "desc",
+        },
+      });
+
+      return namespaces;
+    }),
+  getNamespaceBySlug: protectedProcedure
+    .input(z.object({ orgSlug: z.string(), slug: z.string() }))
+    .handler(async ({ context, input }) => {
+      const namespace = await db.namespace.findFirst({
+        where: {
+          slug: input.slug,
+          organization: {
+            slug: input.orgSlug,
+            members: { some: { userId: context.session.user.id } },
+          },
+          status: NamespaceStatus.ACTIVE,
+        },
+      });
+
+      return namespace;
+    }),
+  getOnboardingStatus: protectedProcedure
+    .input(z.object({ orgSlug: z.string(), slug: z.string() }))
+    .handler(async ({ context, input }) => {
+      const namespace = await db.namespace.findFirst({
+        where: {
+          slug: input.slug,
+          organization: {
+            slug: input.orgSlug,
+            members: { some: { userId: context.session.user.id } },
+          },
+          status: NamespaceStatus.ACTIVE,
+        },
+        select: {
+          totalIngestJobs: true,
+          totalPlaygroundUsage: true,
+          organization: {
+            select: {
+              apiKeys: {
+                take: 1,
+                select: {
+                  id: true,
+                },
+              },
+            },
+          },
+        },
+      });
+
+      if (!namespace) {
+        throw new ORPCError("NOT_FOUND");
+      }
+
+      return {
+        ingestDocuments: namespace.totalIngestJobs > 0,
+        playground: namespace.totalPlaygroundUsage > 0,
+        createApiKey: namespace.organization.apiKeys.length > 0,
+      };
+    }),
+  checkSlug: protectedProcedure
+    .input(
+      z.object({
+        orgId: z.string(),
+        slug: z.string(),
+      }),
+    )
+    .handler(async ({ input }) => {
+      const namespace = await db.namespace.findUnique({
+        where: {
+          organizationId_slug: {
+            slug: input.slug,
+            organizationId: input.orgId,
+          },
+        },
+      });
+
+      return !!namespace;
+    }),
+  createDemoNamespace: protectedProcedure
+    .input(
+      z.object({
+        orgId: z.string(),
+        templateId: z.string(),
+      }),
+    )
+    .handler(async ({ context, input }) => {
+      await requireMember(
+        context.session,
+        { id: input.orgId },
+        { roles: ["admin", "owner"] },
+      );
+
+      const template = getDemoTemplate(input.templateId);
+      if (!template) {
+        throw new ORPCError("BAD_REQUEST", {
+          message: "Invalid template ID",
+        });
+      }
+
+      const organization = await db.organization.findUnique({
+        where: { id: input.orgId },
+        select: { id: true, plan: true },
+      });
+      if (!organization) {
+        throw new ORPCError("NOT_FOUND");
+      }
+
+      let slug: string = template.id;
+      let suffix = 2;
+      while (true) {
+        const existing = await db.namespace.findUnique({
+          where: {
+            organizationId_slug: {
+              organizationId: input.orgId,
+              slug,
+            },
+          },
+          select: { id: true },
+        });
+
+        if (!existing) break;
+
+        slug = `${template.id}-${suffix}`;
+        suffix += 1;
+      }
+
+      const [namespace] = await db.$transaction([
+        db.namespace.create({
+          data: {
+            name: template.name,
+            slug,
+            demoId: template.id,
+            organizationId: input.orgId,
+            embeddingConfig: {
+              provider: "MANAGED_OPENAI",
+              model: "text-embedding-3-large",
+            },
+            vectorStoreConfig: {
+              provider: "MANAGED_TURBOPUFFER",
+            },
+          },
+        }),
+        db.organization.update({
+          where: { id: input.orgId },
+          data: {
+            totalNamespaces: { increment: 1 },
+          },
+        }),
+      ]);
+
+      await triggerSeedDemoNamespace(
+        {
+          namespaceId: namespace.id,
+          organizationId: organization.id,
+          templateId: template.id,
+        },
+        organization.plan,
+      );
+
+      return namespace;
+    }),
 };

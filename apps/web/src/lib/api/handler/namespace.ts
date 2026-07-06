@@ -10,7 +10,7 @@ export const getNamespace = async ({
   namespaceId: string;
   organizationId: string;
 }) => {
-  return unstable_cache(
+  const namespace = await unstable_cache(
     async () => {
       return await db.namespace.findUnique({
         where: {
@@ -26,4 +26,15 @@ export const getNamespace = async ({
       tags: [`org:${organizationId}`, `ns:${namespaceId}`],
     },
   )();
+
+  if (!namespace) return namespace;
+
+  // unstable_cache JSON-serializes its value, so cache hits revive DateTime
+  // columns as strings — which fails the z.date() output schemas downstream
+  // (GET /v1/namespace/{namespaceId} 500'd on a warm cache)
+  return {
+    ...namespace,
+    createdAt: new Date(namespace.createdAt),
+    updatedAt: new Date(namespace.updatedAt),
+  };
 };

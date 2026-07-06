@@ -5,13 +5,13 @@ import {
   uploadFileSchema,
   UploadResultSchema,
 } from "@/schemas/api/upload";
-import { publicApi, requireNamespace, successSchema } from "@/server/orpc/base";
+import { api, requireNamespace, successSchema } from "@/server/orpc/base";
 import { createBatchUpload, createUpload } from "@/services/uploads";
 import { z } from "zod/v4";
 
 import { makeCodeSamples, ts } from "./code-samples";
 
-const create = publicApi
+const create = api
   .route({
     method: "POST",
     path: "/namespace/{namespaceId}/uploads",
@@ -78,7 +78,7 @@ console.log("Uploaded successfully: ", result.key);
     return { success: true as const, data: result.data };
   });
 
-const createBatch = publicApi
+const createBatch = api
   .route({
     method: "POST",
     path: "/namespace/{namespaceId}/uploads/batch",

@@ -58,11 +58,11 @@ import {
 import { webhookEventSchema } from "@agentset/webhooks";
 
 import { successSchema } from "./base";
-import { publicRouter } from "./public/router";
+import { appRouter } from "./router";
 
 /**
- * Builds the public OpenAPI document (`/openapi.json`) from the oRPC public
- * router, then post-processes it into byte-level parity with the legacy
+ * Builds the public OpenAPI document (`/openapi.json`) from the app router,
+ * then post-processes it into byte-level parity with the legacy
  * zod-openapi document. Speakeasy (SDK generation) and Mintlify (docs) ingest
  * this document, so operationIds, `x-speakeasy-*` extensions, component
  * schema NAMES and the shared error/parameter components must not drift.
@@ -941,13 +941,14 @@ const generator = new OpenAPIGenerator({
 });
 
 export const buildOpenApiDocument = async (): Promise<JsonObject> => {
-  const document = await generator.generate(publicRouter, {
+  const document = await generator.generate(appRouter, {
     info: INFO,
     servers: SERVERS,
     components: { securitySchemes: SECURITY_SCHEMES as never },
     commonSchemas: commonSchemas as never,
-    filter: ({ contract }) =>
-      !contract["~orpc"].route.tags?.includes("internal-alias"),
+    // published operations only: dashboard-only procedures have no route
+    // metadata and the hidden PUT aliases have no operationId
+    filter: ({ contract }) => !!contract["~orpc"].route.operationId,
   });
 
   return postProcess(document as unknown as JsonObject);

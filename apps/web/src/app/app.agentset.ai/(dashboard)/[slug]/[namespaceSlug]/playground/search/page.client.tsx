@@ -40,7 +40,7 @@ export default function ChunkExplorerPageClient() {
   const [rerankLimit, setRerankLimit] = useState(20);
 
   const { data, isLoading, isFetching, error, isEnabled } = useQuery(
-    orpc.search.search.queryOptions({
+    orpc.search.playground.queryOptions({
       input: {
         namespaceId: namespace.id,
         query: searchQuery,

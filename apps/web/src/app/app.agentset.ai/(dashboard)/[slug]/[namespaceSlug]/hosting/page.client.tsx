@@ -1,7 +1,9 @@
 "use client";
 
 import { useNamespace } from "@/hooks/use-namespace";
+import { useOrganization } from "@/hooks/use-organization";
 import { orpc } from "@/lib/orpc";
+import { ORPCError } from "@orpc/client";
 import { useQuery } from "@tanstack/react-query";
 
 import { Skeleton } from "@agentset/ui/skeleton";
@@ -9,11 +11,18 @@ import { Skeleton } from "@agentset/ui/skeleton";
 import { HostingLayout } from "./components/hosting-layout";
 import { EmptyState } from "./empty-state";
 
+const isNotFoundError = (error: unknown) =>
+  error instanceof ORPCError && error.code === "NOT_FOUND";
+
 export default function HostingPageClient() {
   const namespace = useNamespace();
-  const { data, isLoading } = useQuery(
+  const organization = useOrganization();
+  const { data, isLoading, error } = useQuery(
     orpc.hosting.get.queryOptions({
       input: { namespaceId: namespace.id },
+      context: { orgId: organization.id },
+      select: (result) => result.data,
+      retry: (count, error) => (isNotFoundError(error) ? false : count < 3),
     }),
   );
 
@@ -21,8 +30,19 @@ export default function HostingPageClient() {
     return <LoadingSkeleton />;
   }
 
-  if (!data) {
+  // hosting not enabled yet — the shared procedure 404s instead of returning null
+  if (isNotFoundError(error)) {
     return <EmptyState />;
+  }
+
+  if (error || !data) {
+    return (
+      <div className="flex h-full items-center justify-center py-24">
+        <p className="text-muted-foreground text-sm">
+          {error?.message ?? "Failed to load hosting settings."}
+        </p>
+      </div>
+    );
   }
 
   return <HostingLayout data={data} />;

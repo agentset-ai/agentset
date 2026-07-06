@@ -14,10 +14,9 @@ export default function EditWebhookPage() {
 
   const { data: webhook, isLoading } = useQuery(
     orpc.webhook.get.queryOptions({
-      input: {
-        organizationId: organization.id,
-        webhookId: params.webhookId,
-      },
+      input: { webhookId: params.webhookId },
+      context: { orgId: organization.id },
+      select: (r) => r.data,
     }),
   );
 

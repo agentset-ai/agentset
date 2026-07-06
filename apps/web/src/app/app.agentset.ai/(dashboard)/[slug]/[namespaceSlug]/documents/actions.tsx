@@ -2,6 +2,7 @@ import type { Row } from "@tanstack/react-table";
 import { useState } from "react";
 import { DeleteConfirmationDialog } from "@/components/delete-confirmation";
 import { useNamespace } from "@/hooks/use-namespace";
+import { useOrganization } from "@/hooks/use-organization";
 import { orpc } from "@/lib/orpc";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import {
@@ -27,10 +28,12 @@ import type { JobCol } from "./columns";
 export function JobActions({ row }: { row: Row<JobCol> }) {
   const queryClient = useQueryClient();
   const namespace = useNamespace();
+  const organization = useOrganization();
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
 
   const { mutate: deleteJob, isPending: isDeletePending } = useMutation(
     orpc.ingestJob.delete.mutationOptions({
+      context: { orgId: organization.id },
       onSuccess: () => {
         toast.success("Job queued for deletion");
         setDeleteDialogOpen(false);
@@ -49,6 +52,7 @@ export function JobActions({ row }: { row: Row<JobCol> }) {
 
   const { mutate: reIngestJob, isPending: isReIngestPending } = useMutation(
     orpc.ingestJob.reIngest.mutationOptions({
+      context: { orgId: organization.id },
       onSuccess: () => {
         toast.success("Job re-ingestion started");
         void queryClient.invalidateQueries({

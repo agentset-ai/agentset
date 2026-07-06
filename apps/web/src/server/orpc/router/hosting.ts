@@ -1,3 +1,4 @@
+import type { ProtectedContext } from "@/server/orpc/base";
 import { AgentsetApiError } from "@/lib/api/errors";
 import { namespaceIdPathSchema } from "@/schemas/api/params";
 import {
@@ -7,7 +8,12 @@ import {
   HostingSchema,
   updateHostingSchema,
 } from "@/schemas/api/hosting";
-import { publicApi, requireNamespace, successSchema } from "@/server/orpc/base";
+import {
+  api,
+  protectedProcedure,
+  requireNamespace,
+  successSchema,
+} from "@/server/orpc/base";
 import { addDomain as addDomainService } from "@/services/domains/add";
 import { checkDomainStatus as checkDomainStatusService } from "@/services/domains/check-status";
 import { removeDomain as removeDomainService } from "@/services/domains/remove";
@@ -15,13 +21,15 @@ import { deleteHosting } from "@/services/hosting/delete";
 import { enableHosting } from "@/services/hosting/enable";
 import { getHosting } from "@/services/hosting/get";
 import { updateHosting } from "@/services/hosting/update";
+import { ORPCError } from "@orpc/server";
 import { z } from "zod/v4";
 
+import { db } from "@agentset/db/client";
 import { prefixId } from "@agentset/utils";
 
 import { makeCodeSamples, ts } from "./code-samples";
 
-const get = publicApi
+const get = api
   .route({
     method: "GET",
     path: "/namespace/{namespaceId}/hosting",
@@ -63,7 +71,7 @@ console.log(hosting);
     };
   });
 
-const enable = publicApi
+const enable = api
   .route({
     method: "POST",
     path: "/namespace/{namespaceId}/hosting",
@@ -99,7 +107,7 @@ console.log(hosting);
     };
   });
 
-const updateHandler = publicApi
+const updateHandler = api
   .input(updateHostingSchema.extend({ namespaceId: namespaceIdPathSchema }))
   .use(requireNamespace, (input) => input.namespaceId)
   .output(successSchema(HostingSchema))
@@ -153,7 +161,7 @@ const updatePut = updateHandler.route({
   tags: ["internal-alias"],
 });
 
-const del = publicApi
+const del = api
   .route({
     method: "DELETE",
     path: "/namespace/{namespaceId}/hosting",
@@ -195,7 +203,7 @@ const getHostingOrThrow = async (namespaceId: string) => {
   return hosting;
 };
 
-const checkDomainStatus = publicApi
+const checkDomainStatus = api
   .route({
     method: "GET",
     path: "/namespace/{namespaceId}/hosting/domain",
@@ -249,7 +257,7 @@ console.log(status);
     };
   });
 
-const addDomain = publicApi
+const addDomain = api
   .route({
     method: "POST",
     path: "/namespace/{namespaceId}/hosting/domain",
@@ -286,7 +294,7 @@ console.log(domain);
     return { success: true as const, data: domain };
   });
 
-const removeDomain = publicApi
+const removeDomain = api
   .route({
     method: "DELETE",
     path: "/namespace/{namespaceId}/hosting/domain",
@@ -316,6 +324,53 @@ console.log("Domain removed");
     await removeDomainService({ hostingId: hosting.id });
   });
 
+// -----------------------------------------------------------------------------
+// Dashboard-only (session) procedures — no .route(): never exposed on
+// REST/OpenAPI/MCP. Raw outputs, raw ids.
+// -----------------------------------------------------------------------------
+
+/**
+ * Session counterpart of `getHostingOrThrow`: resolves the hosting through the
+ * caller's org membership (no org header contract) — kept inline because the
+ * org is derived from the namespace, not from an input.
+ */
+const getHostingByUserOrThrow = async (
+  ctx: Pick<ProtectedContext, "session">,
+  input: { namespaceId: string },
+) => {
+  const hosting = await db.hosting.findFirst({
+    where: {
+      namespace: {
+        id: input.namespaceId,
+        organization: {
+          members: { some: { userId: ctx.session.user.id } },
+        },
+      },
+    },
+  });
+
+  if (!hosting) {
+    throw new ORPCError("NOT_FOUND", {
+      message: "Hosting not found",
+    });
+  }
+
+  return hosting;
+};
+
+/**
+ * Raw Vercel domain-status payload for the dashboard's domain card. The shared
+ * `checkDomainStatus` flattens the response into `DomainStatusSchema`, which
+ * drops `domainJson.error.message` (rendered by the "Unknown Error" UI branch)
+ * and the raw `domainJson`/`configJson` the card consumes.
+ */
+const domainStatusDetailed = protectedProcedure
+  .input(z.object({ namespaceId: z.string() }))
+  .handler(async ({ context, input }) => {
+    const hosting = await getHostingByUserOrThrow(context, input);
+    return checkDomainStatusService({ hostingId: hosting.id });
+  });
+
 export const hostingRouter = {
   get,
   enable,
@@ -325,4 +380,5 @@ export const hostingRouter = {
   checkDomainStatus,
   addDomain,
   removeDomain,
+  domainStatusDetailed,
 };

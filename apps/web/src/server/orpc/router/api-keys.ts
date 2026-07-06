@@ -4,12 +4,19 @@ import {
   createApiKeyBodySchema,
   CreatedApiKeySchema,
 } from "@/schemas/api/api-key";
-import { publicApi, successSchema } from "@/server/orpc/base";
+import {
+  api,
+  protectedProcedure,
+  requireMember,
+  requireRoles,
+  successSchema,
+} from "@/server/orpc/base";
 import { createApiKey } from "@/services/api-key/create";
 import { deleteApiKey } from "@/services/api-key/delete";
 import { listApiKeys } from "@/services/api-key/list";
 import { z } from "zod/v4";
 
+import { db } from "@agentset/db/client";
 import { prefixId } from "@agentset/utils";
 
 import { makeCodeSamples, ts } from "./code-samples";
@@ -24,7 +31,8 @@ const keyIdPathSchema = z.string().meta({
   },
 });
 
-const list = publicApi
+const list = api
+  .use(requireRoles("admin", "owner"))
   .route({
     method: "GET",
     path: "/api-keys",
@@ -61,7 +69,8 @@ console.log(apiKeys);
     };
   });
 
-const create = publicApi
+const create = api
+  .use(requireRoles("admin", "owner"))
   .route({
     method: "POST",
     path: "/api-keys",
@@ -105,7 +114,8 @@ console.log(apiKey.key);
     };
   });
 
-const remove = publicApi
+const remove = api
+  .use(requireRoles("admin", "owner"))
   .route({
     method: "DELETE",
     path: "/api-keys/{keyId}",
@@ -148,4 +158,43 @@ export const apiKeysRouter = {
   list,
   create,
   delete: remove,
+
+  // -------------------------------------------------------------------------
+  // Dashboard-only (session) procedures — no .route(): never exposed on
+  // REST/OpenAPI/MCP. Raw outputs, raw ids.
+  // -------------------------------------------------------------------------
+
+  getApiKeys: protectedProcedure
+    .input(
+      z.object({
+        orgId: z.string(),
+      }),
+    )
+    .handler(async ({ context, input }) => {
+      // make sure the user is a member of the org
+      await requireMember(
+        context.session,
+        { id: input.orgId },
+        { roles: ["admin", "owner"] },
+      );
+
+      const apiKeys = await listApiKeys({ organizationId: input.orgId });
+
+      return apiKeys;
+    }),
+  getDefaultApiKey: protectedProcedure
+    .input(z.object({ orgId: z.string() }))
+    .handler(async ({ context, input }) => {
+      await requireMember(context.session, { id: input.orgId });
+
+      const apiKey = await db.organizationApiKey.findFirst({
+        where: {
+          organizationId: input.orgId,
+          label: "Default API Key",
+        },
+        select: { key: true },
+      });
+
+      return apiKey?.key ?? null;
+    }),
 };

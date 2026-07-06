@@ -5,7 +5,7 @@ import {
 import { generateChat, streamChat } from "@/lib/chat";
 import { chatResponseSchema, chatSchema } from "@/schemas/api/chat";
 import { namespaceIdPathSchema } from "@/schemas/api/params";
-import { publicApi, requireNamespace, successSchema } from "@/server/orpc/base";
+import { api, requireNamespace, successSchema } from "@/server/orpc/base";
 import { toModelMessages } from "@/services/chat";
 import { ZodToJsonSchemaConverter } from "@orpc/zod/zod4";
 import { z } from "zod/v4";
@@ -28,7 +28,7 @@ const chatSuccessJsonSchema = () => {
   return jsonSchema;
 };
 
-const execute = publicApi
+const execute = api
   .route({
     method: "POST",
     path: "/namespace/{namespaceId}/chat",

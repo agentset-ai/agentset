@@ -8,6 +8,7 @@ import { InfoIcon, RefreshCwIcon } from "lucide-react";
 import { toast } from "sonner";
 import { z } from "zod/v4";
 
+import { normalizeId } from "@agentset/utils";
 import { Button } from "@agentset/ui/button";
 import { Checkbox } from "@agentset/ui/checkbox";
 import { CopyButton } from "@agentset/ui/copy-button";
@@ -68,7 +69,10 @@ export default function AddEditWebhookForm({
       name: webhook?.name || "",
       url: webhook?.url || "",
       triggers: (webhook?.triggers as WebhookFormValues["triggers"]) || [],
-      namespaceIds: webhook?.namespaceIds || [],
+      // shared webhook.get returns ns_-prefixed ids; keep form state raw so it
+      // matches getNamespaces ids (checkbox comparison) and submits raw ids
+      namespaceIds:
+        webhook?.namespaceIds?.map((id) => normalizeId(id, "ns_")) || [],
     },
   });
 
@@ -78,10 +82,13 @@ export default function AddEditWebhookForm({
 
   const createMutation = useMutation(
     orpc.webhook.create.mutationOptions({
+      context: { orgId: organizationId },
       onSuccess: () => {
         toast.success("Webhook created");
         queryClient.invalidateQueries({
-          queryKey: orpc.webhook.list.queryKey({ input: { organizationId } }),
+          queryKey: orpc.webhook.listByOrg.queryKey({
+            input: { organizationId },
+          }),
         });
         router.push(`/${organizationSlug}/webhooks`);
       },
@@ -93,17 +100,17 @@ export default function AddEditWebhookForm({
 
   const updateMutation = useMutation(
     orpc.webhook.update.mutationOptions({
+      context: { orgId: organizationId },
       onSuccess: () => {
         toast.success("Webhook updated");
         queryClient.invalidateQueries({
-          queryKey: orpc.webhook.list.queryKey({ input: { organizationId } }),
+          queryKey: orpc.webhook.listByOrg.queryKey({
+            input: { organizationId },
+          }),
         });
         queryClient.invalidateQueries({
           queryKey: orpc.webhook.get.queryKey({
-            input: {
-              organizationId,
-              webhookId: webhook!.id,
-            },
+            input: { webhookId: webhook!.id },
           }),
         });
         router.push(`/${organizationSlug}/webhooks/${webhook!.id}`);
@@ -116,14 +123,12 @@ export default function AddEditWebhookForm({
 
   const regenerateSecretMutation = useMutation(
     orpc.webhook.regenerateSecret.mutationOptions({
+      context: { orgId: organizationId },
       onSuccess: () => {
         toast.success("Secret regenerated");
         queryClient.invalidateQueries({
           queryKey: orpc.webhook.get.queryKey({
-            input: {
-              organizationId,
-              webhookId: webhook!.id,
-            },
+            input: { webhookId: webhook!.id },
           }),
         });
       },
@@ -142,14 +147,10 @@ export default function AddEditWebhookForm({
     if (isEditing) {
       updateMutation.mutate({
         ...payload,
-        organizationId,
         webhookId: webhook.id,
       });
     } else {
-      createMutation.mutate({
-        ...payload,
-        organizationId,
-      });
+      createMutation.mutate(payload);
     }
   };
 
@@ -242,7 +243,6 @@ export default function AddEditWebhookForm({
                   className="size-8"
                   onClick={() =>
                     regenerateSecretMutation.mutate({
-                      organizationId,
                       webhookId: webhook.id,
                     })
                   }

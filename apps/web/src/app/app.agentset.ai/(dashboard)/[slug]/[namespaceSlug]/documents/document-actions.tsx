@@ -2,6 +2,7 @@ import type { Row } from "@tanstack/react-table";
 import { useState } from "react";
 import { DeleteConfirmationDialog } from "@/components/delete-confirmation";
 import { useNamespace } from "@/hooks/use-namespace";
+import { useOrganization } from "@/hooks/use-organization";
 import { logEvent } from "@/lib/analytics";
 import { orpc } from "@/lib/orpc";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
@@ -28,11 +29,13 @@ import type { DocumentCol } from "./documents-columns";
 
 export default function DocumentActions({ row }: { row: Row<DocumentCol> }) {
   const namespace = useNamespace();
+  const organization = useOrganization();
   const queryClient = useQueryClient();
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
 
   const { isPending, mutate: deleteDocument } = useMutation(
     orpc.document.delete.mutationOptions({
+      context: { orgId: organization.id },
       onSuccess: () => {
         logEvent("document_deleted", {
           documentId: row.original.id,
@@ -56,8 +59,9 @@ export default function DocumentActions({ row }: { row: Row<DocumentCol> }) {
 
   const { isPending: isDownloading, mutate: getDownloadUrl } = useMutation(
     orpc.document.getFileDownloadUrl.mutationOptions({
-      onSuccess: ({ url }) => {
-        window.open(url, "_blank");
+      context: { orgId: organization.id },
+      onSuccess: (res) => {
+        window.open(res.data.url, "_blank");
       },
       onError: (error) => {
         toast.error(error.message);

@@ -18,7 +18,8 @@ export function DeleteNamespaceButton() {
   const queryClient = useQueryClient();
 
   const { mutate: deleteNamespace, isPending } = useMutation(
-    orpc.namespace.deleteNamespace.mutationOptions({
+    orpc.namespace.delete.mutationOptions({
+      context: { orgId: organization.id },
       onSuccess: () => {
         logEvent("namespace_deleted", {
           id: namespace.id,

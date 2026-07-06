@@ -5,18 +5,30 @@ import {
 import { NodeSchema } from "@/schemas/api/node";
 import { namespaceIdPathSchema } from "@/schemas/api/params";
 import { queryVectorStoreSchema } from "@/schemas/api/query";
-import { publicApi, requireNamespace, successSchema } from "@/server/orpc/base";
+import {
+  api,
+  protectedProcedure,
+  requireNamespace,
+  successSchema,
+} from "@/server/orpc/base";
 import { searchNamespace } from "@/services/search";
 import { toOpenAPISchema } from "@orpc/openapi";
-import { type } from "@orpc/server";
+import { ORPCError, type } from "@orpc/server";
 import { ZodToJsonSchemaConverter } from "@orpc/zod/zod4";
 import { z } from "zod/v4";
 
 import type { QueryVectorStoreResult } from "@agentset/engine";
+import {
+  getNamespaceEmbeddingModel,
+  getNamespaceVectorStore,
+  queryVectorStore,
+} from "@agentset/engine";
+import { rerankerSchema } from "@agentset/validation";
 
 import { makeCodeSamples, ts } from "./code-samples";
+import { getNamespaceByUser } from "./helpers";
 
-const execute = publicApi
+const search = api
   .route({
     method: "POST",
     path: "/namespace/{namespaceId}/search",
@@ -79,6 +91,52 @@ console.log(results);
     return { success: true as const, data: results };
   });
 
+const chunkExplorerInputSchema = z.object({
+  namespaceId: z.string(),
+  query: z.string().min(1),
+  topK: z.number().min(1).max(100),
+  rerank: z.boolean(),
+  rerankModel: rerankerSchema,
+  rerankLimit: z.number().min(1).max(100),
+  filter: z.record(z.string(), z.any()).optional(),
+});
+
+const playground = protectedProcedure
+  .input(chunkExplorerInputSchema)
+  .handler(async ({ context, input }) => {
+    const namespace = await getNamespaceByUser(context, {
+      id: input.namespaceId,
+    });
+
+    if (!namespace) {
+      throw new ORPCError("NOT_FOUND");
+    }
+
+    const [embeddingModel, vectorStore] = await Promise.all([
+      getNamespaceEmbeddingModel(namespace, "query"),
+      getNamespaceVectorStore(namespace),
+    ]);
+
+    const queryResult = await queryVectorStore({
+      query: input.query,
+      topK: input.topK,
+      filter: input.filter,
+      includeMetadata: true,
+      rerank: input.rerank
+        ? { model: input.rerankModel, limit: input.rerankLimit }
+        : false,
+      embeddingModel,
+      vectorStore,
+      consistency: "strong",
+    });
+
+    // Track search usage
+    incrementOrganizationSearchUsage(namespace.organizationId, 1);
+
+    return queryResult.results;
+  });
+
 export const searchRouter = {
-  execute,
+  search,
+  playground,
 };

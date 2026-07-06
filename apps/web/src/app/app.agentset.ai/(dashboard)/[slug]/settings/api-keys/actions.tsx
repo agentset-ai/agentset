@@ -21,7 +21,9 @@ export function ApiKeyActions({ row }: { row: Row<ApiKeyDef> }) {
   const id = row.original.id;
 
   const { mutateAsync: deleteApiKey, isPending } = useMutation(
-    orpc.apiKey.deleteApiKey.mutationOptions({
+    orpc.apiKey.delete.mutationOptions({
+      // rows come from the session getApiKeys cache, so organizationId is raw
+      context: { orgId },
       onSuccess: () => {
         const queryKey = orpc.apiKey.getApiKeys.queryKey({
           input: { orgId },
@@ -43,7 +45,7 @@ export function ApiKeyActions({ row }: { row: Row<ApiKeyDef> }) {
   );
 
   const handleDelete = async () => {
-    await deleteApiKey({ orgId, id });
+    await deleteApiKey({ keyId: id });
   };
 
   return (

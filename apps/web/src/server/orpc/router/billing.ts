@@ -54,27 +54,6 @@ const orgInputSchema = z.object({
 });
 
 export const billingRouter = {
-  getCurrentPlan: protectedProcedure
-    .input(orgInputSchema)
-    .use(requireOrganization, (input) => input.orgId)
-    .handler(async ({ context }) => {
-      const org = await db.organization.findUnique({
-        where: {
-          id: context.organization.id,
-        },
-        select: {
-          plan: true,
-          pagesLimit: true,
-          totalPages: true,
-          totalDocuments: true,
-          totalIngestJobs: true,
-          billingCycleStart: true,
-          stripeId: true,
-        },
-      });
-
-      return org!;
-    }),
   upgrade: protectedProcedure
     .input(
       orgInputSchema.extend({

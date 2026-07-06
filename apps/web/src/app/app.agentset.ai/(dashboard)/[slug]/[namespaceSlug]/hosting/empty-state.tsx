@@ -1,4 +1,5 @@
 import { useNamespace } from "@/hooks/use-namespace";
+import { useOrganization } from "@/hooks/use-organization";
 import { logEvent } from "@/lib/analytics";
 import { orpc } from "@/lib/orpc";
 
@@ -18,11 +19,13 @@ import { toast } from "sonner";
 
 export function EmptyState() {
   const namespace = useNamespace();
+  const organization = useOrganization();
 
   const queryClient = useQueryClient();
   const { mutate: enableHosting, isPending } = useMutation(
     orpc.hosting.enable.mutationOptions({
-      onSuccess: (hosting) => {
+      context: { orgId: organization.id },
+      onSuccess: (res) => {
         logEvent("hosting_enabled", {
           namespaceId: namespace.id,
         });
@@ -32,7 +35,8 @@ export function EmptyState() {
             input: { namespaceId: namespace.id },
           }),
           () => {
-            return { ...hosting, domain: null };
+            // the hosting.get cache holds the enveloped shape
+            return { success: true as const, data: res.data };
           },
         );
       },

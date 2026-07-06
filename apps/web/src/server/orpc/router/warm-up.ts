@@ -1,6 +1,6 @@
 import { AgentsetApiError } from "@/lib/api/errors";
 import { namespaceIdPathSchema } from "@/schemas/api/params";
-import { publicApi, requireNamespace } from "@/server/orpc/base";
+import { api, requireNamespace } from "@/server/orpc/base";
 import { type } from "@orpc/server";
 import { z } from "zod/v4";
 
@@ -8,7 +8,7 @@ import { getNamespaceVectorStore } from "@agentset/engine";
 
 import { makeCodeSamples, ts } from "./code-samples";
 
-const warmUp = publicApi
+const warmUp = api
   .route({
     method: "POST",
     path: "/namespace/{namespaceId}/warm-up",

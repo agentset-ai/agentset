@@ -1,4 +1,4 @@
-import type { PublicApiContext } from "@/server/orpc/base";
+import type { ApiContext } from "@/server/orpc/base";
 import type { NextRequest } from "next/server";
 import {
   flushServerEvents,
@@ -9,7 +9,7 @@ import {
   legacyErrorORPCError,
   legacyErrorResponseBodyEncoder,
 } from "@/server/orpc/base";
-import { publicRouter } from "@/server/orpc/public/router";
+import { appRouter } from "@/server/orpc/router";
 import { SmartCoercionPlugin } from "@orpc/json-schema";
 import { OpenAPIHandler } from "@orpc/openapi/fetch";
 import { ZodToJsonSchemaConverter } from "@orpc/zod/zod4";
@@ -17,7 +17,10 @@ import { ZodToJsonSchemaConverter } from "@orpc/zod/zod4";
 export const preferredRegion = "iad1"; // make this closer to the DB
 export const maxDuration = 120;
 
-const handler = new OpenAPIHandler<PublicApiContext>(publicRouter, {
+const handler = new OpenAPIHandler<ApiContext>(appRouter, {
+  // dashboard-only procedures carry no route metadata — keep them off the
+  // public REST surface (the hidden PUT aliases have a path, so they stay)
+  filter: ({ contract }) => !!contract["~orpc"].route.path,
   plugins: [
     new SmartCoercionPlugin({
       schemaConverters: [new ZodToJsonSchemaConverter()],
@@ -50,8 +53,8 @@ const notFoundResponse = () =>
   );
 
 async function handleRequest(request: NextRequest) {
-  const context: PublicApiContext = {
-    headers: request.headers,
+  const context: ApiContext = {
+    reqHeaders: request.headers,
     resHeaders: {},
     analytics: {},
   };

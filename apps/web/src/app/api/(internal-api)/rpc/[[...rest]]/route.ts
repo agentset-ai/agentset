@@ -1,12 +1,41 @@
-import type { InternalContext } from "@/server/orpc/base";
+import type { ApiContext } from "@/server/orpc/base";
 import { auth } from "@/lib/auth";
-import { internalRouter } from "@/server/orpc/internal/router";
+import { toDashboardORPCError } from "@/server/orpc/base";
+import { appRouter } from "@/server/orpc/router";
 import { onError } from "@orpc/server";
 import { RPCHandler } from "@orpc/server/fetch";
-import { BatchHandlerPlugin } from "@orpc/server/plugins";
+import {
+  BatchHandlerPlugin,
+  RequestHeadersPlugin,
+} from "@orpc/server/plugins";
 
-const handler = new RPCHandler<InternalContext>(internalRouter, {
-  plugins: [new BatchHandlerPlugin()],
+const handler = new RPCHandler<ApiContext>(appRouter, {
+  plugins: [
+    new BatchHandlerPlugin(),
+    // injects per-item headers as context.reqHeaders AFTER batch splitting,
+    // so each batched call authenticates with its own x-organization-id
+    new RequestHeadersPlugin(),
+  ],
+  clientInterceptors: [
+    // port of the old timingMiddleware: timing log + AgentsetApiError → typed
+    // transport error (dashboard mutations surface 4xx instead of 500)
+    async (options) => {
+      const start = Date.now();
+
+      try {
+        const result = await options.next();
+
+        const end = Date.now();
+        console.log(
+          `[RPC] ${options.path.join(".")} took ${end - start}ms to execute`,
+        );
+
+        return result;
+      } catch (error) {
+        throw toDashboardORPCError(error);
+      }
+    },
+  ],
   interceptors: [
     onError((error) => {
       console.error(error);
@@ -19,8 +48,9 @@ async function handleRequest(request: Request) {
   // shared across batched procedure calls
   const session = await auth.api.getSession({ headers: request.headers });
 
-  const context: InternalContext = {
-    headers: request.headers,
+  const context: ApiContext = {
+    resHeaders: {},
+    analytics: {},
     session,
   };
 

@@ -1,4 +1,5 @@
 import { AgentsetApiError } from "@/lib/api/errors";
+import { samplePayload } from "@/lib/webhook/sample-events/payload";
 import {
   createWebhookSchema,
   updateWebhookSchema,
@@ -6,7 +7,13 @@ import {
   WebhookSchema,
   WebhookSummarySchema,
 } from "@/schemas/api/webhook";
-import { publicApi, successSchema } from "@/server/orpc/base";
+import {
+  api,
+  protectedProcedure,
+  requireMember,
+  requireRoles,
+  successSchema,
+} from "@/server/orpc/base";
 import { createWebhook } from "@/services/webhooks/create";
 import { deleteWebhook } from "@/services/webhooks/delete";
 import { getWebhook } from "@/services/webhooks/get";
@@ -14,10 +21,20 @@ import { listWebhooks } from "@/services/webhooks/list";
 import { requireWebhooksPlan } from "@/services/webhooks/plan";
 import { regenerateWebhookSecret } from "@/services/webhooks/regenerate-secret";
 import { applyWebhookUpdate } from "@/services/webhooks/update";
+import { ORPCError } from "@orpc/server";
+import { nanoid } from "nanoid";
 import { z } from "zod/v4";
 
 import type { WebhookProps } from "@agentset/webhooks";
+import { db } from "@agentset/db/client";
+import { triggerSendWebhook } from "@agentset/jobs";
+import { getWebhookEvents } from "@agentset/tinybird";
 import { normalizeId, prefixId } from "@agentset/utils";
+import {
+  WEBHOOK_EVENT_ID_PREFIX,
+  WEBHOOK_TRIGGERS,
+  webhookPayloadSchema,
+} from "@agentset/webhooks";
 
 import { makeCodeSamples, ts } from "./code-samples";
 
@@ -59,7 +76,7 @@ const updateWebhookInputSchema = updateWebhookSchema
     },
   );
 
-const list = publicApi
+const list = api
   .route({
     method: "GET",
     path: "/webhooks",
@@ -93,7 +110,8 @@ console.log(webhooks);
     };
   });
 
-const create = publicApi
+const create = api
+  .use(requireRoles("admin", "owner"))
   .route({
     method: "POST",
     path: "/webhooks",
@@ -139,7 +157,7 @@ console.log(webhook);
     };
   });
 
-const get = publicApi
+const get = api
   .route({
     method: "GET",
     path: "/webhooks/{webhookId}",
@@ -179,7 +197,8 @@ console.log(webhook);
     };
   });
 
-const updateHandler = publicApi
+const updateHandler = api
+  .use(requireRoles("admin", "owner"))
   .input(updateWebhookInputSchema)
   .output(successSchema(WebhookSchema))
   .handler(async ({ context, input }) => {
@@ -231,7 +250,8 @@ const updatePut = updateHandler.route({
   tags: ["internal-alias"],
 });
 
-const del = publicApi
+const del = api
+  .use(requireRoles("admin", "owner"))
   .route({
     method: "DELETE",
     path: "/webhooks/{webhookId}",
@@ -267,7 +287,8 @@ console.log("Webhook deleted");
     }
   });
 
-const regenerateSecret = publicApi
+const regenerateSecret = api
+  .use(requireRoles("admin", "owner"))
   .route({
     method: "POST",
     path: "/webhooks/{webhookId}/regenerate-secret",
@@ -308,6 +329,120 @@ console.log(webhook.secret);
     };
   });
 
+/**
+ * ---------------------------------------------------------------------------
+ * Dashboard-only procedures — session auth, no `.route()` metadata (kept off
+ * REST, the generated spec, and MCP).
+ * ---------------------------------------------------------------------------
+ */
+
+// List all webhooks for an organization (raw output, includes secret)
+const listByOrg = protectedProcedure
+  .input(z.object({ organizationId: z.string() }))
+  .handler(async ({ context, input }) => {
+    await requireMember(context.session, { id: input.organizationId });
+
+    return listWebhooks({ organizationId: input.organizationId });
+  });
+
+// Get webhook events from Tinybird
+const getEvents = protectedProcedure
+  .input(z.object({ organizationId: z.string(), webhookId: z.string() }))
+  .handler(async ({ context, input }) => {
+    await requireMember(context.session, { id: input.organizationId });
+
+    // Verify webhook belongs to org
+    const webhook = await db.webhook.findUnique({
+      where: {
+        id: input.webhookId,
+        organizationId: input.organizationId,
+      },
+      select: { id: true },
+    });
+
+    if (!webhook) {
+      throw new ORPCError("NOT_FOUND");
+    }
+
+    const events = await getWebhookEvents({ webhookId: input.webhookId });
+    return events.data;
+  });
+
+// Send test webhook event
+const sendTest = protectedProcedure
+  .input(
+    z.object({
+      organizationId: z.string(),
+      webhookId: z.string(),
+      trigger: z.enum(WEBHOOK_TRIGGERS),
+    }),
+  )
+  .handler(async ({ context, input }) => {
+    await requireMember(
+      context.session,
+      { id: input.organizationId },
+      { roles: ["admin", "owner"] },
+    );
+
+    const webhook = await db.webhook.findUnique({
+      where: {
+        id: input.webhookId,
+        organizationId: input.organizationId,
+      },
+      select: {
+        id: true,
+        url: true,
+        secret: true,
+      },
+    });
+
+    if (!webhook) {
+      throw new ORPCError("NOT_FOUND");
+    }
+
+    const payload = webhookPayloadSchema.parse({
+      id: `${WEBHOOK_EVENT_ID_PREFIX}${nanoid(25)}`,
+      event: input.trigger,
+      createdAt: new Date().toISOString(),
+      data: samplePayload[input.trigger],
+    });
+
+    await triggerSendWebhook({
+      webhookId: webhook.id,
+      eventId: payload.id,
+      event: input.trigger,
+      url: webhook.url,
+      secret: webhook.secret,
+      payload,
+    });
+
+    return { success: true };
+  });
+
+// Get namespaces for webhook namespace selector
+const getNamespaces = protectedProcedure
+  .input(z.object({ organizationId: z.string() }))
+  .handler(async ({ context, input }) => {
+    await requireMember(context.session, { id: input.organizationId });
+
+    const namespaces = await db.namespace.findMany({
+      where: {
+        organizationId: input.organizationId,
+        status: "ACTIVE",
+      },
+      select: {
+        id: true,
+        name: true,
+        slug: true,
+      },
+      orderBy: {
+        name: "asc",
+      },
+    });
+
+    return namespaces;
+  });
+
 export const webhooksRouter = {
   list,
   create,
@@ -316,4 +451,8 @@ export const webhooksRouter = {
   updatePut,
   delete: del,
   regenerateSecret,
+  listByOrg,
+  getEvents,
+  sendTest,
+  getNamespaces,
 };

@@ -5,11 +5,17 @@ import {
   IngestJobSchema,
 } from "@/schemas/api/ingest-job";
 import { jobIdPathSchema, namespaceIdPathSchema } from "@/schemas/api/params";
-import { publicApi, requireNamespace, successSchema } from "@/server/orpc/base";
+import {
+  api,
+  protectedProcedure,
+  requireNamespace,
+  successSchema,
+} from "@/server/orpc/base";
 import { createIngestJob } from "@/services/ingest-jobs/create";
 import { deleteIngestJob } from "@/services/ingest-jobs/delete";
 import { reIngestJob } from "@/services/ingest-jobs/re-ingest";
 import { getPaginationArgs, paginateResults } from "@/services/pagination";
+import { ORPCError } from "@orpc/server";
 import { z } from "zod/v4";
 
 import { db } from "@agentset/db/client";
@@ -17,8 +23,9 @@ import { isFreePlan } from "@agentset/stripe/plans";
 import { normalizeId, prefixId } from "@agentset/utils";
 
 import { makeCodeSamples, ts } from "./code-samples";
+import { getNamespaceByUser } from "./helpers";
 
-const list = publicApi
+const list = api
   .route({
     method: "GET",
     path: "/namespace/{namespaceId}/ingest-jobs",
@@ -93,7 +100,7 @@ console.log(jobs);
     };
   });
 
-const create = publicApi
+const create = api
   .route({
     method: "POST",
     path: "/namespace/{namespaceId}/ingest-jobs",
@@ -158,7 +165,7 @@ console.log(job);
     };
   });
 
-const get = publicApi
+const get = api
   .route({
     method: "GET",
     path: "/namespace/{namespaceId}/ingest-jobs/{jobId}",
@@ -219,7 +226,7 @@ console.log(job);
     };
   });
 
-const del = publicApi
+const del = api
   .route({
     method: "DELETE",
     path: "/namespace/{namespaceId}/ingest-jobs/{jobId}",
@@ -275,7 +282,7 @@ console.log("Ingest job queued for deletion");
     };
   });
 
-const reIngest = publicApi
+const reIngest = api
   .route({
     method: "POST",
     path: "/namespace/{namespaceId}/ingest-jobs/{jobId}/re-ingest",
@@ -325,7 +332,58 @@ console.log("Job queued for re-ingestion: ", result);
     };
   });
 
+/**
+ * Dashboard-only slim list ({ records, pagination }, raw un-prefixed ids,
+ * field subset). No `.route()` — stays off REST/OpenAPI/MCP.
+ */
+const all = protectedProcedure
+  .input(getIngestionJobsSchema.extend({ namespaceId: z.string() }))
+  .handler(async ({ context, input }) => {
+    const namespace = await getNamespaceByUser(context, {
+      id: input.namespaceId,
+    });
+
+    if (!namespace) {
+      throw new ORPCError("NOT_FOUND");
+    }
+
+    const { where, ...paginationArgs } = getPaginationArgs(
+      input,
+      {
+        orderBy: input.orderBy,
+        order: input.order,
+      },
+      "job_",
+    );
+
+    const ingestJobs = await db.ingestJob.findMany({
+      where: {
+        namespaceId: input.namespaceId,
+        ...(input.statuses &&
+          input.statuses.length > 0 && {
+            status: { in: input.statuses },
+          }),
+        ...where,
+      },
+      select: {
+        id: true,
+        status: true,
+        name: true,
+        tenantId: true,
+        completedAt: true,
+        failedAt: true,
+        error: true,
+        queuedAt: true,
+        createdAt: true,
+      },
+      ...paginationArgs,
+    });
+
+    return paginateResults(input, ingestJobs);
+  });
+
 export const ingestJobsRouter = {
+  all,
   list,
   create,
   get,

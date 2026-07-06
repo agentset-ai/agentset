@@ -16,7 +16,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@agentset/ui/dialog";
-import { toSlug } from "@agentset/utils";
+import { normalizeId, toSlug } from "@agentset/utils";
 
 import CreateNamespaceDetailsStep from "./details-step";
 import CreateNamespaceEmbeddingStep from "./embedding-step";
@@ -87,12 +87,14 @@ export default function CreateNamespaceDialog({
   const [slug, setSlug] = useState(defaultSlug);
 
   const { isPending, mutateAsync: createNamespace } = useMutation(
-    orpc.namespace.createNamespace.mutationOptions({
-      onSuccess: (data) => {
+    orpc.namespace.create.mutationOptions({
+      context: { orgId: organization.id },
+      onSuccess: (res) => {
+        const data = res.data;
         logEvent("namespace_created", {
           name: data.name,
           slug: data.slug,
-          organizationId: data.organizationId,
+          organizationId: normalizeId(data.organizationId, "org_"),
           embeddingModel: data.embeddingConfig
             ? {
                 provider: data.embeddingConfig.provider,
@@ -117,7 +119,6 @@ export default function CreateNamespaceDialog({
           const queryKey = orpc.namespace.getOrgNamespaces.queryKey({
             input: { slug: organization.slug },
           });
-          queryClient.setQueryData(queryKey, (old) => [data, ...(old ?? [])]);
           void queryClient.invalidateQueries({ queryKey });
           router.push(`/${organization.slug}/${data.slug}/quick-start`);
         }
@@ -132,7 +133,6 @@ export default function CreateNamespaceDialog({
     if (!organization) return;
 
     await createNamespace({
-      orgId: organization.id,
       name: name,
       slug: slug,
       embeddingConfig: embeddingModel,

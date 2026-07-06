@@ -3,7 +3,12 @@ import {
   namespaceIdPathSchema,
 } from "@/schemas/api/params";
 import { DocumentSchema, getDocumentsSchema } from "@/schemas/api/document";
-import { publicApi, requireNamespace, successSchema } from "@/server/orpc/base";
+import {
+  api,
+  protectedProcedure,
+  requireNamespace,
+  successSchema,
+} from "@/server/orpc/base";
 import { queueDocumentDeletion } from "@/services/documents/delete";
 import {
   getDocumentChunksDownloadUrl,
@@ -11,15 +16,16 @@ import {
 } from "@/services/documents/download";
 import { getDocumentOrThrow } from "@/services/documents/get";
 import { getPaginationArgs, paginateResults } from "@/services/pagination";
-import { type } from "@orpc/server";
+import { ORPCError, type } from "@orpc/server";
 import { z } from "zod/v4";
 
 import { db } from "@agentset/db/client";
 import { normalizeId, prefixId } from "@agentset/utils";
 
 import { makeCodeSamples, ts } from "./code-samples";
+import { getNamespaceByUser } from "./helpers";
 
-const list = publicApi
+const list = api
   .route({
     method: "GET",
     path: "/namespace/{namespaceId}/documents",
@@ -95,7 +101,7 @@ console.log(docs);
     };
   });
 
-const get = publicApi
+const get = api
   .route({
     method: "GET",
     path: "/namespace/{namespaceId}/documents/{documentId}",
@@ -138,7 +144,7 @@ console.log(document);
     };
   });
 
-const del = publicApi
+const del = api
   .route({
     method: "DELETE",
     path: "/namespace/{namespaceId}/documents/{documentId}",
@@ -184,7 +190,7 @@ console.log("Document queued for deletion");
     };
   });
 
-const getFileDownloadUrl = publicApi
+const getFileDownloadUrl = api
   .route({
     method: "POST",
     path: "/namespace/{namespaceId}/documents/{documentId}/file-download-url",
@@ -248,7 +254,7 @@ fs.writeFileSync("file.pdf", Buffer.from(await file.arrayBuffer()));
     return { success: true as const, data };
   });
 
-const getChunksDownloadUrl = publicApi
+const getChunksDownloadUrl = api
   .route({
     method: "POST",
     path: "/namespace/{namespaceId}/documents/{documentId}/chunks-download-url",
@@ -312,7 +318,67 @@ console.log(data);
     return { success: true as const, data };
   });
 
+/**
+ * Dashboard-only slim list ({ records, pagination }, raw un-prefixed ids,
+ * field subset). No `.route()` — stays off REST/OpenAPI/MCP.
+ */
+const all = protectedProcedure
+  .input(
+    getDocumentsSchema.extend({
+      namespaceId: z.string(),
+      ingestJobId: z.string().optional(),
+    }),
+  )
+  .handler(async ({ context, input }) => {
+    const namespace = await getNamespaceByUser(context, {
+      id: input.namespaceId,
+    });
+
+    if (!namespace) {
+      throw new ORPCError("NOT_FOUND");
+    }
+
+    const { where, ...paginationArgs } = getPaginationArgs(
+      input,
+      {
+        orderBy: input.orderBy,
+        order: input.order,
+      },
+      "doc_",
+    );
+
+    const documents = await db.document.findMany({
+      where: {
+        namespaceId: namespace.id,
+        ...(input.ingestJobId && { ingestJobId: input.ingestJobId }),
+        ...(input.statuses &&
+          input.statuses.length > 0 && { status: { in: input.statuses } }),
+        ...where,
+      },
+      select: {
+        id: true,
+        name: true,
+        totalTokens: true,
+        totalChunks: true,
+        totalCharacters: true,
+        source: true,
+        totalPages: true,
+        documentProperties: true,
+        createdAt: true,
+        queuedAt: true,
+        completedAt: true,
+        failedAt: true,
+        error: true,
+        status: true,
+      },
+      ...paginationArgs,
+    });
+
+    return paginateResults(input, documents);
+  });
+
 export const documentsRouter = {
+  all,
   list,
   get,
   delete: del,

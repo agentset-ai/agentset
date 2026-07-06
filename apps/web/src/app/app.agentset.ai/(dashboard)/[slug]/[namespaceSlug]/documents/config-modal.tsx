@@ -1,5 +1,6 @@
 import { useMemo, useState } from "react";
 import { useNamespace } from "@/hooks/use-namespace";
+import { useOrganization } from "@/hooks/use-organization";
 import { orpc } from "@/lib/orpc";
 import { useQuery } from "@tanstack/react-query";
 
@@ -17,13 +18,16 @@ import { Skeleton } from "@agentset/ui/skeleton";
 export function ConfigModal({ jobId }: { jobId: string }) {
   const [open, setOpen] = useState(false);
   const namespace = useNamespace();
+  const organization = useOrganization();
   const { data: config, isLoading } = useQuery({
-    ...orpc.ingestJob.getConfig.queryOptions({
+    ...orpc.ingestJob.get.queryOptions({
       input: {
         jobId,
         namespaceId: namespace.id,
       },
+      context: { orgId: organization.id },
       enabled: open,
+      select: (res) => res.data.config,
     }),
   });
 
