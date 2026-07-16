@@ -1,6 +1,6 @@
 import { logger, schedules } from "@trigger.dev/sdk";
 
-import { IngestJobStatus, NamespaceStatus } from "@agentset/db";
+import { IngestJobStatus, NamespaceStatus, Prisma } from "@agentset/db";
 
 import { getDb } from "../db";
 import { emitBulkIngestJobWebhooks } from "../webhook";
@@ -43,6 +43,8 @@ export const cleanupEmptyIngestJobsCronJob = schedules.task({
   run: async () => {
     const db = getDb();
 
+    const cutoff = new Date(Date.now() - GRACE_MS);
+
     // `documents: { none: {} }` compiles to NOT EXISTS, which probes the
     // document (ingestJobId, ...) index without fetching document rows. The
     // namespace ACTIVE guard keeps the sweep out of namespaces that are
@@ -50,7 +52,7 @@ export const cleanupEmptyIngestJobsCronJob = schedules.task({
     // suppresses webhooks for them).
     const emptyJobFilter = {
       status: { in: DELETABLE_STATUSES },
-      updatedAt: { lt: new Date(Date.now() - GRACE_MS) },
+      updatedAt: { lt: cutoff },
       documents: { none: {} },
       namespace: { status: NamespaceStatus.ACTIVE },
     };
@@ -58,6 +60,7 @@ export const cleanupEmptyIngestJobsCronJob = schedules.task({
     let totalDeleted = 0;
     let totalSkipped = 0;
     let batches = 0;
+    let lastBatchFull = false;
     // Deleted rows never reappear, but keyset pagination (id > cursor) still
     // guarantees progress if a job is skipped by the delete-time re-check —
     // otherwise a permanently-skipped job would be refetched forever.
@@ -80,7 +83,6 @@ export const cleanupEmptyIngestJobsCronJob = schedules.task({
         select: {
           id: true,
           name: true,
-          status: true,
           error: true,
           createdAt: true,
           updatedAt: true,
@@ -91,6 +93,7 @@ export const cleanupEmptyIngestJobsCronJob = schedules.task({
 
       if (jobs.length === 0) break;
       batches++;
+      lastBatchFull = jobs.length === BATCH_SIZE;
       cursor = jobs[jobs.length - 1]!.id;
 
       // group by namespace so counters are decremented once per namespace
@@ -108,35 +111,34 @@ export const cleanupEmptyIngestJobsCronJob = schedules.task({
         let deletedIds: string[] = [];
         try {
           deletedIds = await db.$transaction(async (tx) => {
-            // re-check the FULL filter at delete time: a job that gained a
-            // concurrent deleteIngestJob run (status -> DELETING), was
-            // touched since the scan (fresh updatedAt resets its grace), or
-            // sits in a namespace that started tearing down is skipped
-            const candidates = await tx.ingestJob.findMany({
-              where: { id: { in: ids }, ...emptyJobFilter },
-              select: { id: true },
-            });
-            if (candidates.length === 0) return [];
-
-            const candidateIds = candidates.map((candidate) => candidate.id);
-            const { count } = await tx.ingestJob.deleteMany({
-              where: { id: { in: candidateIds }, ...emptyJobFilter },
-            });
-
-            // rare: a row changed between the two statements — re-derive
-            // exactly which ids this transaction deleted, so webhooks are
-            // emitted for precisely those and counters match reality
-            let deleted = candidateIds;
-            if (count !== candidateIds.length) {
-              const survivors = await tx.ingestJob.findMany({
-                where: { id: { in: candidateIds } },
-                select: { id: true },
-              });
-              const surviving = new Set(
-                survivors.map((survivor) => survivor.id),
-              );
-              deleted = candidateIds.filter((id) => !surviving.has(id));
-            }
+            // Single DELETE ... RETURNING re-checks the FULL scan filter at
+            // delete time and reports exactly the rows THIS statement
+            // removed: a job that gained a concurrent deleteIngestJob run
+            // (status -> DELETING), was touched since the scan (fresh
+            // updatedAt resets its grace), or sits in a namespace that
+            // started tearing down is skipped. Deriving the deleted set from
+            // a separate re-select would misattribute rows deleted by a
+            // concurrent committed transaction (double-decrementing counters
+            // and double-emitting webhooks); RETURNING cannot. Raw SQL
+            // because Prisma has no deleteManyAndReturn; the ::text casts
+            // keep DELETABLE_STATUSES as the single source of truth (bound
+            // text params don't coerce to the "IngestJobStatus" enum).
+            const deletedRows = await tx.$queryRaw<{ id: string }[]>`
+              DELETE FROM "ingest_job" AS ij
+              WHERE ij."id" IN (${Prisma.join(ids)})
+                AND ij."status"::text IN (${Prisma.join(DELETABLE_STATUSES)})
+                AND ij."updatedAt" < ${cutoff}
+                AND NOT EXISTS (
+                  SELECT 1 FROM "document" d WHERE d."ingestJobId" = ij."id"
+                )
+                AND EXISTS (
+                  SELECT 1 FROM "namespace" n
+                  WHERE n."id" = ij."namespaceId"
+                    AND n."status" = 'ACTIVE'
+                )
+              RETURNING ij."id"
+            `;
+            const deleted = deletedRows.map((row) => row.id);
 
             if (deleted.length > 0) {
               await tx.namespace.update({
@@ -210,9 +212,11 @@ export const cleanupEmptyIngestJobsCronJob = schedules.task({
       }
     }
 
-    if (batches >= MAX_BATCHES) {
+    // a non-full final page means the sweep finished naturally even if it
+    // landed exactly on the cap
+    if (batches >= MAX_BATCHES && lastBatchFull) {
       logger.warn(
-        "Cleanup stopped at the batch cap with jobs remaining; the next run will continue",
+        "Cleanup stopped at the batch cap with jobs likely remaining; the next run will continue",
         { batches, totalDeleted },
       );
     }
