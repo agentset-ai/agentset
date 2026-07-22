@@ -1,4 +1,5 @@
 import type { ModelMessage } from "ai";
+import { env } from "@/env";
 import { generateText } from "ai";
 import { z } from "zod/v4";
 
@@ -37,6 +38,11 @@ export const generateQueries = async (
 ) => {
   const queriesResult = await generateText({
     model: model.model,
+    experimental_telemetry: {
+      isEnabled: env.AGENTPOND_ENABLED === "true",
+      recordInputs: true,
+      recordOutputs: true,
+    },
     providerOptions: model.providerOptions,
     temperature: 0,
     system: GENERATE_QUERIES_PROMPT,
@@ -70,6 +76,11 @@ export const evaluateQueries = async (
 ) => {
   const evaluateQueriesResult = await generateText({
     model: model.model,
+    experimental_telemetry: {
+      isEnabled: env.AGENTPOND_ENABLED === "true",
+      recordInputs: true,
+      recordOutputs: true,
+    },
     providerOptions: model.providerOptions,
     temperature: 0,
     system: EVALUATE_QUERIES_PROMPT,

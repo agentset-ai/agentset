@@ -1,5 +1,6 @@
 import type { MyUIMessage } from "@/types/ai";
 import type { ModelMessage } from "ai";
+import { env } from "@/env";
 import {
   createUIMessageStream,
   createUIMessageStreamResponse,
@@ -77,6 +78,11 @@ export const agenticSearchPipeline = ({
     execute: ({ writer }) => {
       const result = streamText({
         model: languageModel.model,
+        experimental_telemetry: {
+          isEnabled: env.AGENTPOND_ENABLED === "true",
+          recordInputs: true,
+          recordOutputs: true,
+        },
         system: resolveSystemPrompt(systemPrompt),
         messages,
         tools: agenticTools,
