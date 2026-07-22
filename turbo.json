@@ -71,6 +71,7 @@
     }
   },
   "globalEnv": [
+    "AGENTPOND_ENABLED",
     "NEXT_PUBLIC_APP_NAME",
     "NEXT_PUBLIC_APP_SHORT_DOMAIN",
     "VERCEL_PROJECT_ID",
@@ -120,6 +121,7 @@
   ],
   "globalPassThroughEnv": [
     "NODE_ENV",
+    "NEXT_RUNTIME",
     "CI",
     "VERCEL",
     "VERCEL_ENV",

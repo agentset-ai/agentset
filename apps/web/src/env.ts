@@ -22,6 +22,7 @@ export const env = createEnv({
     NEXT_PUBLIC_POSTHOG_KEY: z.string().optional(),
   },
   server: {
+    AGENTPOND_ENABLED: z.enum(["true", "false"]).optional().default("false"),
     DATABASE_URL: z.url(),
 
     BETTER_AUTH_SECRET: z.string(),
@@ -51,6 +52,7 @@ export const env = createEnv({
   },
   client: {},
   runtimeEnv: {
+    AGENTPOND_ENABLED: process.env.AGENTPOND_ENABLED,
     NEXT_PUBLIC_APP_NAME: process.env.NEXT_PUBLIC_APP_NAME,
     NEXT_PUBLIC_APP_SHORT_DOMAIN: process.env.NEXT_PUBLIC_APP_SHORT_DOMAIN,
     NEXT_PUBLIC_VERCEL_ENV: process.env.NEXT_PUBLIC_VERCEL_ENV,
