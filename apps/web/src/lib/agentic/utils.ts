@@ -40,6 +40,7 @@ export const generateQueries = async (
     model: model.model,
     experimental_telemetry: {
       isEnabled: env.AGENTPOND_ENABLED === "true",
+      functionId: "generateQueries",
       recordInputs: true,
       recordOutputs: true,
     },
@@ -78,6 +79,7 @@ export const evaluateQueries = async (
     model: model.model,
     experimental_telemetry: {
       isEnabled: env.AGENTPOND_ENABLED === "true",
+      functionId: "evaluateQueries",
       recordInputs: true,
       recordOutputs: true,
     },

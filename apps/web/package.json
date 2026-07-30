@@ -19,7 +19,8 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "@agentpond/vercel": "0.5.0",
+    "@agentpond/files-sdk": "0.1.0",
+    "@agentpond/otel": "0.1.4",
     "@agentset/db": "workspace:*",
     "@agentset/demo": "workspace:*",
     "@agentset/emails": "workspace:*",
@@ -46,6 +47,7 @@
     "@opentelemetry/sdk-logs": "0.220.0",
     "@opentelemetry/sdk-metrics": "2.9.0",
     "@opentelemetry/sdk-trace-base": "2.9.0",
+    "@opentelemetry/semantic-conventions": "1.41.1",
     "@t3-oss/env-nextjs": "catalog:",
     "@tanstack/react-query": "catalog:",
     "@trpc/client": "catalog:",
@@ -61,6 +63,7 @@
     "bottleneck": "^2.19.5",
     "fast-deep-equal": "^3.1.3",
     "file-type": "^21.3.0",
+    "files-sdk": "2.2.1",
     "jiti": "^2.6.1",
     "motion": "^12.26.2",
     "next": "^16.1.6",

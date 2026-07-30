@@ -80,6 +80,7 @@ export const agenticSearchPipeline = ({
         model: languageModel.model,
         experimental_telemetry: {
           isEnabled: env.AGENTPOND_ENABLED === "true",
+          functionId: "agenticSearchStream",
           recordInputs: true,
           recordOutputs: true,
         },

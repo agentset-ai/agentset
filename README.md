@@ -81,19 +81,19 @@ Useful scripts:
 
 ## Optional AgentPond tracing
 
-Agentset can export AI SDK traces to a private Vercel Blob store through AgentPond. Initialize the Vercel setup, create a private Blob store with its system environment variables enabled, and then set `AGENTPOND_ENABLED=true` in the environments where tracing should run:
+Agentset can export AI SDK traces to object storage you control through AgentPond. Initialize AgentPond, configure a [Files SDK provider](https://files-sdk.dev/docs/providers), and then set `AGENTPOND_ENABLED=true` in the environments where tracing should run:
 
 ```bash
-npx agentpond@0.6.0 init --platform vercel
+npx agentpond@0.9.0 init
 ```
 
-The telemetry settings explicitly record inputs and outputs. This can include prompts, messages, tool data, retrieved context, and generated content. A private Blob store restricts access but does not redact these values; review the [Vercel AI SDK telemetry privacy controls](https://ai-sdk.dev/docs/ai-sdk-core/telemetry) before enabling tracing.
+The telemetry settings explicitly record inputs and outputs. This can include prompts, messages, tool data, retrieved context, and generated content. Private object storage restricts access but does not redact these values; review the [Vercel AI SDK telemetry privacy controls](https://ai-sdk.dev/docs/ai-sdk-core/telemetry) before enabling tracing.
 
 To cache and inspect the resulting traces locally:
 
 ```bash
-npx agentpond@0.6.0 sync
-npx agentpond@0.6.0 traces list --limit 10
+npx agentpond@0.9.0 sync
+npx agentpond@0.9.0 traces list --limit 10
 ```
 
 ## Star Us
