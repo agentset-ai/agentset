@@ -1,11 +1,15 @@
 import { PrismaPg } from "@prisma/adapter-pg";
 
 import { PrismaClient } from "../generated/client";
+import { getDatabaseSslConfig } from "./ssl";
 
 export const createTriggerPrisma = () => {
+  const connectionString = process.env.DATABASE_URL!;
+
   return new PrismaClient({
     adapter: new PrismaPg({
-      connectionString: process.env.DATABASE_URL!,
+      connectionString,
+      ssl: getDatabaseSslConfig(connectionString),
     }),
     transactionOptions:
       process.env.NODE_ENV === "development"

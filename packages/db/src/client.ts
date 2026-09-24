@@ -3,10 +3,14 @@ import { attachDatabasePool } from "@vercel/functions";
 import { Pool } from "pg";
 
 import { PrismaClient } from "../generated/client";
+import { getDatabaseSslConfig } from "./ssl";
 
 const createPrismaClient = () => {
   const connectionString = process.env.DATABASE_URL!;
-  const pool = new Pool({ connectionString });
+  const pool = new Pool({
+    connectionString,
+    ssl: getDatabaseSslConfig(connectionString),
+  });
   attachDatabasePool(pool);
 
   return new PrismaClient({
