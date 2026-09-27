@@ -108,5 +108,11 @@ export const env = createEnv({
 });
 
 if (!skipValidation) {
-  enforceEuConfig(() => getEuWebConfigIssues(process.env));
+  enforceEuConfig(() =>
+    getEuWebConfigIssues({
+      ...process.env,
+      // Vercel only exposes this at build time; the literal access is inlined
+      NEXT_PUBLIC_VERCEL_ENV: process.env.NEXT_PUBLIC_VERCEL_ENV,
+    }),
+  );
 }
