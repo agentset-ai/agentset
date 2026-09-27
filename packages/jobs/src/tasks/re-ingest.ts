@@ -4,7 +4,17 @@ import { DocumentStatus, IngestJobStatus, Prisma } from "@agentset/db";
 import { chunkArray } from "@agentset/utils";
 
 import { getDb } from "../db";
-import { RE_INGEST_JOB_ID, reIngestJobBodySchema } from "../schema";
+import {
+  getTaskFailureMessage,
+  sanitizeHookErrors,
+  sanitizeRunErrors,
+} from "../errors";
+import {
+  getDocumentJobPayload,
+  RE_INGEST_JOB_ID,
+  reIngestJobBodySchema,
+  triggerRegionOptions,
+} from "../schema";
 import { emitBulkDocumentWebhooks } from "../webhook";
 import { processDocument } from "./process-document";
 
@@ -20,11 +30,10 @@ export const reIngestJob = schemaTask({
     maxAttempts: 1,
   },
   schema: reIngestJobBodySchema,
-  onFailure: async ({ payload, error }) => {
+  onFailure: sanitizeHookErrors(async ({ payload, error }) => {
     const db = getDb();
 
-    const errorMessage =
-      (error instanceof Error ? error.message : null) || "Unknown error";
+    const errorMessage = getTaskFailureMessage(error);
 
     try {
       await db.ingestJob.update({
@@ -45,8 +54,8 @@ export const reIngestJob = schemaTask({
         return;
       throw e;
     }
-  },
-  run: async ({ jobId }, { ctx }) => {
+  }),
+  run: sanitizeRunErrors(async ({ jobId }, { ctx }) => {
     const db = getDb();
 
     // Get ingest job configuration
@@ -137,14 +146,15 @@ export const reIngestJob = schemaTask({
     for (const chunk of chunks) {
       const handles = await processDocument.batchTriggerAndWait(
         chunk.map((document) => ({
-          payload: {
+          payload: getDocumentJobPayload({
             documentId: document.id,
             cleanup: true, // Enable cleanup for re-processing
             ingestJob,
-          },
+          }),
           options: {
             tags: [`doc_${document.id}`],
             priority: ctx.run.priority,
+            ...triggerRegionOptions,
           },
         })),
       );
@@ -216,5 +226,5 @@ export const reIngestJob = schemaTask({
       ingestJobId: ingestJob.id,
       documentsReprocessed: documents.length,
     };
-  },
+  }),
 });

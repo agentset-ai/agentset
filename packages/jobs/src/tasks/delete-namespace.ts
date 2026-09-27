@@ -5,7 +5,12 @@ import { env } from "@agentset/storage/env";
 import { chunkArray } from "@agentset/utils";
 
 import { getDb } from "../db";
-import { DELETE_NAMESPACE_JOB_ID, deleteNamespaceBodySchema } from "../schema";
+import { sanitizeRunErrors } from "../errors";
+import {
+  DELETE_NAMESPACE_JOB_ID,
+  deleteNamespaceBodySchema,
+  triggerRegionOptions,
+} from "../schema";
 import { deleteIngestJob } from "./delete-ingest-job";
 
 const BATCH_SIZE = 30;
@@ -17,7 +22,7 @@ export const deleteNamespace = schemaTask({
     concurrencyLimit: 50,
   },
   schema: deleteNamespaceBodySchema,
-  run: async ({ namespaceId }) => {
+  run: sanitizeRunErrors(async ({ namespaceId }) => {
     const db = getDb();
 
     // Get namespace data
@@ -68,6 +73,7 @@ export const deleteNamespace = schemaTask({
             },
             options: {
               tags: [`job_${job.id}`],
+              ...triggerRegionOptions,
             },
           })),
         );
@@ -106,5 +112,5 @@ export const deleteNamespace = schemaTask({
       namespaceId: namespace.id,
       deleted: true,
     };
-  },
+  }),
 });

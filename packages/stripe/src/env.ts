@@ -9,7 +9,8 @@ export const env = createEnv({
       .default("development"),
   },
   client: {
-    NEXT_PUBLIC_STRIPE_PUBLIC_KEY: z.string(),
+    // only used by the browser client (not by background jobs)
+    NEXT_PUBLIC_STRIPE_PUBLIC_KEY: z.string().optional(),
   },
   runtimeEnv: {
     NODE_ENV: process.env.NODE_ENV,

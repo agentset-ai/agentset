@@ -81,6 +81,8 @@ export interface VectorStoreListResponse {
 }
 
 export abstract class VectorStore<Filter = VectorFilter> {
+  abstract readonly namespaceId: string;
+
   abstract query(
     options: VectorStoreQueryOptions<Filter>,
   ): Promise<VectorStoreQueryResponse>;

@@ -1,11 +1,10 @@
 import type { CreateEmailOptions } from "resend";
 import { Resend } from "resend";
 
+import { APP_DOMAIN } from "./domain";
 import { env } from "./env";
 
 const resend = new Resend(env.RESEND_API_KEY);
-
-const APP_DOMAIN = env.APP_DOMAIN ?? "https://app.agentset.ai";
 
 interface SendEmailOptions extends Omit<CreateEmailOptions, "to" | "from"> {
   email: string;

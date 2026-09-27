@@ -48,6 +48,7 @@ export const queryVectorStore = async ({
       model: reranker,
       limit: options.rerank.limit ?? options.topK,
       query: options.query,
+      logContext: { namespaceId: vectorStore.namespaceId },
     });
   }
 

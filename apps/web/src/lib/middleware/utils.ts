@@ -1,6 +1,8 @@
 import type { NextRequest } from "next/server";
 
-import { SHORT_DOMAIN } from "../constants";
+import { isEuRegion } from "@agentset/utils";
+
+import { APP_HOSTNAME, SHORT_DOMAIN } from "../constants";
 
 // import { SHORT_DOMAIN } from "@/lib/constants";
 
@@ -15,7 +17,7 @@ export const parse = (req: NextRequest) => {
   // if (domain === "agentset.localhost:8888" || domain.endsWith(".vercel.app")) {
   if (domain.endsWith(".vercel.app")) {
     // for local development and preview URLs
-    domain = SHORT_DOMAIN;
+    domain = isEuRegion ? APP_HOSTNAME : SHORT_DOMAIN;
   }
 
   // fullPath is the full URL path (along with search params)

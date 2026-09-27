@@ -5,6 +5,8 @@ import { authClient } from "@/lib/auth-client";
 import { useMutation } from "@tanstack/react-query";
 import { useIsClient } from "usehooks-ts";
 
+import { REGION_FEATURES } from "@agentset/utils";
+
 const useRedirectParam = () => {
   const params = useSearchParams();
   const isClient = useIsClient();
@@ -83,6 +85,7 @@ export const useGoogleAuth = () => {
     });
 
   return {
+    isGoogleSignInEnabled: REGION_FEATURES.googleSignIn,
     googleLogin,
     isLoggingInWithGoogle,
   };

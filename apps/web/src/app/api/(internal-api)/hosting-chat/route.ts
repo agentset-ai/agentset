@@ -71,7 +71,6 @@ const getHosting = async (namespaceId: string) => {
   });
 };
 
-export const preferredRegion = "iad1"; // make this closer to the DB
 export const maxDuration = 300; // agentic runs can take multiple tool-calling steps
 
 export const POST = withPublicApiHandler(

@@ -12,6 +12,7 @@ import { z } from "zod/v4";
 import { NamespaceStatus } from "@agentset/db";
 import { getDemoTemplate } from "@agentset/demo";
 import { triggerSeedDemoNamespace } from "@agentset/jobs";
+import { REGION_FEATURES } from "@agentset/utils";
 
 const validateIsMember = async (
   ctx: ProtectedProcedureContext,
@@ -200,6 +201,13 @@ export const namespaceRouter = createTRPCRouter({
       }),
     )
     .mutation(async ({ ctx, input }) => {
+      if (!REGION_FEATURES.demoTemplates) {
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          message: "Sample namespaces aren't available in this region",
+        });
+      }
+
       await validateIsMember(ctx, input.orgId, ["admin", "owner"]);
 
       const template = getDemoTemplate(input.templateId);

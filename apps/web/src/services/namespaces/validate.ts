@@ -5,6 +5,10 @@ import {
   getNamespaceEmbeddingModel,
   getNamespaceVectorStore,
 } from "@agentset/engine";
+import {
+  getEmbeddingRegionIssue,
+  getVectorStoreRegionIssue,
+} from "@agentset/validation";
 
 const modelToDimensions: Record<
   PrismaJson.NamespaceEmbeddingConfig["model"],
@@ -30,6 +34,14 @@ export const validateVectorStoreConfig = async (
   vectorStoreConfig: NonNullable<Namespace["vectorStoreConfig"]>,
   embeddingConfig: NonNullable<Namespace["embeddingConfig"]>,
 ) => {
+  const regionIssue = getVectorStoreRegionIssue(vectorStoreConfig);
+  if (regionIssue) {
+    return {
+      success: false as const,
+      error: regionIssue.message,
+    };
+  }
+
   // TODO: make this dynamic
   const embeddingDimensions: number = modelToDimensions[embeddingConfig.model];
 
@@ -73,6 +85,14 @@ export const validateEmbeddingModel = async (
   //     success: true as const,
   //   };
   // }
+
+  const regionIssue = getEmbeddingRegionIssue(embeddingConfig);
+  if (regionIssue) {
+    return {
+      success: false as const,
+      error: regionIssue,
+    };
+  }
 
   const model = await getNamespaceEmbeddingModel({ embeddingConfig }, "query");
 

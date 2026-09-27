@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { RegionBadge } from "@/components/region-badge";
 import {
   useGithubAuth,
   useGoogleAuth,
@@ -38,7 +39,8 @@ export function LoginForm({
     isSendingMagicLink,
     reset: resetMagic,
   } = useMagicAuth();
-  const { googleLogin, isLoggingInWithGoogle } = useGoogleAuth();
+  const { isGoogleSignInEnabled, googleLogin, isLoggingInWithGoogle } =
+    useGoogleAuth();
   const { githubLogin, isLoggingInWithGithub } = useGithubAuth();
   const {
     otp,
@@ -179,6 +181,7 @@ export function LoginForm({
                 <a href="/" target="_blank" title="Home">
                   <Logo className="h-9 fill-black" />
                 </a>
+                <RegionBadge className="ml-2 self-center" />
               </div>
               <h1 className="mt-8 text-base/6 font-medium">Welcome back!</h1>
               <p className="mt-1 text-sm/5 text-gray-600">
@@ -222,17 +225,24 @@ export function LoginForm({
               </span>
             </div>
 
-            <div className="grid gap-4 sm:grid-cols-2">
-              <Button
-                variant="outline"
-                className="w-full"
-                onClick={() => googleLogin()}
-                isLoading={isLoggingInWithGoogle}
-                type="button"
-              >
-                <GoogleIcon className="size-4" />
-                Google
-              </Button>
+            <div
+              className={cn(
+                "grid gap-4",
+                isGoogleSignInEnabled && "sm:grid-cols-2",
+              )}
+            >
+              {isGoogleSignInEnabled && (
+                <Button
+                  variant="outline"
+                  className="w-full"
+                  onClick={() => googleLogin()}
+                  isLoading={isLoggingInWithGoogle}
+                  type="button"
+                >
+                  <GoogleIcon className="size-4" />
+                  Google
+                </Button>
+              )}
 
               <Button
                 variant="outline"

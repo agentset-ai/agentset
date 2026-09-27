@@ -19,18 +19,25 @@ import {
 } from "@agentset/ui/dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@agentset/ui/tabs";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@agentset/ui/tooltip";
+import { REGION_FEATURES } from "@agentset/utils";
 
 import CrawlForm from "./crawl-form";
 import FilesForm from "./files-form";
 import TextForm from "./text-form";
 import YoutubeForm from "./youtube-form";
 
-const TABS = [
+const ALL_TABS = [
   { value: "files", label: "Files", Component: FilesForm },
   { value: "text", label: "Text", Component: TextForm },
   { value: "website", label: "Website", Component: CrawlForm },
   { value: "youtube", label: "YouTube", Component: YoutubeForm },
 ] as const;
+
+const TABS = ALL_TABS.filter(
+  ({ value }) =>
+    (value !== "website" || REGION_FEATURES.crawlIngestion) &&
+    (value !== "youtube" || REGION_FEATURES.youtubeIngestion),
+);
 
 const SUCCESS_MESSAGES: Record<(typeof TABS)[number]["value"], string> = {
   files: "File ingestion job created",

@@ -1,5 +1,6 @@
 import type { MyUIMessage } from "@/types/ai";
 import type { ModelMessage } from "ai";
+import { logRequestError } from "@/lib/log";
 import {
   createUIMessageStream,
   createUIMessageStreamResponse,
@@ -95,7 +96,7 @@ export const agenticSearchPipeline = ({
         onAbort: finishRun,
         onFinish: finishRun,
         onError: (error) => {
-          console.error(error);
+          logRequestError("Agentic search failed", error);
         },
       });
 
@@ -104,14 +105,14 @@ export const agenticSearchPipeline = ({
           sendReasoning: true,
           // don't leak raw provider/tool error messages to the client
           onError: (error) => {
-            console.error(error);
+            logRequestError("Agentic search stream failed", error);
             return "An error occurred";
           },
         }),
       );
     },
     onError(error) {
-      console.error(error);
+      logRequestError("Agentic search stream failed", error);
       return "An error occurred";
     },
   });

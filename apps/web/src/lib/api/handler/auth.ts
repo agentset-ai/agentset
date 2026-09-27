@@ -1,5 +1,6 @@
 import type { Session } from "@/lib/auth-types";
 import type { NextRequest } from "next/server";
+import { logRequestError } from "@/lib/log";
 
 import type { Namespace } from "@agentset/db";
 
@@ -31,6 +32,7 @@ export const withAuthApiHandler = (
     const searchParams = getSearchParams(req);
 
     const namespaceId = searchParams.namespaceId;
+    let userId: string | undefined = undefined;
     let headers = {};
 
     try {
@@ -47,6 +49,7 @@ export const withAuthApiHandler = (
         namespaceId,
       );
 
+      userId = session.user.id;
       const rateLimit = 600;
       const { success, limit, reset, remaining } = await ratelimit(
         rateLimit,
@@ -76,7 +79,10 @@ export const withAuthApiHandler = (
         tenantId,
       });
     } catch (error) {
-      console.error(error);
+      logRequestError("Session API request failed", error, {
+        namespaceId,
+        userId,
+      });
       return handleAndReturnErrorResponse(error, headers);
     }
   };

@@ -1,6 +1,13 @@
 import { createEnv } from "@t3-oss/env-nextjs";
 import { z } from "zod/v4";
 
+import {
+  enforceEuConfig,
+  getEuStorageConfigIssues,
+} from "@agentset/utils/region-guard";
+
+const skipValidation = !!process.env.SKIP_ENV_VALIDATION;
+
 export const env = createEnv({
   server: {
     S3_ACCESS_KEY: z.string(),
@@ -24,6 +31,10 @@ export const env = createEnv({
 
     IMAGES_S3_BUCKET: process.env.IMAGES_S3_BUCKET,
   },
-  skipValidation: !!process.env.SKIP_ENV_VALIDATION,
+  skipValidation,
   emptyStringAsUndefined: true,
 });
+
+if (!skipValidation) {
+  enforceEuConfig(() => getEuStorageConfigIssues(process.env));
+}

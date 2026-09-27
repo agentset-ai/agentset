@@ -5,6 +5,13 @@ import { env as emailsEnv } from "@agentset/emails/env";
 import { env as engineEnv } from "@agentset/engine/env";
 import { env as storageEnv } from "@agentset/storage/env";
 import { env as stripeEnv } from "@agentset/stripe/env";
+import {
+  enforceEuConfig,
+  getEuWebConfigIssues,
+} from "@agentset/utils/region-guard";
+
+const skipValidation =
+  !!process.env.CI || process.env.npm_lifecycle_event === "lint";
 
 export const env = createEnv({
   extends: [engineEnv, storageEnv, stripeEnv, emailsEnv],
@@ -14,6 +21,13 @@ export const env = createEnv({
       .default("development"),
     NEXT_PUBLIC_APP_NAME: z.string().optional().default("Agentset"),
     NEXT_PUBLIC_APP_SHORT_DOMAIN: z.string().optional().default("agentset.ai"),
+    NEXT_PUBLIC_DEPLOYMENT_REGION: z
+      .enum(["us", "eu"])
+      .optional()
+      .default("us"),
+    NEXT_PUBLIC_APP_HOSTNAME: z.string().optional(),
+    NEXT_PUBLIC_API_HOSTNAME: z.string().optional(),
+    NEXT_PUBLIC_HOSTING_CNAME: z.string().optional(),
 
     NEXT_PUBLIC_VERCEL_ENV: z
       .enum(["development", "preview", "production"])
@@ -30,8 +44,8 @@ export const env = createEnv({
     GITHUB_CLIENT_ID: z.string(),
     GITHUB_CLIENT_SECRET: z.string(),
 
-    GOOGLE_CLIENT_ID: z.string(),
-    GOOGLE_CLIENT_SECRET: z.string(),
+    GOOGLE_CLIENT_ID: z.string().optional(),
+    GOOGLE_CLIENT_SECRET: z.string().optional(),
 
     REDIS_URL: z.url(),
     REDIS_TOKEN: z.string(),
@@ -48,11 +62,16 @@ export const env = createEnv({
     VERCEL_PROJECT_ID: z.string(),
     VERCEL_TEAM_ID: z.string(),
     VERCEL_API_TOKEN: z.string(),
+    VERCEL_REGION: z.string().optional(),
   },
   client: {},
   runtimeEnv: {
     NEXT_PUBLIC_APP_NAME: process.env.NEXT_PUBLIC_APP_NAME,
     NEXT_PUBLIC_APP_SHORT_DOMAIN: process.env.NEXT_PUBLIC_APP_SHORT_DOMAIN,
+    NEXT_PUBLIC_DEPLOYMENT_REGION: process.env.NEXT_PUBLIC_DEPLOYMENT_REGION,
+    NEXT_PUBLIC_APP_HOSTNAME: process.env.NEXT_PUBLIC_APP_HOSTNAME,
+    NEXT_PUBLIC_API_HOSTNAME: process.env.NEXT_PUBLIC_API_HOSTNAME,
+    NEXT_PUBLIC_HOSTING_CNAME: process.env.NEXT_PUBLIC_HOSTING_CNAME,
     NEXT_PUBLIC_VERCEL_ENV: process.env.NEXT_PUBLIC_VERCEL_ENV,
     NEXT_PUBLIC_POSTHOG_KEY: process.env.NEXT_PUBLIC_POSTHOG_KEY,
     DATABASE_URL: process.env.DATABASE_URL,
@@ -82,8 +101,12 @@ export const env = createEnv({
     VERCEL_PROJECT_ID: process.env.VERCEL_PROJECT_ID,
     VERCEL_TEAM_ID: process.env.VERCEL_TEAM_ID,
     VERCEL_API_TOKEN: process.env.VERCEL_API_TOKEN,
+    VERCEL_REGION: process.env.VERCEL_REGION,
   },
-  skipValidation:
-    !!process.env.CI || process.env.npm_lifecycle_event === "lint",
+  skipValidation,
   emptyStringAsUndefined: true,
 });
+
+if (!skipValidation) {
+  enforceEuConfig(() => getEuWebConfigIssues(process.env));
+}

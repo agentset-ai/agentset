@@ -1,6 +1,7 @@
 import { Button, Heading, Section, Text } from "@react-email/components";
 
 import { DefaultLayout } from "../components/default-layout";
+import { APP_DOMAIN } from "../domain";
 
 export function WebhookFailed({
   email = "john@doe.com",
@@ -14,7 +15,7 @@ export function WebhookFailed({
     consecutiveFailures: 15,
     disableThreshold: 20,
   },
-  domain = "https://app.agentset.ai",
+  domain = APP_DOMAIN,
 }: {
   email: string;
   organization: {

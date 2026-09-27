@@ -13,7 +13,7 @@ import { z } from "zod/v4";
 import type { WebhookTrigger } from "@agentset/webhooks";
 import { triggerSendWebhook } from "@agentset/jobs";
 import { isFreePlan } from "@agentset/stripe/plans";
-import { getWebhookEvents } from "@agentset/tinybird";
+import { getWebhookEvents, isTinybirdEnabled } from "@agentset/tinybird";
 import {
   createWebhookSchema,
   updateWebhookSchema,
@@ -135,6 +135,9 @@ export const webhooksRouter = createTRPCRouter({
       if (!webhook) {
         throw new TRPCError({ code: "NOT_FOUND" });
       }
+
+      // Delivery logs are off in the EU region or without Tinybird config
+      if (!isTinybirdEnabled) return [];
 
       const events = await getWebhookEvents({ webhookId: input.webhookId });
       return events.data;

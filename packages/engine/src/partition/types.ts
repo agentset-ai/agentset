@@ -112,7 +112,7 @@ export interface PartitionBody {
 export type PartitionResult = {
   status: number; // 200
   metadata: {
-    filename: string;
+    filename?: string; // not returned on EU
     filetype: string;
     size_in_bytes: number;
   };

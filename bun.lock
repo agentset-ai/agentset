@@ -86,6 +86,7 @@
     "packages/db": {
       "name": "@agentset/db",
       "dependencies": {
+        "@agentset/utils": "workspace:*",
         "@prisma/adapter-pg": "^7.4.1",
         "@prisma/client": "^7.4.1",
         "pg": "^8.16.3",
@@ -241,6 +242,7 @@
     "packages/tinybird": {
       "name": "@agentset/tinybird",
       "dependencies": {
+        "@agentset/utils": "workspace:*",
         "@agentset/webhooks": "workspace:*",
         "@chronark/zod-bird": "^1.0.0",
         "zod": "catalog:",
@@ -312,6 +314,7 @@
     "packages/validation": {
       "name": "@agentset/validation",
       "dependencies": {
+        "@agentset/utils": "workspace:*",
         "zod": "catalog:",
       },
       "devDependencies": {

@@ -13,6 +13,7 @@ import {
   createVectorStoreSchema,
   EmbeddingConfigSchema,
   GoogleEmbeddingConfigSchema,
+  isEmbeddingProviderAvailable,
   OpenAIEmbeddingConfigSchema,
   PineconeVectorStoreConfigSchema,
   TurbopufferVectorStoreConfigSchema,
@@ -44,7 +45,7 @@ export const embeddingModels: {
     models: GoogleEmbeddingConfigSchema.shape.model.options,
     icon: GoogleIcon,
   },
-];
+].filter((provider) => isEmbeddingProviderAvailable(provider.value));
 
 export const vectorStores: {
   value: z.infer<typeof createVectorStoreSchema>["provider"] | string;

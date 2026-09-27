@@ -1,4 +1,5 @@
 import type { NextRequest } from "next/server";
+import { logRequestError } from "@/lib/log";
 
 import type { HandlerParams } from "./base";
 import { handleAndReturnErrorResponse } from "../errors";
@@ -27,7 +28,7 @@ export const withPublicApiHandler = (handler: PublicHandler) => {
         searchParams,
       });
     } catch (error) {
-      console.error(error);
+      logRequestError("Public API request failed", error);
       return handleAndReturnErrorResponse(error, headers);
     }
   };

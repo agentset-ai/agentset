@@ -1,6 +1,9 @@
 import { z } from "zod/v4";
 
+import { REGION_FEATURES } from "@agentset/utils";
+
 import { languageCode } from "../language";
+import { unavailableInRegion } from "./utils";
 
 export const youtubePayloadSchema = z
   .object({
@@ -32,3 +35,10 @@ export const youtubePayloadSchema = z
     id: "youtube-payload",
     title: "Youtube Payload",
   });
+
+// Schema for creating new jobs
+export const youtubePayloadInputSchema = REGION_FEATURES.youtubeIngestion
+  ? youtubePayloadSchema
+  : youtubePayloadSchema.extend({
+      type: unavailableInRegion(youtubePayloadSchema.shape.type, "YouTube"),
+    });

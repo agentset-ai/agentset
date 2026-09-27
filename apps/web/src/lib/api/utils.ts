@@ -1,4 +1,5 @@
 import type { NextRequest } from "next/server";
+import { logRequestError } from "@/lib/log";
 
 import { AgentsetApiError } from "./errors";
 
@@ -18,7 +19,7 @@ export const parseRequestBody = async (req: NextRequest) => {
     // eslint-disable-next-line @typescript-eslint/no-unsafe-return
     return await req.json();
   } catch (e) {
-    console.error(e);
+    logRequestError("Invalid JSON request body", e);
     throw new AgentsetApiError({
       code: "bad_request",
       message:

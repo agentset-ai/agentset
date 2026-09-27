@@ -8,6 +8,7 @@ import {
 import { isFreePlan } from "@agentset/stripe/plans";
 
 import { getDb } from "../db";
+import { sanitizeRunErrors } from "../errors";
 import {
   METER_ORG_DOCUMENTS_JOB_ID,
   meterOrgDocumentsBodySchema,
@@ -22,7 +23,7 @@ export const meterOrgDocuments = schemaTask({
     concurrencyLimit: 50,
   },
   schema: meterOrgDocumentsBodySchema,
-  run: async ({ organizationId }) => {
+  run: sanitizeRunErrors(async ({ organizationId }) => {
     const db = getDb();
 
     // Get organization configuration
@@ -144,5 +145,5 @@ export const meterOrgDocuments = schemaTask({
       documentsProcessed: totalDocumentsProcessed,
       pagesProcessed: totalPagesProcessed,
     };
-  },
+  }),
 });

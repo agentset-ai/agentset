@@ -14,6 +14,7 @@ import {
 import { createTRPCContext } from "@trpc/tanstack-react-query";
 import SuperJSON from "superjson";
 
+import { trpcLinkMethodOptions } from "./method-override";
 import { createQueryClient } from "./query-client";
 
 let clientQueryClientSingleton: QueryClient | undefined = undefined;
@@ -38,6 +39,7 @@ export const trpcClient = createTRPCClient<AppRouter>({
     httpBatchStreamLink({
       transformer: SuperJSON,
       url: getBaseUrl() + "/api/trpc",
+      ...trpcLinkMethodOptions,
       headers: () => {
         const headers = new Headers();
         headers.set("x-trpc-source", "nextjs-react");

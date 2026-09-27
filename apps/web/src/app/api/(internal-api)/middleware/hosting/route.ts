@@ -2,8 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { isInternalMiddlewareRequest } from "@/lib/internal-api";
 
 import { db } from "@agentset/db/client";
-
-export const preferredRegion = "iad1";
+import { isEuRegion } from "@agentset/utils";
 
 const isHostingLookupMode = (
   mode: string | null,
@@ -42,8 +41,10 @@ export const GET = async (req: NextRequest) => {
       id: true,
       slug: true,
       protected: true,
-      allowedEmailDomains: true,
-      allowedEmails: true,
+      // on EU the middleware caches this response, so it gets routing fields
+      // only and access is checked by the access route
+      allowedEmailDomains: !isEuRegion,
+      allowedEmails: !isEuRegion,
       namespaceId: true,
     },
   });

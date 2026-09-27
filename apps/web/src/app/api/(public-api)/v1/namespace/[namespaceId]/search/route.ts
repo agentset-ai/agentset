@@ -14,8 +14,6 @@ import {
 } from "@agentset/engine";
 import { INFINITY_NUMBER } from "@agentset/utils";
 
-export const preferredRegion = "iad1"; // make this closer to the DB
-
 export const POST = withNamespaceApiHandler(
   async ({ req, namespace, tenantId, organization, headers }) => {
     // if it's not a pro plan, check if the user has exceeded the limit

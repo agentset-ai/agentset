@@ -1,5 +1,6 @@
 import type { createIngestJobSchema } from "@/schemas/api/ingest-job";
 import type { z } from "zod/v4";
+import { AgentsetApiError } from "@/lib/api/errors";
 import { emitIngestJobWebhook } from "@/lib/webhook/emit";
 import { waitUntil } from "@vercel/functions";
 
@@ -8,8 +9,15 @@ import { IngestJobStatus } from "@agentset/db";
 import { db } from "@agentset/db/client";
 import { triggerIngestionJob } from "@agentset/jobs";
 import { checkFileExists } from "@agentset/storage";
+import { REGION_FEATURES } from "@agentset/utils";
 
 import { validateNamespaceFileKey } from "../uploads";
+
+const regionUnavailableError = (source: string) =>
+  new AgentsetApiError({
+    code: "bad_request",
+    message: `${source} ingestion is not available in this region.`,
+  });
 
 export const createIngestJob = async ({
   plan,
@@ -24,6 +32,14 @@ export const createIngestJob = async ({
   tenantId?: string;
   data: z.infer<typeof createIngestJobSchema>;
 }) => {
+  if (data.payload.type === "CRAWL" && !REGION_FEATURES.crawlIngestion) {
+    throw regionUnavailableError("Crawl");
+  }
+
+  if (data.payload.type === "YOUTUBE" && !REGION_FEATURES.youtubeIngestion) {
+    throw regionUnavailableError("YouTube");
+  }
+
   let finalPayload: PrismaJson.IngestJobPayload | null = null;
 
   if (data.payload.type === "BATCH") {

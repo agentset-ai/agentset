@@ -1,7 +1,10 @@
 import type { ProtectedProcedureContext } from "@/server/api/trpc";
 import { addDomainToVercel } from "@/lib/domains/add-domain";
 import { getConfigResponse } from "@/lib/domains/get-config-response";
-import { getDomainResponse } from "@/lib/domains/get-domain-response";
+import {
+  getDomainResponse,
+  isDomainOnProject,
+} from "@/lib/domains/get-domain-response";
 import { removeDomainFromVercel } from "@/lib/domains/remove-domain";
 import { validateDomain } from "@/lib/domains/utils";
 import { verifyDomain } from "@/lib/domains/verify-domain";
@@ -10,6 +13,7 @@ import { TRPCError } from "@trpc/server";
 import { z } from "zod/v4";
 
 import type { Domain } from "@agentset/db";
+import { isEuRegion } from "@agentset/utils";
 
 const commonInput = z.object({
   namespaceId: z.string(),
@@ -84,6 +88,18 @@ export const domainsRouter = createTRPCRouter({
         throw new TRPCError({
           code: "UNPROCESSABLE_CONTENT",
           message: vercelResponse.error.message,
+        });
+      }
+
+      // a domain in use is accepted when it's already on this project
+      if (
+        isEuRegion &&
+        vercelResponse.error?.code === "domain_already_in_use" &&
+        !(await isDomainOnProject(input.domain))
+      ) {
+        throw new TRPCError({
+          code: "CONFLICT",
+          message: "Domain is already in use.",
         });
       }
 

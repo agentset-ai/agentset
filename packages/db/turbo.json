@@ -14,6 +14,13 @@
     "db:deploy": {
       "cache": false,
       "persistent": true
+    },
+    "db:deploy:eu": {
+      "cache": false,
+      "persistent": true
+    },
+    "db:status:eu": {
+      "cache": false
     }
   }
 }

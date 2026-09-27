@@ -7,7 +7,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@agentset/ui/select";
-import { LLM, LLM_MODELS } from "@agentset/validation";
+import { isLLMAvailable, LLM, LLM_MODELS } from "@agentset/validation";
 
 interface LLMSelectorProps {
   value?: LLM;
@@ -35,14 +35,16 @@ export function LLMSelector({
       </SelectTrigger>
       <SelectContent>
         {Object.entries(LLM_MODELS).flatMap(([provider, models]) =>
-          models.map((m) => (
-            <SelectItem
-              key={`${provider}:${m.model}`}
-              value={`${provider}:${m.model}`}
-            >
-              {m.name}
-            </SelectItem>
-          )),
+          models
+            .filter((m) => isLLMAvailable(`${provider}:${m.model}`))
+            .map((m) => (
+              <SelectItem
+                key={`${provider}:${m.model}`}
+                value={`${provider}:${m.model}`}
+              >
+                {m.name}
+              </SelectItem>
+            )),
         )}
       </SelectContent>
     </Select>

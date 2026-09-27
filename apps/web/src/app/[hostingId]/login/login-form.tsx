@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { RegionBadge } from "@/components/region-badge";
 import { useLoginError, useMagicAuth, useOtpAuth } from "@/hooks/use-auth";
 import { AlertCircleIcon, ArrowLeftIcon, CheckCircle2Icon } from "lucide-react";
 
@@ -166,6 +167,7 @@ export function LoginForm({
                 <a href="/" target="_blank" title="Home">
                   <Logo className="h-9 fill-black" />
                 </a>
+                <RegionBadge className="ml-2 self-center" />
               </div>
               <h1 className="mt-8 text-base/6 font-medium">Welcome back!</h1>
               <p className="mt-1 text-sm/5 text-gray-600">

@@ -13,6 +13,7 @@ import superjson from "superjson";
 import { ZodError } from "zod/v4";
 
 import { db } from "@agentset/db/client";
+import { isProviderUnavailableError } from "@agentset/engine/errors";
 
 /**
  * 1. CONTEXT
@@ -145,13 +146,31 @@ const timingMiddleware = t.middleware(async ({ next, path }) => {
 });
 
 /**
+ * Returns providers or models this deployment doesn't offer as a bad request
+ */
+const providerErrorMiddleware = t.middleware(async ({ next }) => {
+  const result = await next();
+
+  if (!result.ok && isProviderUnavailableError(result.error.cause)) {
+    throw new TRPCError({
+      code: "BAD_REQUEST",
+      message: result.error.cause.message,
+    });
+  }
+
+  return result;
+});
+
+const baseProcedure = t.procedure.use(providerErrorMiddleware);
+
+/**
  * Public (unauthenticated) procedure
  *
  * This is the base piece you use to build new queries and mutations on your tRPC API. It does not
  * guarantee that a user querying is authorized, but you can still access user session data if they
  * are logged in.
  */
-export const publicProcedure = t.procedure.use(timingMiddleware);
+export const publicProcedure = baseProcedure.use(timingMiddleware);
 
 /**
  * Protected (authenticated) procedure
@@ -161,7 +180,7 @@ export const publicProcedure = t.procedure.use(timingMiddleware);
  *
  * @see https://trpc.io/docs/procedures
  */
-export const protectedProcedure = t.procedure.use(({ ctx, next }) => {
+export const protectedProcedure = baseProcedure.use(({ ctx, next }) => {
   if (!ctx.session) {
     throw new TRPCError({ code: "UNAUTHORIZED" });
   }

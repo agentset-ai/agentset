@@ -3,7 +3,8 @@ import { NextResponse } from "next/server";
 import { generateErrorMessage } from "zod-error";
 import { z, ZodError } from "zod/v4";
 
-import { capitalize } from "@agentset/utils";
+import { isProviderUnavailableError } from "@agentset/engine/errors";
+import { capitalize, isEuRegion, logError } from "@agentset/utils";
 
 export const ErrorCode = z.enum([
   "bad_request",
@@ -129,7 +130,11 @@ export function fromZodError(error: ZodError): Pick<ErrorResponse, "error"> {
 export function handleApiError(
   error: any,
 ): Pick<ErrorResponse, "error"> & { status: number } {
-  console.error("API error occurred", error.message);
+  if (isEuRegion) {
+    logError("API error occurred", error);
+  } else {
+    console.error("API error occurred", error.message);
+  }
 
   // Zod errors
   if (error instanceof ZodError) {
@@ -148,6 +153,18 @@ export function handleApiError(
         doc_url: error.docUrl,
       },
       status: errorCodeToHttpStatus[error.code],
+    };
+  }
+
+  // Providers or models this deployment doesn't offer
+  if (isProviderUnavailableError(error)) {
+    return {
+      error: {
+        code: "bad_request",
+        message: error.message,
+        doc_url: `${docErrorUrl}#bad-request`,
+      },
+      status: errorCodeToHttpStatus.bad_request,
     };
   }
 

@@ -27,6 +27,8 @@ const schema = {
 };
 
 export class Turbopuffer implements VectorStore<TurbopufferVectorFilter> {
+  readonly namespaceId: string;
+
   private readonly _client: TurbopufferClient;
   private readonly client: TurbopufferClient.Namespace;
 
@@ -49,6 +51,7 @@ export class Turbopuffer implements VectorStore<TurbopufferVectorFilter> {
     // our max size will be as_ (3) + namespaceId (25) + _ (1) + tenantId (64) = 93
     const namespace = `as_${namespaceId}${tenantId ? `_${tenantId}` : ""}`;
 
+    this.namespaceId = namespaceId;
     this._client = new TurbopufferClient({ apiKey, region, logLevel: "error" });
     this.client = this._client.namespace(namespace);
   }

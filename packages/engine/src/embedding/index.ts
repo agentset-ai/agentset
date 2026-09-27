@@ -2,8 +2,10 @@ import { AzureOpenAIProviderSettings } from "@ai-sdk/azure";
 import { EmbeddingModel } from "ai";
 
 import type { Namespace } from "@agentset/db";
+import { getEmbeddingRegionIssue } from "@agentset/validation";
 
 import { env } from "../env";
+import { ProviderUnavailableError } from "../errors";
 import { WrapEmbeddingModel } from "./wrap-model";
 
 // this maps the managed OpenAI model names to the actual model IDs in azure
@@ -31,6 +33,11 @@ export const getNamespaceEmbeddingModel = async (
       provider: "MANAGED_OPENAI",
       model: "text-embedding-3-large",
     };
+  }
+
+  const regionIssue = getEmbeddingRegionIssue(config);
+  if (regionIssue) {
+    throw new ProviderUnavailableError(regionIssue);
   }
 
   let model: EmbeddingModel;

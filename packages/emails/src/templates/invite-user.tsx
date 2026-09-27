@@ -1,6 +1,7 @@
 import { Button, Heading, Link, Section, Text } from "@react-email/components";
 
 import { DefaultLayout } from "../components/default-layout";
+import { APP_DOMAIN } from "../domain";
 
 export function OrganizationInvite({
   email = "john@doe.com",
@@ -8,7 +9,7 @@ export function OrganizationInvite({
   organizationName = "Acme",
   organizationUser = "Brendon Urie",
   organizationUserEmail = "panic@thedis.co",
-  domain = "https://app.agentset.ai",
+  domain = APP_DOMAIN,
 }: {
   email: string;
   url: string;

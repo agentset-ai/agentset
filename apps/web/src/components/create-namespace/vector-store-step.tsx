@@ -23,10 +23,16 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@agentset/ui/select";
-import { camelCaseToWords, capitalize } from "@agentset/utils";
+import {
+  camelCaseToWords,
+  capitalize,
+  isEuRegion,
+  REGION_FEATURES,
+} from "@agentset/utils";
 import {
   CreateVectorStoreConfig,
   createVectorStoreSchema,
+  isTurbopufferRegionAvailable,
 } from "@agentset/validation";
 
 import { vectorStores } from "./models";
@@ -55,7 +61,9 @@ export default function CreateNamespaceVectorStoreStep({
   const form = useZodForm(formSchema, {
     defaultValues: {
       vectorStore: {
-        provider: "MANAGED_TURBOPUFFER",
+        provider: REGION_FEATURES.managedVectorStores
+          ? "MANAGED_TURBOPUFFER"
+          : "TURBOPUFFER",
       },
     },
   });
@@ -87,13 +95,19 @@ export default function CreateNamespaceVectorStoreStep({
       .filter((key) => key !== "provider")
       .map((key) => {
         const field = shape[key as keyof typeof shape] as z.ZodType;
+        const isTurbopufferRegion =
+          currentVectorProvider === "TURBOPUFFER" && key === "region";
 
         return {
           name: key,
           isOptional: field.safeParse(undefined).success,
           options:
             field instanceof z.ZodEnum
-              ? (field.options as string[])
+              ? (field.options as string[]).filter(
+                  (option) =>
+                    !isTurbopufferRegion ||
+                    isTurbopufferRegionAvailable(option),
+                )
               : undefined,
         };
       });
@@ -124,12 +138,14 @@ export default function CreateNamespaceVectorStoreStep({
                     }
                     className="grid grid-cols-3 gap-4"
                   >
-                    <RadioButton
-                      value="agentset"
-                      label="Managed"
-                      icon={Logo}
-                      note="Default"
-                    />
+                    {REGION_FEATURES.managedVectorStores && (
+                      <RadioButton
+                        value="agentset"
+                        label="Managed"
+                        icon={Logo}
+                        note="Default"
+                      />
+                    )}
 
                     {vectorStores.map((store) => (
                       <RadioButton
@@ -225,6 +241,12 @@ export default function CreateNamespaceVectorStoreStep({
                 </FormItem>
               )}
             />
+          )}
+
+          {isEuRegion && currentVectorProvider === "PINECONE" && (
+            <p className="text-muted-foreground text-sm">
+              You control the index region; we recommend an EU index.
+            </p>
           )}
         </div>
 

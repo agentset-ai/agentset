@@ -1,3 +1,5 @@
+import { canLoadImage } from "@agentset/utils";
+
 export const Overview = ({
   title,
   description,
@@ -10,7 +12,7 @@ export const Overview = ({
   return (
     <div className="mx-auto w-full px-4 pb-6 md:max-w-3xl">
       <div className="flex w-full flex-col gap-4 leading-relaxed">
-        {logo ? (
+        {canLoadImage(logo) ? (
           <img
             src={logo}
             alt="Logo"

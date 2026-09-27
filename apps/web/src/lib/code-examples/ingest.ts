@@ -1,6 +1,8 @@
+import { API_URL, pythonSdkApiUrlOption, tsSdkApiUrlOption } from "./api-url";
+
 export const curlExample = (apiKey?: string) => /* bash */ `
 curl --request POST \\
-  --url https://api.agentset.ai/v1/namespace/{{namespace}}/ingest-jobs \\
+  --url ${API_URL}/v1/namespace/{{namespace}}/ingest-jobs \\
   --header 'Authorization: Bearer ${apiKey ?? "<token>"}' \\
   --header 'Content-Type: application/json' \\
   --data '{
@@ -23,7 +25,7 @@ export const tsSdkExample = (apiKey?: string) => /* typescript */ `
 import { Agentset } from "agentset";
 
 const agentset = new Agentset({
-  apiKey: "${apiKey ?? "YOUR_API_KEY"}",
+  apiKey: "${apiKey ?? "YOUR_API_KEY"}",${tsSdkApiUrlOption}
 });
 
 const ns = agentset.namespace("{{namespace}}");
@@ -50,7 +52,7 @@ from agentset import Agentset
 
 client = Agentset(
     namespace_id="{{namespace}}",
-    token="${apiKey ?? "YOUR_API_KEY"}",
+    token="${apiKey ?? "YOUR_API_KEY"}",${pythonSdkApiUrlOption}
 )
 
 job = client.ingest_jobs.create(

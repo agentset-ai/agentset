@@ -1,19 +1,19 @@
 import { Section, Text } from "@react-email/components";
 
 import { DefaultLayout } from "../components/default-layout";
+import { APP_DOMAIN } from "../domain";
 
 const OTPEmail = ({
   code = "123456",
   email = "john@doe.com",
+  domain = APP_DOMAIN,
 }: {
   code: string;
   email: string;
+  domain?: string;
 }) => {
   return (
-    <DefaultLayout
-      preview="Login to Agentset"
-      footer={{ email, domain: "https://app.agentset.ai" }}
-    >
+    <DefaultLayout preview="Login to Agentset" footer={{ email, domain }}>
       <Text className="text-sm leading-6 text-black">
         Your confirmation code is below - enter it in your open browser window
         and we'll help you get signed in.

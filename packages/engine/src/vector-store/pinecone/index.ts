@@ -18,6 +18,8 @@ import {
 import { PineconeFilterTranslator, PineconeVectorFilter } from "./filter";
 
 export class Pinecone implements VectorStore<PineconeVectorFilter> {
+  readonly namespaceId: string;
+
   private readonly client: Index;
   private readonly filterTranslator = new PineconeFilterTranslator();
 
@@ -33,6 +35,7 @@ export class Pinecone implements VectorStore<PineconeVectorFilter> {
     tenantId?: string;
   }) {
     const namespace = `agentset:${namespaceId}${tenantId ? `:${tenantId}` : ""}`;
+    this.namespaceId = namespaceId;
     this.client = new PineconeClient({ apiKey })
       .index("", indexHost)
       .namespace(namespace);

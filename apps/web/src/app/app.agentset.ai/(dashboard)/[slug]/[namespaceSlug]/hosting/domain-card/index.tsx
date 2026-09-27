@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useNamespace } from "@/hooks/use-namespace";
 import { logEvent } from "@/lib/analytics";
-import { SHORT_DOMAIN } from "@/lib/constants";
+import { HOSTING_CNAME } from "@/lib/constants";
 import { useTRPC } from "@/trpc/react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
@@ -22,7 +22,7 @@ import { Tooltip, TooltipContent, TooltipTrigger } from "@agentset/ui/tooltip";
 
 import { DnsRecord } from "./dns-record";
 
-const CNAME_VALUE = `cname.${SHORT_DOMAIN}`;
+const CNAME_VALUE = HOSTING_CNAME;
 const A_VALUE = "76.76.21.21";
 
 export function useDomainStatus() {

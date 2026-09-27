@@ -5,9 +5,10 @@ import { DocumentStatus, IngestJobStatus, NamespaceStatus } from "@agentset/db";
 import { getDemoTemplate } from "@agentset/demo";
 import { getNamespaceVectorStore } from "@agentset/engine";
 import { makeChunksKey, uploadObject } from "@agentset/storage";
-import { chunkArray } from "@agentset/utils";
+import { chunkArray, REGION_FEATURES } from "@agentset/utils";
 
 import { getDb } from "../db";
+import { sanitizeRunErrors } from "../errors";
 import {
   SEED_DEMO_NAMESPACE_JOB_ID,
   seedDemoNamespaceBodySchema,
@@ -68,7 +69,12 @@ export const seedDemoNamespace = schemaTask({
     maxAttempts: 1,
   },
   schema: seedDemoNamespaceBodySchema,
-  run: async ({ namespaceId, organizationId, templateId }) => {
+  run: sanitizeRunErrors(async (payload) => {
+    const { namespaceId, organizationId, templateId } = payload;
+    if (!REGION_FEATURES.demoTemplates) {
+      throw new Error("Demo templates are not available in this region");
+    }
+
     const template = getDemoTemplate(templateId);
     if (!template) throw new Error("Template not found");
 
@@ -243,5 +249,5 @@ export const seedDemoNamespace = schemaTask({
 
       throw error;
     }
-  },
+  }),
 });

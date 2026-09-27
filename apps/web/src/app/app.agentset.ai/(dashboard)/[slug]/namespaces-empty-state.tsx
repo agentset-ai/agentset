@@ -17,6 +17,7 @@ import { DEMO_TEMPLATE_LIST } from "@agentset/demo";
 import { Button } from "@agentset/ui/button";
 import { Separator, SeparatorContent } from "@agentset/ui/separator";
 import { Spinner } from "@agentset/ui/spinner";
+import { REGION_FEATURES } from "@agentset/utils";
 
 function TemplateCard({
   template,
@@ -115,23 +116,29 @@ export function NamespacesEmptyState({
         Create Namespace
       </Button>
 
-      <Separator className="my-6 max-w-xl md:my-10">
-        <SeparatorContent className="uppercase">
-          Or try with sample data
-        </SeparatorContent>
-      </Separator>
+      {REGION_FEATURES.demoTemplates && (
+        <>
+          <Separator className="my-6 max-w-xl md:my-10">
+            <SeparatorContent className="uppercase">
+              Or try with sample data
+            </SeparatorContent>
+          </Separator>
 
-      <div className="grid w-full max-w-2xl grid-cols-1 gap-3 md:grid-cols-3 md:gap-4">
-        {DEMO_TEMPLATE_LIST.map((template) => (
-          <TemplateCard
-            key={template.id}
-            template={template}
-            onSelect={onTemplateSelect}
-            isPending={isCreatingDemo}
-            isSelected={creatingTemplateId === template.id && isCreatingDemo}
-          />
-        ))}
-      </div>
+          <div className="grid w-full max-w-2xl grid-cols-1 gap-3 md:grid-cols-3 md:gap-4">
+            {DEMO_TEMPLATE_LIST.map((template) => (
+              <TemplateCard
+                key={template.id}
+                template={template}
+                onSelect={onTemplateSelect}
+                isPending={isCreatingDemo}
+                isSelected={
+                  creatingTemplateId === template.id && isCreatingDemo
+                }
+              />
+            ))}
+          </div>
+        </>
+      )}
     </div>
   );
 }

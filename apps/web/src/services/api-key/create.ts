@@ -1,4 +1,5 @@
 import { revalidateTag } from "next/cache";
+import { API_KEY_PREFIX } from "@/lib/api/api-key-region";
 import { z } from "zod/v4";
 
 import { db } from "@agentset/db/client";
@@ -28,7 +29,7 @@ export const createApiKey = async (
       label: data.label,
       scope: data.scope,
       organizationId: data.organizationId,
-      key: keyGenerator("agentset_"),
+      key: keyGenerator(API_KEY_PREFIX),
     },
   });
 

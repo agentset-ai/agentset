@@ -1,4 +1,5 @@
-import type { ComponentProps, ReactNode } from "react";
+import type { ComponentProps, ReactNode, SVGProps } from "react";
+import { BotIcon } from "lucide-react";
 
 import { cn } from "@agentset/ui/cn";
 import {
@@ -18,6 +19,11 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@agentset/ui/dialog";
+import { AnthropicIcon } from "@agentset/ui/icons/anthropic";
+import { MicrosoftAzureIcon } from "@agentset/ui/icons/azure";
+import { GoogleIcon } from "@agentset/ui/icons/google";
+import { OpenAIIcon } from "@agentset/ui/icons/openai";
+import { REGION_FEATURES } from "@agentset/utils";
 
 export type ModelSelectorProps = ComponentProps<typeof Dialog>;
 
@@ -166,20 +172,42 @@ export type ModelSelectorLogoProps = Omit<
     | (string & {});
 };
 
+const LOCAL_PROVIDER_LOGOS: Partial<
+  Record<string, (props: SVGProps<SVGSVGElement>) => ReactNode>
+> = {
+  openai: OpenAIIcon,
+  anthropic: AnthropicIcon,
+  google: GoogleIcon,
+  azure: MicrosoftAzureIcon,
+};
+
 export const ModelSelectorLogo = ({
   provider,
   className,
   ...props
-}: ModelSelectorLogoProps) => (
-  <img
-    {...props}
-    alt={`${provider} logo`}
-    className={cn("size-4 dark:invert", className)}
-    height={16}
-    width={16}
-    src={`https://models.dev/logos/${provider}.svg`}
-  />
-);
+}: ModelSelectorLogoProps) => {
+  if (!REGION_FEATURES.thirdPartyBrowserAssets) {
+    const Logo = LOCAL_PROVIDER_LOGOS[provider] ?? BotIcon;
+    return (
+      <Logo
+        role="img"
+        aria-label={`${provider} logo`}
+        className={cn("size-4 shrink-0", className)}
+      />
+    );
+  }
+
+  return (
+    <img
+      {...props}
+      alt={`${provider} logo`}
+      className={cn("size-4 dark:invert", className)}
+      height={16}
+      width={16}
+      src={`https://models.dev/logos/${provider}.svg`}
+    />
+  );
+};
 
 export type ModelSelectorLogoGroupProps = ComponentProps<"div">;
 

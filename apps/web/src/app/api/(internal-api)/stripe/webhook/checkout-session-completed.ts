@@ -13,8 +13,9 @@ import {
   stripe,
 } from "@agentset/stripe";
 import { getPlanFromPriceId } from "@agentset/stripe/plans";
-import { capitalize } from "@agentset/utils";
+import { capitalize, isEuRegion } from "@agentset/utils";
 
+import { getStripeEventRegion } from "./region";
 import { revalidateOrganizationCache } from "./utils";
 
 export async function checkoutSessionCompleted(event: Stripe.Event) {
@@ -28,10 +29,13 @@ export async function checkoutSessionCompleted(event: Stripe.Event) {
     checkoutSession.client_reference_id === null ||
     checkoutSession.customer === null
   ) {
-    await log({
-      message: "Missing items in Stripe webhook callback",
-      type: "errors",
-    });
+    // both regions receive untagged events; the US deployment reports them
+    if (!isEuRegion || getStripeEventRegion(event) === "eu") {
+      await log({
+        message: "Missing items in Stripe webhook callback",
+        type: "errors",
+      });
+    }
     return;
   }
 
@@ -40,6 +44,25 @@ export async function checkoutSessionCompleted(event: Stripe.Event) {
       ? checkoutSession.customer
       : checkoutSession.customer.id;
   const organizationId = checkoutSession.client_reference_id;
+
+  // the organization may belong to the other region's database
+  const existingOrganization = await db.organization.findUnique({
+    where: {
+      id: organizationId,
+    },
+    select: {
+      id: true,
+    },
+  });
+
+  if (!existingOrganization) {
+    console.log(
+      "Organization *`" +
+        organizationId +
+        "`* not found in Stripe webhook `checkout.session.completed` callback",
+    );
+    return;
+  }
 
   const subscription = await stripe.subscriptions.retrieve(
     checkoutSession.subscription as string,
@@ -149,7 +172,12 @@ export async function checkoutSessionCompleted(event: Stripe.Event) {
       organizationId,
     }),
     log({
-      message: `🎉 New ${planName} subscriber: 
+      message: isEuRegion
+        ? `🎉 New ${planName} subscriber:
+Period: \`${period}\`
+Organization: \`${organization.slug}\` (\`${organizationId}\`)
+Members: \`${organization.members.length}\``
+        : `🎉 New ${planName} subscriber: 
 Period: \`${period}\`
 Organization: \`${organization.slug}\`
 Members: \`${organization.members.map(({ user }) => user.email).join(", ")}\``,

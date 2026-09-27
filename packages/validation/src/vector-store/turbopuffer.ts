@@ -1,11 +1,14 @@
 import { z } from "zod/v4";
 
+import { EU_TURBOPUFFER_REGIONS, isEuRegion } from "@agentset/utils";
+
 const turboPufferRegions = [
   "gcp-us-central1",
   "gcp-us-west1",
   "gcp-us-east4",
   "gcp-northamerica-northeast2",
   "gcp-europe-west3",
+  "gcp-europe-west1",
   "gcp-asia-southeast1",
   "gcp-gcp-asia-northeast3",
   "aws-eu-central-1",
@@ -16,6 +19,10 @@ const turboPufferRegions = [
   "aws-us-east-2",
   "aws-ap-south-1",
 ] as const;
+
+/** Whether new namespaces in this region can use the Turbopuffer region. */
+export const isTurbopufferRegionAvailable = (region: string) =>
+  !isEuRegion || (EU_TURBOPUFFER_REGIONS as readonly string[]).includes(region);
 
 export const regionEnum = z.enum(turboPufferRegions).meta({
   id: "turbopuffer-region-enum",

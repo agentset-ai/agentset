@@ -4,7 +4,11 @@ import { parse } from "@/lib/middleware/utils";
 import { getCache } from "@vercel/functions";
 import { getSessionCookie } from "better-auth/cookies";
 
+import { isEuRegion } from "@agentset/utils";
+
+import type { Session } from "../auth-types";
 import { HOSTING_PREFIX } from "../constants";
+import { isAllowedHostingEmail } from "../hosting-access";
 import { getMiddlewareSession } from "./get-session";
 import {
   getInternalMiddlewareHeaders,
@@ -19,6 +23,17 @@ type Hosting = {
   allowedEmails: string[];
   namespaceId: string;
 };
+
+// on EU the lookup returns (and the cache holds) routing fields only, and
+// access checks run in the internal route
+type HostingRoute = Pick<Hosting, "id" | "slug" | "protected" | "namespaceId">;
+
+const toHostingRoute = (hosting: HostingRoute): HostingRoute => ({
+  id: hosting.id,
+  slug: hosting.slug,
+  protected: hosting.protected,
+  namespaceId: hosting.namespaceId,
+});
 
 type HostingFilter = { key: string; mode: "domain" | "slug"; value: string };
 
@@ -83,23 +98,79 @@ const getIsHostingMember = async (
   }
 };
 
+const getHasHostingAccess = async (
+  req: NextRequest,
+  filter: { hostingId: string; userId: string },
+) => {
+  const searchParams = new URLSearchParams({
+    hostingId: filter.hostingId,
+    userId: filter.userId,
+  });
+
+  const response = await fetch(
+    getInternalMiddlewareUrl(
+      req,
+      `/api/middleware/hosting/access?${searchParams.toString()}`,
+    ),
+    {
+      headers: getInternalMiddlewareHeaders(req),
+      cache: "no-store",
+    },
+  );
+
+  if (!response.ok) {
+    return false;
+  }
+
+  try {
+    const data = (await response.json()) as { hasAccess: boolean };
+    return data.hasAccess;
+  } catch {
+    return false;
+  }
+};
+
+const isAllowedHostingUser = async (
+  req: NextRequest,
+  hosting: Hosting | HostingRoute,
+  session: Session,
+) => {
+  if (isEuRegion) {
+    return getHasHostingAccess(req, {
+      hostingId: hosting.id,
+      userId: session.user.id,
+    });
+  }
+
+  // if the user is not allowed to access this domain, check if they're a member in the organization as a last resort
+  if (!isAllowedHostingEmail(hosting as Hosting, session.user.email)) {
+    // check if they're members
+    return getIsHostingMember(req, {
+      userId: session.user.id,
+      namespaceId: hosting.namespaceId,
+    });
+  }
+
+  return true;
+};
+
 const getCachedHosting = async (
   filter: HostingFilter,
   event: NextFetchEvent,
   req: NextRequest,
 ) => {
-  let hosting: Hosting | null = null;
+  let hosting: Hosting | HostingRoute | null = null;
   const cache = getCache();
   const cachedHosting = await cache.get(filter.key);
 
-  if (cachedHosting) return cachedHosting as unknown as Hosting;
+  if (cachedHosting) return cachedHosting as unknown as Hosting | HostingRoute;
 
   hosting = await getHosting(req, filter);
 
   // cache the hosting in background
   if (hosting) {
     event.waitUntil(
-      cache.set(filter.key, hosting, {
+      cache.set(filter.key, isEuRegion ? toHostingRoute(hosting) : hosting, {
         ttl: 3600, // 1 hour
         tags: [`hosting:${hosting.id}`],
       }),
@@ -173,30 +244,11 @@ export default async function HostingMiddleware(
       return NextResponse.redirect(loginUrl);
     }
 
-    // check if the user is allowed to access this domain
-    const email = session.user.email;
-    const emailDomain = email.split("@")[1] ?? "";
-    const allowedEmailDomains = hosting.allowedEmailDomains;
-    const allowedEmails = hosting.allowedEmails;
-
-    // if the user is not allowed to access this domain, check if they're a member in the organization as a last resort
-    // if they're not a member, redirect to not-allowed
-    if (
-      !allowedEmails.includes(email) &&
-      !allowedEmailDomains.includes(emailDomain)
-    ) {
-      // check if they're members
-      const isMember = await getIsHostingMember(req, {
-        userId: session.user.id,
-        namespaceId: hosting.namespaceId,
-      });
-
-      // if they're not a member, rewrite to not-allowed
-      if (!isMember) {
-        return NextResponse.rewrite(
-          new URL(`/${hosting.id}/not-allowed`, req.url),
-        );
-      }
+    // if the user is not allowed to access this domain, rewrite to not-allowed
+    if (!(await isAllowedHostingUser(req, hosting, session))) {
+      return NextResponse.rewrite(
+        new URL(`/${hosting.id}/not-allowed`, req.url),
+      );
     }
   }
 

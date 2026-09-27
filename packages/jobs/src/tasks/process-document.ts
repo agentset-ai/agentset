@@ -1,35 +1,108 @@
-import { schemaTask, wait } from "@trigger.dev/sdk";
+import type { z } from "zod/v4";
+import { logger, schemaTask, wait } from "@trigger.dev/sdk";
 import { Ratelimit } from "@upstash/ratelimit";
 import { embedMany } from "ai";
 
 import type {
   CrawlPartitionResultDocument,
   PartitionBatch,
+  PartitionBody,
   PartitionResult,
   YoutubePartitionResultDocument,
 } from "@agentset/engine";
 import { DocumentStatus, Prisma } from "@agentset/db";
 import {
+  deletePartitionTextSource,
   getNamespaceEmbeddingModel,
   getNamespaceVectorStore,
   getPartitionDocumentBody,
+  serializePartitionBody,
 } from "@agentset/engine";
 import { env } from "@agentset/engine/env";
 import { getChunksJsonFromS3 } from "@agentset/storage";
 import { meterIngestedPages } from "@agentset/stripe";
 import { isFreePlan } from "@agentset/stripe/plans";
-import { chunkArray } from "@agentset/utils";
+import { chunkArray, isEuRegion } from "@agentset/utils";
 
 import { getDb } from "../db";
+import {
+  getTaskFailureMessage,
+  sanitizeHookErrors,
+  sanitizeRunErrors,
+} from "../errors";
 import { rateLimit } from "../rate-limit";
 import { redis } from "../redis";
 import {
+  documentJobIngestJobSchema,
   TRIGGER_DOCUMENT_JOB_ID,
   triggerDocumentJobBodySchema,
 } from "../schema";
 import { emitDocumentWebhook } from "../webhook";
 
 const BATCH_SIZE = 30;
+
+type DocumentJobBody = z.infer<typeof triggerDocumentJobBodySchema>;
+
+const loadIngestJob = async (payload: DocumentJobBody) => {
+  if ("ingestJob" in payload) return payload.ingestJob;
+
+  const ingestJob = await getDb().ingestJob.findUnique({
+    where: { id: payload.ingestJobId },
+    select: {
+      id: true,
+      config: true,
+      namespace: {
+        select: {
+          id: true,
+          embeddingConfig: true,
+          vectorStoreConfig: true,
+          organization: {
+            select: {
+              id: true,
+              plan: true,
+              stripeId: true,
+            },
+          },
+        },
+      },
+    },
+  });
+
+  if (!ingestJob) {
+    throw new Error("Ingest job not found");
+  }
+
+  return documentJobIngestJobSchema.parse(ingestJob);
+};
+
+const getOrganizationId = async (
+  payload: DocumentJobBody,
+  namespaceId: string,
+) => {
+  if ("ingestJob" in payload)
+    return payload.ingestJob.namespace.organization.id;
+
+  const namespace = await getDb().namespace.findUniqueOrThrow({
+    where: { id: namespaceId },
+    select: { organizationId: true },
+  });
+
+  return namespace.organizationId;
+};
+
+const getPartitionBatchKeys = (result: PartitionResult) =>
+  new Array(result.total_batches)
+    .fill(null)
+    .map((_, idx) =>
+      result.batch_template.replace("[BATCH_INDEX]", idx.toString()),
+    );
+
+const deleteRedisKeys = async (keys: string[]) => {
+  const keyBatches = chunkArray(keys, 150);
+  for (const keyBatch of keyBatches) {
+    await redis.del(...keyBatch);
+  }
+};
 
 const processBatch = async (
   batch: PartitionBatch,
@@ -79,11 +152,10 @@ export const processDocument = schemaTask({
     maxAttempts: 1,
   },
   schema: triggerDocumentJobBodySchema,
-  onFailure: async ({ payload, error }) => {
+  onFailure: sanitizeHookErrors(async ({ payload, error }) => {
     const db = getDb();
 
-    const errorMessage =
-      (error instanceof Error ? error.message : null) || "Unknown error";
+    const errorMessage = getTaskFailureMessage(error);
 
     try {
       const document = await db.document.update({
@@ -113,7 +185,10 @@ export const processDocument = schemaTask({
         trigger: "document.error",
         document: {
           ...document,
-          organizationId: payload.ingestJob.namespace.organization.id,
+          organizationId: await getOrganizationId(
+            payload,
+            document.namespaceId,
+          ),
         },
       });
     } catch (e) {
@@ -126,9 +201,11 @@ export const processDocument = schemaTask({
 
       throw e;
     }
-  },
-  run: async ({ documentId, ingestJob, cleanup: shouldCleanup }) => {
+  }),
+  run: sanitizeRunErrors(async (payload) => {
+    const { documentId, cleanup: shouldCleanup } = payload;
     const db = getDb();
+    const ingestJob = await loadIngestJob(payload);
 
     // Update document status to processing and get document configuration
     const document = await db.document.update({
@@ -266,93 +343,111 @@ export const processDocument = schemaTask({
       });
       const token = await wait.createToken({ timeout: "2h" });
 
-      // Get partition document body
-      const partitionBody = await getPartitionDocumentBody({
-        document: document as any,
-        ingestJobConfig: ingestJob.config,
-        namespaceId: ingestJob.namespace.id,
-        triggerTokenId: token.id,
-        triggerAccessToken: token.publicAccessToken,
-      });
+      let partitionBody: PartitionBody;
+      let result: PartitionResult | undefined;
+      try {
+        // Get partition document body
+        partitionBody = await getPartitionDocumentBody({
+          document: document as any,
+          ingestJobConfig: ingestJob.config,
+          namespaceId: ingestJob.namespace.id,
+          triggerTokenId: token.id,
+          triggerAccessToken: token.publicAccessToken,
+        });
 
-      // Partition the document
-      const response = await fetch(`${env.PARTITION_API_URL}/ingest`, {
-        method: "POST",
-        headers: {
-          "api-key": env.PARTITION_API_KEY,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(partitionBody),
-      });
+        // Partition the document
+        const response = await fetch(`${env.PARTITION_API_URL}/ingest`, {
+          method: "POST",
+          headers: {
+            "api-key": env.PARTITION_API_KEY,
+            "Content-Type": "application/json",
+          },
+          body: serializePartitionBody(partitionBody),
+        });
 
-      const initialBody = (await response.json()) as { call_id: string };
-      if (response.status !== 200 || !initialBody.call_id) {
-        throw new Error("Partition Error");
+        const initialBody = (await response.json()) as { call_id: string };
+        if (response.status !== 200 || !initialBody.call_id) {
+          throw new Error("Partition Error");
+        }
+
+        // This must be called inside a task run function
+        result = await wait
+          .forToken<PartitionResult | undefined>(token.id)
+          .unwrap();
+      } finally {
+        // EU: the partition API is done with the text source (or never got
+        // it), whether or not the request succeeded
+        if (isEuRegion && document.source.type === "TEXT") {
+          await deletePartitionTextSource(document.id).catch(() => {
+            logger.warn("Failed to delete the text source", {
+              documentId: document.id,
+            });
+          });
+        }
       }
-
-      // This must be called inside a task run function
-      const result = await wait
-        .forToken<PartitionResult | undefined>(token.id)
-        .unwrap();
 
       if (!result || result.status !== 200) {
         throw new Error("Partition Error");
       }
 
-      // Update document properties and status to processing
-      totalPages =
-        result.total_pages && typeof result.total_pages === "number"
-          ? result.total_pages
-          : result.total_characters / 1000;
-      totalChunks = result.total_chunks;
+      try {
+        // Update document properties and status to processing
+        totalPages =
+          result.total_pages && typeof result.total_pages === "number"
+            ? result.total_pages
+            : result.total_characters / 1000;
+        totalChunks = result.total_chunks;
 
-      await db.document.update({
-        where: { id: document.id },
-        data: {
-          status: DocumentStatus.PROCESSING,
-          processingAt: new Date(),
-          totalCharacters: result.total_characters,
-          totalChunks,
-          totalPages,
-          documentProperties: {
-            fileSize: result.metadata.size_in_bytes,
-            mimeType: result.metadata.filetype,
+        await db.document.update({
+          where: { id: document.id },
+          data: {
+            status: DocumentStatus.PROCESSING,
+            processingAt: new Date(),
+            totalCharacters: result.total_characters,
+            totalChunks,
+            totalPages,
+            documentProperties: {
+              fileSize: result.metadata.size_in_bytes,
+              mimeType: result.metadata.filetype,
+            },
           },
-        },
-        select: { id: true },
-      });
-
-      // Process all batches and embed chunks
-      for (let batchIdx = 0; batchIdx < result.total_batches; batchIdx++) {
-        const chunkBatch = await redis.get<PartitionBatch>(
-          result.batch_template.replace("[BATCH_INDEX]", batchIdx.toString()),
-        );
-
-        if (!chunkBatch) {
-          throw new Error("Chunk batch not found");
-        }
-
-        const { tokens } = await processBatch(chunkBatch, {
-          embeddingModel,
-          vectorStore,
-          documentId: document.id,
-          extraMetadata: partitionBody.extra_metadata,
+          select: { id: true },
         });
 
-        totalTokens += tokens;
+        // Process all batches and embed chunks
+        for (let batchIdx = 0; batchIdx < result.total_batches; batchIdx++) {
+          const chunkBatch = await redis.get<PartitionBatch>(
+            result.batch_template.replace("[BATCH_INDEX]", batchIdx.toString()),
+          );
+
+          if (!chunkBatch) {
+            throw new Error("Chunk batch not found");
+          }
+
+          const { tokens } = await processBatch(chunkBatch, {
+            embeddingModel,
+            vectorStore,
+            documentId: document.id,
+            extraMetadata: partitionBody.extra_metadata,
+          });
+
+          totalTokens += tokens;
+        }
+      } catch (error) {
+        // EU: best-effort cleanup of the extracted chunks
+        if (isEuRegion) {
+          await deleteRedisKeys(getPartitionBatchKeys(result)).catch(() => {
+            logger.warn("Failed to delete partition batches", {
+              documentId: document.id,
+            });
+          });
+        }
+
+        throw error;
       }
 
       // Delete all chunks from redis
-      const keys = new Array(result.total_batches)
-        .fill(null)
-        .map((_, idx) =>
-          result.batch_template.replace("[BATCH_INDEX]", idx.toString()),
-        );
-
-      const keyBatches = chunkArray(keys, 150);
-      for (const keyBatch of keyBatches) {
-        await redis.del(...keyBatch);
-      }
+      await deleteRedisKeys(getPartitionBatchKeys(result));
     }
 
     const completedDocument = await db.document.update({
@@ -418,5 +513,5 @@ export const processDocument = schemaTask({
       meterSuccess,
       pagesDelta: shouldCleanup ? delta : totalPages,
     };
-  },
+  }),
 });
