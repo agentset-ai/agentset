@@ -117,13 +117,19 @@ describe("jobs run region guard", () => {
     ).not.toThrow();
     expect(() =>
       assertJobsRunRegion({
+        region: "eu-central-1:scheduled",
+        environmentType: "PRODUCTION",
+      }),
+    ).not.toThrow();
+    expect(() =>
+      assertJobsRunRegion({
         region: undefined,
         environmentType: "DEVELOPMENT",
       }),
     ).not.toThrow();
   });
 
-  it.each([undefined, "us-east-1"])(
+  it.each([undefined, "us-east-1", "us-east-1:scheduled"])(
     "fails deployed eu runs in %s",
     async (region) => {
       const { assertJobsRunRegion } = await importGuard("eu", EU_ENV);
