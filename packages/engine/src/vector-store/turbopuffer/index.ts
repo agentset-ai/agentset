@@ -297,6 +297,7 @@ export class Turbopuffer implements VectorStore<TurbopufferVectorFilter> {
           vector: [1, 2, 3],
         },
       ],
+      distance_metric: "cosine_distance",
     });
     await test.deleteAll();
 
