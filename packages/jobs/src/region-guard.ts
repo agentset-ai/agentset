@@ -37,7 +37,8 @@ export const assertJobsRunRegion = ({
   // dev runs execute on the local machine
   if (environmentType === "DEVELOPMENT") return;
 
-  if (region !== EU_TRIGGER_REGION) {
+  // scheduled runs report a suffixed region, e.g. "eu-central-1:scheduled"
+  if (region?.split(":")[0] !== EU_TRIGGER_REGION) {
     throw new Error(`EU runs must execute in ${EU_TRIGGER_REGION}`);
   }
 };
