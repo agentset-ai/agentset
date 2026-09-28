@@ -51,7 +51,6 @@ describe("REGION_FEATURES", () => {
     "webhookDeliveryLogs",
     "managedVectorStores",
     "zeroEntropyRerank",
-    "crawlIngestion",
     "youtubeIngestion",
     "demoTemplates",
     "usHostedEmbeddingProviders",

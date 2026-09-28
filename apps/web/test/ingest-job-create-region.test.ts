@@ -66,36 +66,32 @@ const makeData = (
 ) => ({ payload, externalId: null });
 
 describe("createIngestJob on eu", () => {
+  it("rejects youtube jobs before creating them", async () => {
+    const { createIngestJob, AgentsetApiError, db, triggerIngestionJob } =
+      await loadCreateIngestJob("eu");
+
+    const error = await createIngestJob({
+      ...baseArgs,
+      data: makeData(youtubePayload),
+    }).catch((e: unknown) => e);
+
+    expect(error).toBeInstanceOf(AgentsetApiError);
+    expect(error).toMatchObject({
+      code: "bad_request",
+      message: "YouTube ingestion is not available in this region.",
+    });
+    expect(db.$transaction).not.toHaveBeenCalled();
+    expect(triggerIngestionJob).not.toHaveBeenCalled();
+  });
+
   it.each([
-    ["crawl", crawlPayload, "Crawl ingestion is not available in this region."],
-    [
-      "youtube",
-      youtubePayload,
-      "YouTube ingestion is not available in this region.",
-    ],
-  ])(
-    "rejects %s jobs before creating them",
-    async (_label, payload, message) => {
-      const { createIngestJob, AgentsetApiError, db, triggerIngestionJob } =
-        await loadCreateIngestJob("eu");
-
-      const error = await createIngestJob({
-        ...baseArgs,
-        data: makeData(payload),
-      }).catch((e: unknown) => e);
-
-      expect(error).toBeInstanceOf(AgentsetApiError);
-      expect(error).toMatchObject({ code: "bad_request", message });
-      expect(db.$transaction).not.toHaveBeenCalled();
-      expect(triggerIngestionJob).not.toHaveBeenCalled();
-    },
-  );
-
-  it("creates text jobs", async () => {
+    ["text", textPayload],
+    ["crawl", crawlPayload],
+  ])("creates %s jobs", async (_label, payload) => {
     const { createIngestJob, db, triggerIngestionJob } =
       await loadCreateIngestJob("eu");
 
-    await createIngestJob({ ...baseArgs, data: makeData(textPayload) });
+    await createIngestJob({ ...baseArgs, data: makeData(payload) });
 
     expect(db.$transaction).toHaveBeenCalledOnce();
     expect(triggerIngestionJob).toHaveBeenCalledOnce();

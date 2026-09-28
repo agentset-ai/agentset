@@ -120,10 +120,8 @@ export const ingestJob = schemaTask({
     }
 
     if (
-      (ingestionJob.payload.type === "CRAWL" &&
-        !REGION_FEATURES.crawlIngestion) ||
-      (ingestionJob.payload.type === "YOUTUBE" &&
-        !REGION_FEATURES.youtubeIngestion)
+      ingestionJob.payload.type === "YOUTUBE" &&
+      !REGION_FEATURES.youtubeIngestion
     ) {
       throw new Error("This ingest source is not available in this region");
     }
