@@ -4,9 +4,11 @@ import { chunkArray } from "@agentset/utils";
 import { webhookCache } from "@agentset/webhooks/server";
 
 import { getDb } from "../db";
+import { sanitizeRunErrors } from "../errors";
 import {
   DELETE_ORGANIZATION_JOB_ID,
   deleteOrganizationBodySchema,
+  triggerRegionOptions,
 } from "../schema";
 import { deleteNamespace } from "./delete-namespace";
 
@@ -19,7 +21,7 @@ export const deleteOrganization = schemaTask({
     concurrencyLimit: 50,
   },
   schema: deleteOrganizationBodySchema,
-  run: async ({ organizationId }) => {
+  run: sanitizeRunErrors(async ({ organizationId }) => {
     const db = getDb();
 
     const organization = await db.organization.findUnique({
@@ -63,6 +65,7 @@ export const deleteOrganization = schemaTask({
             },
             options: {
               tags: [`ns_${namespace.id}`],
+              ...triggerRegionOptions,
             },
           })),
         );
@@ -79,5 +82,5 @@ export const deleteOrganization = schemaTask({
       organizationId: organization.id,
       deleted: true,
     };
-  },
+  }),
 });

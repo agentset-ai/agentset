@@ -11,3 +11,9 @@ export const getDomainResponse = async (domain: string) => {
     "GET",
   );
 };
+
+// the project domains endpoint only returns domains added to this project
+export const isDomainOnProject = async (domain: string) => {
+  const response = await getDomainResponse(domain);
+  return !response.error && response.name === domain.toLowerCase();
+};

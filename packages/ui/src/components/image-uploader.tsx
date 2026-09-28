@@ -5,11 +5,13 @@ import { useEffect, useRef, useState } from "react";
 import imageCompression from "browser-image-compression";
 import { AlertCircleIcon, ImageUpIcon, LucideIcon, XIcon } from "lucide-react";
 
+import { canLoadImage, REGION_FEATURES } from "@agentset/utils";
+
 import { useFileUpload } from "../hooks/use-file-upload";
 
 const DEFAULT_COMPRESSION_THRESHOLD_MB = 2;
 
-async function compressImageIfNeeded(
+export async function compressImageIfNeeded(
   file: File,
   thresholdBytes: number,
 ): Promise<File> {
@@ -19,7 +21,8 @@ async function compressImageIfNeeded(
     const options = {
       maxSizeMB: thresholdBytes / 1024 / 1024,
       maxWidthOrHeight: 1920,
-      useWebWorker: true,
+      // the worker loads the library from a public CDN
+      useWebWorker: REGION_FEATURES.thirdPartyBrowserAssets,
     } satisfies Options;
 
     const compressedFile = await imageCompression(file, options);
@@ -52,10 +55,13 @@ export function ImageUploader({
   maxSizeMB = 5,
   compressionThresholdMB = DEFAULT_COMPRESSION_THRESHOLD_MB,
   onImageChange,
-  defaultImageUrl,
+  defaultImageUrl: defaultImageSrc,
   icon: Icon = ImageUpIcon,
   description,
 }: ImageUploaderProps) {
+  const defaultImageUrl = canLoadImage(defaultImageSrc)
+    ? defaultImageSrc
+    : null;
   const maxSize = maxSizeMB * 1024 * 1024;
   const compressionThresholdBytes = compressionThresholdMB * 1024 * 1024;
 

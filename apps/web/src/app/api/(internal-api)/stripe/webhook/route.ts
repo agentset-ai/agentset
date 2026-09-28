@@ -4,12 +4,19 @@ import { log } from "@/lib/log";
 
 import type { Stripe } from "@agentset/stripe";
 import { stripe } from "@agentset/stripe";
+import {
+  DEPLOYMENT_REGION,
+  isEuRegion,
+  logError,
+  summarizeError,
+} from "@agentset/utils";
 
 import { checkoutSessionCompleted } from "./checkout-session-completed";
 import { customerSubscriptionDeleted } from "./customer-subscription-deleted";
 import { customerSubscriptionUpdated } from "./customer-subscription-updated";
 import { invoicePaymentFailed } from "./invoice-payment-failed";
 import { invoicePaymentSucceeded } from "./invoice-payment-succeeded";
+import { getStripeEventRegion } from "./region";
 
 const relevantEvents = new Set([
   "checkout.session.completed",
@@ -42,6 +49,14 @@ export const POST = async (req: Request) => {
     });
   }
 
+  // Events tagged for the other region belong to its deployment. Untagged
+  // events are handled everywhere: handlers skip organizations that aren't in
+  // this region's database
+  const eventRegion = getStripeEventRegion(event);
+  if (eventRegion && eventRegion !== DEPLOYMENT_REGION) {
+    return NextResponse.json({ received: true, ignored: "other region" });
+  }
+
   try {
     switch (event.type) {
       case "checkout.session.completed":
@@ -61,12 +76,25 @@ export const POST = async (req: Request) => {
         break;
     }
   } catch (error: any) {
-    await log({
-      message: `Stripe webhook failed. Error: ${error.message}`,
-      type: "errors",
-    });
+    if (isEuRegion) {
+      await log({
+        message: `Stripe webhook failed. Event: \`${event.id}\` (\`${event.type}\`). Error: ${summarizeError(error).name}`,
+        type: "errors",
+      });
 
-    console.error(`Stripe webhook failed. Error: ${error.message}`);
+      logError("Stripe webhook failed", error, {
+        eventId: event.id,
+        eventType: event.type,
+      });
+    } else {
+      await log({
+        message: `Stripe webhook failed. Error: ${error.message}`,
+        type: "errors",
+      });
+
+      console.error(`Stripe webhook failed. Error: ${error.message}`);
+    }
+
     return new Response('Webhook error: "Webhook handler failed. View logs."', {
       status: 400,
     });

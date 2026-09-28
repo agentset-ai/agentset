@@ -1,6 +1,7 @@
 import { Button, Heading, Section, Text } from "@react-email/components";
 
 import { DefaultLayout } from "../components/default-layout";
+import { APP_DOMAIN } from "../domain";
 
 export function WebhookDisabled({
   email = "john@doe.com",
@@ -13,7 +14,7 @@ export function WebhookDisabled({
     url: "https://example.com/webhook",
     disableThreshold: 20,
   },
-  domain = "https://app.agentset.ai",
+  domain = APP_DOMAIN,
 }: {
   email: string;
   organization: {

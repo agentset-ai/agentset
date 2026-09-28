@@ -10,6 +10,8 @@
     "clean": "git clean -xdf node_modules",
     "clean:workspaces": "turbo run clean",
     "db:deploy": "turbo -F @agentset/db db:deploy",
+    "db:deploy:eu": "turbo -F @agentset/db db:deploy:eu",
+    "db:status:eu": "turbo -F @agentset/db db:status:eu",
     "db:studio": "turbo -F @agentset/db db:studio",
     "db:migrate": "turbo -F @agentset/db db:migrate",
     "db:generate": "turbo -F @agentset/db db:generate",

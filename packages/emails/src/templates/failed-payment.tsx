@@ -2,13 +2,14 @@ import { Heading, Section, Text } from "@react-email/components";
 
 import { Button } from "../components/button";
 import { DefaultLayout } from "../components/default-layout";
+import { APP_DOMAIN } from "../domain";
 
 export function FailedPayment({
   user = { name: "John Doe", email: "john@doe.com" },
   organization = { name: "Agentset", slug: "agentset" },
   amountDue = 49,
   attemptCount = 2,
-  domain = "https://app.agentset.ai",
+  domain = APP_DOMAIN,
 }: {
   domain?: string;
   user: { name?: string | null; email: string };

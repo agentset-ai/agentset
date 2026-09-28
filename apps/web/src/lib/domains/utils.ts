@@ -1,6 +1,7 @@
 import { env } from "@/env";
 
 import { db } from "@agentset/db/client";
+import { isEuRegion } from "@agentset/utils";
 
 import type { AgentsetApiError } from "../api/errors";
 import {
@@ -20,6 +21,12 @@ export const isValidDomain = (domain: string) => {
   //   !/^(agentset\.ai|.*\.agentset\.ai)$/i.test(domain)
   // );
 };
+
+const agentsetDomainRegex = /^(agentset\.ai|.*\.agentset\.ai)$/i;
+
+// agentset.ai and its subdomains are reserved for Agentset's own hosts
+export const isReservedDomain = (domain: string) =>
+  isEuRegion && agentsetDomainRegex.test(domain);
 
 export const domainExists = async (domain: string) => {
   const response = await db.domain.findFirst({
@@ -45,6 +52,13 @@ export const validateDomain = async (
 
   if (!isValidDomain(domain)) {
     return { error: "Invalid domain", code: "unprocessable_entity" };
+  }
+
+  if (isReservedDomain(domain)) {
+    return {
+      error: "agentset.ai domains can't be used as custom domains.",
+      code: "unprocessable_entity",
+    };
   }
 
   const exists = await domainExists(domain);

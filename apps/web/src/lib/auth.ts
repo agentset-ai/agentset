@@ -18,11 +18,13 @@ import {
 import { toSlug } from "@agentset/utils";
 
 import { env } from "../env";
+import { getSocialProviders, getTrustedProviders } from "./auth-providers";
 import { APP_DOMAIN } from "./constants";
 import { getBaseUrl } from "./utils";
 
 export const makeAuth = (params?: { baseUrl: string; isHosting: boolean }) => {
   const isUsingDefaultUrl = params?.baseUrl === env.BETTER_AUTH_URL;
+  const socialProviders = getSocialProviders(env);
 
   return betterAuth({
     appName: "Agentset",
@@ -42,16 +44,7 @@ export const makeAuth = (params?: { baseUrl: string; isHosting: boolean }) => {
         }
       : {}),
     secret: env.BETTER_AUTH_SECRET,
-    socialProviders: {
-      github: {
-        clientId: env.GITHUB_CLIENT_ID,
-        clientSecret: env.GITHUB_CLIENT_SECRET,
-      },
-      google: {
-        clientId: env.GOOGLE_CLIENT_ID,
-        clientSecret: env.GOOGLE_CLIENT_SECRET,
-      },
-    },
+    socialProviders,
     plugins: [
       admin(),
       organization({
@@ -107,7 +100,7 @@ export const makeAuth = (params?: { baseUrl: string; isHosting: boolean }) => {
     account: {
       accountLinking: {
         enabled: true,
-        trustedProviders: ["google", "github"],
+        trustedProviders: getTrustedProviders(socialProviders),
         allowDifferentEmails: false,
       },
     },

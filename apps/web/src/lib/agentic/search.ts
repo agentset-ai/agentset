@@ -5,10 +5,16 @@ import type {
   QueryVectorStoreOptions,
   QueryVectorStoreResult,
 } from "@agentset/engine";
+import type { RerankingModel } from "@agentset/validation";
 import { queryVectorStore } from "@agentset/engine";
+import { isEuRegion } from "@agentset/utils";
 
 import type { Queries } from "./utils";
 import { evaluateQueries, generateQueries } from "./utils";
+
+const RERANK_MODEL: RerankingModel = isEuRegion
+  ? "cohere:rerank-v4.0-fast"
+  : "cohere:rerank-v3.5";
 
 export async function agenticSearch({
   model,
@@ -65,7 +71,7 @@ export async function agenticSearch({
             mode: queryOptions.vectorStore.supportsKeyword()
               ? query.type
               : undefined,
-            rerank: { model: "cohere:rerank-v3.5", limit: 15 },
+            rerank: { model: RERANK_MODEL, limit: 15 },
             includeMetadata: true,
             ...queryOptions,
           });

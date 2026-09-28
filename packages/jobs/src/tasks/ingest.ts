@@ -14,12 +14,19 @@ import {
 } from "@agentset/db";
 import { env } from "@agentset/engine/env";
 import { isFreePlan } from "@agentset/stripe/plans";
-import { chunkArray } from "@agentset/utils";
+import { chunkArray, REGION_FEATURES } from "@agentset/utils";
 
 import { getDb } from "../db";
 import {
+  getTaskFailureMessage,
+  sanitizeHookErrors,
+  sanitizeRunErrors,
+} from "../errors";
+import {
+  getDocumentJobPayload,
   TRIGGER_INGESTION_JOB_ID,
   triggerIngestionJobBodySchema,
+  triggerRegionOptions,
 } from "../schema";
 import {
   emitBulkDocumentWebhooks,
@@ -40,11 +47,10 @@ export const ingestJob = schemaTask({
     maxAttempts: 1,
   },
   schema: triggerIngestionJobBodySchema,
-  onFailure: async ({ payload, error }) => {
+  onFailure: sanitizeHookErrors(async ({ payload, error }) => {
     const db = getDb();
 
-    const errorMessage =
-      (error instanceof Error ? error.message : null) || "Unknown error";
+    const errorMessage = getTaskFailureMessage(error);
 
     try {
       const ingestJob = await db.ingestJob.update({
@@ -84,8 +90,8 @@ export const ingestJob = schemaTask({
 
       throw e;
     }
-  },
-  run: async ({ jobId }, { ctx }) => {
+  }),
+  run: sanitizeRunErrors(async ({ jobId }, { ctx }) => {
     const db = getDb();
 
     // Get ingestion job configuration
@@ -111,6 +117,15 @@ export const ingestJob = schemaTask({
 
     if (!ingestionJob) {
       throw new Error("Ingestion job not found");
+    }
+
+    if (
+      (ingestionJob.payload.type === "CRAWL" &&
+        !REGION_FEATURES.crawlIngestion) ||
+      (ingestionJob.payload.type === "YOUTUBE" &&
+        !REGION_FEATURES.youtubeIngestion)
+    ) {
+      throw new Error("This ingest source is not available in this region");
     }
 
     // Update status to pre-processing
@@ -501,13 +516,14 @@ export const ingestJob = schemaTask({
     for (const chunk of chunks) {
       const handles = await processDocument.batchTriggerAndWait(
         chunk.map((documentId) => ({
-          payload: {
+          payload: getDocumentJobPayload({
             documentId: documentId,
             ingestJob: ingestionJob,
-          },
+          }),
           options: {
             tags: [`doc_${documentId}`],
             priority: ctx.run.priority,
+            ...triggerRegionOptions,
           },
         })),
       );
@@ -603,5 +619,5 @@ export const ingestJob = schemaTask({
       ingestionJobId: ingestionJob.id,
       documentsCreated: documentsIds.length,
     };
-  },
+  }),
 });

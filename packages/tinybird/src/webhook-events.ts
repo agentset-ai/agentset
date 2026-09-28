@@ -2,7 +2,7 @@ import { z } from "zod/v4";
 
 import { WEBHOOK_TRIGGERS } from "@agentset/webhooks";
 
-import { tb } from "./client";
+import { isTinybirdEnabled, tb } from "./client";
 
 // Webhook event schema for the webhook logs
 export const webhookEventSchemaTB = z.object({
@@ -17,15 +17,32 @@ export const webhookEventSchemaTB = z.object({
   timestamp: z.string(),
 });
 
-export const recordWebhookEvent = tb.buildIngestEndpoint({
+const ingestWebhookEvent = tb.buildIngestEndpoint({
   datasource: "agentset_webhook_events",
   event: webhookEventSchemaTB.omit({ timestamp: true }),
 });
 
-export const getWebhookEvents = tb.buildPipe({
+const queryWebhookEvents = tb.buildPipe({
   pipe: "get_webhook_events",
   parameters: z.object({
     webhookId: z.string(),
   }),
   data: webhookEventSchemaTB,
 });
+
+// Guards direct calls too, so nothing reaches Tinybird while logs are off
+const assertTinybirdEnabled = () => {
+  if (!isTinybirdEnabled) {
+    throw new Error("Webhook delivery logs are disabled");
+  }
+};
+
+export const recordWebhookEvent: typeof ingestWebhookEvent = async (events) => {
+  assertTinybirdEnabled();
+  return ingestWebhookEvent(events);
+};
+
+export const getWebhookEvents: typeof queryWebhookEvents = async (params) => {
+  assertTinybirdEnabled();
+  return queryWebhookEvents(params);
+};

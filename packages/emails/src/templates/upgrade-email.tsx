@@ -1,6 +1,7 @@
 import { Heading, Link, Text } from "@react-email/components";
 
 import { DefaultLayout } from "../components/default-layout";
+import { APP_DOMAIN } from "../domain";
 
 export function UpgradeEmail({
   name = "John Doe",
@@ -9,7 +10,7 @@ export function UpgradeEmail({
     name: "Pro",
     features: [],
   },
-  domain = "https://app.agentset.ai",
+  domain = APP_DOMAIN,
 }: {
   name: string | null;
   email: string;

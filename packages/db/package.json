@@ -8,7 +8,8 @@
     "./trigger": "./src/trigger.ts",
     "./client": "./src/client.ts",
     "./browser": "./src/browser.ts",
-    "./schemas": "./src/schemas.ts"
+    "./schemas": "./src/schemas.ts",
+    "./ssl": "./src/ssl.ts"
   },
   "scripts": {
     "postinstall": "bun run db:generate",
@@ -19,11 +20,14 @@
     "lint": "eslint",
     "db:generate": "PRISMA_MODE=generate bun --env-file=../../.env run prisma generate",
     "db:deploy": "bun --env-file=../../.env run prisma migrate deploy",
+    "db:deploy:eu": "bun --env-file=../../.env.eu.local run prisma migrate deploy",
+    "db:status:eu": "bun --env-file=../../.env.eu.local run prisma migrate status",
     "db:studio": "bun --env-file=../../.env run prisma studio",
     "db:migrate": "bun --env-file=../../.env run prisma migrate dev",
     "typecheck": "tsc --noEmit --emitDeclarationOnly false"
   },
   "dependencies": {
+    "@agentset/utils": "workspace:*",
     "@prisma/adapter-pg": "^7.4.1",
     "@prisma/client": "^7.4.1",
     "pg": "^8.16.3",

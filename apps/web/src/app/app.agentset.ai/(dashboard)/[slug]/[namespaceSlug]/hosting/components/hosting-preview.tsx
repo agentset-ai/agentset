@@ -13,6 +13,7 @@ import {
   SheetTitle,
   SheetTrigger,
 } from "@agentset/ui/sheet";
+import { canLoadImage } from "@agentset/utils";
 
 import type { HostingFormValues } from "../use-hosting-form";
 
@@ -37,7 +38,7 @@ export function HostingPreview({ form }: HostingPreviewProps) {
       <div className="bg-background flex flex-1 flex-col">
         <div className="flex flex-1 flex-col items-center justify-center p-6">
           <div className="flex w-full max-w-md flex-col gap-4">
-            {logo ? (
+            {canLoadImage(logo) ? (
               <img
                 src={logo}
                 alt="Logo"

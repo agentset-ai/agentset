@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useParams, usePathname } from "next/navigation";
+import { RegionBadge } from "@/components/region-badge";
 import { authClient } from "@/lib/auth-client";
 import { ChevronLeftIcon } from "lucide-react";
 
@@ -86,6 +87,7 @@ function ProfileHeader() {
         </Link>
       </Button>
       <h2>Settings</h2>
+      <RegionBadge className="ml-auto" />
     </div>
   );
 }

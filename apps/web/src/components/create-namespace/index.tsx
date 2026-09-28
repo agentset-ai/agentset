@@ -16,7 +16,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@agentset/ui/dialog";
-import { toSlug } from "@agentset/utils";
+import { REGION_FEATURES, toSlug } from "@agentset/utils";
 
 import CreateNamespaceDetailsStep from "./details-step";
 import CreateNamespaceEmbeddingStep from "./embedding-step";
@@ -24,6 +24,10 @@ import CreateNamespaceSummaryStep from "./summary-step";
 import CreateNamespaceVectorStoreStep from "./vector-store-step";
 
 type Step = "details" | "summary" | "embeddings" | "vector-store";
+
+// the recommended settings use a managed vector store, so without managed
+// stores the dialog goes straight to customizing
+const hasRecommendedSettings = REGION_FEATURES.managedVectorStores;
 
 const STEPS: Record<
   Step,
@@ -164,7 +168,7 @@ export default function CreateNamespaceDialog({
             onSubmit={(values) => {
               setName(values.name);
               setSlug(values.slug);
-              setStep("summary");
+              setStep(hasRecommendedSettings ? "summary" : "embeddings");
             }}
           />
         ) : step === "summary" ? (
@@ -181,7 +185,9 @@ export default function CreateNamespaceDialog({
               setEmbeddingModel(values.embeddingModel ?? undefined);
               setStep("vector-store");
             }}
-            onBack={() => setStep("summary")}
+            onBack={() =>
+              setStep(hasRecommendedSettings ? "summary" : "details")
+            }
           />
         ) : (
           <CreateNamespaceVectorStoreStep

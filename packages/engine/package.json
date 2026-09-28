@@ -4,7 +4,8 @@
   "type": "module",
   "exports": {
     ".": "./src/index.ts",
-    "./env": "./src/env.ts"
+    "./env": "./src/env.ts",
+    "./errors": "./src/errors.ts"
   },
   "scripts": {
     "build": "tsc",

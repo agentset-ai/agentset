@@ -1,7 +1,19 @@
 import type { Namespace } from "@agentset/db";
+import { REGION_FEATURES } from "@agentset/utils";
 
 import { env } from "../env";
+import { ProviderUnavailableError } from "../errors";
 import { VectorStore } from "./common/vector-store";
+
+const requireManagedCredential = (value: string | undefined) => {
+  if (!REGION_FEATURES.managedVectorStores || !value) {
+    throw new ProviderUnavailableError(
+      "Managed vector stores are not available in this region",
+    );
+  }
+
+  return value;
+};
 
 export const getNamespaceVectorStore = async (
   namespace: Pick<Namespace, "vectorStoreConfig" | "id">,
@@ -31,11 +43,11 @@ export const getNamespaceVectorStore = async (
       let indexHost: string;
 
       if (config.provider === "MANAGED_PINECONE_OLD") {
-        apiKey = env.DEFAULT_PINECONE_API_KEY;
-        indexHost = env.DEFAULT_PINECONE_HOST;
+        apiKey = requireManagedCredential(env.DEFAULT_PINECONE_API_KEY);
+        indexHost = requireManagedCredential(env.DEFAULT_PINECONE_HOST);
       } else if (config.provider === "MANAGED_PINECONE") {
-        apiKey = env.SECONDARY_PINECONE_API_KEY;
-        indexHost = env.SECONDARY_PINECONE_HOST;
+        apiKey = requireManagedCredential(env.SECONDARY_PINECONE_API_KEY);
+        indexHost = requireManagedCredential(env.SECONDARY_PINECONE_HOST);
       } else {
         apiKey = config.apiKey;
         indexHost = config.indexHost;
@@ -55,7 +67,7 @@ export const getNamespaceVectorStore = async (
       return new Turbopuffer({
         apiKey:
           config.provider === "MANAGED_TURBOPUFFER"
-            ? env.DEFAULT_TURBOPUFFER_API_KEY
+            ? requireManagedCredential(env.DEFAULT_TURBOPUFFER_API_KEY)
             : config.apiKey,
         region:
           config.provider === "MANAGED_TURBOPUFFER"

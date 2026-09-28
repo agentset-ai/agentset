@@ -4,7 +4,12 @@ import { DocumentStatus, IngestJobStatus } from "@agentset/db";
 import { chunkArray } from "@agentset/utils";
 
 import { getDb } from "../db";
-import { DELETE_INGEST_JOB_ID, deleteIngestJobBodySchema } from "../schema";
+import { sanitizeRunErrors } from "../errors";
+import {
+  DELETE_INGEST_JOB_ID,
+  deleteIngestJobBodySchema,
+  triggerRegionOptions,
+} from "../schema";
 import { emitIngestJobWebhook } from "../webhook";
 import { deleteDocument } from "./delete-document";
 
@@ -17,7 +22,7 @@ export const deleteIngestJob = schemaTask({
     concurrencyLimit: 50,
   },
   schema: deleteIngestJobBodySchema,
-  run: async ({ jobId, skipWebhooks }) => {
+  run: sanitizeRunErrors(async ({ jobId, skipWebhooks }) => {
     const db = getDb();
 
     // Get ingest job data
@@ -93,6 +98,7 @@ export const deleteIngestJob = schemaTask({
             },
             options: {
               tags: [`doc_${document.id}`],
+              ...triggerRegionOptions,
             },
           })),
         );
@@ -161,5 +167,5 @@ export const deleteIngestJob = schemaTask({
       jobId: ingestJob.id,
       deleted: true,
     };
-  },
+  }),
 });

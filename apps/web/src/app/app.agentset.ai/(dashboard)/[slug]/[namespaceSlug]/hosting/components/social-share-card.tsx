@@ -2,6 +2,8 @@ import type { UseFormReturn } from "react-hook-form";
 import { APP_DOMAIN, HOSTING_PREFIX } from "@/lib/constants";
 import { ImageIcon } from "lucide-react";
 
+import { canLoadImage } from "@agentset/utils";
+
 import type { HostingFormValues } from "../use-hosting-form";
 
 interface SocialShareCardProps {
@@ -22,7 +24,7 @@ export function SocialShareCard({ form }: SocialShareCardProps) {
 
   return (
     <div className="bg-muted/30 max-w-sm overflow-hidden rounded-lg border">
-      {ogImage ? (
+      {canLoadImage(ogImage) ? (
         <img
           src={ogImage}
           alt="Social preview"

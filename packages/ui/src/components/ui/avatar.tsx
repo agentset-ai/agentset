@@ -3,6 +3,7 @@
 import { Avatar as AvatarPrimitive } from "radix-ui";
 
 import { cn } from "@agentset/ui/cn";
+import { canLoadImage, REGION_FEATURES } from "@agentset/utils";
 
 function Avatar({
   className,
@@ -98,6 +99,15 @@ function AvatarGroupCount({
   );
 }
 
+// Local stand-in for the generated avatar when third-party assets are off
+const getSeededGradient = (seed: string) => {
+  let hash = 0;
+  for (const char of seed) hash = (hash * 31 + char.charCodeAt(0)) | 0;
+  const hue = Math.abs(hash) % 360;
+
+  return `linear-gradient(135deg, hsl(${hue} 70% 60%), hsl(${(hue + 50) % 360} 70% 40%))`;
+};
+
 const getInitials = (name: string) => {
   return name
     .split(" ")
@@ -121,15 +131,22 @@ function EntityAvatar({
     name?: string | null;
   };
 }) {
-  const logo = entity.logo || entity.image;
+  const image = entity.logo || entity.image;
+  const logo = canLoadImage(image) ? image : null;
   const hasNameOrLogo = logo || entity.name;
   return (
     <Avatar className={cn("rounded-lg", className)} {...props}>
-      {!hasNameOrLogo && (
-        <AvatarImage
-          src={`https://api.dicebear.com/9.x/glass/svg?seed=${entity.id}`}
-        />
-      )}
+      {!hasNameOrLogo &&
+        (REGION_FEATURES.thirdPartyBrowserAssets ? (
+          <AvatarImage
+            src={`https://api.dicebear.com/9.x/glass/svg?seed=${entity.id}`}
+          />
+        ) : (
+          <AvatarFallback
+            className="rounded-lg"
+            style={{ backgroundImage: getSeededGradient(entity.id) }}
+          />
+        ))}
 
       {logo && <AvatarImage src={logo} />}
 

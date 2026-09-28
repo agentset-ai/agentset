@@ -2,14 +2,19 @@ import { logger, schemaTask } from "@trigger.dev/sdk";
 import { Ratelimit } from "@upstash/ratelimit";
 
 import { DocumentStatus } from "@agentset/db";
-import { getNamespaceVectorStore } from "@agentset/engine";
+import {
+  deletePartitionTextSource,
+  getNamespaceVectorStore,
+} from "@agentset/engine";
 import {
   deleteDocumentChunksFile,
   deleteDocumentImages,
   deleteObject,
 } from "@agentset/storage";
+import { isEuRegion } from "@agentset/utils";
 
 import { getDb } from "../db";
+import { sanitizeRunErrors } from "../errors";
 import { rateLimit } from "../rate-limit";
 import { DELETE_DOCUMENT_JOB_ID, deleteDocumentBodySchema } from "../schema";
 import { emitDocumentWebhook } from "../webhook";
@@ -21,7 +26,8 @@ export const deleteDocument = schemaTask({
     concurrencyLimit: 90,
   },
   schema: deleteDocumentBodySchema,
-  run: async ({ documentId, skipWebhooks, updateCounters }) => {
+  run: sanitizeRunErrors(async (payload) => {
+    const { documentId, skipWebhooks, updateCounters } = payload;
     const db = getDb();
 
     // Get document data
@@ -122,6 +128,12 @@ export const deleteDocument = schemaTask({
       await deleteObject(document.source.key);
     }
 
+    // EU: text sources are uploaded for the partition API
+    if (isEuRegion && document.source.type === "TEXT") {
+      logger.info("Deleting text source");
+      await deletePartitionTextSource(document.id);
+    }
+
     // Delete document and update counters
     let pagesDeleted = 0;
     if (updateCounters) {
@@ -201,5 +213,5 @@ export const deleteDocument = schemaTask({
       vectorChunksDeleted: deletedChunks.deleted,
       pagesDeleted,
     };
-  },
+  }),
 });

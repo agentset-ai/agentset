@@ -11,6 +11,8 @@ import {
   ZoomOutIcon,
 } from "lucide-react";
 
+import { canLoadImage } from "@agentset/utils";
+
 import { FileMetadata, useFileUpload } from "../hooks/use-file-upload";
 import { cn } from "../lib/utils";
 import {
@@ -99,7 +101,7 @@ async function getCroppedImg(
 export function AvatarUploader({
   maxSizeMB = 2,
   onImageChange,
-  defaultImageUrl,
+  defaultImageUrl: defaultImageSrc,
   icon: Icon = ImageIcon,
   size = "sm",
 }: {
@@ -110,6 +112,9 @@ export function AvatarUploader({
   icon?: LucideIcon;
   size?: "sm" | "lg";
 }) {
+  const defaultImageUrl = canLoadImage(defaultImageSrc)
+    ? defaultImageSrc
+    : null;
   const maxSize = maxSizeMB * 1024 * 1024;
   const [
     { files, errors, isDragging },

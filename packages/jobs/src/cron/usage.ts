@@ -3,6 +3,7 @@ import { schedules } from "@trigger.dev/sdk";
 import { getAdjustedBillingCycleStart } from "@agentset/utils";
 
 import { getDb } from "../db";
+import { sanitizeRunErrors } from "../errors";
 
 const limit = 100;
 export const usageCronJob = schedules.task({
@@ -10,7 +11,7 @@ export const usageCronJob = schedules.task({
   // This route is used to update the usage stats of each organization.
   // Runs once every day at noon UTC (0 12 * * *)
   cron: "0 12 * * *",
-  run: async () => {
+  run: sanitizeRunErrors(async () => {
     const db = getDb();
 
     while (true) {
@@ -140,5 +141,5 @@ export const usageCronJob = schedules.task({
       //   );
       // }
     }
-  },
+  }),
 });

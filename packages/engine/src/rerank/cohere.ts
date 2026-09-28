@@ -5,12 +5,21 @@ import { Reranker, RerankOptions } from "./common";
 
 export class CohereReranker implements Reranker {
   private readonly client: CohereClientV2;
+  private readonly model: string;
 
   constructor(
-    private readonly model: string,
-    { apiKey }: { apiKey: string },
+    model: string,
+    { apiKey, baseUrl }: { apiKey: string; baseUrl?: string },
   ) {
-    this.client = new CohereClientV2({ token: apiKey });
+    if (baseUrl) {
+      // Azure AI Foundry endpoint: deployments are named `Cohere-<model>`,
+      // e.g. `Cohere-rerank-v4.0-pro`
+      this.client = new CohereClientV2({ token: apiKey, baseUrl });
+      this.model = `Cohere-${model}`;
+    } else {
+      this.client = new CohereClientV2({ token: apiKey });
+      this.model = model;
+    }
   }
 
   async doRerank<T extends VectorStoreResult>(

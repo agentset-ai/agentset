@@ -3,13 +3,14 @@ import { env } from "@/env";
 import { waitUntil } from "@vercel/functions";
 import { PostHog } from "posthog-node";
 
-import { prefixId } from "@agentset/utils";
+import { prefixId, REGION_FEATURES } from "@agentset/utils";
 
-const posthog = env.NEXT_PUBLIC_POSTHOG_KEY
-  ? new PostHog(env.NEXT_PUBLIC_POSTHOG_KEY, {
-      host: "https://us.i.posthog.com",
-    })
-  : null;
+const posthog =
+  REGION_FEATURES.productAnalytics && env.NEXT_PUBLIC_POSTHOG_KEY
+    ? new PostHog(env.NEXT_PUBLIC_POSTHOG_KEY, {
+        host: "https://us.i.posthog.com",
+      })
+    : null;
 
 type Organization = {
   id: string;

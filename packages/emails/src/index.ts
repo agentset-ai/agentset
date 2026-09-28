@@ -1,4 +1,5 @@
 export { sendEmail } from "./send";
+export { APP_DOMAIN } from "./domain";
 
 export { default as InviteUserEmail } from "./templates/invite-user";
 export { default as LoginEmail } from "./templates/login";

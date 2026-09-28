@@ -3,6 +3,7 @@
 import type { RouterOutputs } from "@/trpc/react";
 import React, { useState } from "react";
 import Link from "next/link";
+import { RegionBadge } from "@/components/region-badge";
 import { useOrganization } from "@/hooks/use-organization";
 import { authClient } from "@/lib/auth-client";
 import { useTRPC } from "@/trpc/react";
@@ -104,6 +105,8 @@ export function OrganizationSwitcher() {
                   {activeOrganization.plan.toUpperCase()}
                 </span>
               </div>
+
+              <RegionBadge />
             </Link>
 
             <DropdownMenuTrigger disabled={isPending} asChild>

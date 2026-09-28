@@ -1,6 +1,6 @@
 import { z } from "zod/v4";
 
-import { toSlug, validSlugRegex } from "@agentset/utils";
+import { isEuRegion, toSlug, validSlugRegex } from "@agentset/utils";
 import {
   createVectorStoreSchema,
   EmbeddingConfigSchema,
@@ -26,6 +26,10 @@ export const NamespaceSchema = z
     title: "Namespace",
   });
 
+const vectorStoreConfigSchema = createVectorStoreSchema.optional().default({
+  provider: "MANAGED_TURBOPUFFER",
+});
+
 export const createNamespaceSchema = z.object({
   name: z.string().min(1).max(64),
   slug: z
@@ -38,9 +42,12 @@ export const createNamespaceSchema = z.object({
     provider: "MANAGED_OPENAI",
     model: "text-embedding-3-large",
   }),
-  vectorStoreConfig: createVectorStoreSchema.optional().default({
-    provider: "MANAGED_TURBOPUFFER",
-  }),
+  // EU namespaces bring their own vector store, so it's required there (no
+  // managed default). Typed like the optional field so callers compile for
+  // both regions.
+  vectorStoreConfig: isEuRegion
+    ? (createVectorStoreSchema as unknown as typeof vectorStoreConfigSchema)
+    : vectorStoreConfigSchema,
 });
 
 export const updateNamespaceSchema = createNamespaceSchema

@@ -2,11 +2,12 @@ import { Section, Text } from "@react-email/components";
 
 import { Button } from "../components/button";
 import { DefaultLayout } from "../components/default-layout";
+import { APP_DOMAIN } from "../domain";
 
 const LoginEmail = ({
   loginLink = "https://portal.example.com/login",
   email = "john@doe.com",
-  domain = "https://app.agentset.ai",
+  domain = APP_DOMAIN,
 }: {
   loginLink: string;
   email: string;

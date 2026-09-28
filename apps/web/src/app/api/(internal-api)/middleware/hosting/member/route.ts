@@ -1,9 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { isInternalMiddlewareRequest } from "@/lib/internal-api";
-
-import { db } from "@agentset/db/client";
-
-export const preferredRegion = "iad1";
+import { isNamespaceMember } from "@/services/hosting/member";
 
 export const GET = async (req: NextRequest) => {
   if (!isInternalMiddlewareRequest(req)) {
@@ -21,23 +18,7 @@ export const GET = async (req: NextRequest) => {
     );
   }
 
-  const member = await db.member.findFirst({
-    where: {
-      userId,
-      organization: {
-        namespaces: {
-          some: {
-            id: namespaceId,
-          },
-        },
-      },
-    },
-    select: {
-      id: true,
-    },
-  });
-
   return NextResponse.json({
-    isMember: !!member,
+    isMember: await isNamespaceMember({ userId, namespaceId }),
   });
 };

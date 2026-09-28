@@ -2,11 +2,11 @@ import { z } from "zod/v4";
 
 import { batchPayloadInputSchema, batchPayloadSchema } from "./batch";
 import { baseConfigSchema } from "./config";
-import { crawlPayloadSchema } from "./crawl";
+import { crawlPayloadInputSchema, crawlPayloadSchema } from "./crawl";
 import { filePayloadSchema } from "./file";
 import { managedFilePayloadSchema } from "./managed-file";
 import { textPayloadInputSchema, textPayloadSchema } from "./text";
-import { youtubePayloadSchema } from "./youtube";
+import { youtubePayloadInputSchema, youtubePayloadSchema } from "./youtube";
 
 export * from "./batch";
 export * from "./crawl";
@@ -73,8 +73,8 @@ export const ingestJobPayloadInputSchema = z
     textPayloadInputSchema,
     filePayloadSchema,
     managedFilePayloadSchema,
-    crawlPayloadSchema,
-    youtubePayloadSchema,
+    crawlPayloadInputSchema,
+    youtubePayloadInputSchema,
     batchPayloadInputSchema,
   ])
   .meta({

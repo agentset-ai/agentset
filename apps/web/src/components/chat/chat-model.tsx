@@ -15,17 +15,24 @@ import {
   ModelSelectorTrigger,
 } from "@agentset/ui/ai/model-selector";
 import { Button } from "@agentset/ui/button";
-import { LLM, LLM_MODELS, LLM_PROVIDERS } from "@agentset/validation";
+import {
+  isLLMAvailable,
+  LLM,
+  LLM_MODELS,
+  LLM_PROVIDERS,
+} from "@agentset/validation";
 
 import { useNamespaceChatSettings } from "./chat-settings.store";
 
-const models = Object.entries(LLM_MODELS).flatMap(([provider, models]) =>
-  models.map((m) => ({
-    id: `${provider}:${m.model}`,
-    name: m.name,
-    providerSlug: provider,
-  })),
-);
+const models = Object.entries(LLM_MODELS)
+  .flatMap(([provider, models]) =>
+    models.map((m) => ({
+      id: `${provider}:${m.model}`,
+      name: m.name,
+      providerSlug: provider,
+    })),
+  )
+  .filter((model) => isLLMAvailable(model.id));
 
 export default function ChatModel() {
   const namespace = useNamespace();

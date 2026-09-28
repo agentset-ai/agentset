@@ -1,11 +1,12 @@
 import { Heading, Link, Text } from "@react-email/components";
 
 import { DefaultLayout } from "../components/default-layout";
+import { APP_DOMAIN } from "../domain";
 
 export function WelcomeEmail({
   name = "John Doe",
   email = "john@doe.com",
-  domain = "https://app.agentset.ai",
+  domain = APP_DOMAIN,
 }: {
   name: string | null;
   email: string;

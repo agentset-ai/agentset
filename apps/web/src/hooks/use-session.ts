@@ -1,7 +1,7 @@
 import { useEffect } from "react";
+import { loadPosthog } from "@/lib/analytics";
 import { authClient } from "@/lib/auth-client";
 import { useQuery } from "@tanstack/react-query";
-import posthog from "posthog-js";
 
 export function useSession() {
   const {
@@ -18,9 +18,9 @@ export function useSession() {
 
   useEffect(() => {
     if (session?.user) {
-      posthog.identify(session.user.id, {
-        email: session.user.email,
-        name: session.user.name,
+      const { id, email, name } = session.user;
+      void loadPosthog()?.then((posthog) => {
+        posthog.identify(id, { email, name });
       });
     }
   }, [session]);

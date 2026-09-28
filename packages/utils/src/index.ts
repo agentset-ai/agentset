@@ -6,3 +6,4 @@ export * from "./constants";
 export * from "./string";
 export * from "./format";
 export * from "./ids";
+export * from "./region";

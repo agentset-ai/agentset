@@ -4,12 +4,14 @@ import {
   identifyOrganization,
   logServerEvent,
 } from "@/lib/analytics-server";
+import { logRequestError } from "@/lib/log";
 
 import type { Organization } from "@agentset/db";
 import { tryCatch } from "@agentset/utils";
 
 import type { ApiKeyInfo } from "../api-key";
 import { getApiKeyInfo } from "../api-key";
+import { getApiKeyRegionError } from "../api-key-region";
 import { AgentsetApiError, handleAndReturnErrorResponse } from "../errors";
 import { ratelimit } from "../rate-limit";
 import { getTenantFromRequest } from "../tenant";
@@ -41,6 +43,7 @@ export const withApiHandler = (
     const searchParams = getSearchParams(req);
 
     let apiKey: string | undefined = undefined;
+    let organizationId: string | undefined = undefined;
     let headers = {};
 
     try {
@@ -63,6 +66,14 @@ export const withApiHandler = (
         });
       }
 
+      const regionError = getApiKeyRegionError(apiKey);
+      if (regionError) {
+        throw new AgentsetApiError({
+          code: "unauthorized",
+          message: regionError,
+        });
+      }
+
       const orgApiKey = await tryCatch(getApiKeyInfo(apiKey));
       if (!orgApiKey.data) {
         throw new AgentsetApiError({
@@ -71,6 +82,7 @@ export const withApiHandler = (
         });
       }
 
+      organizationId = orgApiKey.data.organizationId;
       const rateLimit = orgApiKey.data.organization.apiRatelimit;
       const { success, limit, reset, remaining } = await ratelimit(
         rateLimit,
@@ -125,7 +137,10 @@ export const withApiHandler = (
 
       return response;
     } catch (error) {
-      console.error(error);
+      logRequestError("API request failed", error, {
+        organizationId,
+        routeName: logging ? logging.routeName : undefined,
+      });
       return handleAndReturnErrorResponse(error, headers);
     }
   };

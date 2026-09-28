@@ -8,7 +8,7 @@ import {
   isProPlan,
   PRO_PLAN_METERED,
 } from "@agentset/stripe/plans";
-import { getFirstAndLastDay } from "@agentset/utils";
+import { DEPLOYMENT_REGION, getFirstAndLastDay } from "@agentset/utils";
 
 import { createTRPCRouter, protectedProcedure } from "../trpc";
 
@@ -143,8 +143,15 @@ export const billingRouter = createTRPCRouter({
           },
           mode: "subscription",
           client_reference_id: ctx.organization.id,
+          // the region lets each region's webhook skip the other's events
           metadata: {
             agentsetCustomerId: ctx.session.user.id,
+            region: DEPLOYMENT_REGION,
+          },
+          subscription_data: {
+            metadata: {
+              region: DEPLOYMENT_REGION,
+            },
           },
         });
 
@@ -255,6 +262,9 @@ export const billingRouter = createTRPCRouter({
         payment_method_types: [input.method],
         success_url: `${getBaseUrl()}/${ctx.organization.slug}/billing`,
         cancel_url: `${getBaseUrl()}/${ctx.organization.slug}/billing`,
+        metadata: {
+          region: DEPLOYMENT_REGION,
+        },
       });
 
       return url;
