@@ -32,10 +32,6 @@ export const createIngestJob = async ({
   tenantId?: string;
   data: z.infer<typeof createIngestJobSchema>;
 }) => {
-  if (data.payload.type === "CRAWL" && !REGION_FEATURES.crawlIngestion) {
-    throw regionUnavailableError("Crawl");
-  }
-
   if (data.payload.type === "YOUTUBE" && !REGION_FEATURES.youtubeIngestion) {
     throw regionUnavailableError("YouTube");
   }

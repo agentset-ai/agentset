@@ -1,9 +1,5 @@
 import { z } from "zod/v4";
 
-import { REGION_FEATURES } from "@agentset/utils";
-
-import { unavailableInRegion } from "./utils";
-
 export const crawlPayloadSchema = z
   .object({
     type: z.literal("CRAWL"),
@@ -43,10 +39,3 @@ export const crawlPayloadSchema = z
     id: "crawl-payload",
     title: "Crawl Payload",
   });
-
-// Schema for creating new jobs
-export const crawlPayloadInputSchema = REGION_FEATURES.crawlIngestion
-  ? crawlPayloadSchema
-  : crawlPayloadSchema.extend({
-      type: unavailableInRegion(crawlPayloadSchema.shape.type, "Crawl"),
-    });

@@ -34,9 +34,7 @@ const ALL_TABS = [
 ] as const;
 
 const TABS = ALL_TABS.filter(
-  ({ value }) =>
-    (value !== "website" || REGION_FEATURES.crawlIngestion) &&
-    (value !== "youtube" || REGION_FEATURES.youtubeIngestion),
+  ({ value }) => value !== "youtube" || REGION_FEATURES.youtubeIngestion,
 );
 
 const SUCCESS_MESSAGES: Record<(typeof TABS)[number]["value"], string> = {

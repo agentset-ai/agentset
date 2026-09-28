@@ -2,7 +2,7 @@ import { z } from "zod/v4";
 
 import { batchPayloadInputSchema, batchPayloadSchema } from "./batch";
 import { baseConfigSchema } from "./config";
-import { crawlPayloadInputSchema, crawlPayloadSchema } from "./crawl";
+import { crawlPayloadSchema } from "./crawl";
 import { filePayloadSchema } from "./file";
 import { managedFilePayloadSchema } from "./managed-file";
 import { textPayloadInputSchema, textPayloadSchema } from "./text";
@@ -73,7 +73,7 @@ export const ingestJobPayloadInputSchema = z
     textPayloadInputSchema,
     filePayloadSchema,
     managedFilePayloadSchema,
-    crawlPayloadInputSchema,
+    crawlPayloadSchema,
     youtubePayloadInputSchema,
     batchPayloadInputSchema,
   ])

@@ -22,7 +22,6 @@ export const REGION_FEATURES = Object.freeze({
   webhookDeliveryLogs: isUsRegion,
   managedVectorStores: isUsRegion,
   zeroEntropyRerank: isUsRegion,
-  crawlIngestion: isUsRegion,
   youtubeIngestion: isUsRegion,
   demoTemplates: isUsRegion,
   usHostedEmbeddingProviders: isUsRegion,
