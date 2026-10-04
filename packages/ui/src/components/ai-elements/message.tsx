@@ -110,7 +110,10 @@ export const MessageResponse = memo(
   ({ className, ...props }: MessageResponseProps) => (
     <Streamdown
       className={cn(
-        "size-full [&>*:first-child]:mt-0 [&>*:last-child]:mb-0",
+        "size-full wrap-break-word [&>*:first-child]:mt-0 [&>*:last-child]:mb-0",
+        // streamdown wraps tables and code blocks in overflow-x-auto but not
+        // KaTeX output, whose display blocks are nowrap and overflow otherwise
+        "[&_.katex-display]:overflow-x-auto [&_.katex-display]:overflow-y-hidden",
         className,
       )}
       plugins={streamdownPlugins}
