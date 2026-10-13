@@ -11,6 +11,11 @@ export type VectorStoreMetadata = Record<
   string | number | boolean | string[]
 >;
 
+export interface VectorStoreMetadataUpdateOptions {
+  /** Guards each write batch; discovery runs outside this callback. */
+  runBatch?: (write: () => Promise<void>) => Promise<void>;
+}
+
 export interface VectorStoreQueryOptions<Filter = VectorFilter> {
   id?: string;
   topK: number;
@@ -94,6 +99,16 @@ export abstract class VectorStore<Filter = VectorFilter> {
     options: VectorStoreOrderedQueryOptions<Filter>,
   ): Promise<VectorStoreQueryResponse>;
   abstract upsert(options: VectorStoreUpsertOptions): Promise<void>;
+  /**
+   * Merges metadata into a document's existing chunks without changing their
+   * text or embeddings. Optional IDs are the raw partition chunk IDs.
+   */
+  abstract updateDocumentMetadata(
+    documentId: string,
+    metadata: VectorStoreMetadata,
+    chunkIds?: string[],
+    options?: VectorStoreMetadataUpdateOptions,
+  ): Promise<void>;
 
   abstract deleteByIds(
     idOrIds: string | string[],

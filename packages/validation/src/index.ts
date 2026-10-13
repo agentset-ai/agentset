@@ -7,3 +7,4 @@ export * from "./vector-store";
 export * from "./ingest-payload";
 export * from "./document-payload";
 export * from "./language";
+export * from "./metadata";
