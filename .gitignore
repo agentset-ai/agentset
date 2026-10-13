@@ -60,3 +60,6 @@ dist/
 .turbo
 
 *.local.*
+
+# Local migration script
+/packages/db/scripts/migrate-org-to-eu.ts
