@@ -1,6 +1,6 @@
 import { Turbopuffer as TurbopufferClient } from "@turbopuffer/turbopuffer";
 
-import { filterFalsy } from "@agentset/utils";
+import { chunkArray, filterFalsy } from "@agentset/utils";
 
 import { makeChunk, metadataToChunk } from "../../chunk";
 import {
@@ -12,6 +12,8 @@ import {
   VectorStoreUpsertOptions,
 } from "../common/vector-store";
 import { TurbopufferFilterTranslator, TurbopufferVectorFilter } from "./filter";
+
+const METADATA_UPDATE_BATCH_SIZE = 1000;
 
 const schema = {
   id: { type: "string" },
@@ -239,6 +241,53 @@ export class Turbopuffer implements VectorStore<TurbopufferVectorFilter> {
       if (shouldSendSchema) this.didSendSchema = false;
       // rethrow the error
       throw e;
+    }
+  }
+
+  async updateDocumentMetadata(
+    documentId: string,
+    metadata: VectorStoreMetadata,
+    chunkIds?: string[],
+  ) {
+    if (Object.keys(metadata).length === 0) return;
+
+    const patchRecords = async (ids: string[]) => {
+      for (const batch of chunkArray(ids, METADATA_UPDATE_BATCH_SIZE)) {
+        await this.client.write({
+          patch_rows: batch.map((id) => ({ ...metadata, id })),
+        });
+      }
+    };
+
+    try {
+      if (chunkIds) {
+        await patchRecords(chunkIds.map((id) => `${documentId}#${id}`));
+        return;
+      }
+
+      // Patching explicit IDs avoids filter-write row limits for large documents.
+      let cursor: string | undefined;
+      while (true) {
+        const page = await this.client.query({
+          rank_by: ["id", "asc"],
+          filters: this.filterTranslator.translate({
+            documentId,
+            ...(cursor ? { id: { $gt: cursor } } : {}),
+          }),
+          top_k: METADATA_UPDATE_BATCH_SIZE,
+          include_attributes: false,
+          consistency: { level: "strong" },
+        });
+        const rows = page.rows ?? [];
+        if (rows.length === 0) return;
+
+        await patchRecords(rows.map(({ id }) => id.toString()));
+        if (rows.length < METADATA_UPDATE_BATCH_SIZE) return;
+        cursor = rows[rows.length - 1]!.id.toString();
+      }
+    } catch (error) {
+      if (error instanceof TurbopufferClient.NotFoundError) return;
+      throw error;
     }
   }
 

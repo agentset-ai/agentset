@@ -5,6 +5,7 @@ const mocks = vi.hoisted(() => ({
   trigger: vi.fn(),
   batchTrigger: vi.fn(),
   storeWebhookEventPayload: vi.fn(),
+  storeMetadataUpdatePatch: vi.fn(),
 }));
 
 vi.mock("@trigger.dev/sdk", async (importOriginal) => ({
@@ -14,6 +15,10 @@ vi.mock("@trigger.dev/sdk", async (importOriginal) => ({
 
 vi.mock("@agentset/webhooks/event-store", () => ({
   storeWebhookEventPayload: mocks.storeWebhookEventPayload,
+}));
+
+vi.mock("../../../packages/jobs/src/metadata-store", () => ({
+  storeMetadataUpdatePatch: mocks.storeMetadataUpdatePatch,
 }));
 
 vi.mock("@agentset/stripe/plans", () => ({
@@ -78,6 +83,13 @@ const triggerAll = async (jobs: Jobs) => {
     { organizationId: "org_2" },
   ]);
   await jobs.triggerReIngestJob({ jobId: "job_1" }, "enterprise");
+  await jobs.triggerUpdateMetadata({
+    namespaceId: "ns_1",
+    tenantId: null,
+    jobIds: [],
+    documentIds: ["doc_1"],
+    metadata: { reviewed: true },
+  });
   await jobs.triggerSendWebhook(webhookBody("wh_1"));
   await jobs.triggerSendWebhook([webhookBody("wh_1"), webhookBody("wh_2")]);
 };
@@ -93,6 +105,7 @@ beforeEach(() => {
   mocks.trigger.mockResolvedValue({ id: "run_1" });
   mocks.batchTrigger.mockResolvedValue({ batchId: "batch_1" });
   mocks.storeWebhookEventPayload.mockResolvedValue(undefined);
+  mocks.storeMetadataUpdatePatch.mockResolvedValue(undefined);
 });
 
 afterEach(() => {
@@ -107,7 +120,7 @@ describe("trigger region", () => {
 
     expect(jobs.triggerRegionOptions).toEqual({});
     const options = allTriggerOptions();
-    expect(options).toHaveLength(13);
+    expect(options).toHaveLength(14);
     for (const option of options) {
       expect(option).not.toHaveProperty("region");
     }
@@ -133,10 +146,67 @@ describe("trigger region", () => {
 
     expect(jobs.triggerRegionOptions).toEqual({ region: "eu-central-1" });
     const options = allTriggerOptions();
-    expect(options).toHaveLength(13);
+    expect(options).toHaveLength(14);
     for (const option of options) {
       expect(option.region).toBe("eu-central-1");
     }
+  });
+});
+
+describe("metadata update payload", () => {
+  const body = {
+    namespaceId: "ns_1",
+    tenantId: null,
+    documentIds: ["doc_1"],
+    jobIds: [],
+    metadata: { department: "private", reviewed: true },
+  };
+
+  it("sends the metadata patch directly on us", async () => {
+    const jobs = await importJobs("us");
+    await jobs.triggerUpdateMetadata(body);
+
+    expect(mocks.storeMetadataUpdatePatch).not.toHaveBeenCalled();
+    expect(mocks.trigger).toHaveBeenCalledWith("update-metadata", body, {
+      tags: ["ns_ns_1"],
+      concurrencyKey: "ns_1:",
+      ttl: "24h",
+    });
+  });
+
+  it("stores metadata in region-local storage and sends only its id on eu", async () => {
+    const jobs = await importJobs("eu");
+    await jobs.triggerUpdateMetadata(body);
+
+    const requestId = mocks.storeMetadataUpdatePatch.mock
+      .calls[0]?.[0] as string;
+    expect(requestId).toEqual(expect.any(String));
+    expect(mocks.storeMetadataUpdatePatch).toHaveBeenCalledExactlyOnceWith(
+      requestId,
+      body.metadata,
+    );
+    const payload = mocks.trigger.mock.calls[0]?.[1] as Record<string, unknown>;
+    expect(payload).toEqual({
+      namespaceId: "ns_1",
+      tenantId: null,
+      documentIds: ["doc_1"],
+      jobIds: [],
+      metadataRequestId: requestId,
+    });
+    expect(payload).not.toHaveProperty("metadata");
+    expect(mocks.trigger.mock.calls[0]?.[2]).toMatchObject({
+      ttl: "24h",
+      region: "eu-central-1",
+    });
+    expect(jobs.updateMetadataBodySchema.parse(payload)).toEqual(payload);
+  });
+
+  it("does not dispatch an eu task when storing metadata fails", async () => {
+    const jobs = await importJobs("eu");
+    mocks.storeMetadataUpdatePatch.mockRejectedValueOnce(new Error("down"));
+
+    await expect(jobs.triggerUpdateMetadata(body)).rejects.toThrow("down");
+    expect(mocks.trigger).not.toHaveBeenCalled();
   });
 });
 

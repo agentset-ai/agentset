@@ -1,15 +1,25 @@
 import type * as TriggerSdk from "@trigger.dev/sdk";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
+import type { IngestJob } from "@agentset/db";
+
 import { importForRegion } from "./helpers/region";
 
 const mocks = vi.hoisted(() => ({
   deletePartitionTextSource: vi.fn(() => Promise.resolve()),
   deleteObject: vi.fn(() => Promise.resolve()),
   serializePartitionBody: vi.fn((body: unknown) => JSON.stringify(body)),
+  getChunksJsonFromS3: vi.fn(),
+  embedMany: vi.fn(),
+  upsert: vi.fn(() => Promise.resolve()),
   waitpointResult: { status: 500 } as { status: number } | undefined,
   waitpointError: undefined as Error | undefined,
   db: {
+    ingestJob: {
+      findUniqueOrThrow: vi.fn(() =>
+        Promise.resolve({ config: null as IngestJob["config"] }),
+      ),
+    },
     document: {
       findUnique: vi.fn(),
       update: vi.fn(),
@@ -45,6 +55,7 @@ vi.mock("../../../packages/jobs/src/rate-limit", () => ({
 vi.mock("../../../packages/jobs/src/webhook", () => ({
   emitDocumentWebhook: vi.fn(),
 }));
+vi.mock("ai", () => ({ embedMany: mocks.embedMany }));
 
 vi.mock("@agentset/engine", () => ({
   deletePartitionTextSource: mocks.deletePartitionTextSource,
@@ -52,6 +63,7 @@ vi.mock("@agentset/engine", () => ({
   getNamespaceVectorStore: vi.fn(() =>
     Promise.resolve({
       deleteByFilter: vi.fn(() => Promise.resolve({ deleted: 0 })),
+      upsert: mocks.upsert,
     }),
   ),
   getPartitionDocumentBody: vi.fn(() =>
@@ -69,7 +81,7 @@ vi.mock("@agentset/storage", () => ({
   deleteDocumentChunksFile: vi.fn(),
   deleteDocumentImages: vi.fn(),
   deleteObject: mocks.deleteObject,
-  getChunksJsonFromS3: vi.fn(),
+  getChunksJsonFromS3: mocks.getChunksJsonFromS3,
 }));
 vi.mock("@agentset/stripe", () => ({ meterIngestedPages: vi.fn() }));
 vi.mock("@agentset/stripe/plans", () => ({
@@ -80,7 +92,9 @@ vi.mock("@agentset/stripe/plans", () => ({
 
 type Source =
   | { type: "TEXT"; text: string }
-  | { type: "MANAGED_FILE"; key: string };
+  | { type: "MANAGED_FILE"; key: string }
+  | { type: "CRAWLED_PAGE" }
+  | { type: "YOUTUBE_VIDEO"; videoId: string };
 
 const TEXT_SOURCE: Source = { type: "TEXT", text: "Some private text" };
 const FILE_SOURCE: Source = { type: "MANAGED_FILE", key: "uploads/file.pdf" };
@@ -270,4 +284,112 @@ describe("text source cleanup when deleting", () => {
     );
     expect(mocks.deletePartitionTextSource).not.toHaveBeenCalled();
   });
+});
+
+describe("metadata during reingestion", () => {
+  const cases: {
+    label: string;
+    source: Source;
+    extractedMetadata: Record<string, string | number>;
+  }[] = [
+    {
+      label: "crawled page",
+      source: { type: "CRAWLED_PAGE" },
+      extractedMetadata: {
+        page_url: "https://example.com/guide",
+        page_title: "Product guide",
+      },
+    },
+    {
+      label: "YouTube video",
+      source: { type: "YOUTUBE_VIDEO", videoId: "video1" },
+      extractedMetadata: {
+        youtube_id: "video1",
+        youtube_title: "Product guide",
+        youtube_duration: 42,
+      },
+    },
+  ];
+
+  it.each(cases)(
+    "keeps current defaults and document overrides when replaying a $label",
+    async ({ source, extractedMetadata }) => {
+      const { processDocument } = await importTasks("us");
+      mocks.db.document.update.mockResolvedValue({
+        ...makeDocument(source),
+        tenantId: "tenant1",
+        totalPages: 1,
+        config: { metadata: { department: "finance" } },
+      });
+      mocks.db.ingestJob.findUniqueOrThrow.mockResolvedValueOnce({
+        config: {
+          metadata: { version: "current", department: "engineering" },
+        },
+      });
+      mocks.getChunksJsonFromS3.mockResolvedValueOnce({
+        total_chunks: 1,
+        metadata: {
+          ...extractedMetadata,
+          version: "saved-file",
+          department: "support",
+          documentId: "old-document",
+          namespaceId: "old-namespace",
+          tenantId: "old-tenant",
+        },
+        chunks: [
+          {
+            id: "chunk1",
+            text: "Original extracted text",
+            metadata: {
+              sequence_number: 0,
+              page_number: 1,
+              version: "saved-chunk",
+              department: "sales",
+              documentId: "old-chunk-document",
+              namespaceId: "old-chunk-namespace",
+              tenantId: "old-chunk-tenant",
+            },
+          },
+        ],
+      });
+      mocks.embedMany.mockResolvedValueOnce({
+        embeddings: [[0.1, 0.2]],
+        usage: { tokens: 4 },
+      });
+
+      await processDocument.run({
+        documentId: "doc_1",
+        ingestJob: {
+          ...INGEST_JOB,
+          config: {
+            metadata: { version: "captured-job", department: "marketing" },
+          },
+        },
+        cleanup: true,
+      });
+
+      expect(mocks.upsert).toHaveBeenCalledExactlyOnceWith({
+        chunks: [
+          {
+            documentId: "doc_1",
+            embedding: [0.1, 0.2],
+            chunk: {
+              id: "chunk1",
+              text: "Original extracted text",
+              metadata: {
+                ...extractedMetadata,
+                sequence_number: 0,
+                page_number: 1,
+                version: "current",
+                department: "finance",
+                documentId: "doc_1",
+                namespaceId: "ns_1",
+                tenantId: "tenant1",
+              },
+            },
+          },
+        ],
+      });
+    },
+  );
 });

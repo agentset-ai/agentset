@@ -94,6 +94,15 @@ export abstract class VectorStore<Filter = VectorFilter> {
     options: VectorStoreOrderedQueryOptions<Filter>,
   ): Promise<VectorStoreQueryResponse>;
   abstract upsert(options: VectorStoreUpsertOptions): Promise<void>;
+  /**
+   * Merges metadata into a document's existing chunks without changing their
+   * text or embeddings. Optional IDs are the raw partition chunk IDs.
+   */
+  abstract updateDocumentMetadata(
+    documentId: string,
+    metadata: VectorStoreMetadata,
+    chunkIds?: string[],
+  ): Promise<void>;
 
   abstract deleteByIds(
     idOrIds: string | string[],

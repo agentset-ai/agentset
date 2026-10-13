@@ -41,15 +41,65 @@ job = client.ingest_jobs.create(
     },
 )
 ```
+
 </CodeGroup>
 
-Metadata values must be primitive types. Nested objects are not supported.
+Metadata values may be strings, numbers, booleans, or arrays of strings. Nested objects are not supported.
 
-| Type | Example |
-| :--- | :--- |
-| String | `"engineering"` |
-| Number | `2024` |
-| Boolean | `true` |
+| Type             | Example                      |
+| :--------------- | :--------------------------- |
+| String           | `"engineering"`              |
+| Number           | `2024`                       |
+| Boolean          | `true`                       |
+| Array of strings | `["engineering", "product"]` |
+
+## Updating metadata by filter
+
+Merge metadata into existing documents or ingest jobs without re-ingesting or generating new embeddings:
+
+- `PATCH /v1/namespace/{namespaceId}/documents/metadata` matches documents using their effective custom metadata, including job defaults and document overrides.
+- `PATCH /v1/namespace/{namespaceId}/ingest-jobs/metadata` matches jobs using their own custom metadata. It updates the defaults and existing document chunks while preserving explicit document overrides.
+
+```bash
+curl -X PATCH 'https://api.agentset.ai/v1/namespace/ns_123/documents/metadata' \
+  -H "Authorization: Bearer $AGENTSET_API_KEY" \
+  -H 'Content-Type: application/json' \
+  -d '{
+    "filter": {
+      "department": "engineering",
+      "year": { "$gte": 2024 }
+    },
+    "metadata": {
+      "reviewed": true,
+      "visibility": "internal"
+    }
+  }'
+```
+
+Existing metadata keys and parsing options are retained. Supplied keys replace their previous values; arrays are replaced as a whole. Updates also refresh available chunk downloads. Identity and storage fields such as `documentId`, `namespaceId`, `tenantId`, `id`, `text`, `vector`, `sequence_number`, `document_id`, `doc_id`, `ref_doc_id`, and keys beginning with `_` are reserved.
+
+Filters support implicit equality, `$eq`, `$ne`, numeric `$gt`/`$gte`/`$lt`/`$lte`, `$in`, `$nin`, `$all`, and `$exists`. Combine them with `$and`, `$or`, `$not`, or `$nor`. Array equality matches the entire array; `$in` also matches array members. `$ne` and `$nin` include records where the key is missing. An explicit `"filter": {}` selects every record in the current tenant.
+
+Each request selects up to 1,000 documents and 1,000 jobs. Matching documents and their parent jobs must have status `COMPLETED`, `FAILED`, or `CANCELLED`; active records return `409`. Pass `x-tenant-id` to select a tenant. Without that header, only records without a tenant are selected.
+
+Pinecone pod indexes require a saved chunk export for each matching document. When an export is unavailable, updates require a Pinecone serverless index or Turbopuffer.
+
+The API returns `202` when an update is queued:
+
+```json
+{
+  "success": true,
+  "data": {
+    "runId": "run_123",
+    "matchedDocuments": 12,
+    "matchedJobs": 0
+  }
+}
+```
+
+Poll `GET /v1/namespace/{namespaceId}/metadata-updates/{runId}` with the same tenant header until `status` is `COMPLETED`. The result reports updated and skipped document/job counts; records deleted after selection are skipped. A request with no matches returns `200` with `runId: null` and zero counts.
+
+Selection is fixed when the request is accepted. Updates may be partially applied while the run is processing or retrying, and search indexes may take time to reflect a completed write. If the run ends in `FAILED`, `CRASHED`, `SYSTEM_FAILURE`, `TIMED_OUT`, `EXPIRED`, or `CANCELED`, inspect the affected records before retrying. Merging the same keys again is safe.
 
 ## Citations and source links
 
@@ -85,6 +135,7 @@ job = client.ingest_jobs.create(
     },
 )
 ```
+
 </CodeGroup>
 
 ## Filtering by metadata
@@ -108,6 +159,7 @@ results = client.search.execute(
     },
 )
 ```
+
 </CodeGroup>
 
 ## Next steps

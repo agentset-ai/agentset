@@ -142,7 +142,8 @@
               "api-reference/endpoint/ingest-jobs/get",
               "api-reference/endpoint/ingest-jobs/create",
               "api-reference/endpoint/ingest-jobs/re-ingest",
-              "api-reference/endpoint/ingest-jobs/delete"
+              "api-reference/endpoint/ingest-jobs/delete",
+              "api-reference/endpoint/ingest-jobs/update-metadata"
             ]
           },
           {
@@ -152,8 +153,13 @@
               "api-reference/endpoint/documents/get",
               "api-reference/endpoint/documents/chunks-download-url",
               "api-reference/endpoint/documents/file-download-url",
-              "api-reference/endpoint/documents/delete"
+              "api-reference/endpoint/documents/delete",
+              "api-reference/endpoint/documents/update-metadata"
             ]
+          },
+          {
+            "group": "Metadata Updates",
+            "pages": ["api-reference/endpoint/metadata-updates/get"]
           },
           {
             "group": "Hosting",
