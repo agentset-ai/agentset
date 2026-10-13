@@ -21,6 +21,10 @@ import { importForRegion } from "./helpers/region";
 const mocks = vi.hoisted(() => ({
   db: undefined as unknown,
   updateVectorMetadata: vi.fn(),
+  providerWrite: vi.fn(),
+  elapsedMs: 0,
+  batchDurationsMs: [0],
+  afterBatch: undefined as ((index: number) => Promise<void>) | undefined,
   getChunks: vi.fn(),
   upload: vi.fn(),
   getStoredPatch: vi.fn(),
@@ -79,7 +83,18 @@ const transactionAdapter = (executor: Executor) => ({
 const dbAdapter = () => ({
   $transaction: <T>(
     run: (transaction: ReturnType<typeof transactionAdapter>) => Promise<T>,
-  ) => pg.transaction((transaction) => run(transactionAdapter(transaction))),
+    options?: { timeout?: number; maxWait?: number },
+  ) =>
+    pg.transaction(async (transaction) => {
+      const startedAt = mocks.elapsedMs;
+      const result = await run(transactionAdapter(transaction));
+      // Prisma's interactive transaction timeout counts the time spent
+      // awaiting provider writes. Simulate that clock without sleeping.
+      if (mocks.elapsedMs - startedAt > (options?.timeout ?? 15_000)) {
+        throw new Error("Interactive transaction timed out");
+      }
+      return result;
+    }),
   namespace: {
     findUnique: async ({ where }: { where: { id: string } }) =>
       (
@@ -126,6 +141,9 @@ type Body = {
   jobIds: string[];
 } & ({ metadata: MetadataPatch } | { metadataRequestId: string });
 type TaskDefinition = { run: (payload: Body) => Promise<unknown> };
+type BatchOptions = {
+  runBatch?: (write: () => Promise<void>) => Promise<void>;
+};
 
 const loadWorker = async (region: "us" | "eu" = "us") => {
   vi.stubEnv("SKIP_ENV_VALIDATION", "1");
@@ -159,10 +177,31 @@ afterEach(() => {
   vi.unstubAllEnvs();
 });
 beforeEach(async () => {
-  vi.clearAllMocks();
+  vi.resetAllMocks();
   await pg.exec("TRUNCATE document, ingest_job");
   mocks.db = dbAdapter();
-  mocks.updateVectorMetadata.mockResolvedValue(undefined);
+  mocks.elapsedMs = 0;
+  mocks.batchDurationsMs = [0];
+  mocks.afterBatch = undefined;
+  mocks.providerWrite.mockResolvedValue(undefined);
+  mocks.updateVectorMetadata.mockImplementation(
+    async (
+      documentId: string,
+      metadata: MetadataPatch,
+      chunkIds?: string[],
+      options?: BatchOptions,
+    ) => {
+      for (const [index, duration] of mocks.batchDurationsMs.entries()) {
+        const write = async () => {
+          mocks.elapsedMs += duration;
+          await mocks.providerWrite(documentId, metadata, chunkIds, index);
+        };
+        if (options?.runBatch) await options.runBatch(write);
+        else await write();
+        await mocks.afterBatch?.(index);
+      }
+    },
+  );
   mocks.getChunks.mockResolvedValue(null);
   mocks.upload.mockResolvedValue(undefined);
   mocks.getStoredPatch.mockResolvedValue(null);
@@ -240,6 +279,7 @@ describe("metadata update worker", () => {
       "doc",
       { department: "engineering", reviewed: true },
       undefined,
+      { runBatch: expect.any(Function) },
     );
   });
 
@@ -298,8 +338,18 @@ describe("metadata update worker", () => {
       metadata: { department: "finance" },
     });
     expect(mocks.updateVectorMetadata.mock.calls).toEqual([
-      ["inherited", { department: "engineering", reviewed: true }, ["chunk1"]],
-      ["override", { department: "finance", reviewed: true }, ["chunk1"]],
+      [
+        "inherited",
+        { department: "engineering", reviewed: true },
+        ["chunk1"],
+        { runBatch: expect.any(Function) },
+      ],
+      [
+        "override",
+        { department: "finance", reviewed: true },
+        ["chunk1"],
+        { runBatch: expect.any(Function) },
+      ],
     ]);
     const exports = mocks.upload.mock.calls.map((call) => [
       call[0] as string,
@@ -355,11 +405,11 @@ describe("metadata update worker", () => {
     ]);
   });
 
-  it("keeps document config uncommitted when a vector write fails and safely retries", async () => {
+  it("retains desired document config when a vector write fails and safely retries", async () => {
     await job();
     await document("doc", { metadata: { reviewed: false } });
     const worker = await loadWorker();
-    mocks.updateVectorMetadata.mockRejectedValueOnce(
+    mocks.providerWrite.mockRejectedValueOnce(
       new Error("Provider unavailable"),
     );
 
@@ -367,7 +417,7 @@ describe("metadata update worker", () => {
       "Provider unavailable",
     );
     expect(await configFor("document", "doc")).toEqual({
-      metadata: { reviewed: false },
+      metadata: { reviewed: true },
     });
     expect(mocks.upload).not.toHaveBeenCalled();
 
@@ -375,7 +425,137 @@ describe("metadata update worker", () => {
     expect(await configFor("document", "doc")).toEqual({
       metadata: { reviewed: true },
     });
-    expect(mocks.updateVectorMetadata).toHaveBeenCalledTimes(2);
+    expect(mocks.providerWrite).toHaveBeenCalledTimes(2);
+  });
+
+  it("updates a document whose provider batches exceed the transaction timeout in total", async () => {
+    await job();
+    await document("doc", { metadata: { reviewed: false } });
+    const worker = await loadWorker();
+    mocks.batchDurationsMs = [75_000, 75_000];
+
+    expect(await worker.run(body({ reviewed: true }))).toEqual({
+      updatedDocuments: 1,
+      updatedJobs: 0,
+      skippedDocuments: 0,
+      skippedJobs: 0,
+    });
+    expect(await configFor("document", "doc")).toEqual({
+      metadata: { reviewed: true },
+    });
+    expect(mocks.providerWrite).toHaveBeenCalledTimes(2);
+  });
+
+  it.each(["document", "ingest_job"] as const)(
+    "stops remaining provider writes if %s becomes active between batches",
+    async (table) => {
+      await job();
+      await document();
+      const worker = await loadWorker();
+      mocks.batchDurationsMs = [0, 0];
+      mocks.afterBatch = async (index) => {
+        if (index === 0) {
+          await pg.exec(`UPDATE ${table} SET status = 'PROCESSING'`);
+        }
+      };
+
+      await expect(worker.run(body({ reviewed: true }))).rejects.toThrow(
+        "Metadata cannot be updated while ingestion is active",
+      );
+      expect(mocks.providerWrite).toHaveBeenCalledTimes(1);
+      expect(mocks.upload).not.toHaveBeenCalled();
+      expect(await configFor("document", "doc")).toEqual({
+        metadata: { reviewed: true },
+      });
+    },
+  );
+
+  it("does not recreate a chunks export when the document is deleted after a provider write", async () => {
+    await job();
+    await document();
+    const worker = await loadWorker();
+    mocks.getChunks.mockResolvedValue({
+      total_chunks: 1,
+      total_characters: 9,
+      metadata: { page_url: "https://example.com/guide" },
+      chunks: [
+        {
+          id: "chunk1",
+          text: "Some text",
+          metadata: { sequence_number: 0 },
+        },
+      ],
+    });
+    mocks.afterBatch = async () => {
+      await pg.exec("DELETE FROM document WHERE id = 'doc'");
+    };
+
+    expect(await worker.run(body({ reviewed: true }))).toEqual({
+      updatedDocuments: 0,
+      updatedJobs: 0,
+      skippedDocuments: 1,
+      skippedJobs: 0,
+    });
+    expect(await configFor("document", "doc")).toBeUndefined();
+    expect(mocks.providerWrite).toHaveBeenCalledTimes(1);
+    expect(mocks.upload).not.toHaveBeenCalled();
+  });
+
+  it("merges metadata into the current export instead of overwriting newer extracted text", async () => {
+    await job();
+    await document();
+    const worker = await loadWorker();
+    mocks.getChunks
+      .mockResolvedValueOnce({
+        total_chunks: 1,
+        total_characters: 8,
+        metadata: { page_title: "Previous title" },
+        chunks: [
+          {
+            id: "chunk1",
+            text: "Old text",
+            metadata: { sequence_number: 0 },
+          },
+        ],
+      })
+      .mockResolvedValueOnce({
+        total_chunks: 1,
+        total_characters: 15,
+        metadata: { page_title: "Current title", page_language: "en" },
+        chunks: [
+          {
+            id: "chunk1",
+            text: "New source text",
+            metadata: { sequence_number: 0, page_number: 2 },
+          },
+        ],
+      });
+
+    await worker.run(body({ reviewed: true }));
+
+    expect(mocks.upload).toHaveBeenCalledExactlyOnceWith(
+      "namespaces/ns1/documents/doc/chunks.json",
+      expect.any(String),
+      { contentType: "application/json" },
+    );
+    expect(
+      JSON.parse(mocks.upload.mock.calls[0]?.[1] as string) as unknown,
+    ).toEqual({
+      total_chunks: 1,
+      total_characters: 15,
+      metadata: {
+        page_title: "Current title",
+        page_language: "en",
+        reviewed: true,
+      },
+      chunks: [
+        {
+          id: "chunk1",
+          text: "New source text",
+          metadata: { sequence_number: 0, page_number: 2, reviewed: true },
+        },
+      ],
+    });
   });
 
   it.each(["document", "ingest_job"] as const)(

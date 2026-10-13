@@ -25,6 +25,12 @@ type Metadata = UpdateMetadataBody["metadata"];
 
 const STABLE_STATUSES = new Set(["COMPLETED", "FAILED", "CANCELLED"]);
 const TRANSACTION_TIMEOUT_MS = 120_000;
+const TRANSACTION_MAX_WAIT_MS = 15_000;
+const TASK_MAX_DURATION_SECONDS = 3600;
+const TASK_MAX_ATTEMPTS = 5;
+const TASK_CONCURRENCY_LIMIT = 1;
+
+class MetadataDocumentDeletedError extends Error {}
 
 const ensureStable = (status: DocumentStatus | IngestJobStatus) => {
   if (!STABLE_STATUSES.has(status)) {
@@ -68,6 +74,37 @@ const mergeJobMetadata = async (
     WHERE "id" = ${jobId}
   `;
 };
+
+const withLockedDocument = <T>(
+  documentId: string,
+  ingestJobId: string,
+  payload: UpdateMetadataBody,
+  operation: (transaction: Prisma.TransactionClient) => Promise<T>,
+) =>
+  getDb().$transaction(
+    async (transaction) => {
+      // Keep the parent-before-document lock order used by reingestion.
+      const job = await lockJob(transaction, ingestJobId, payload);
+      if (!job) throw new MetadataDocumentDeletedError();
+
+      const documents = await transaction.$queryRaw<
+        { id: string; status: DocumentStatus }[]
+      >`
+        SELECT "id", "status" FROM "document"
+        WHERE "id" = ${documentId}
+          AND "namespaceId" = ${payload.namespaceId}
+          AND "tenantId" IS NOT DISTINCT FROM ${payload.tenantId}::text
+          AND "ingestJobId" = ${job.id}
+        FOR UPDATE
+      `;
+      const document = documents[0];
+      if (!document) throw new MetadataDocumentDeletedError();
+      ensureStable(document.status);
+
+      return operation(transaction);
+    },
+    { timeout: TRANSACTION_TIMEOUT_MS, maxWait: TRANSACTION_MAX_WAIT_MS },
+  );
 
 const mergeDocumentMetadata = async (
   transaction: Prisma.TransactionClient,
@@ -113,9 +150,9 @@ const updateChunksFile = async (
 export const updateMetadata = schemaTask({
   id: UPDATE_METADATA_JOB_ID,
   schema: updateMetadataBodySchema,
-  maxDuration: 3600,
-  queue: { concurrencyLimit: 1 },
-  retry: { maxAttempts: 5 },
+  maxDuration: TASK_MAX_DURATION_SECONDS,
+  queue: { concurrencyLimit: TASK_CONCURRENCY_LIMIT },
+  retry: { maxAttempts: TASK_MAX_ATTEMPTS },
   run: sanitizeRunErrors(async (taskPayload) => {
     let payload: UpdateMetadataBody;
     if ("metadataRequestId" in taskPayload) {
@@ -170,8 +207,6 @@ export const updateMetadata = schemaTask({
 
     let vectorStore: VectorStore | undefined;
     for (const documentId of documentIds) {
-      // Lock the parent job before the document, matching the lock order of
-      // reingestion. Lifecycle changes wait until the metadata write commits.
       const document = await db.document.findFirst({
         where: {
           id: documentId,
@@ -187,80 +222,94 @@ export const updateMetadata = schemaTask({
         continue;
       }
 
-      const updated = await db.$transaction(
-        async (transaction) => {
-          const job = await lockJob(transaction, document.ingestJobId, payload);
-          if (!job) return false;
+      try {
+        const effectiveMetadata = await withLockedDocument(
+          documentId,
+          document.ingestJobId,
+          payload,
+          async (transaction) => {
+            const currentDocument =
+              await transaction.document.findUniqueOrThrow({
+                where: { id: documentId },
+                select: { config: true },
+              });
 
-          const documents = await transaction.$queryRaw<
-            { id: string; status: DocumentStatus }[]
-          >`
-            SELECT "id", "status" FROM "document"
-            WHERE "id" = ${documentId}
-              AND "namespaceId" = ${payload.namespaceId}
-              AND "tenantId" IS NOT DISTINCT FROM ${payload.tenantId}::text
-              AND "ingestJobId" = ${job.id}
-            FOR UPDATE
-          `;
-          const lockedDocument = documents[0];
-          if (!lockedDocument) return false;
-          ensureStable(lockedDocument.status);
-
-          const currentDocument = await transaction.document.findUniqueOrThrow({
-            where: { id: documentId },
-            select: { config: true },
-          });
-
-          // A job supplies defaults. Keep the document's own overrides for
-          // requested keys; document updates instead set those overrides.
-          const effectiveMetadata = { ...payload.metadata };
-          if (jobIds.length > 0) {
-            const overrides = currentDocument.config?.metadata;
-            for (const key of Object.keys(effectiveMetadata)) {
-              if (overrides && Object.hasOwn(overrides, key)) {
-                effectiveMetadata[key] = overrides[key]!;
+            // A job supplies defaults. Keep the document's own overrides for
+            // requested keys; document updates instead set those overrides.
+            const effectiveMetadata = { ...payload.metadata };
+            if (jobIds.length > 0) {
+              const overrides = currentDocument.config?.metadata;
+              for (const key of Object.keys(effectiveMetadata)) {
+                if (overrides && Object.hasOwn(overrides, key)) {
+                  effectiveMetadata[key] = overrides[key]!;
+                }
               }
             }
-          }
 
-          const chunksFile = await getChunksJsonFromS3<ChunksFile>(
-            namespace.id,
-            documentId,
-          );
-          vectorStore ??= await getNamespaceVectorStore(
-            namespace,
-            payload.tenantId,
-          );
+            // Persist the intended settings before provider writes. Retries and
+            // reingestion then use them even if only some batches have succeeded.
+            if (jobIds.length === 0) {
+              await mergeDocumentMetadata(
+                transaction,
+                documentId,
+                payload.metadata,
+              );
+            }
 
-          await vectorStore.updateDocumentMetadata(
-            documentId,
-            effectiveMetadata,
-            chunksFile?.chunks.map((chunk) => chunk.id),
-          );
-          await updateChunksFile(
-            namespace.id,
-            documentId,
-            chunksFile,
-            effectiveMetadata,
-          );
+            return effectiveMetadata;
+          },
+        );
 
-          // Config commits only after the corresponding external writes
-          // succeed. Repeating a partly completed run applies the same keys.
-          if (jobIds.length === 0) {
-            await mergeDocumentMetadata(
-              transaction,
+        const chunksFile = await getChunksJsonFromS3<ChunksFile>(
+          namespace.id,
+          documentId,
+        );
+        vectorStore ??= await getNamespaceVectorStore(
+          namespace,
+          payload.tenantId,
+        );
+
+        // Each provider batch has its own lifecycle guard and transaction.
+        // The complete document update can outlive a transaction's timeout.
+        await vectorStore.updateDocumentMetadata(
+          documentId,
+          effectiveMetadata,
+          chunksFile?.chunks.map((chunk) => chunk.id),
+          {
+            runBatch: (write) =>
+              withLockedDocument(
+                documentId,
+                document.ingestJobId,
+                payload,
+                write,
+              ),
+          },
+        );
+
+        await withLockedDocument(
+          documentId,
+          document.ingestJobId,
+          payload,
+          async () => {
+            // Reingestion may have replaced the export between batches. Read
+            // it again while locked instead of overwriting it with an old copy.
+            const currentChunksFile = await getChunksJsonFromS3<ChunksFile>(
+              namespace.id,
               documentId,
-              payload.metadata,
             );
-          }
-
-          return true;
-        },
-        { timeout: TRANSACTION_TIMEOUT_MS, maxWait: 15_000 },
-      );
-
-      if (updated) result.updatedDocuments++;
-      else result.skippedDocuments++;
+            await updateChunksFile(
+              namespace.id,
+              documentId,
+              currentChunksFile,
+              effectiveMetadata,
+            );
+          },
+        );
+        result.updatedDocuments++;
+      } catch (error) {
+        if (!(error instanceof MetadataDocumentDeletedError)) throw error;
+        result.skippedDocuments++;
+      }
     }
 
     logger.info("Metadata update completed", {

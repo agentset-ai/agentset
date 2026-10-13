@@ -1,3 +1,4 @@
+import type { APIPromise } from "@turbopuffer/turbopuffer";
 import { TextNode } from "@llamaindex/core/schema";
 import { nodeToMetadata } from "@llamaindex/core/vector-store";
 import { Index, Errors as PineconeErrors } from "@pinecone-database/pinecone";
@@ -18,6 +19,16 @@ const turbopufferQuery = vi.spyOn(
   TurbopufferClient.Namespace.prototype,
   "query",
 );
+
+const resolveTurbopuffer = <T>(response: T) =>
+  Promise.resolve(response) as APIPromise<T>;
+
+const turbopufferWriteResponse: TurbopufferClient.NamespaceWriteResponse = {
+  status: "OK",
+  message: "Success",
+  rows_affected: 0,
+  billing: { billable_logical_bytes_written: 0 },
+};
 
 const makeTurbopufferPage = (
   ids: string[],
@@ -52,17 +63,28 @@ const makeTurbopuffer = () =>
     namespaceId: "ns_1",
   });
 
+const makeBatchGuard = () => {
+  let insideBatch = false;
+  return {
+    isActive: () => insideBatch,
+    runBatch: vi.fn(async (write: () => Promise<void>) => {
+      expect(insideBatch).toBe(false);
+      insideBatch = true;
+      try {
+        await write();
+      } finally {
+        insideBatch = false;
+      }
+    }),
+  };
+};
+
 beforeEach(() => {
   vi.resetAllMocks();
   pineconeList.mockResolvedValue({ vectors: [] });
   pineconeUpdate.mockResolvedValue();
   turbopufferQuery.mockResolvedValue(makeTurbopufferPage([]));
-  turbopufferWrite.mockResolvedValue({
-    status: "OK",
-    message: "Success",
-    rows_affected: 0,
-    billing: { billable_logical_bytes_written: 0 },
-  });
+  turbopufferWrite.mockResolvedValue(turbopufferWriteResponse);
 });
 
 afterAll(() => {
@@ -71,17 +93,34 @@ afterAll(() => {
 
 describe("Pinecone document metadata updates", () => {
   it("updates every page of document chunks with metadata-only SDK requests", async () => {
+    const guard = makeBatchGuard();
     pineconeList
-      .mockResolvedValueOnce({
-        vectors: [{ id: "doc_1#chunk-a" }],
-        pagination: { next: "next-page" },
+      .mockImplementationOnce(() => {
+        expect(guard.isActive()).toBe(false);
+        return Promise.resolve({
+          vectors: [{ id: "doc_1#chunk-a" }],
+          pagination: { next: "next-page" },
+        });
       })
-      .mockResolvedValueOnce({
-        vectors: [{ id: "doc_1#chunk-b" }, { id: "doc_1#chunk-c" }],
+      .mockImplementationOnce(() => {
+        expect(guard.isActive()).toBe(false);
+        return Promise.resolve({
+          vectors: [{ id: "doc_1#chunk-b" }, { id: "doc_1#chunk-c" }],
+        });
       });
+    pineconeUpdate.mockImplementation(() => {
+      expect(guard.isActive()).toBe(true);
+      return Promise.resolve();
+    });
 
-    await makePinecone().updateDocumentMetadata("doc_1", { category: "guide" });
+    await makePinecone().updateDocumentMetadata(
+      "doc_1",
+      { category: "guide" },
+      undefined,
+      { runBatch: guard.runBatch },
+    );
 
+    expect(guard.runBatch).toHaveBeenCalledTimes(2);
     expect(pineconeList.mock.calls).toEqual([
       [{ prefix: "doc_1#", paginationToken: undefined }],
       [{ prefix: "doc_1#", paginationToken: "next-page" }],
@@ -95,19 +134,79 @@ describe("Pinecone document metadata updates", () => {
 
   it("uses known partition chunk IDs without the serverless-only list API", async () => {
     const chunkIds = Array.from({ length: 25 }, (_, index) => `chunk-${index}`);
+    const guard = makeBatchGuard();
+    pineconeUpdate.mockImplementation(() => {
+      expect(guard.isActive()).toBe(true);
+      return Promise.resolve();
+    });
 
     await makePinecone().updateDocumentMetadata(
       "doc_1",
       { published: true },
       chunkIds,
+      { runBatch: guard.runBatch },
     );
 
+    expect(guard.runBatch).toHaveBeenCalledTimes(3);
     expect(pineconeList).not.toHaveBeenCalled();
     expect(pineconeUpdate.mock.calls).toEqual(
       chunkIds.map((id) => [
         { id: `doc_1#${id}`, metadata: { published: true } },
       ]),
     );
+  });
+
+  it("keeps the batch guard active until all in-flight updates settle after a failure", async () => {
+    const guard = makeBatchGuard();
+    const updateError = new Error("Pinecone update failed");
+    let finishPending!: () => void;
+    const pending = new Promise<void>((resolve) => {
+      finishPending = resolve;
+    });
+    pineconeUpdate
+      .mockRejectedValueOnce(updateError)
+      .mockImplementationOnce(() => pending);
+    let updateFinished = false;
+    const update = makePinecone()
+      .updateDocumentMetadata(
+        "doc_1",
+        { published: true },
+        ["failed-chunk", "pending-chunk"],
+        { runBatch: guard.runBatch },
+      )
+      .finally(() => {
+        updateFinished = true;
+      });
+    const failure = expect(update).rejects.toBe(updateError);
+
+    try {
+      await new Promise<void>((resolve) => setImmediate(resolve));
+      expect(guard.isActive()).toBe(true);
+      expect(updateFinished).toBe(false);
+    } finally {
+      finishPending();
+    }
+
+    await failure;
+    expect(guard.isActive()).toBe(false);
+  });
+
+  it("propagates a provider failure when another chunk in the batch returns 404", async () => {
+    const providerError = new PineconeErrors.PineconeInternalServerError({
+      status: 500,
+    });
+    pineconeUpdate
+      .mockRejectedValueOnce(
+        new PineconeErrors.PineconeNotFoundError({ status: 404 }),
+      )
+      .mockRejectedValueOnce(providerError);
+
+    await expect(
+      makePinecone().updateDocumentMetadata("doc_1", { published: true }, [
+        "missing-chunk",
+        "failed-chunk",
+      ]),
+    ).rejects.toBe(providerError);
   });
 
   it("returns the current flat metadata for legacy serialized chunks", async () => {
@@ -161,19 +260,33 @@ describe("Pinecone document metadata updates", () => {
 
 describe("Turbopuffer document metadata updates", () => {
   it("traverses all document IDs and patches rows without the filter-write limit", async () => {
+    const guard = makeBatchGuard();
     const firstPage = Array.from(
       { length: 1000 },
       (_, index) => `doc_1#chunk-${index.toString().padStart(4, "0")}`,
     );
     turbopufferQuery
-      .mockResolvedValueOnce(makeTurbopufferPage(firstPage))
-      .mockResolvedValueOnce(makeTurbopufferPage(["doc_1#chunk-1000"]));
-
-    await makeTurbopuffer().updateDocumentMetadata("doc_1", {
-      category: "guide",
-      tags: ["public"],
+      .mockImplementationOnce(() => {
+        expect(guard.isActive()).toBe(false);
+        return resolveTurbopuffer(makeTurbopufferPage(firstPage));
+      })
+      .mockImplementationOnce(() => {
+        expect(guard.isActive()).toBe(false);
+        return resolveTurbopuffer(makeTurbopufferPage(["doc_1#chunk-1000"]));
+      });
+    turbopufferWrite.mockImplementation(() => {
+      expect(guard.isActive()).toBe(true);
+      return resolveTurbopuffer(turbopufferWriteResponse);
     });
 
+    await makeTurbopuffer().updateDocumentMetadata(
+      "doc_1",
+      { category: "guide", tags: ["public"] },
+      undefined,
+      { runBatch: guard.runBatch },
+    );
+
+    expect(guard.runBatch).toHaveBeenCalledTimes(2);
     expect(turbopufferQuery.mock.calls).toEqual([
       [
         {
@@ -215,17 +328,24 @@ describe("Turbopuffer document metadata updates", () => {
   });
 
   it("patches every known chunk without replacing its text or vector", async () => {
+    const guard = makeBatchGuard();
     const chunkIds = Array.from(
       { length: 1001 },
       (_, index) => `chunk-${index}`,
     );
+    turbopufferWrite.mockImplementation(() => {
+      expect(guard.isActive()).toBe(true);
+      return resolveTurbopuffer(turbopufferWriteResponse);
+    });
 
     await makeTurbopuffer().updateDocumentMetadata(
       "doc_1",
       { published: true },
       chunkIds,
+      { runBatch: guard.runBatch },
     );
 
+    expect(guard.runBatch).toHaveBeenCalledTimes(2);
     expect(turbopufferQuery).not.toHaveBeenCalled();
     const requests = turbopufferWrite.mock.calls.map(([request]) => request);
     for (const request of requests) {
@@ -252,3 +372,45 @@ describe("Turbopuffer document metadata updates", () => {
     expect(turbopufferWrite).not.toHaveBeenCalled();
   });
 });
+
+it.each([
+  {
+    provider: "Pinecone",
+    makeStore: makePinecone,
+    chunkCount: 25,
+    getWriteCount: () => pineconeUpdate.mock.calls.length,
+    firstBatchWriteCount: 10,
+  },
+  {
+    provider: "Turbopuffer",
+    makeStore: makeTurbopuffer,
+    chunkCount: 2501,
+    getWriteCount: () => turbopufferWrite.mock.calls.length,
+    firstBatchWriteCount: 1,
+  },
+])(
+  "stops remaining $provider writes when a batch guard fails",
+  async ({ makeStore, chunkCount, getWriteCount, firstBatchWriteCount }) => {
+    const guardError = new Error("Document changed during metadata update");
+    const runBatch = vi
+      .fn<(write: () => Promise<void>) => Promise<void>>()
+      .mockImplementationOnce((write) => write())
+      .mockRejectedValue(guardError);
+    const chunkIds = Array.from(
+      { length: chunkCount },
+      (_, index) => `chunk-${index}`,
+    );
+
+    await expect(
+      makeStore().updateDocumentMetadata(
+        "doc_1",
+        { published: true },
+        chunkIds,
+        { runBatch },
+      ),
+    ).rejects.toBe(guardError);
+
+    expect(runBatch).toHaveBeenCalledTimes(2);
+    expect(getWriteCount()).toBe(firstBatchWriteCount);
+  },
+);

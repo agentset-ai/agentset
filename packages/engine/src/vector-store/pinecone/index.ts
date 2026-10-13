@@ -11,6 +11,7 @@ import { makeChunk, metadataToChunk } from "../../chunk";
 import {
   VectorStore,
   VectorStoreMetadata,
+  VectorStoreMetadataUpdateOptions,
   VectorStoreOrderedQueryOptions,
   VectorStoreQueryOptions,
   VectorStoreQueryResponse,
@@ -117,14 +118,29 @@ export class Pinecone implements VectorStore<PineconeVectorFilter> {
     documentId: string,
     metadata: VectorStoreMetadata,
     chunkIds?: string[],
+    options?: VectorStoreMetadataUpdateOptions,
   ) {
     if (Object.keys(metadata).length === 0) return;
 
+    const runBatch =
+      options?.runBatch ?? ((write: () => Promise<void>) => write());
     const updateRecords = async (ids: string[]) => {
       for (const batch of chunkArray(ids, METADATA_UPDATE_CONCURRENCY)) {
-        await Promise.all(
-          batch.map((id) => this.client.update({ id, metadata })),
-        );
+        await runBatch(async () => {
+          // Keep the guard active until every in-flight write settles.
+          const results = await Promise.allSettled(
+            batch.map((id) => this.client.update({ id, metadata })),
+          );
+          const rejected = results.filter(
+            (result) => result.status === "rejected",
+          );
+          const failure =
+            rejected.find(
+              ({ reason }) =>
+                !(reason instanceof PineconeErrors.PineconeNotFoundError),
+            ) ?? rejected[0];
+          if (failure) throw failure.reason;
+        });
       }
     };
 

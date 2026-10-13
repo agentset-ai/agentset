@@ -11,6 +11,11 @@ export type VectorStoreMetadata = Record<
   string | number | boolean | string[]
 >;
 
+export interface VectorStoreMetadataUpdateOptions {
+  /** Guards each write batch; discovery runs outside this callback. */
+  runBatch?: (write: () => Promise<void>) => Promise<void>;
+}
+
 export interface VectorStoreQueryOptions<Filter = VectorFilter> {
   id?: string;
   topK: number;
@@ -102,6 +107,7 @@ export abstract class VectorStore<Filter = VectorFilter> {
     documentId: string,
     metadata: VectorStoreMetadata,
     chunkIds?: string[],
+    options?: VectorStoreMetadataUpdateOptions,
   ): Promise<void>;
 
   abstract deleteByIds(

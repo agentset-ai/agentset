@@ -6,6 +6,7 @@ import { makeChunk, metadataToChunk } from "../../chunk";
 import {
   VectorStore,
   VectorStoreMetadata,
+  VectorStoreMetadataUpdateOptions,
   VectorStoreOrderedQueryOptions,
   VectorStoreQueryOptions,
   VectorStoreQueryResponse,
@@ -248,13 +249,18 @@ export class Turbopuffer implements VectorStore<TurbopufferVectorFilter> {
     documentId: string,
     metadata: VectorStoreMetadata,
     chunkIds?: string[],
+    options?: VectorStoreMetadataUpdateOptions,
   ) {
     if (Object.keys(metadata).length === 0) return;
 
+    const runBatch =
+      options?.runBatch ?? ((write: () => Promise<void>) => write());
     const patchRecords = async (ids: string[]) => {
       for (const batch of chunkArray(ids, METADATA_UPDATE_BATCH_SIZE)) {
-        await this.client.write({
-          patch_rows: batch.map((id) => ({ ...metadata, id })),
+        await runBatch(async () => {
+          await this.client.write({
+            patch_rows: batch.map((id) => ({ ...metadata, id })),
+          });
         });
       }
     };
