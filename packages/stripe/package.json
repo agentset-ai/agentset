@@ -6,6 +6,7 @@
     ".": "./src/index.ts",
     "./client": "./src/client.ts",
     "./plans": "./src/plans.ts",
+    "./period": "./src/period.ts",
     "./env": "./src/env.ts"
   },
   "scripts": {

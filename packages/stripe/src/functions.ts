@@ -4,6 +4,7 @@ import { Prisma } from "@agentset/db";
 import { INFINITY_NUMBER } from "@agentset/utils";
 
 import { stripe } from "./instance";
+import { isLiveSubscription } from "./period";
 import { PLANS } from "./plans";
 
 export async function cancelSubscription(customer?: string) {
@@ -81,3 +82,50 @@ export const parseEnterprisePlanMetadata = async (
     searchLimit,
   } satisfies Prisma.OrganizationUpdateInput;
 };
+
+/**
+ * The customer's subscription that currently bills them, newest first when
+ * there are several.
+ */
+export async function getLiveSubscription(customer: string) {
+  const { data } = await stripe.subscriptions.list({
+    customer,
+    status: "all",
+    limit: 10,
+  });
+
+  return (
+    data.filter(isLiveSubscription).sort((a, b) => b.created - a.created)[0] ??
+    null
+  );
+}
+
+/**
+ * Whether an invoice that starts the subscription's period was paid before
+ * `paidBefore`. These are the invoices that made the previous implementation
+ * re-meter existing documents.
+ */
+export async function isPeriodInvoicePaid({
+  subscription,
+  periodStart,
+  paidBefore,
+}: {
+  subscription: string;
+  periodStart: Date;
+  paidBefore: Date;
+}) {
+  const { data } = await stripe.invoices.list({
+    subscription,
+    status: "paid",
+    created: { gte: Math.floor(periodStart.getTime() / 1000) - 60 },
+    limit: 10,
+  });
+
+  return data.some(
+    (invoice) =>
+      (invoice.billing_reason === "subscription_cycle" ||
+        invoice.billing_reason === "subscription_create") &&
+      !!invoice.status_transitions.paid_at &&
+      invoice.status_transitions.paid_at * 1000 < paidBefore.getTime(),
+  );
+}

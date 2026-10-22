@@ -8,7 +8,7 @@ import {
   isProPlan,
   PRO_PLAN_METERED,
 } from "@agentset/stripe/plans";
-import { DEPLOYMENT_REGION, getFirstAndLastDay } from "@agentset/utils";
+import { DEPLOYMENT_REGION } from "@agentset/utils";
 
 import { createTRPCRouter, protectedProcedure } from "../trpc";
 

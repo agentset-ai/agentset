@@ -450,12 +450,15 @@ export const processDocument = schemaTask({
       await deleteRedisKeys(getPartitionBatchKeys(result));
     }
 
+    const completedAt = new Date();
     const completedDocument = await db.document.update({
       where: { id: document.id },
       data: {
         status: DocumentStatus.COMPLETED,
         totalTokens,
-        completedAt: new Date(),
+        completedAt,
+        // a re-processed document keeps counting from its first ingest
+        ...(!shouldCleanup && { meteredAt: completedAt }),
         failedAt: null,
         error: null,
       },
@@ -485,22 +488,39 @@ export const processDocument = schemaTask({
 
     let meterSuccess = null;
 
-    // Log usage to stripe
-    const stripeCustomerId = ingestJob.namespace.organization.stripeId;
+    // Log usage to stripe (not when re-processing)
+    // Read after meteredAt is recorded: a billing period re-meter claimed
+    // after this read skips the document, and one claimed before it uses the
+    // same identifier. Read fresh: the ingest job payload can predate a plan or
+    // billing period change
+    const organization = shouldCleanup
+      ? null
+      : await db.organization.findUnique({
+          where: { id: ingestJob.namespace.organization.id },
+          select: { plan: true, stripeId: true, meteredPeriodStart: true },
+        });
     if (
-      !isFreePlan(ingestJob.namespace.organization.plan) &&
-      !!stripeCustomerId &&
-      !shouldCleanup // don't log usage if re-processing
+      organization &&
+      !isFreePlan(organization.plan) &&
+      organization.stripeId
     ) {
       try {
         await meterIngestedPages({
           documentId: document.id,
           totalPages,
-          stripeCustomerId,
+          stripeCustomerId: organization.stripeId,
+          periodStart: organization.meteredPeriodStart,
+          timestamp: completedAt,
         });
         meterSuccess = true;
       } catch {
         meterSuccess = false;
+        // not metered: let billing period re-meters pick it up
+        await db.document.update({
+          where: { id: document.id },
+          data: { meteredAt: null },
+          select: { id: true },
+        });
       }
     }
 

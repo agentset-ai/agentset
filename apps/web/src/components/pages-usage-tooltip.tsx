@@ -6,69 +6,48 @@ import { formatNumber } from "@/lib/utils";
 import { TooltipContent } from "@agentset/ui/tooltip";
 
 /**
- * The next date the usage cron releases deleted pages: the next occurrence of
- * the billing-cycle start day, clamped to the last day of short months
- * (mirrors getAdjustedBillingCycleStart). Computed in UTC because the cron
- * compares day-of-month in the worker's (UTC) timezone.
+ * When the deleted pages are released: the end of the organization's stored
+ * usage period, which is exactly when the backend rolls it over. Dates are
+ * shown in UTC, like the periods themselves.
  *
- * Returns "today" when the reset day is today, or null while loading.
+ * Returns "today" when the period ends today, "soon" when it has ended but
+ * the rollover hasn't run yet, or null before the period is known.
  */
+export function getNextCycleResetDate(
+  billingPeriodEnd: Date | string | null | undefined,
+  now = new Date(),
+) {
+  if (!billingPeriodEnd) return null;
+
+  const end = new Date(billingPeriodEnd);
+  if (end <= now) return "soon";
+
+  const utcDay = (date: Date) => date.toISOString().slice(0, 10);
+  if (utcDay(end) === utcDay(now)) return "today";
+
+  return end.toLocaleDateString("en-us", {
+    month: "short",
+    day: "numeric",
+    timeZone: "UTC",
+  });
+}
+
 export function useNextCycleResetDate({
-  billingCycleStart,
-  createdAt,
+  billingPeriodEnd,
   enabled = true,
 }: {
-  billingCycleStart?: number | null;
-  createdAt?: Date | string;
+  billingPeriodEnd?: Date | string | null;
   enabled?: boolean;
 }) {
-  return useMemo(() => {
-    if (!enabled) return null;
-
-    // organizations that never subscribed don't have a billingCycleStart,
-    // their cycle is anchored to the (UTC) day they were created
-    const cycleStart =
-      billingCycleStart ??
-      (createdAt ? new Date(createdAt).getUTCDate() : undefined);
-    if (!cycleStart) return null;
-
-    const daysInMonth = (year: number, month: number) =>
-      new Date(Date.UTC(year, month + 1, 0)).getUTCDate();
-
-    const now = new Date();
-    let year = now.getUTCFullYear();
-    let month = now.getUTCMonth();
-    const today = Date.UTC(year, month, now.getUTCDate());
-
-    let reset = Date.UTC(
-      year,
-      month,
-      Math.min(cycleStart, daysInMonth(year, month)),
-    );
-    if (reset < today) {
-      month += 1;
-      if (month > 11) {
-        month = 0;
-        year += 1;
-      }
-      reset = Date.UTC(
-        year,
-        month,
-        Math.min(cycleStart, daysInMonth(year, month)),
-      );
-    }
-
-    if (reset === today) return "today";
-    return new Date(reset).toLocaleDateString("en-us", {
-      month: "short",
-      day: "numeric",
-      timeZone: "UTC",
-    });
-  }, [enabled, billingCycleStart, createdAt]);
+  return useMemo(
+    () => (enabled ? getNextCycleResetDate(billingPeriodEnd) : null),
+    [enabled, billingPeriodEnd],
+  );
 }
 
 export function formatResetDate(nextResetDate: string | null) {
   if (!nextResetDate) return "next cycle";
+  if (nextResetDate === "soon") return "shortly";
   return nextResetDate === "today" ? "today" : `on ${nextResetDate}`;
 }
 

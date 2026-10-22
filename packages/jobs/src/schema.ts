@@ -161,6 +161,11 @@ export const triggerDeleteOrganization = (
 export const METER_ORG_DOCUMENTS_JOB_ID = "meter-org-documents-job";
 export const meterOrgDocumentsBodySchema = z.object({
   organizationId: z.string(),
+  // start of the Stripe billing period being metered (ISO string)
+  periodStart: z.string().optional(),
+  // meter with the unscoped doc_<id> identifiers, so Stripe dedups the events
+  // against a re-meter of the previous implementation from the last 24 hours
+  legacyIdentifiers: z.boolean().optional(),
 });
 export const triggerMeterOrgDocuments = (
   body: z.infer<typeof meterOrgDocumentsBodySchema>,

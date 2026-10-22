@@ -281,18 +281,16 @@ const loadCheckoutHandler = async (
       update: vi.fn(() =>
         Promise.resolve({
           slug: "acme",
-          deletedPages: 0,
           members: [
             { user: { name: "m1", email: "m1" } },
             { user: { name: "m2", email: "m2" } },
           ],
         }),
       ),
-      updateMany: vi.fn(),
     },
   };
   const log = vi.fn(() => Promise.resolve());
-  const triggerMeterOrgDocuments = vi.fn(() => Promise.resolve());
+  const syncOrganizationBillingPeriod = vi.fn(() => Promise.resolve());
   const plan = { name: "pro", features: [] };
 
   vi.doMock("@/lib/log", () => ({ log }));
@@ -306,7 +304,6 @@ const loadCheckoutHandler = async (
     sendEmail: vi.fn(() => Promise.resolve()),
     UpgradeEmail: vi.fn(() => null),
   }));
-  vi.doMock("@agentset/jobs", () => ({ triggerMeterOrgDocuments }));
   vi.doMock("@agentset/stripe", () => ({
     stripe: {
       subscriptions: {
@@ -334,12 +331,13 @@ const loadCheckoutHandler = async (
   }));
   vi.doMock("@/app/api/(internal-api)/stripe/webhook/utils", () => ({
     revalidateOrganizationCache: vi.fn(),
+    syncOrganizationBillingPeriod,
   }));
 
   const { checkoutSessionCompleted } =
     await import("@/app/api/(internal-api)/stripe/webhook/checkout-session-completed");
 
-  return { checkoutSessionCompleted, db, log, triggerMeterOrgDocuments };
+  return { checkoutSessionCompleted, db, log, syncOrganizationBillingPeriod };
 };
 
 describe("checkout.session.completed", () => {
@@ -347,14 +345,14 @@ describe("checkout.session.completed", () => {
     "does nothing on %s when the organization isn't in this database",
     async (region) => {
       vi.spyOn(console, "log").mockImplementation(() => undefined);
-      const { checkoutSessionCompleted, db, triggerMeterOrgDocuments } =
+      const { checkoutSessionCompleted, db, syncOrganizationBillingPeriod } =
         await loadCheckoutHandler(region, null);
 
       await expect(
         checkoutSessionCompleted(checkoutEvent() as never),
       ).resolves.toBeUndefined();
       expect(db.organization.update).not.toHaveBeenCalled();
-      expect(triggerMeterOrgDocuments).not.toHaveBeenCalled();
+      expect(syncOrganizationBillingPeriod).not.toHaveBeenCalled();
     },
   );
 
@@ -396,14 +394,15 @@ describe("checkout.session.completed", () => {
   );
 
   it("keeps the us subscriber alert", async () => {
-    const { checkoutSessionCompleted, db, log, triggerMeterOrgDocuments } =
+    const { checkoutSessionCompleted, db, log, syncOrganizationBillingPeriod } =
       await loadCheckoutHandler("us", { id: "org_1" });
 
     await checkoutSessionCompleted(checkoutEvent() as never);
 
     expect(db.organization.update).toHaveBeenCalled();
-    expect(triggerMeterOrgDocuments).toHaveBeenCalledWith({
+    expect(syncOrganizationBillingPeriod).toHaveBeenCalledWith({
       organizationId: "org_1",
+      subscription: expect.objectContaining({ items: expect.anything() }),
     });
     expect(log).toHaveBeenCalledWith({
       message:
@@ -413,12 +412,12 @@ describe("checkout.session.completed", () => {
   });
 
   it("announces with the organization and member count only on eu", async () => {
-    const { checkoutSessionCompleted, log, triggerMeterOrgDocuments } =
+    const { checkoutSessionCompleted, log, syncOrganizationBillingPeriod } =
       await loadCheckoutHandler("eu", { id: "org_1" });
 
     await checkoutSessionCompleted(checkoutEvent({ region: "eu" }) as never);
 
-    expect(triggerMeterOrgDocuments).toHaveBeenCalled();
+    expect(syncOrganizationBillingPeriod).toHaveBeenCalled();
     expect(log).toHaveBeenCalledWith({
       message:
         "🎉 New Pro subscriber:\nPeriod: `monthly`\nOrganization: `acme` (`org_1`)\nMembers: `2`",

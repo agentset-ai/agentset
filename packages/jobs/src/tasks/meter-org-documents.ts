@@ -23,7 +23,8 @@ export const meterOrgDocuments = schemaTask({
     concurrencyLimit: 50,
   },
   schema: meterOrgDocumentsBodySchema,
-  run: sanitizeRunErrors(async ({ organizationId }) => {
+  run: sanitizeRunErrors(async (payload) => {
+    const { organizationId, periodStart, legacyIdentifiers } = payload;
     const db = getDb();
 
     // Get organization configuration
@@ -59,6 +60,7 @@ export const meterOrgDocuments = schemaTask({
     let totalDocumentsProcessed = 0;
     let totalPagesProcessed = 0;
     const token = await createMeterEventSessionToken();
+    const periodStartDate = periodStart ? new Date(periodStart) : null;
 
     for (const namespace of namespaces) {
       let cursor: { id: string; createdAt: Date } | null = null;
@@ -75,6 +77,18 @@ export const meterOrgDocuments = schemaTask({
             namespaceId: namespace.id,
             status: { notIn: [DocumentStatus.DELETING, DocumentStatus.FAILED] },
             totalPages: { gt: 0 },
+            // documents ingested since the period started were already
+            // metered in it, and documents still being ingested will be
+            ...(periodStartDate && {
+              AND: [
+                {
+                  OR: [
+                    { meteredAt: { lt: periodStartDate } },
+                    { meteredAt: null, status: DocumentStatus.COMPLETED },
+                  ],
+                },
+              ],
+            }),
             ...(cursor
               ? {
                   OR: [
@@ -118,6 +132,7 @@ export const meterOrgDocuments = schemaTask({
             })),
             stripeCustomerId,
             token,
+            periodStart: legacyIdentifiers ? null : periodStartDate,
           });
 
           totalDocumentsProcessed += items.length;

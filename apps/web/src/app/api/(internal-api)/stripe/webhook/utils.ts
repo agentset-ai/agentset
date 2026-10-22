@@ -6,9 +6,11 @@ import type { Organization, Prisma } from "@agentset/db";
 import type { Stripe } from "@agentset/stripe";
 import { db } from "@agentset/db/client";
 import { sendEmail } from "@agentset/emails";
+import { syncSubscriptionBillingPeriod } from "@agentset/jobs/billing-period";
 import {
   parseEnterprisePlanMetadata,
   planToOrganizationFields,
+  stripe,
 } from "@agentset/stripe";
 import { getPlanFromPriceId } from "@agentset/stripe/plans";
 import { webhookCache } from "@agentset/webhooks/server";
@@ -73,6 +75,36 @@ export function revalidateOrganizationCache(organizationId: string) {
       }
     })(),
   );
+}
+
+/**
+ * Aligns the organization's usage period with its subscription, releasing the
+ * previous period's deleted pages and re-metering existing documents when
+ * Stripe started a new period. Reads the subscription from the API when given
+ * an id: webhook payloads can arrive out of order and in another API version.
+ */
+export async function syncOrganizationBillingPeriod({
+  organizationId,
+  subscription,
+}: {
+  organizationId: string;
+  subscription: string | Stripe.Subscription;
+}) {
+  const latest =
+    typeof subscription === "string"
+      ? await stripe.subscriptions.retrieve(subscription)
+      : subscription;
+
+  const change = await syncSubscriptionBillingPeriod(db, {
+    organizationId,
+    subscription: latest,
+  });
+
+  if (change && change !== "unchanged") {
+    revalidateOrganizationCache(organizationId);
+  }
+
+  return change;
 }
 
 export async function updateOrganizationPlan({

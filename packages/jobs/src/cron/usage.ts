@@ -1,145 +1,139 @@
 import { schedules } from "@trigger.dev/sdk";
 
-import { getAdjustedBillingCycleStart } from "@agentset/utils";
+import type { PrismaClient } from "@agentset/db";
+import { getLiveSubscription } from "@agentset/stripe";
+import { isFreePlan } from "@agentset/stripe/plans";
+import {
+  chunkArray,
+  getCalendarBillingAnchor,
+  getMonthlyPeriodAt,
+  logError,
+} from "@agentset/utils";
 
+import type { BillingPeriodChange } from "../billing-period";
+import {
+  applyBillingPeriod,
+  syncSubscriptionBillingPeriod,
+} from "../billing-period";
 import { getDb } from "../db";
 import { sanitizeRunErrors } from "../errors";
 
 const limit = 100;
+const CONCURRENCY = 10;
+// how long a paid organization waits for Stripe to renew its subscription
+// before falling back to calendar periods
+const STRIPE_RENEWAL_GRACE_MS = 24 * 60 * 60 * 1000;
+
+const organizationSelect = {
+  id: true,
+  plan: true,
+  stripeId: true,
+  billingCycleStart: true,
+  billingPeriodStart: true,
+  billingPeriodEnd: true,
+  createdAt: true,
+} as const;
+
+type DueOrganization = {
+  id: string;
+  plan: string;
+  stripeId: string | null;
+  billingCycleStart: number | null;
+  billingPeriodStart: Date | null;
+  billingPeriodEnd: Date | null;
+  createdAt: Date;
+};
+
+async function rollOver(
+  db: PrismaClient,
+  organization: DueOrganization,
+  now: Date,
+): Promise<BillingPeriodChange | "waiting"> {
+  if (!isFreePlan(organization.plan) && organization.stripeId) {
+    const subscription = await getLiveSubscription(organization.stripeId);
+    if (subscription) {
+      const change = await syncSubscriptionBillingPeriod(db, {
+        organizationId: organization.id,
+        subscription,
+        now,
+      });
+      if (change) return change;
+
+      // Stripe hasn't started the next period yet, check again next run
+      if (
+        organization.billingPeriodEnd &&
+        organization.billingPeriodEnd.getTime() >
+          now.getTime() - STRIPE_RENEWAL_GRACE_MS
+      ) {
+        return "waiting";
+      }
+    }
+  }
+
+  // free plan, or no subscription billing the organization
+  return applyBillingPeriod(db, {
+    organizationId: organization.id,
+    period: getMonthlyPeriodAt(getCalendarBillingAnchor(organization), now),
+    now,
+  });
+}
+
 export const usageCronJob = schedules.task({
   id: "reset-usage",
-  // This route is used to update the usage stats of each organization.
-  // Runs once every day at noon UTC (0 12 * * *)
-  cron: "0 12 * * *",
+  // Rolls organizations over to their next usage period: releases the pages
+  // deleted during the previous one and resets retrievals. Every organization
+  // whose period is over (or was never set) is picked up, so a failed or
+  // missed run is caught up by the next one. Paid organizations normally roll
+  // over earlier, from the Stripe webhooks; this is their backstop.
+  // Runs every hour at minute 5 (5 * * * *)
+  cron: "5 * * * *",
   run: sanitizeRunErrors(async () => {
     const db = getDb();
+    const now = new Date();
+
+    const results: Record<string, number> = {};
+    let failed = 0;
+    let cursor: string | undefined;
 
     while (true) {
       const organizations = await db.organization.findMany({
         where: {
-          // Check only organizations that haven't been checked in the last 12 hours
-          usageLastChecked: {
-            lt: new Date(new Date().getTime() - 12 * 60 * 60 * 1000),
-          },
+          OR: [{ billingPeriodEnd: null }, { billingPeriodEnd: { lte: now } }],
+          // keyset pagination: rolled over organizations leave the filter, so
+          // Prisma's cursor (which needs the cursor row to match) can't be used
+          ...(cursor && { id: { gt: cursor } }),
         },
-        include: {
-          members: {
-            select: {
-              user: true,
-            },
-            where: {
-              role: "owner",
-            },
-            take: 10, // Only send to the first 10 users
-          },
-        },
-        orderBy: [
-          {
-            usageLastChecked: "asc",
-          },
-          {
-            createdAt: "asc",
-          },
-        ],
+        select: organizationSelect,
+        orderBy: { id: "asc" },
         take: limit,
       });
 
       if (organizations.length === 0) break;
+      cursor = organizations.at(-1)!.id;
 
-      // Reset billing cycles for organizations that have
-      // adjustedBillingCycleStart that matches today's date
-      const billingReset: typeof organizations = [];
-      const nonBillingReset: typeof organizations = [];
-      const today = new Date().getDate();
-      for (const organization of organizations) {
-        // organizations that never subscribed don't have a billingCycleStart,
-        // fall back to their creation day so their cycle still resets monthly
-        const cycleStart =
-          organization.billingCycleStart ?? organization.createdAt.getDate();
-        if (getAdjustedBillingCycleStart(cycleStart) === today) {
-          billingReset.push(organization);
-        } else {
-          nonBillingReset.push(organization);
-        }
-      }
-
-      // TODO: send 30-day summary email
-      // TODO: only reset usage if it's not over usageLimit by 2x
-      if (billingReset.length > 0) {
-        // Release pages deleted during the last cycle: they counted towards
-        // the quota until now. This runs BEFORE usageLastChecked is advanced
-        // so a failed release is retried instead of silently skipped for a
-        // month. Decrementing by the observed value (instead of resetting to
-        // 0) keeps deletions that happen while this cron runs, and the
-        // deletedPages guard makes overlapping runs idempotent. updateMany
-        // ignores organizations deleted since the findMany.
-        await Promise.all(
-          billingReset
-            .filter(({ deletedPages }) => deletedPages > 0)
-            .map(({ id, deletedPages }) =>
-              db.organization.updateMany({
-                where: { id, deletedPages: { gte: deletedPages } },
-                data: {
-                  totalPages: { decrement: deletedPages },
-                  deletedPages: { decrement: deletedPages },
-                },
-              }),
-            ),
+      for (const batch of chunkArray(organizations, CONCURRENCY)) {
+        const settled = await Promise.allSettled(
+          batch.map((organization) => rollOver(db, organization, now)),
         );
 
-        // Reset search usage for billing cycle restart
-        await db.organization.updateMany({
-          where: {
-            id: {
-              in: billingReset.map(({ id }) => id),
-            },
-          },
-          data: {
-            searchUsage: 0,
-            usageLastChecked: new Date(),
-          },
+        settled.forEach((result, i) => {
+          if (result.status === "fulfilled") {
+            results[result.value] = (results[result.value] ?? 0) + 1;
+          } else {
+            failed++;
+            logError("Failed to roll over usage period", result.reason, {
+              organizationId: batch[i]!.id,
+            });
+          }
         });
       }
-
-      // Update usageLastChecked for organizations
-      if (nonBillingReset.length > 0) {
-        await db.organization.updateMany({
-          where: {
-            id: {
-              in: nonBillingReset.map(({ id }) => id),
-            },
-          },
-          data: {
-            usageLastChecked: new Date(),
-          },
-        });
-      }
-
-      // Get all organizations that have exceeded usage
-      // const exceedingUsage = organizations.filter(
-      //   ({ searchUsage, searchLimit, pagesLimit, totalPages }) =>
-      //     searchUsage > searchLimit || totalPages > pagesLimit,
-      // );
-
-      // if (exceedingUsage.length > 0) {
-      //   // TODO: notify via email that they're exceeding the usage
-      //   await Promise.allSettled(
-      //     exceedingUsage.map(async (organization) => {
-      //       const { slug, plan, members, searchLimit, searchUsage } =
-      //         organization;
-      //       const emails = members.map((member) => member.user.email);
-
-      //       await log({
-      //         message: `*${slug}* is over their *${capitalize(
-      //           plan,
-      //         )} Plan* usage limit. Usage: ${searchUsage}, Limit: ${searchLimit}, Email: ${emails.join(
-      //           ", ",
-      //         )}`,
-      //         type: plan === "free" ? "cron" : "alerts",
-      //       });
-      //     }),
-      //   );
-      // }
     }
+
+    // the failed organizations are retried by the next run
+    if (failed > 0) {
+      throw new Error(`Failed to roll over ${failed} organizations`);
+    }
+
+    return results;
   }),
 });
