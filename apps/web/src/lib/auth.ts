@@ -36,6 +36,8 @@ export const makeAuth = (params?: { baseUrl: string; isHosting: boolean }) => {
     },
     session: {
       expiresIn: 60 * 60 * 24 * 14, // 14 days
+      // list-sessions requires a fresh session (measured from createdAt) since 1.6
+      freshAge: 0,
     },
     ...(params
       ? {
@@ -109,6 +111,8 @@ export const makeAuth = (params?: { baseUrl: string; isHosting: boolean }) => {
         referrerDomain: {
           type: "string",
           required: false,
+          // set by databaseHooks only; email-otp sign-up accepts extra fields since 1.5
+          input: false,
         },
       },
     },
