@@ -111,11 +111,13 @@ const processBatch = async (
     vectorStore,
     documentId,
     extraMetadata,
+    metadataOverrides,
   }: {
     embeddingModel: Awaited<ReturnType<typeof getNamespaceEmbeddingModel>>;
     vectorStore: Awaited<ReturnType<typeof getNamespaceVectorStore>>;
     documentId: string;
     extraMetadata?: Record<string, unknown>;
+    metadataOverrides?: Record<string, unknown>;
   },
 ) => {
   const results = await embedMany({
@@ -131,6 +133,7 @@ const processBatch = async (
       metadata: {
         ...extraMetadata,
         ...chunk.metadata,
+        ...metadataOverrides,
       },
     },
     embedding: results.embeddings[idx]!,
@@ -235,6 +238,15 @@ export const processDocument = schemaTask({
       throw new Error("Document not found");
     }
 
+    // Inline task payloads can predate a metadata update. The transition to
+    // PROCESSING waits for the metadata worker's row lock, so refresh defaults
+    // after it completes instead of replaying the captured job configuration.
+    const currentIngestJob = await db.ingestJob.findUniqueOrThrow({
+      where: { id: ingestJob.id },
+      select: { config: true },
+    });
+    ingestJob.config = currentIngestJob.config;
+
     // Emit document.processing webhook
     await emitDocumentWebhook({
       trigger: "document.processing",
@@ -327,6 +339,13 @@ export const processDocument = schemaTask({
           vectorStore,
           documentId: document.id,
           extraMetadata: documentJson.metadata,
+          metadataOverrides: {
+            ...ingestJob.config?.metadata,
+            ...document.config?.metadata,
+            ...(document.tenantId && { tenantId: document.tenantId }),
+            namespaceId: ingestJob.namespace.id,
+            documentId: document.id,
+          },
         });
 
         totalTokens += tokens;

@@ -71,6 +71,7 @@
         "@agentset/eslint-config": "workspace:*",
         "@agentset/prettier-config": "workspace:*",
         "@agentset/tsconfig": "workspace:*",
+        "@electric-sql/pglite": "0.3.15",
         "@tailwindcss/postcss": "^4.1.18",
         "@types/node": "^22.10.10",
         "@types/react": "catalog:react19",

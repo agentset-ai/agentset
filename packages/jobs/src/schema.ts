@@ -1,5 +1,6 @@
+import { randomUUID } from "node:crypto";
 import type { BatchItem } from "@trigger.dev/sdk";
-import { tasks } from "@trigger.dev/sdk";
+import { runs, tasks } from "@trigger.dev/sdk";
 import { z } from "zod/v4";
 
 import { isEnterprisePlan, isProPlan } from "@agentset/stripe/plans";
@@ -7,10 +8,13 @@ import { EU_TRIGGER_REGION, isEuRegion } from "@agentset/utils";
 import {
   configSchema,
   EmbeddingConfigSchema,
+  metadataPatchSchema,
   VectorStoreSchema,
 } from "@agentset/validation";
 import { WEBHOOK_TRIGGERS } from "@agentset/webhooks";
 import { storeWebhookEventPayload } from "@agentset/webhooks/event-store";
+
+import { storeMetadataUpdatePatch } from "./metadata-store";
 
 const getPriorityByPlan = (plan: string) => {
   if (isEnterprisePlan(plan)) return;
@@ -197,6 +201,46 @@ export const triggerReIngestJob = (
     priority: getPriorityByPlan(plan),
     ...triggerRegionOptions,
   });
+
+export const UPDATE_METADATA_JOB_ID = "update-metadata";
+const metadataUpdateScopeSchema = z.object({
+  namespaceId: z.string(),
+  tenantId: z.string().nullable(),
+  documentIds: z.array(z.string()).max(1000),
+  jobIds: z.array(z.string()).max(1000),
+});
+export const metadataUpdateRequestSchema = metadataUpdateScopeSchema.extend({
+  metadata: metadataPatchSchema,
+});
+export const updateMetadataBodySchema = isEuRegion
+  ? z.union([
+      metadataUpdateRequestSchema,
+      metadataUpdateScopeSchema
+        .extend({ metadataRequestId: z.uuid() })
+        .strict(),
+    ])
+  : metadataUpdateRequestSchema;
+
+export const triggerUpdateMetadata = async (
+  body: z.infer<typeof metadataUpdateRequestSchema>,
+) => {
+  let taskBody: z.infer<typeof updateMetadataBodySchema> = body;
+  if (isEuRegion) {
+    const { metadata, ...scope } = body;
+    const metadataRequestId = randomUUID();
+    await storeMetadataUpdatePatch(metadataRequestId, metadata);
+    taskBody = { ...scope, metadataRequestId };
+  }
+
+  return tasks.trigger(UPDATE_METADATA_JOB_ID, taskBody, {
+    tags: [`ns_${body.namespaceId}`],
+    concurrencyKey: `${body.namespaceId}:${body.tenantId ?? ""}`,
+    ttl: "24h",
+    ...triggerRegionOptions,
+  });
+};
+
+export const retrieveMetadataUpdate = (runId: string) => runs.retrieve(runId);
 
 export const SEND_WEBHOOK_JOB_ID = "send-webhook";
 export const sendWebhookInlineBodySchema = z.object({

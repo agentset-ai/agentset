@@ -5,17 +5,21 @@ import {
   Errors as PineconeErrors,
 } from "@pinecone-database/pinecone";
 
-import { filterFalsy } from "@agentset/utils";
+import { chunkArray, filterFalsy } from "@agentset/utils";
 
 import { makeChunk, metadataToChunk } from "../../chunk";
 import {
   VectorStore,
+  VectorStoreMetadata,
+  VectorStoreMetadataUpdateOptions,
   VectorStoreOrderedQueryOptions,
   VectorStoreQueryOptions,
   VectorStoreQueryResponse,
   VectorStoreUpsertOptions,
 } from "../common/vector-store";
 import { PineconeFilterTranslator, PineconeVectorFilter } from "./filter";
+
+const METADATA_UPDATE_CONCURRENCY = 10;
 
 export class Pinecone implements VectorStore<PineconeVectorFilter> {
   readonly namespaceId: string;
@@ -108,6 +112,61 @@ export class Pinecone implements VectorStore<PineconeVectorFilter> {
         ...(chunk.metadata && { metadata: chunk.metadata }),
       })),
     );
+  }
+
+  async updateDocumentMetadata(
+    documentId: string,
+    metadata: VectorStoreMetadata,
+    chunkIds?: string[],
+    options?: VectorStoreMetadataUpdateOptions,
+  ) {
+    if (Object.keys(metadata).length === 0) return;
+
+    const runBatch =
+      options?.runBatch ?? ((write: () => Promise<void>) => write());
+    const updateRecords = async (ids: string[]) => {
+      for (const batch of chunkArray(ids, METADATA_UPDATE_CONCURRENCY)) {
+        await runBatch(async () => {
+          // Keep the guard active until every in-flight write settles.
+          const results = await Promise.allSettled(
+            batch.map((id) => this.client.update({ id, metadata })),
+          );
+          const rejected = results.filter(
+            (result) => result.status === "rejected",
+          );
+          const failure =
+            rejected.find(
+              ({ reason }) =>
+                !(reason instanceof PineconeErrors.PineconeNotFoundError),
+            ) ?? rejected[0];
+          if (failure) throw failure.reason;
+        });
+      }
+    };
+
+    try {
+      if (chunkIds) {
+        await updateRecords(chunkIds.map((id) => `${documentId}#${id}`));
+        return;
+      }
+
+      // Listing is supported only by serverless indexes. Stored chunk IDs allow
+      // callers to update pod-based indexes without listing their records.
+      let paginationToken: string | undefined;
+      do {
+        const page = await this.client.listPaginated({
+          prefix: `${documentId}#`,
+          paginationToken,
+        });
+        await updateRecords(
+          filterFalsy((page.vectors ?? []).map(({ id }) => id)),
+        );
+        paginationToken = page.pagination?.next;
+      } while (paginationToken);
+    } catch (error) {
+      if (error instanceof PineconeErrors.PineconeNotFoundError) return;
+      throw error;
+    }
   }
 
   async deleteByIds(idOrIds: string | string[]) {

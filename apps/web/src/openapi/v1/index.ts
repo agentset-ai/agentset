@@ -3,6 +3,7 @@ import type { ZodOpenApiPathsObject } from "zod-openapi";
 import { documentsPaths } from "./documents";
 import { hostingPaths } from "./hosting";
 import { ingestJobsPaths } from "./ingest-jobs";
+import { metadataPaths } from "./metadata";
 import { namespacesPaths } from "./namespaces";
 import { searchPaths } from "./search";
 import { uploadsPaths } from "./uploads";
@@ -12,6 +13,7 @@ export const v1Paths: ZodOpenApiPathsObject = {
   ...namespacesPaths,
   ...ingestJobsPaths,
   ...documentsPaths,
+  ...metadataPaths,
   ...searchPaths,
   ...uploadsPaths,
   ...hostingPaths,
