@@ -10,6 +10,7 @@ import { webhookCache } from "@agentset/webhooks/server";
 import {
   revalidateOrganizationCache,
   sendCancellationFeedback,
+  syncOrganizationBillingPeriod,
   updateOrganizationPlan,
 } from "./utils";
 
@@ -71,8 +72,16 @@ export async function customerSubscriptionDeleted(event: Stripe.Event) {
       items: activeSubscription.items.data,
     });
 
+    await syncOrganizationBillingPeriod({
+      organizationId: organization.id,
+      subscription: activeSubscription,
+    });
+
     return NextResponse.json({ received: true });
   }
+
+  // the current usage period runs to its end and then continues monthly on
+  // the same day (see the reset-usage cron), so it isn't touched here
 
   revalidateOrganizationCache(organization.id);
 

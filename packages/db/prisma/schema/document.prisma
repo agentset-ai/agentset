@@ -49,6 +49,9 @@ model Document {
   totalCharacters Int   @default(0)
   totalPages      Float @default(0.0)
 
+  // when the document's ingested pages were last sent to the Stripe meter
+  meteredAt DateTime?
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 

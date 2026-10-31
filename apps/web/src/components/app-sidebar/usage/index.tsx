@@ -43,8 +43,7 @@ export function Usage() {
   );
 
   const nextResetDate = useNextCycleResetDate({
-    billingCycleStart: activeOrganization.billingCycleStart,
-    createdAt: activeOrganization.createdAt,
+    billingPeriodEnd: activeOrganization.billingPeriodEnd,
     enabled: !activeOrganization.isLoading,
   });
 

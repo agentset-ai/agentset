@@ -3,7 +3,11 @@ import { NextResponse } from "next/server";
 import type { Stripe } from "@agentset/stripe";
 import { db } from "@agentset/db/client";
 
-import { sendCancellationFeedback, updateOrganizationPlan } from "./utils";
+import {
+  sendCancellationFeedback,
+  syncOrganizationBillingPeriod,
+  updateOrganizationPlan,
+} from "./utils";
 
 export async function customerSubscriptionUpdated(event: Stripe.Event) {
   const subscriptionUpdated = event.data.object as Stripe.Subscription;
@@ -50,6 +54,12 @@ export async function customerSubscriptionUpdated(event: Stripe.Event) {
     event: "customer.subscription.updated",
     organization,
     items: subscriptionUpdated.items.data,
+  });
+
+  // renewals, billing date changes and trial ends all start a new period
+  await syncOrganizationBillingPeriod({
+    organizationId: organization.id,
+    subscription: subscriptionUpdated.id,
   });
 
   const subscriptionCanceled =

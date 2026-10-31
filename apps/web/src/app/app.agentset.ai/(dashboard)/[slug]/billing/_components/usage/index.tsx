@@ -19,11 +19,7 @@ import { Progress } from "@agentset/ui/progress";
 import { Separator } from "@agentset/ui/separator";
 import { Skeleton } from "@agentset/ui/skeleton";
 import { Tooltip, TooltipTrigger } from "@agentset/ui/tooltip";
-import {
-  capitalize,
-  getFirstAndLastDay,
-  INFINITY_NUMBER,
-} from "@agentset/utils";
+import { capitalize, INFINITY_NUMBER } from "@agentset/utils";
 
 import SubscriptionMenu from "./subscription-menu";
 
@@ -31,25 +27,22 @@ export default function PlanUsage() {
   const organization = useOrganization();
 
   const [billingStart, billingEnd] = useMemo(() => {
-    if (organization.billingCycleStart) {
-      const { firstDay, lastDay } = getFirstAndLastDay(
-        organization.billingCycleStart,
-      );
-      const start = firstDay.toLocaleDateString("en-us", {
-        month: "short",
-        day: "numeric",
-        year: "numeric",
-      });
-      const end = lastDay.toLocaleDateString("en-us", {
-        month: "short",
-        day: "numeric",
-        year: "numeric",
-      });
-      return [start, end];
-    }
+    const { billingPeriodStart, billingPeriodEnd } = organization;
+    if (!billingPeriodStart || !billingPeriodEnd) return [];
 
-    return [];
-  }, [organization.billingCycleStart]);
+    const format = (date: Date) =>
+      date.toLocaleDateString("en-us", {
+        month: "short",
+        day: "numeric",
+        year: "numeric",
+        timeZone: "UTC",
+      });
+    return [
+      format(new Date(billingPeriodStart)),
+      // the period end is exclusive
+      format(new Date(new Date(billingPeriodEnd).getTime() - 1)),
+    ];
+  }, [organization.billingPeriodStart, organization.billingPeriodEnd]);
 
   return (
     <div>
@@ -130,8 +123,7 @@ function PagesCard() {
   const remaining = Math.max(0, limit - currentPages);
 
   const nextResetDate = useNextCycleResetDate({
-    billingCycleStart: organization.billingCycleStart,
-    createdAt: organization.createdAt,
+    billingPeriodEnd: organization.billingPeriodEnd,
     enabled: !organization.isLoading,
   });
 
@@ -192,7 +184,6 @@ function PagesCard() {
           </span>
         </div>
       )}
-
     </Card>
   );
 }

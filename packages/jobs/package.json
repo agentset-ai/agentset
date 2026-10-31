@@ -15,7 +15,8 @@
     "schema": "prisma/schema/schema.prisma"
   },
   "exports": {
-    ".": "./src/index.ts"
+    ".": "./src/index.ts",
+    "./billing-period": "./src/billing-period.ts"
   },
   "dependencies": {
     "@agentset/db": "workspace:*",

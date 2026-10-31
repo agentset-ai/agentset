@@ -6,7 +6,6 @@ import type { Stripe } from "@agentset/stripe";
 import { Prisma } from "@agentset/db";
 import { db } from "@agentset/db/client";
 import { sendEmail, UpgradeEmail } from "@agentset/emails";
-import { triggerMeterOrgDocuments } from "@agentset/jobs";
 import {
   parseEnterprisePlanMetadata,
   planToOrganizationFields,
@@ -16,7 +15,10 @@ import { getPlanFromPriceId } from "@agentset/stripe/plans";
 import { capitalize, isEuRegion } from "@agentset/utils";
 
 import { getStripeEventRegion } from "./region";
-import { revalidateOrganizationCache } from "./utils";
+import {
+  revalidateOrganizationCache,
+  syncOrganizationBillingPeriod,
+} from "./utils";
 
 export async function checkoutSessionCompleted(event: Stripe.Event) {
   const checkoutSession = event.data.object as Stripe.Checkout.Session;
@@ -101,20 +103,17 @@ export async function checkoutSessionCompleted(event: Stripe.Event) {
 
   // when the organization subscribes to a plan, set their stripe customer ID
   // in the database for easy identification in future webhook events
-  // also update the billingCycleStart to today's date
   const organization = await db.organization.update({
     where: {
       id: organizationId,
     },
     data: {
       stripeId,
-      billingCycleStart: new Date().getDate(),
       paymentFailedAt: null,
       ...planData,
     },
     select: {
       slug: true,
-      deletedPages: true,
       members: {
         select: {
           user: {
@@ -131,20 +130,10 @@ export async function checkoutSessionCompleted(event: Stripe.Event) {
     },
   });
 
-  // subscribing starts a new billing cycle (billingCycleStart above), so
-  // pages deleted during the previous cycle stop counting towards the quota
-  if (organization.deletedPages > 0) {
-    await db.organization.updateMany({
-      where: {
-        id: organizationId,
-        deletedPages: { gte: organization.deletedPages },
-      },
-      data: {
-        totalPages: { decrement: organization.deletedPages },
-        deletedPages: { decrement: organization.deletedPages },
-      },
-    });
-  }
+  // subscribing starts a new billing period: pages deleted during the previous
+  // one stop counting towards the quota, and existing documents are metered
+  // for the new one
+  await syncOrganizationBillingPeriod({ organizationId, subscription });
 
   revalidateOrganizationCache(organizationId);
 
@@ -168,9 +157,6 @@ export async function checkoutSessionCompleted(event: Stripe.Event) {
         }),
       ),
     ),
-    triggerMeterOrgDocuments({
-      organizationId,
-    }),
     log({
       message: isEuRegion
         ? `🎉 New ${planName} subscriber:
