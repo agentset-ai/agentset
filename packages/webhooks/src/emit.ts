@@ -314,6 +314,57 @@ export const emitBulkDocumentWebhooks = async ({
   );
 };
 
+export interface EmitBulkIngestJobWebhooksParams {
+  db: PrismaClient;
+  triggerSendWebhook: TriggerSendWebhookFn;
+  trigger: IngestJobWebhookTrigger;
+  ingestJobs: IngestJobEventPayload[];
+  organizationId: string;
+  namespaceId?: string;
+}
+
+/**
+ * Emit webhooks for multiple ingest jobs in bulk.
+ * Fetches webhooks once and sends to all matching ingest jobs.
+ */
+export const emitBulkIngestJobWebhooks = async ({
+  db,
+  triggerSendWebhook,
+  trigger,
+  ingestJobs,
+  organizationId,
+  namespaceId,
+}: EmitBulkIngestJobWebhooksParams) => {
+  if (ingestJobs.length === 0) {
+    return;
+  }
+
+  // Fetch webhooks once for all ingest jobs
+  const webhooks = await getActiveWebhooks({
+    db,
+    organizationId,
+    trigger,
+    namespaceId,
+  });
+
+  if (webhooks.length === 0) {
+    return;
+  }
+
+  // Send webhooks for each ingest job using the cached webhook list
+  await Promise.all(
+    ingestJobs.map((ingestJob) => {
+      const data = transformIngestJobEventData(ingestJob);
+      return sendWebhooksWithCache({
+        triggerSendWebhook,
+        trigger,
+        webhooks,
+        data,
+      });
+    }),
+  );
+};
+
 export interface EmitIngestJobWebhookParams {
   db: PrismaClient;
   triggerSendWebhook: TriggerSendWebhookFn;

@@ -6,6 +6,7 @@ import type {
 } from "@agentset/webhooks";
 import {
   emitBulkDocumentWebhooks as emitBulkDocumentWebhooksBase,
+  emitBulkIngestJobWebhooks as emitBulkIngestJobWebhooksBase,
   emitDocumentWebhook as emitDocumentWebhookBase,
   emitIngestJobWebhook as emitIngestJobWebhookBase,
 } from "@agentset/webhooks/server";
@@ -42,6 +43,32 @@ export const emitIngestJobWebhook = async ({
     triggerSendWebhook,
     trigger,
     ingestJob,
+  });
+};
+
+/**
+ * Emit webhooks for multiple ingest jobs in bulk (jobs context).
+ * Fetches webhooks once and sends to all matching ingest jobs.
+ */
+export const emitBulkIngestJobWebhooks = async ({
+  trigger,
+  ingestJobs,
+  organizationId,
+  namespaceId,
+}: {
+  trigger: IngestJobWebhookTrigger;
+  ingestJobs: IngestJobEventPayload[];
+  organizationId: string;
+  namespaceId?: string;
+}) => {
+  const db = getDb();
+  return emitBulkIngestJobWebhooksBase({
+    db,
+    triggerSendWebhook,
+    trigger,
+    ingestJobs,
+    organizationId,
+    namespaceId,
   });
 };
 
